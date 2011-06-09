@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.38 2011/06/02 19:50:43 dug9 Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
 
 ???
 
@@ -123,7 +123,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	char *ns;
 	char *os;
 	size_t len;
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+	// JASint eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	/* bounds checking */
 	if (unis == NULL) {

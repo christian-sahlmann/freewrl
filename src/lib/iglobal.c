@@ -43,15 +43,22 @@ void Component_Geometry3D_init(struct tComponent_Geometry3D *t);
 void Component_Geospatial_init(struct tComponent_Geospatial *t);
 void Component_HAnim_init(struct tComponent_HAnim *t);
 void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
+
 #ifdef OLDCODE
 OLDCODEvoid Component_Networking_init(struct tComponent_Networking *t);
 #endif
+
+#ifdef DJTRACK_PICKSENSORS
 void Component_Picking_init(struct tComponent_Picking *t);
+#endif
+
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
+
 #if !(defined(IPHONE) || defined(_ANDROID))
 void Component_Text_init(struct tComponent_Text *t);
 #endif
+
 void Component_VRML1_init(struct tComponent_VRML1 *t);
 void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
@@ -232,7 +239,7 @@ ttglobal gglobal()
 	{
 #ifdef AQUA
 		printf("ouch - no state for this thread -nglobalthreads %d looking for %p\n",nglobalthreads,pthread_self());
-return thread2global[0].thread;
+return thread2global[0].iglobal;
 
 #endif
 		printf("ouch - no state for this thread - hit a key to exit\n");

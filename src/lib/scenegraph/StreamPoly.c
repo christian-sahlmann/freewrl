@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.34 2011/06/07 23:52:30 dug9 Exp $
+$Id: StreamPoly.c,v 1.35 2011/06/09 21:07:12 crc_canada Exp $
 
 ???
 
@@ -96,9 +96,8 @@ void StreamPoly_init(struct tStreamPoly *t){
 	//public
 	//private
 	t->prv = StreamPoly_constructor();
-	{
-		ppStreamPoly p = (ppStreamPoly)t->prv;
-	}
+
+	// JAS {ppStreamPoly p = (ppStreamPoly)t->prv;}
 }
 //ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.50 2011/06/03 17:23:51 davejoubert Exp $
+$Id: internal.h,v 1.51 2011/06/09 21:07:12 crc_canada Exp $
 
 ???
 
@@ -487,7 +487,6 @@ void *freewrlStrdup(int line, char *file, char *str);
 #ifdef IPHONE
 #include <stddef.h>
 #define HAVE_BOOLEAN 1    
-#define M_PI acos(-1.0)
 #endif
 
 /* Move those to a better place: */

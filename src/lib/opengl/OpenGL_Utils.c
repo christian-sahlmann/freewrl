@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.205 2011/06/09 17:15:14 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.206 2011/06/09 21:07:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -171,9 +171,10 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->cc_alpha = 1.0f;
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);
-		p->FW_ModelView[MAX_LARGE_MATRIX_STACK];
-		p->FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
-		p->FW_TextureView[MAX_SMALL_MATRIX_STACK];
+		// LoadIdentity will initialize these
+		// JAS p->FW_ModelView[MAX_LARGE_MATRIX_STACK];
+		// JAS p->FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+		// JAS p->FW_TextureView[MAX_SMALL_MATRIX_STACK];
 		 
 		p->modelviewTOS = 0;
 		p->projectionviewTOS = 0;
@@ -393,7 +394,7 @@ static char *oneTexVertexShader = " \
 
 /* Geometry Shaders */
 
-static const char *noTexSphereGeomShader = " \
+static char *noTexSphereGeomShader = " \
 	\
 	int numLayers;\
 	\
@@ -466,7 +467,7 @@ static const char *noTexSphereGeomShader = " \
 		} \
 	 }";
 
-static const char *noAppearanceSphereGeomShader = " \
+static char *noAppearanceSphereGeomShader = " \
 	\
 	int numLayers;\
 	\
@@ -540,7 +541,7 @@ static const char *noAppearanceSphereGeomShader = " \
 	 }";
 
 /* simple texture shader for Sphere Geometry Shader */
-static const char *oneTexSphereGeomShader = " \
+static char *oneTexSphereGeomShader = " \
 	\
 	int numLayers;\
 	\
@@ -624,7 +625,7 @@ static const char *oneTexSphereGeomShader = " \
 
 
 
-static const char *phongFragmentShader =  " \
+static char *phongFragmentShader =  " \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -699,7 +700,7 @@ void main () { \
 
 
 
-static const char *phongTwoSidedFragmentShader =  " \
+static char *phongTwoSidedFragmentShader =  " \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -819,7 +820,7 @@ static char *noAppearanceNoMaterialVertexShader = " \
 /* noMaterialNoAppearance - just use the backgroundSphereShader */
 
 /* this is the same as the phongFragmentShader, but replace the diffuseColor with the v_color from the shape */
-static const char *phongFragmentColourShader =  " \
+static char *phongFragmentColourShader =  " \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -894,7 +895,7 @@ void main () { \
  " ;
 
 /* this is the same as the phongTwoSidedFragmentShader, but replace the diffuseColor with the v_color from the shape */
-static const char *phongTwoSidedFragmentColourShader =  " \
+static char *phongTwoSidedFragmentColourShader =  " \
 \
 struct fw_MaterialParameters { \
                 vec4 emission; \
@@ -1269,7 +1270,11 @@ static void getGenericShader(shader_type_t whichOne) {
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
+
+#ifndef GL_ES_VERSION_2_0
 	GLuint myGeometryShader=0;
+#endif
+
 	GLuint myProg = 0;
 	s_shader_capabilities_t *myShader;
 	char *vertexSource[2];

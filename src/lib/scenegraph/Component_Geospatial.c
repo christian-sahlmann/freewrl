@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.59 2011/06/09 03:48:26 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.60 2011/06/09 21:07:12 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1657,7 +1657,7 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 /************************************************************************/
 
 void compile_GeoLocation (struct X3D_GeoLocation * node) {
-	int i;
+	// JAS int i;
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE

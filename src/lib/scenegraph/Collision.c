@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.19 2011/06/07 14:17:03 dug9 Exp $
+$Id: Collision.c,v 1.20 2011/06/09 21:07:12 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -33,6 +33,9 @@ Render the children of nodes.
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
+#include <Viewer.h>
+#include <RenderFuncs.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

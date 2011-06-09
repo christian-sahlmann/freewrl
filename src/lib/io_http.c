@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.16 2011/06/02 19:50:43 dug9 Exp $
+  $Id: io_http.c,v 1.17 2011/06/09 21:07:12 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -62,7 +62,7 @@ void io_http_init(struct tio_http* t)
 {
 	//public
 	//private
-	ppio_http p;
+	//ppio_http p;
 	t->prv = io_http_constructor();
 	//p = (ppio_http)t->prv);
 }

@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.33 2011/06/02 19:50:49 dug9 Exp $
+  $Id: statusbar.c,v 1.34 2011/06/09 21:07:12 crc_canada Exp $
 
 */
 
@@ -97,11 +97,11 @@ void setup_projection(int pick, int x, int y)
 	GLsizei screenwidth2 = tg->display.screenWidth;
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	GLint xvp = 0;
-	if(Viewer.sidebyside) 
+	if(Viewer()->sidebyside) 
 	{
 		screenwidth2 = (int)((screenwidth2 * .5)+.5);
 		aspect2 = aspect2 * .5;
-		if(Viewer.iside == 1) xvp = (GLint)screenwidth2;
+		if(Viewer()->iside == 1) xvp = (GLint)screenwidth2;
 	}
 
         FW_GL_MATRIX_MODE(GL_PROJECTION);
@@ -109,9 +109,9 @@ void setup_projection(int pick, int x, int y)
         FW_GL_LOAD_IDENTITY();
 
         /* bounds check */
-        if ((Viewer.fieldofview <= 0.0) || (Viewer.fieldofview > 180.0)) Viewer.fieldofview=45.0;
+        if ((Viewer()->fieldofview <= 0.0) || (Viewer()->fieldofview > 180.0)) Viewer()->fieldofview=45.0;
         /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
-        FW_GLU_PERSPECTIVE(Viewer.fieldofview, aspect2, Viewer.nearPlane, Viewer.farPlane); 
+        FW_GLU_PERSPECTIVE(Viewer()->fieldofview, aspect2, Viewer()->nearPlane, Viewer()->farPlane); 
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");

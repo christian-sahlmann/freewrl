@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.28 2011/06/07 22:45:27 dug9 Exp $
+$Id: Component_CubeMapTexturing.c,v 1.29 2011/06/09 21:07:12 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -378,6 +378,8 @@ printf ("put in the dummy file here, and call it quits\n");
 	}
 	FREE_IF_NZ(buffer);
 	return FALSE;
+#else
+    return FALSE;
 #endif /* IPHONE */
 }
 
@@ -450,7 +452,7 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 /* textures - we have got a png (jpeg, etc) file with a cubemap in it; eg, see:
 	http://en.wikipedia.org/wiki/Cube_mapping
 */
-
+#if !defined(IPHONE) && !defined(_ANDROID)
 	/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
 static int offsets[]={
 	1,2,	/* right 	*/
@@ -459,6 +461,7 @@ static int offsets[]={
 	0,1,	/* bottom	*/
 	1,1,	/* back		*/
 	1,3};	/* front	*/
+#endif //IPHONE ANDROID
 
 /* or:
 	--	Top	--	--

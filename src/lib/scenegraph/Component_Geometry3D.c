@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.69 2011/06/07 20:00:59 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.70 2011/06/09 21:07:12 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -79,9 +79,7 @@ void Component_Geometry3D_init(struct tComponent_Geometry3D *t){
 	//public
 	//private
 	t->prv = Component_Geometry3D_constructor();
-	{
-		ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;
-	}
+	// JAS {ppComponent_Geometry3D p = (ppComponent_Geometry3D)t->prv;}
 }
 //ppComponent_Geometry3D p = (ppComponent_Geometry3D)gglobal()->Component_Geometry3D.prv;
 
@@ -717,9 +715,13 @@ void compile_Cone (struct X3D_Cone *node) {
 }
 
 void render_Cone (struct X3D_Cone *node) {
+#if !(defined(IPHONE) || defined(_ANDROID))
 	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
-	extern float tribottex[];		/*  in CFuncs/statics.c*/
 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
+#endif
+
+    extern float tribottex[];		/*  in CFuncs/statics.c*/
+    
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
@@ -1967,8 +1969,11 @@ void collisionCone_init(struct X3D_Cone *node)
 	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFVec3f *pts;// = node->__botpoints;
+    	
+#if !defined(IPHONE) && !defined(_ANDROID)
 	extern unsigned char tribotindx[];
-	
+#endif	
+
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
 
 		my understanding: 
@@ -2808,7 +2813,7 @@ void rendray_Cone (struct X3D_Cone *node) {
 	tmp = (float)((0.5-t_r1.y/(2*h)));
 	c = (float)(t_r1.x * t_r1.x + t_r1.z * t_r1.z)
 		- r*r*tmp*tmp;
-	und;
+	
 	b /= a; c /= a;
 	und = b*b - 4*c;
 	/*

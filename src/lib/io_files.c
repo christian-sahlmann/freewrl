@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.38 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: io_files.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -363,7 +363,7 @@ static openned_file_t* load_file_read(const char *filename)
 #ifdef FRONTEND_GETS_FILES
 static char *fileText = NULL;
 static char *fileName = NULL;
-static frontend_return_status = 0;
+static int frontend_return_status = 0;
 static char *localFile = NULL;
 static int fileSize = 0;
 
@@ -390,7 +390,7 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
     /* note the "+1" ....*/
-	fileText = MALLOC (unsigned char *, len+1);
+	fileText = MALLOC (char *, len+1);
 	memcpy (fileText, dataPointer, len);
 	fileSize = len;
     
@@ -453,7 +453,7 @@ openned_file_t* load_file(const char *filename)
 	FREE_IF_NZ(fileText);
 	FREE_IF_NZ(fileName);
 
-	fileName = filename;
+	fileName = (char *)filename;
 
 	WAIT_FOR_FILE_SIGNAL
 
@@ -463,7 +463,7 @@ openned_file_t* load_file(const char *filename)
 	else if(frontend_return_status == -1)
 		return NULL;
 	else
-		return create_openned_file(filename, NULL, fileSize, fileText);
+		return create_openned_file(filename, -1, fileSize, fileText);
 #endif
 
 

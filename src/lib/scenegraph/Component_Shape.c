@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.89 2011/06/08 19:52:19 crc_canada Exp $
+$Id: Component_Shape.c,v 1.90 2011/06/09 21:07:12 crc_canada Exp $
 
 X3D Shape Component
 
@@ -648,9 +648,10 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 
 /* find info on the geometry of this shape */
 static int getGeometryShader (struct X3D_Node *myGeom) {
-	struct X3D_Node *realNode;
-	#ifdef HAVE_GEOMETRY_SHADERS
 
+	#ifdef HAVE_GEOMETRY_SHADERS
+	struct X3D_Node *realNode;
+    
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
 	if (realNode == NULL) return NO_GEOM_SHADER;
@@ -850,11 +851,12 @@ default: {printf ("no ascii equiv\n");}
 #ifdef SHADERS_2011
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
-	int i;
-	float dcol[4];
-	float ecol[4];
-	float scol[4];
-	float amb;
+	// JAS int i;
+	// JAS float dcol[4];
+	// JAS float ecol[4];
+	// JAS float scol[4];
+	// JAS float amb;
+    
 	ppComponent_Shape p;
         ttglobal tg = gglobal();
 
