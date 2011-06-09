@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.52 2011/04/12 19:26:44 crc_canada Exp $
+$Id: CProto.c,v 1.53 2011/06/09 18:10:32 dug9 Exp $
 
 CProto ???
 
@@ -121,8 +121,32 @@ static struct PointerHash* newPointerHash();
 static void pointerHash_add(struct PointerHash* me, struct X3D_Node* o, struct X3D_Node* c);
 
 /* internal sequence number for protos */
-static  indexT latest_protoDefNumber =1;
-static  indexT nextFabricatedDef=1;
+//static  indexT latest_protoDefNumber =1;
+//static  indexT nextFabricatedDef=1; 
+
+typedef struct pCProto{
+	indexT latest_protoDefNumber;// =1;
+	indexT nextFabricatedDef;//=1; 
+	struct Vector *protoDefVec;// = NULL;
+}* ppCProto;
+void *CProto_constructor(){
+	void *v = malloc(sizeof(struct pCProto));
+	memset(v,0,sizeof(struct pCProto));
+	return v;
+}
+void CProto_init(struct tCProto *t){
+	//public
+	//private
+	t->prv = CProto_constructor();
+	{
+		ppCProto p = (ppCProto)t->prv;
+		p->latest_protoDefNumber =1;
+		p->nextFabricatedDef=1; 
+		p->protoDefVec = NULL;
+
+	}
+}
+//ppCProto p = (ppCProto)gglobal()->CProto.prv;
 
 /* ************************************************************************** */
 /* ************************** ProtoElementPointer *************************** */
@@ -187,7 +211,10 @@ struct ProtoDefinition* newProtoDefinition()
   * forget to mimic any changes to this method there, too!
   */
 
- struct ProtoDefinition* ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
+ struct ProtoDefinition* ret; 
+ ppCProto p = (ppCProto)gglobal()->CProto.prv;
+ 
+ ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
  ASSERT(ret);
 
  /* printf("creating new ProtoDefinition %u\n", ret);  */
@@ -204,7 +231,7 @@ struct ProtoDefinition* newProtoDefinition()
 
 
 
- ret->protoDefNumber = latest_protoDefNumber++;
+ ret->protoDefNumber = p->latest_protoDefNumber++;
  ret->estimatedBodyLen = 0;
  ret->protoName = NULL;
  ret->isCopy = FALSE;
@@ -238,8 +265,11 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 /* Copies the PROTO */
 static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
-	struct ProtoDefinition* ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
+	struct ProtoDefinition* ret; 
 	size_t i;
+	ppCProto p = (ppCProto)gglobal()->CProto.prv;
+
+	ret=MALLOC(struct ProtoDefinition*, sizeof(struct ProtoDefinition));
 
 	ASSERT(ret);
 
@@ -256,7 +286,7 @@ static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struc
 	ret->isCopy = TRUE;
 	
  	ret->estimatedBodyLen = me->estimatedBodyLen;
-	ret->protoDefNumber = latest_protoDefNumber++;
+	ret->protoDefNumber = p->latest_protoDefNumber++;
 	if (me->protoName) ret->protoName = STRDUP(me->protoName);
 
 	return ret;
@@ -886,6 +916,8 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	struct ProtoElementPointer* tD;
 	int toPush;
 	int index; 	/* needs to go negative, so can not do indexT */
+	ppCProto p = (ppCProto)gglobal()->CProto.prv;
+
 	indexT ct = 0;
 
 	/* remove spaces at start of string, to help to see if string is empty */
@@ -1569,43 +1601,47 @@ index here.
 
 ******************************************************************************/
 
-static struct Vector *protoDefVec = NULL;
+//static struct Vector *protoDefVec = NULL;
 struct protoInsert {
 		struct ProtoDefinition *vrmlProtoDef;
 		int xmlProtoDef;
 };
 
 int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd) {
-	struct protoInsert *npd = MALLOC(struct protoInsert *, sizeof (struct protoInsert));
+	struct protoInsert *npd; 
+	ppCProto p = (ppCProto)gglobal()->CProto.prv;
+	
+	npd = MALLOC(struct protoInsert *, sizeof (struct protoInsert));
 
 	npd->vrmlProtoDef = vrmlpd;
 	npd->xmlProtoDef = xmlpd;
 
 
-	if (protoDefVec == NULL) {
-		protoDefVec = newVector(struct protoInsert *, 16);
+	if (p->protoDefVec == NULL) {
+		p->protoDefVec = newVector(struct protoInsert *, 16);
 	}
-	vector_pushBack (struct protoInsert*,protoDefVec, npd);	
+	vector_pushBack (struct protoInsert*,p->protoDefVec, npd);	
 
 	/* printf ("newProtoDefinitionPointer, have vrmlpd %u and xmlpd %d\n",vrmlpd,xmlpd);
 	printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
 
-	return (int) (vector_size(protoDefVec)-1);
+	return (int) (vector_size(p->protoDefVec)-1);
 }
 
 struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 	struct protoInsert *npd;
 	int mpd;
+	ppCProto p = (ppCProto)gglobal()->CProto.prv;
 
 	mpd = me->FreeWRL__protoDef;
 
 	/* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
 	if (mpd == INT_ID_UNDEFINED) return NULL;
-	if (mpd >= vector_size(protoDefVec)) {
-		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vector_size(protoDefVec));
+	if (mpd >= vector_size(p->protoDefVec)) {
+		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vector_size(p->protoDefVec));
 		return NULL;
 	}
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
-	npd = vector_get(struct protoInsert*,protoDefVec,mpd);
+	npd = vector_get(struct protoInsert*,p->protoDefVec,mpd);
 	return npd->vrmlProtoDef;
 }

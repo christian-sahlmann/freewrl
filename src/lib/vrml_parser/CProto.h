@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.15 2010/04/15 16:52:06 crc_canada Exp $
+$Id: CProto.h,v 1.16 2011/06/09 18:10:32 dug9 Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -60,7 +60,7 @@ struct ProtoElementPointer
  {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
 
 #define ASSIGN_UNIQUE_ID(me) \
-	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }
+	{me->fabricatedDef = p->nextFabricatedDef; p->nextFabricatedDef ++; }
 
 #define FABRICATED_DEF_HEADER "fReEwEL_fAbricatio_dEF_" /* hopefully quite unique! */
 
