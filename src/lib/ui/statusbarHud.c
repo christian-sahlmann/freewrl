@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.29 2011/06/09 03:48:26 dug9 Exp $
+  $Id: statusbarHud.c,v 1.30 2011/06/09 16:40:48 dug9 Exp $
 
 */
 
@@ -754,8 +754,113 @@ GLubyte fwLetters8x15[][22] = {
 /* <<< bitmap fonts */
 
 typedef struct {int x; int y;} XY;
-GLuint fwFontOffset[3];
-XY fwFontSize[3];
+//GLuint fwFontOffset[3];
+//XY fwFontSize[3];
+#include <list.h>
+//static int showConText = 0;
+//s_list_t *conlist;
+//int concount;
+
+//static int loopcount = 0;
+////extern int clipPlane;
+//static int hadString = 0;
+//
+//int showButtons =0;
+#define mbuts 11
+//int nbuts = mbuts;
+//int butrect[4][mbuts];
+//int butStatus[mbuts];
+//textureTableIndexStruct_s butts[mbuts][2];
+char * butFnames[mbuts] = {"walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png"};//"flyEx.png",
+//GLubyte *bmIcon[mbuts]; 
+//int butsLoaded = 0;
+//int isOver = -1;
+//int iconSize = 32;
+//int buttonType = 1; /* 0 = rgba .png 1= .c bitmap (see above) */
+//int savePng2dotc = 0; /* if you read png and want to save to a bitmap .c struct, put 1 */
+////bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
+
+#define STATUS_LEN 2000
+
+typedef struct pstatusbar{
+	int loopcount;// = 0;
+	int hadString;// = 0;
+
+	int showButtons;// =0;
+	int nbuts;// = mbuts;
+	int butrect[4][mbuts];
+	int butStatus[mbuts];
+	textureTableIndexStruct_s butts[mbuts][2];
+	GLubyte *bmIcon[mbuts]; 
+	int butsLoaded;// = 0;
+	int isOver;// = -1;
+	int iconSize;// = 32;
+	int buttonType;// = 1; /* 0 = rgba .png 1= .c bitmap (see above) */
+	int savePng2dotc;// = 0; /* if you read png and want to save to a bitmap .c struct, put 1 */
+	int showConText;// = 0;
+	s_list_t *conlist;
+	int concount;
+	int fontInitialized;// = 0;
+	GLuint fwFontOffset[3];
+	XY fwFontSize[3];
+	int sb_hasString;// = FALSE;
+	struct Uni_String *myline;
+	char buffer[200];
+	char messagebar[200];
+	int bmfontsize;// = 2; /* 0,1 or 2 */
+	int optionsLoaded;// = 0;
+	char * optionsVal[15];
+	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
+	int showOptions;// =0;
+	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
+
+}* ppstatusbar;
+void *statusbar_constructor(){
+	void *v = malloc(sizeof(struct pstatusbar));
+	memset(v,0,sizeof(struct pstatusbar));
+	return v;
+}
+void statusbar_init(struct tstatusbar *t){
+	//public
+	//private
+	t->prv = statusbar_constructor();
+	{
+		ppstatusbar p = (ppstatusbar)t->prv;
+		p->loopcount = 0;
+		p->hadString = 0;
+
+		p->showButtons =0;
+		p->nbuts = mbuts;
+		//p->butrect[4][mbuts];
+		//p->butStatus[mbuts];
+		//p->butts[mbuts][2];
+		//p->bmIcon[mbuts]; 
+		p->butsLoaded = 0;
+		p->isOver = -1;
+		p->iconSize = 32;
+		p->buttonType = 1; /* 0 = rgba .png 1= .c bitmap (see above) */
+		p->savePng2dotc = 0; /* if you read png and want to save to a bitmap .c struct, put 1 */
+		p->showConText = 0;
+		//p->conlist;
+		//p->concount;
+		p->fontInitialized = 0;
+		//p->fwFontOffset[3];
+		//p->fwFontSize[3];
+		p->sb_hasString = FALSE;
+		//p->myline;
+		//p->buffer[200];
+		//p->messagebar[200];
+		p->bmfontsize = 2; /* 0,1 or 2 */
+		p->optionsLoaded = 0;
+		//p->optionsVal[15];
+		p->osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
+		p->showOptions =0;
+		p->bmWH.x = 10;
+		p->bmWH.y = 15; //{10,15}; /* simple bitmap font from redbook above, width and height in pixels */
+
+	}
+}
+//ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
 void fwMakeRasterFonts()
 {
@@ -764,6 +869,7 @@ void fwMakeRasterFonts()
 	GLuint fwFontOffset7x12;
 	GLuint fwFontOffset7x14;
 	GLuint fwFontOffset8x15;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
    FW_GL_PIXELSTOREI(GL_UNPACK_ALIGNMENT, 1);
    fwFontOffset7x12 = glGenLists (128);
@@ -802,50 +908,59 @@ void fwMakeRasterFonts()
 		   &fwLetters8x15[i][7]);
 	   FW_GL_ENDLIST();
    }
-   fwFontOffset[0] = fwFontOffset7x12;
-   fwFontOffset[1] = fwFontOffset7x14;
-   fwFontOffset[2] = fwFontOffset8x15;
-   fwFontSize[0].x = 7;
-   fwFontSize[0].y = 12;
-   fwFontSize[1].x = 7;
-   fwFontSize[1].y = 14;
-   fwFontSize[2].x = 8;
-   fwFontSize[2].y = 15;
+   p->fwFontOffset[0] = fwFontOffset7x12;
+   p->fwFontOffset[1] = fwFontOffset7x14;
+   p->fwFontOffset[2] = fwFontOffset8x15;
+   p->fwFontSize[0].x = 7;
+   p->fwFontSize[0].y = 12;
+   p->fwFontSize[1].x = 7;
+   p->fwFontSize[1].y = 14;
+   p->fwFontSize[2].x = 8;
+   p->fwFontSize[2].y = 15;
+
 }
 
-static int fontInitialized = 0;
-XY bmWH = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
+//static int fontInitialized = 0;
+//XY bmWH = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 
 void initFont(void)
 {
 	/*initialize raster bitmap font above */
   // FW_GL_SHADEMODEL (GL_FLAT);
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
    fwMakeRasterFonts();
-   fontInitialized = 1;
+   p->fontInitialized = 1;
 }
-int bmfontsize = 2; /* 0,1 or 2 */
+//int bmfontsize = 2; /* 0,1 or 2 */
 void printString(char *s)
 {
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
    FW_GL_PUSH_ATTRIB(GL_LIST_BIT);
-   FW_GL_LISTBASE(fwFontOffset[bmfontsize]);
-   bmWH.x = fwFontSize[bmfontsize].x;
-   bmWH.y = fwFontSize[bmfontsize].y;
+   FW_GL_LISTBASE(p->fwFontOffset[p->bmfontsize]);
+   p->bmWH.x = p->fwFontSize[p->bmfontsize].x;
+   p->bmWH.y = p->fwFontSize[p->bmfontsize].y;
    FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
    FW_GL_POP_ATTRIB();
 }
 
-static int sb_hasString = FALSE;
-static struct Uni_String *myline;
-
-static char buffer[200];
+//static int sb_hasString = FALSE;
+//static struct Uni_String *myline;
+//
+//static char buffer[200];
+//
+//#define STATUS_LEN 2000
+//char messagebar[200];
 void render_init(void);
-
-#define STATUS_LEN 2000
-char messagebar[200];
 void setMessageBar()
 {
-	sprintf(&messagebar[0],"%10f",gglobal()->display.myFps);
-	sprintf(&messagebar[15],"%s",gglobal()->display.myMenuStatus);
+	ppstatusbar p; 
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
+	sprintf(&p->messagebar[0],"%10f",tg->display.myFps);
+	sprintf(&p->messagebar[15],"%s",tg->display.myMenuStatus);
 }
 void setMenuStatus(char *stat) {
     strncpy (gglobal()->display.myMenuStatus, stat, MAXSTAT);
@@ -860,17 +975,20 @@ void setMenuFps (float fps) {
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
 	/* hopefully, by this time, rendering has been stopped */
-	sb_hasString = FALSE;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
+	p->sb_hasString = FALSE;
 }
 
 
 /* trigger a update */
 void update_status(char* msg) {
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
-	if (msg==NULL) sb_hasString = FALSE;
+	if (msg==NULL) p->sb_hasString = FALSE;
 	else {
-		sb_hasString = TRUE;
-		strcpy (buffer,msg);
+		p->sb_hasString = TRUE;
+		strcpy (p->buffer,msg);
 	}
 }
 
@@ -894,8 +1012,8 @@ char * optionsText[15] = {
 "Toe In",
 "<       >"
 };
-int optionsLoaded = 0;
-char * optionsVal[15];
+//int optionsLoaded = 0;
+//char * optionsVal[15];
 void setOptionsVal()
 {
 }
@@ -903,25 +1021,29 @@ static char * RGBACM = "RGBACM";
 void initOptionsVal()
 {
 	int i,j;
+	X3D_Viewer *viewer;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	viewer = Viewer();
+
 	for(i=0;i<lenOptions;i++)
 	{
-		optionsVal[i] = (char*)malloc(8);
-		for(j=0;j<8;j++) optionsVal[i][j] = ' ';
-		optionsVal[i][7] = '\0';
+		p->optionsVal[i] = (char*)malloc(8);
+		for(j=0;j<8;j++) p->optionsVal[i][j] = ' ';
+		p->optionsVal[i][7] = '\0';
 	}
-	if(fwl_getp_eai()) optionsVal[0][0] = '*';
-	if(Viewer()->shutterGlasses) optionsVal[2][0] = '*';
-	if(Viewer()->sidebyside) optionsVal[3][0] = '*';
-	if(Viewer()->anaglyph) optionsVal[4][0] = '*';
+	if(fwl_getp_eai()) p->optionsVal[0][0] = '*';
+	if(viewer->shutterGlasses) p->optionsVal[2][0] = '*';
+	if(viewer->sidebyside) p->optionsVal[3][0] = '*';
+	if(viewer->anaglyph) p->optionsVal[4][0] = '*';
 	// Q. what / which can I rely on for the anaglyph color or index?
 	// A. Viewer.iprog[iside={0,1}] = 0-5 for RGBACM  
-	optionsVal[7][Viewer()->iprog[0]+1] = RGBACM[Viewer()->iprog[0]]; //'R';
-	optionsVal[8][Viewer()->iprog[1]+1] = RGBACM[Viewer()->iprog[1]]; //'G';
-	sprintf(optionsVal[10],"  %4.3f",Viewer()->eyedist); //.eyebase); //.060f);
-	sprintf(optionsVal[12],"  %4.3f",Viewer()->screendist); //.6f);
-	sprintf(optionsVal[14],"  %4.3f",Viewer()->stereoParameter); //.toein.4f);
+	p->optionsVal[7][viewer->iprog[0]+1] = RGBACM[viewer->iprog[0]]; //'R';
+	p->optionsVal[8][viewer->iprog[1]+1] = RGBACM[viewer->iprog[1]]; //'G';
+	sprintf(p->optionsVal[10],"  %4.3f",viewer->eyedist); //.eyebase); //.060f);
+	sprintf(p->optionsVal[12],"  %4.3f",viewer->screendist); //.6f);
+	sprintf(p->optionsVal[14],"  %4.3f",viewer->stereoParameter); //.toein.4f);
 
-	optionsLoaded = 1;
+	p->optionsLoaded = 1;
 }
 void updateOptionsVal()
 {
@@ -958,28 +1080,39 @@ XY mouse2screen(int x, int y)
 XY screen2text(int x, int y)
 {
 	XY rc;
-	rc.x = x/bmWH.x; //10; 
-	rc.y = (int)((gglobal()->display.screenHeight -y)/bmWH.y); //15.0 ); 
+	ppstatusbar p; 
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
+	rc.x = x/p->bmWH.x; //10; 
+	rc.y = (int)((tg->display.screenHeight -y)/p->bmWH.y); //15.0 ); 
 	return rc;
 }
 XY text2screen( int col, int row)
 {
 	XY xy;
-	xy.x = col*bmWH.x; //10; 
-	xy.y = gglobal()->display.screenHeight - (row+1)*bmWH.y; //15;
+	ppstatusbar p; 
+	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
+	xy.x = col*p->bmWH.x; //10; 
+	xy.y = tg->display.screenHeight - (row+1)*p->bmWH.y; //15;
 	return xy;
 }
 void printTextCursor()
 {
 	XY sxy,txy,cxy;
 	float rgba[4];
+	ppstatusbar p; 
 	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
 	sxy = mouse2screen(tg->Mainloop.currentX[0],tg->Mainloop.currentY[0]);
 	txy = screen2text(sxy.x,sxy.y);
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
 	FW_GL_WINDOWPOS2I(cxy.x,cxy.y);
-	FW_GL_PIXELZOOM(bmWH.x,bmWH.y); 
+	FW_GL_PIXELZOOM(p->bmWH.x,p->bmWH.y); 
 	FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 	//restore
 	FW_GL_PIXELZOOM(1.0f,1.0f);
@@ -988,22 +1121,24 @@ void printTextCursor()
 void printOptions()
 {
 	int j; 
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
 	printTextCursor();
-	if(!optionsLoaded) initOptionsVal();
+	if(!p->optionsLoaded) initOptionsVal();
 	updateOptionsVal(); //ideally we would be stateless in the hud, let Viewer hold state, that way other gui/shortcuts can be used
 
 	for(j=0;j<lenOptions;j++)
 	{
 		XY xy = text2screen(0,j);
 		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
-		printString(optionsVal[j]);  /* "  0.050  " */
+		printString(p->optionsVal[j]);  /* "  0.050  " */
 		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
 		printString(optionsText[j]); /* "<       >" */
 	}
 }
 
 //extern int showOptions;
-int showOptions =0;
+//int showOptions =0;
 void handleOptionPress()
 {
 	/* general idea: we don't update the hud/option state here - just the Viewer state - then 
@@ -1012,7 +1147,10 @@ void handleOptionPress()
 	int i,opt;
 	XY xys;
 	XY xyt;
+	X3D_Viewer *viewer;
 	ttglobal tg = gglobal();
+	viewer = Viewer();
+
 	xys = mouse2screen(tg->Mainloop.currentX[0],tg->Mainloop.currentY[0]);
 	xyt = screen2text(xys.x,xys.y);
 	opt = ' ';
@@ -1059,7 +1197,7 @@ void handleOptionPress()
 	case '5': {
 		/* eyebase */
 		printf("reduce eyebase");
-		Viewer()->eyedist *= .9;
+		viewer->eyedist *= .9;
 		updateEyehalf();
 		break;}
 	case '6': {
@@ -1070,13 +1208,13 @@ void handleOptionPress()
 	case '7': {
 		/* eyebase */
 		printf("increase eyebase");
-		Viewer()->eyedist *= 1.1;
+		viewer->eyedist *= 1.1;
 		updateEyehalf();
 		break;}
 	case 'D': {
 		/* screendist */
 		printf("reduce screendist");
-		Viewer()->screendist *= .9;
+		viewer->screendist *= .9;
 		updateEyehalf();
 		break;}
 	case 'E': {
@@ -1086,13 +1224,13 @@ void handleOptionPress()
 	case 'F': {
 		/* screendist */
 		printf("increase screendist");
-		Viewer()->screendist *= 1.1;
+		viewer->screendist *= 1.1;
 		updateEyehalf();
 		break;}
 	case 'H': {
 		/* toein */
 		printf("reduce toe-in");
-		Viewer()->stereoParameter *= .9;
+		viewer->stereoParameter *= .9;
 		updateEyehalf();
 		break;}
 	case 'I': {
@@ -1102,7 +1240,7 @@ void handleOptionPress()
 	case 'J': {
 		/* toein */
 		printf("increase toe-in");
-		Viewer()->stereoParameter *= 1.1;
+		viewer->stereoParameter *= 1.1;
 		updateEyehalf();
 		break;}
 	default: {break;}
@@ -1112,7 +1250,7 @@ void handleOptionPress()
 
 
 
-int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
+//int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 int lenhelp = 27;
 char * keyboardShortcutHelp[27] = {
 "EXAMINE Mode",
@@ -1153,10 +1291,6 @@ void printKeyboardHelp()
 		printString(keyboardShortcutHelp[j]); 
 	}
 }
-#include <list.h>
-static int showConText = 0;
-s_list_t *conlist;
-int concount;
 
 void hudSetConsoleMessage(char *buffer)
 {
@@ -1164,21 +1298,23 @@ void hudSetConsoleMessage(char *buffer)
 	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
 	char *buffer2, *line, *ln, *buf;
 	int linelen;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
 	int len = strlen(buffer)+1;
 	buffer2 = malloc(len);
 	strncpy(buffer2,buffer,len);
 	/* rule: if you have a \n at the end of your buffer, 
 	then leave here on a new line, else we'll append to your last line*/
-	if(!conlist)
+	if(!p->conlist)
 	{
 		line = malloc(2);
 		line[0] = '\0';
 		last = ml_new(line);
-		conlist = last;
-		concount = 1;
+		p->conlist = last;
+		p->concount = 1;
 	}
 	else
-		last = ml_last(conlist);
+		last = ml_last(p->conlist);
 	line = last->elem;
 	linelen = strlen(line);
 	buf = buffer2;
@@ -1202,14 +1338,14 @@ void hudSetConsoleMessage(char *buffer)
 			line[0] = '\0';
 			linelen = strlen(line);
 			last = ml_new(line);
-			ml_append(conlist,last);
-			concount++;
-			if( concount > 50 ) // > MAXMESSAGES number of scrolling lines
+			ml_append(p->conlist,last);
+			p->concount++;
+			if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
 			{
 				s_list_t* temp;
-				free((char*)conlist->elem);
-				conlist = ml_delete_self(conlist, conlist); /*delete from top*/
-				concount--;
+				free((char*)p->conlist->elem);
+				p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
+				p->concount--;
 			}
 		}
 	}while(ln);
@@ -1223,14 +1359,16 @@ void printConsoleText()
 	char* buf;
 	int j = 0;
 	XY xybottom;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
 	jstart = j;
 	{
 		s_list_t *__l;
 		s_list_t *next;
-		s_list_t *_list = conlist;
+		s_list_t *_list = p->conlist;
 		/* lets keep the scrolling text from touching the bottom of the screen */
 		xybottom = screen2text(0,0); 
-		jstart = max(0,concount-(xybottom.y - 3)); /* keep it 3 lines off the bottom */
+		jstart = max(0,p->concount-(xybottom.y - 3)); /* keep it 3 lines off the bottom */
 		for(__l=_list;__l!=NULL;) 
 		{
 			next = ml_next(__l); /* we need to get next from __l before action deletes element */ 
@@ -1246,89 +1384,73 @@ void printConsoleText()
 		}
 	}
 }
-static int loopcount = 0;
-//extern int clipPlane;
-static int hadString = 0;
-
-int showButtons =0;
-#define mbuts 11
-int nbuts = mbuts;
-int butrect[4][mbuts];
-int butStatus[mbuts];
-textureTableIndexStruct_s butts[mbuts][2];
-char * butFnames[mbuts] = {"walk.png","fly.png","examine.png","level.png","headlight.png","collision.png","prev.png","next.png","help.png","messages.png","options.png"};//"flyEx.png",
-GLubyte *bmIcon[mbuts]; 
-int butsLoaded = 0;
-int isOver = -1;
-int iconSize = 32;
-int buttonType = 1; /* 0 = rgba .png 1= .c bitmap (see above) */
-int savePng2dotc = 0; /* if you read png and want to save to a bitmap .c struct, put 1 */
-//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 
 void initButtons()
 {
 	/* first time renderButtons() is called, this is called to load the button icons */
 	int i;
-	for(i=0;i<nbuts;i++)
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
+	for(i=0;i<p->nbuts;i++)
 	{
 		/* compute the statusbar layout rectangles assuming 64x64 icons scaled by .5 to 32x32 */
-		butrect[0][i] = 5+(i*32);   /* lower left  x */
-		butrect[1][i] = 0;				/* lower left  y */
-		butrect[2][i] = 5+(i*32)+32;/* upper right x */
-		butrect[3][i] = 32;				/* upper right y */
+		p->butrect[0][i] = 5+(i*32);   /* lower left  x */
+		p->butrect[1][i] = 0;				/* lower left  y */
+		p->butrect[2][i] = 5+(i*32)+32;/* upper right x */
+		p->butrect[3][i] = 32;				/* upper right y */
 	}
-	if(buttonType ==0)
+	if(p->buttonType ==0)
 	{
 		/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
-		for(i=0;i<nbuts;i++)
-		  texture_load_from_file(&butts[i][0], butFnames[i]);
+		for(i=0;i<p->nbuts;i++)
+		  texture_load_from_file(&p->butts[i][0], butFnames[i]);
 		//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
-		for(i=0;i<nbuts;i++)
+		for(i=0;i<p->nbuts;i++)
 		{
 			/* compute grayed out (non active) versions */
 			int j,k,l,w,h,g,size;
-			w = butts[i][0].x;
-			h = butts[i][0].y;
+			w = p->butts[i][0].x;
+			h = p->butts[i][0].y;
 			size = w * h * 4;
-			iconSize = w;
-			butts[i][1].texdata = malloc(size);
-			memcpy(butts[i][1].texdata,butts[i][0].texdata,size);
-			for(j=0;j<butts[i][0].x;j++)
-				for(k=0;k<butts[i][0].y;k++)
+			p->iconSize = w;
+			p->butts[i][1].texdata = malloc(size);
+			memcpy(p->butts[i][1].texdata,p->butts[i][0].texdata,size);
+			for(j=0;j<p->butts[i][0].x;j++)
+				for(k=0;k<p->butts[i][0].y;k++)
 				{
 					g = 0;
 					for(l=0;l<3;l++)
-						g = g + butts[i][0].texdata[j*w*4 + k*4 + l];
+						g = g + p->butts[i][0].texdata[j*w*4 + k*4 + l];
 					g = g / 3;
 					for(l=0;l<3;l++)
-						butts[i][0].texdata[j*w*4 + k*4 + l] = g;
+						p->butts[i][0].texdata[j*w*4 + k*4 + l] = g;
 				}
 		}
 	
-		if( savePng2dotc )
+		if( p->savePng2dotc )
 		{
 			/* write rgba out as binary bitmap in .c struct format for inclusion above */
 			FILE* out = fopen("buttons_c","w+");
-			for(i=0;i<nbuts;i++)
+			for(i=0;i<p->nbuts;i++)
 			{
 				int j,k,l,m,w,h,g,size;
 				unsigned char row, a, bit;
-				w = butts[i][0].x;
-				h = butts[i][0].y;
+				w = p->butts[i][0].x;
+				h = p->butts[i][0].y;
 				size = w * h * 4;
 				fprintf(out,"GLubyte %s[] = {\n",butFnames[i]); 
-				for(j=0;j<butts[i][0].y;j++)
+				for(j=0;j<p->butts[i][0].y;j++)
 				{
-					for(k=0;k<butts[i][0].x;k+=8)
+					for(k=0;k<p->butts[i][0].x;k+=8)
 					{
 						row = 0;
 						for(m=0;m<8;m++)
 						{
 							g = 0;
 							for(l=0;l<3;l++)
-								g = g + butts[i][0].texdata[j*w*4 + (k+m)*4 + l];
+								g = g + p->butts[i][0].texdata[j*w*4 + (k+m)*4 + l];
 							g = g / 3;
-							a = butts[i][0].texdata[j*w*4 + (k+m)*4 + 3];
+							a = p->butts[i][0].texdata[j*w*4 + (k+m)*4 + 3];
 							bit = 0;
 							if( a > 127 ) //(float)a/256.0f > .5 ) //simple thresholding at .5 on the alpha channel
 								bit = 1;
@@ -1343,46 +1465,54 @@ void initButtons()
 			fclose(out);
 		}
 	}
-	else if(buttonType == 1)
+	else if(p->buttonType == 1)
 	{
-		bmIcon[0] = walk;
-		bmIcon[1] = fly;
-		bmIcon[2] = examine;
-		bmIcon[3] = level;
-		bmIcon[4] = headlight;
-		bmIcon[5] = collision;
-		bmIcon[6] = prev;
-		bmIcon[7] = next;
-		bmIcon[8] = help;
-		bmIcon[9] = messages;
-		bmIcon[10] = options;
-		//bmIcon[2] = flyex;
+		p->bmIcon[0] = walk;
+		p->bmIcon[1] = fly;
+		p->bmIcon[2] = examine;
+		p->bmIcon[3] = level;
+		p->bmIcon[4] = headlight;
+		p->bmIcon[5] = collision;
+		p->bmIcon[6] = prev;
+		p->bmIcon[7] = next;
+		p->bmIcon[8] = help;
+		p->bmIcon[9] = messages;
+		p->bmIcon[10] = options;
+		//p->bmIcon[2] = flyex;
 
 	}
 
-	butsLoaded = 1;
+	p->butsLoaded = 1;
 }
 /* the following setMenuButton_ were defined for some other front end and called from various locations
    - re-using here*/
-void setMenuButton_collision(int val){	butStatus[5] = val; }
+void setMenuButton_collision(int val){	
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	p->butStatus[5] = val; 
+}
 void setMenuButton_texSize(int size){ 
 	/* this isn't called in my configuration so I don't know what the range is */
 	printf("text size=%d\n",size);
 	//int bmfontsize = 2; /* 0,1 or 2 - our current size range*/
 }
-void setMenuButton_headlight(int val){ butStatus[4] = val;}
+void setMenuButton_headlight(int val){ 
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	p->butStatus[4] = val;
+}
 void setMenuButton_navModes(int type)
 {
 	int i;
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
 	for(i=0;i<4;i++)
-		butStatus[i] = 0;
+		p->butStatus[i] = 0;
 	switch(type)
 	{
 		case VIEWER_NONE: break;
-		case VIEWER_EXAMINE: {butStatus[2] = 1;break;}
-		case VIEWER_WALK: {butStatus[0] = 1;break;}
-		//case VIEWER_EXFLY:{butStatus[2] = 1;break;}
-		case VIEWER_FLY:{butStatus[1] = 1;break;}
+		case VIEWER_EXAMINE: {p->butStatus[2] = 1;break;}
+		case VIEWER_WALK: {p->butStatus[0] = 1;break;}
+		//case VIEWER_EXFLY:{p->butStatus[2] = 1;break;}
+		case VIEWER_FLY:{p->butStatus[1] = 1;break;}
 	}
 return;
 }
@@ -1392,16 +1522,19 @@ void handleButtonOver()
 	a) detect a button over and 
 	b) highlight underneath the button*/
 	int i,x,y;
+	ppstatusbar p;
 	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
 	x = tg->Mainloop.currentX[0];
 	y = tg->display.screenHeight - tg->Mainloop.currentY[0];
-	isOver = -1;
-	for(i=0;i<nbuts;i++)
-		if(x > butrect[0][i] && x < butrect[2][i] 
-		&& y > butrect[1][i] && y < butrect[3][i] ) 
+	p->isOver = -1;
+	for(i=0;i<p->nbuts;i++)
+		if(x > p->butrect[0][i] && x < p->butrect[2][i] 
+		&& y > p->butrect[1][i] && y < p->butrect[3][i] ) 
 		{
 			/* printf("%d",i); /* is over */
-			isOver = i;
+			p->isOver = i;
 			break;
 		}
 }
@@ -1413,19 +1546,22 @@ void handleButtonPress()
 	c) set the related option
 	*/
 	int i,j,x,y,oldval;
+	ppstatusbar p;
 	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
 	x = tg->Mainloop.currentX[0];
 	y = tg->display.screenHeight - tg->Mainloop.currentY[0];
-	for(i=0;i<nbuts;i++)
-		if(x > butrect[0][i] && x < butrect[2][i] 
-		&& y > butrect[1][i] && y < butrect[3][i] )
+	for(i=0;i<p->nbuts;i++)
+		if(x > p->butrect[0][i] && x < p->butrect[2][i] 
+		&& y > p->butrect[1][i] && y < p->butrect[3][i] )
 		{
 			/* printf("[%d=",i); /* button pressed */
 			if( i < 3 )
 			{
 				/* radio button - just one on at a time walk,fly,examine */
-				for(j=0;j<3;j++) butStatus[j] = 0;
-				butStatus[i] = 1;
+				for(j=0;j<3;j++) p->butStatus[j] = 0;
+				p->butStatus[i] = 1;
 				switch(i)
 				{
                     case 0: { fwl_set_viewer_type (VIEWER_WALK); break; }
@@ -1438,15 +1574,15 @@ void handleButtonPress()
 			else if( i > 7 && i < 11 )
 			{
 				/* radio button except can toggle all off - at most one on at a time  ?!check*/
-				oldval = butStatus[i];
-				for(j=8;j<11;j++) butStatus[j] = 0;
-				butStatus[i] = 1 - oldval;
-				showOptions = butStatus[10];
+				oldval = p->butStatus[i];
+				for(j=8;j<11;j++) p->butStatus[j] = 0;
+				p->butStatus[i] = 1 - oldval;
+				p->showOptions = p->butStatus[10];
 			}
 			else if(i == 4 || i == 5)
 			{
 				/* toggle from current state - headlight, collision */
-				butStatus[i] = 1 - butStatus[i];
+				p->butStatus[i] = 1 - p->butStatus[i];
 				switch(i)
 				{
                     			case 4: { fwl_toggle_headlight(); break;}
@@ -1479,8 +1615,11 @@ void renderButtons()
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
 	int i,loaded,iwidth;
 	float zoomfactor;
+	ppstatusbar p;
 	ttglobal tg = gglobal();
-	if(!butsLoaded)
+	p = (ppstatusbar)tg->statusbar.prv;
+
+	if(!p->butsLoaded)
 		initButtons();
 	FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane*2);
 	FW_GL_ENABLE(GL_SCISSOR_TEST);
@@ -1489,59 +1628,62 @@ void renderButtons()
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 	FW_GL_DISABLE(GL_SCISSOR_TEST);
 	doglClearColor(); //set back for other cases
-	zoomfactor = (float)iconSize/32.0f;
+	zoomfactor = (float)p->iconSize/32.0f;
 	FW_GL_PIXELZOOM(zoomfactor,zoomfactor); //.5f,.5f);
-	for(i=0;i<nbuts;i++)
+	for(i=0;i<p->nbuts;i++)
 	{
-		if(buttonType==0) loaded = (butts[i][0].status == 2);
-		if(buttonType==1) loaded = butsLoaded;
+		if(p->buttonType==0) loaded = (p->butts[i][0].status == 2);
+		if(p->buttonType==1) loaded = p->butsLoaded;
 		if( loaded) // butts[i][0].status == 2)
 		{
-			if(i==isOver)
+			if(i==p->isOver)
 			{
 				/*draw a background highlight rectangle*/
 				float rgba[4];
 				//rgba[0] = .754f; rgba[1] = .82f; rgba[2] = .93f, rgba[3] = 1.0f;
 				rgba[0] = .8f; rgba[1] = .87f; rgba[2] = .97f, rgba[3] = 1.0f;
-				FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
-				FW_GL_PIXELZOOM((float)(butrect[2][i]-butrect[0][i]),(float)(butrect[3][i]-butrect[1][i]));
+				FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i]);
+				FW_GL_PIXELZOOM((float)(p->butrect[2][i]-p->butrect[0][i]),(float)(p->butrect[3][i]-p->butrect[1][i]));
 				FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 				//restore
 				FW_GL_PIXELZOOM(zoomfactor,zoomfactor); //.5f,.5f);
 			}
-			if(buttonType==1)
+			if(p->buttonType==1)
 			{
-				if(butStatus[i]) {
+				if(p->butStatus[i]) {
 					FW_GL_COLOR3F(.6f,.7f,.8f); //.617f,.793f,.920f); /*light blue*/
 				} else {
 					FW_GL_COLOR3F(.8f,.8f,.8f); /*light gray*/
 				}
 			}
-			FW_GL_WINDOWPOS2I(butrect[0][i],butrect[1][i]);
-			if(buttonType==0)
-				FW_GL_DRAWPIXELS(butts[i][0].x,butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,butts[i][butStatus[i]].texdata);
-			else if(buttonType==1)
-				FW_GL_BITMAP(32,32, 0.0f, 0.0f, 0.0f, 0.0f, bmIcon[i]);
+			FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i]);
+			if(p->buttonType==0)
+				FW_GL_DRAWPIXELS(p->butts[i][0].x,p->butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,p->butts[i][p->butStatus[i]].texdata);
+			else if(p->buttonType==1)
+				FW_GL_BITMAP(32,32, 0.0f, 0.0f, 0.0f, 0.0f, p->bmIcon[i]);
 
 		}
 	}
 	FW_GL_PIXELZOOM(1.0f,1.0f);
-	hadString = 1;
+	p->hadString = 1;
 }
 int handleStatusbarHud(int mev, int* clipplane)
 {
+	ppstatusbar p;
 	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
     if ((mev == ButtonPress) || (mev == ButtonRelease)) 
 	{
         /* record which button is down */
 		/* >>> statusbar hud */
-		if( showButtons)
+		if( p->showButtons)
 		{
 			if(mev==ButtonPress)
 				handleButtonPress();
 			return 1;
 		}
-		if(showOptions)
+		if(p->showOptions)
 		{
 			if(mev==ButtonPress)
 				handleOptionPress();
@@ -1553,22 +1695,22 @@ int handleStatusbarHud(int mev, int* clipplane)
 		int clipline;
 		(*clipplane) = 16;
 		/* >>> statusbar hud */
-		if((*clipplane) || showButtons)
+		if((*clipplane) || p->showButtons)
 		{
 			clipline = *clipplane;
-			if(showButtons) clipline = 2*(*clipplane);
+			if(p->showButtons) clipline = 2*(*clipplane);
 			if( tg->display.screenHeight - tg->Mainloop.currentY[0] < clipline )
 			{
-				showButtons = 1;
+				p->showButtons = 1;
 				handleButtonOver();
 				return 1; /* don't process for navigation */
 			}
 			else
 			{
-				showButtons = 0;
+				p->showButtons = 0;
 			}
 		}
-		if(showOptions)
+		if(p->showOptions)
 		{
 			/* let HUD options menu swallow button clicks */
 			return 1;
@@ -1622,30 +1764,33 @@ H	void updateEyehalf();								//"
 M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
-	char *p; 
+	char *pp; 
 	float c[4];
 	int ic[4];
+	ppstatusbar p;
 	ttglobal tg = gglobal();
+	p = (ppstatusbar)tg->statusbar.prv;
+
 	tg->ConsoleMessage.Console_writeToHud = 1;
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	FW_GL_DEPTHMASK(GL_FALSE);
 
-	if(showButtons)
+	if(p->showButtons)
 	{
 		renderButtons();
 		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
 	}
-	if (!sb_hasString && !showConText &&!butStatus[8] &&!butStatus[9] && !butStatus[10]) {
-		if(hadString)
+	if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
+		if(p->hadString)
 		{
 			/* clear the status bar because there's nothing to show */
 			FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 			FW_GL_ENABLE(GL_SCISSOR_TEST);
 			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 			FW_GL_DISABLE(GL_SCISSOR_TEST);
-			hadString = 0;
+			p->hadString = 0;
 		}
 		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
@@ -1654,16 +1799,16 @@ M       void toggle_collision()                             //"
 	because the mainloop scene rendering should be using a scissor test to avoid glClear()ing 
 	the statusbar area. 
 	*/
-	loopcount++;
-	if(loopcount < 15 && !hadString)
+	p->loopcount++;
+	if(p->loopcount < 15 && !p->hadString)
 	{
 		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
 	}
-	loopcount = 0;
+	p->loopcount = 0;
 
 	/* OK time to update the status bar */
-	if(!fontInitialized) initFont();
+	if(!p->fontInitialized) initFont();
 	/* unconditionally clear the statusbar area */
 	FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 	FW_GL_ENABLE(GL_SCISSOR_TEST);
@@ -1676,20 +1821,20 @@ M       void toggle_collision()                             //"
 	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	FW_GL_WINDOWPOS2I(5,0); 
-	if(sb_hasString)
+	if(p->sb_hasString)
 	{
-		p = buffer;
+		pp = p->buffer;
 		/* print status bar text - things like PLANESENSOR */
-		printString(p); 
-		hadString = 1;
+		printString(pp); 
+		p->hadString = 1;
 	}else{
 		FW_GL_WINDOWPOS2I(300,0);
-		printString(messagebar);
+		printString(p->messagebar);
 	}
 	FW_GL_SHADEMODEL(GL_FLAT);
-	if(butStatus[8]) printKeyboardHelp();
-	if(butStatus[9]) printConsoleText();
-	if(butStatus[10]) printOptions();
+	if(p->butStatus[8]) printKeyboardHelp();
+	if(p->butStatus[9]) printConsoleText();
+	if(p->butStatus[10]) printOptions();
 
 	FW_GL_DEPTHMASK(TRUE);
 	FW_GL_ENABLE(GL_DEPTH_TEST);

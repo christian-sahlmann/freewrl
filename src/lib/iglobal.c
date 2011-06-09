@@ -59,6 +59,7 @@ void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
 void Tess_init(struct tTess *t);
 void Viewer_init(struct tViewer *t);
+void statusbar_init(struct tstatusbar *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -124,6 +125,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	StreamPoly_init(&iglobal->StreamPoly);
 	Tess_init(&iglobal->Tess);
 	Viewer_init(&iglobal->Viewer);
+	statusbar_init(&iglobal->statusbar);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -132,6 +134,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->statusbar.prv);
 	FREE_IF_NZ(tg->Viewer.prv);
 	FREE_IF_NZ(tg->Tess.prv);
 	FREE_IF_NZ(tg->StreamPoly.prv);

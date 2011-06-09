@@ -297,6 +297,9 @@ iOLDCODE	}Component_Networking;
 	struct tViewer{
 		void *prv;
 	}Viewer;
+	struct tstatusbar{
+		void *prv;
+	}statusbar;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
