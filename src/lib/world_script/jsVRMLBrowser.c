@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.47 2011/06/06 23:36:11 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.48 2011/06/09 17:15:14 dug9 Exp $
 
 Javascript C language binding.
 
@@ -450,6 +450,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	int count;
 	int wantedsize;
 	int MallocdSize;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
 
 	/* make this a default value */

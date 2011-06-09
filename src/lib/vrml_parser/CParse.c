@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParse.c,v 1.29 2011/06/02 19:50:49 dug9 Exp $
+$Id: CParse.c,v 1.30 2011/06/09 17:15:14 dug9 Exp $
 
 ???
 
@@ -47,13 +47,35 @@ $Id: CParse.c,v 1.29 2011/06/02 19:50:49 dug9 Exp $
 
  
 /* Keep a pointer to the parser for the main URL */
-struct VRMLParser* globalParser = NULL;
-int inWhichParser = 0;
+//struct VRMLParser* globalParser = NULL;
+//int inWhichParser = 0; //not used
+
+typedef struct pCParse{
+	//struct VRMLParser* globalParser;// = NULL;
+	int ijunk;
+}* ppCParse;
+void *CParse_constructor(){
+	void *v = malloc(sizeof(struct pCParse));
+	memset(v,0,sizeof(struct pCParse));
+	return v;
+}
+void CParse_init(struct tCParse *t){
+	//public
+	t->globalParser = NULL;
+	//private
+	t->prv = CParse_constructor();
+	{
+		ppCParse p = (ppCParse)t->prv;
+		//p->globalParser = NULL;
+	}
+}
+//ppCParse p = (ppCParse)gglobal()->CParse.prv;
 
 #undef TIMING
 
 BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
+	ttglobal tg = gglobal();
 
 	#ifdef TIMING
 	double startt, endt;
@@ -63,11 +85,11 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	gettimeofday (&mytime,&tz);
 	startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	#endif
- 	if (!globalParser) {
+ 	if (!tg->CParse.globalParser) {
 		/* printf ("cParse, new parser\n"); */
 		/* the FALSE in the newParser call signifies that we are using "VRML" formatted strings */
  		parser=newParser(ptr, ofs, FALSE);
-		globalParser = parser;
+		tg->CParse.globalParser = (void *)parser;
  	} else {
 		/* printf ("cParse, using old parser\n"); */
 		parser=reuseParser(ptr,ofs);
@@ -118,6 +140,8 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 struct X3D_Node* parser_getNodeFromName(const char* name)
 {
 	int ind;
+	ttglobal tg = gglobal();
+	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	/* is globalParser actually not NULL? */
 	if (globalParser == NULL) return NULL;
 
@@ -146,7 +170,10 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
 	int ind;
-	struct Vector *curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
+	struct Vector *curNameStackTop;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	
+	curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
 
 	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that
 	   index, and look in the userNodeNames list for it */

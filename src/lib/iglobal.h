@@ -227,6 +227,7 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_KeyDevice{
 		void *prv;
 	}Component_KeyDevice;
+
 #ifdef OLDCODE
 iOLDCODE	struct tComponent_Networking{
 iOLDCODE		void *ReWireNamenames;
@@ -300,6 +301,10 @@ iOLDCODE	}Component_Networking;
 	struct tstatusbar{
 		void *prv;
 	}statusbar;
+	struct tCParse{
+		void* globalParser;
+		void *prv;
+	}CParse;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.50 2011/06/04 19:05:42 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.51 2011/06/09 17:15:14 dug9 Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -567,6 +567,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		/* is this a Script node? */
 		if (nodePtr->_nodeType == NODE_Script) {
 			struct Shader_Script* myScript;
+			struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 			if (eaiverbose)
 				printf ("EAI_GetType, node is a Script node...\n");
 			myScript = X3D_SCRIPT(nodePtr)->__scriptObj;

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.74 2011/06/02 19:50:49 dug9 Exp $
+  $Id: CParseParser.c,v 1.75 2011/06/09 17:15:14 dug9 Exp $
 
   ???
 
@@ -301,6 +301,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
 
 struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
     struct VRMLParser* ret;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
     /* keep the defined nodes around, etc */
     ret = globalParser;

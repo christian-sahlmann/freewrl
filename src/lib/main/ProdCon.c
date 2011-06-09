@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.87 2011/06/06 21:02:17 dug9 Exp $
+  $Id: ProdCon.c,v 1.88 2011/06/09 17:15:14 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -506,7 +506,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int offsetInNode;
 	int shouldBind;
 	ppProdCon p;
-	struct tProdCon *t = &gglobal()->ProdCon;
+	struct tProdCon *t;
+	ttglobal tg = gglobal();
+	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
@@ -560,11 +562,11 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			shouldBind = TRUE;
 
 		} else {
-			if (!gglobal()->resources.root_res->complete) {
+			if (!tg->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
 				/* "save" the old classic parser state, so that names do not cross-pollute */
-				t->savedParser = (void *)globalParser;
-				globalParser = NULL;
+				t->savedParser = (void *)tg->CParse.globalParser;
+				tg->CParse.globalParser = NULL;
 			}
 		}
 
@@ -574,8 +576,8 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* ACTUALLY CALLS THE PARSER */
 		PARSE_STRING(of->data, nRn);
 	
-		if ((res != gglobal()->resources.root_res) && ((!gglobal()->resources.root_res) ||(!gglobal()->resources.root_res->complete))) {
-			globalParser = (struct VRMLParser*)t->savedParser;
+		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
+			tg->CParse.globalParser = t->savedParser;
 		}
 	
 	
