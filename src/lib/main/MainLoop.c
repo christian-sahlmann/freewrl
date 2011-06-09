@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.202 2011/06/09 11:38:54 daytonavid Exp $
+  $Id: MainLoop.c,v 1.203 2011/06/09 20:17:03 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -103,7 +103,7 @@ struct SensStruct {
         struct X3D_Node *datanode;
         void (*interpptr)(void *, int, int, int);
 };
-typedef struct Touch
+struct Touch
 {
 	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
 	bool isDown; /* false = up, true = down */
@@ -112,7 +112,7 @@ typedef struct Touch
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x;
 	int y;
-};
+}; 
 
 typedef struct pMainloop{
 	//browser
@@ -1072,9 +1072,11 @@ void renderCursors();
 /* Render the scene */
 static void render() 
 {
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
     int count,i;
 	static double shuttertime;
 	static int shutterside;
+#endif
 
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -1764,7 +1766,11 @@ void fwl_Next_ViewPoint() {
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void fwl_initializeRenderSceneUpdateScene() {
+    
+#ifndef AQUA
 	ttglobal tg = gglobal();
+#endif
+    
 	/* printf ("fwl_initializeRenderSceneUpdateScene start\n"); */
 
 #if KEEP_X11_INLIB
@@ -2011,7 +2017,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
         // while standard opengl is (0,0) in lower left hand corner...
 		int ox = x;
 		int oy = y;
-		switch (Viewer.screenOrientation) {
+		switch (Viewer()->screenOrientation) {
 			case 0: 
 				x = tg->display.screenHeight-x;
                 
