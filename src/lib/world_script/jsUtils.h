@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.16 2011/06/10 00:27:17 dug9 Exp $
+$Id: jsUtils.h,v 1.17 2011/06/10 02:08:58 dug9 Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -71,7 +71,7 @@ int findNameInECMATable(JSContext *context, char *toFind);
 void resetNameInECMATable(JSContext *context, char *toFind);
 
 /* We keep around the results of script routing, or just script running... */
-extern jsval JSCreate_global_return_val;
+//extern jsval JSCreate_global_return_val;
 //extern jsval JSglobal_return_val;
 //extern void *JSSFpointer;
 

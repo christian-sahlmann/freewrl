@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.63 2011/06/10 00:27:17 dug9 Exp $
+  $Id: fieldSet.c,v 1.64 2011/06/10 02:08:58 dug9 Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -1159,9 +1159,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",(unsigned int) JSCreate_global_return_val, (unsigned int) JSglobal_return_val);
 	#endif
 
-	if (JSCreate_global_return_val!= INT_TO_JSVAL(0)) {
-		myJSVal = JSCreate_global_return_val;
-		JSCreate_global_return_val = INT_TO_JSVAL(0);
+	if (tg->jsVRMLBrowser.JSCreate_global_return_val!= INT_TO_JSVAL(0)) {
+		myJSVal = tg->jsVRMLBrowser.JSCreate_global_return_val;
+		tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 		#ifdef SETFIELDVERBOSE
 		printf ("getJSMultiNumType: using JSCreate_global_return_val\n");

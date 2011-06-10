@@ -334,6 +334,12 @@ iOLDCODE	}Component_Networking;
 	struct tjsUtils{
 		void *prv;
 	}jsUtils;
+	struct tjsVRMLBrowser{
+		/* for setting field values to the output of a CreateVrml style of call */
+		/* it is kept at zero, unless it has been used. Then it is reset to zero */
+		jsval JSCreate_global_return_val;
+		void *prv;
+	}jsVRMLBrowser;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

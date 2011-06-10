@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.48 2011/06/09 17:15:14 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.49 2011/06/10 02:08:58 dug9 Exp $
 
 Javascript C language binding.
 
@@ -66,6 +66,7 @@ Javascript C language binding.
 
 #ifdef HAVE_JAVASCRIPT
 
+//Q. is this a true sharable static?
 static JSClass Browser = {
     "Browser",
     JSCLASS_HAS_PRIVATE,
@@ -102,10 +103,26 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 };
 
 
-/* for setting field values to the output of a CreateVrml style of call */
-/* it is kept at zero, unless it has been used. Then it is reset to zero */
-jsval JSCreate_global_return_val;
-
+///* for setting field values to the output of a CreateVrml style of call */
+///* it is kept at zero, unless it has been used. Then it is reset to zero */
+//jsval JSCreate_global_return_val;
+typedef struct pjsVRMLBrowser{
+	int ijunk;
+}* ppjsVRMLBrowser;
+void *jsVRMLBrowser_constructor(){
+	void *v = malloc(sizeof(struct pjsVRMLBrowser));
+	memset(v,0,sizeof(struct pjsVRMLBrowser));
+	return v;
+}
+void jsVRMLBrowser_init(struct tjsVRMLBrowser *t){
+	//public
+	//private
+	t->prv = jsVRMLBrowser_constructor();
+	{
+		ppjsVRMLBrowser p = (ppjsVRMLBrowser)t->prv;
+	}
+}
+//	ppjsVRMLBrowser p = (ppjsVRMLBrowser)gglobal()->jsVRMLBrowser.prv;
 /* we add/remove routes with this call */
 void jsRegisterRoute(
 	struct X3D_Node* from, int fromOfs,
@@ -201,8 +218,8 @@ JSBool
 VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 {
 	JSObject *obj;
-
-JSCreate_global_return_val = INT_TO_JSVAL(0);
+	ttglobal tg = gglobal();
+	tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 	#ifdef JSVERBOSE
 		printf("VrmlBrowserInit\n");
@@ -450,7 +467,8 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	int count;
 	int wantedsize;
 	int MallocdSize;
-	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	ttglobal tg = gglobal();
+	struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
 	
 
 	/* make this a default value */
@@ -505,7 +523,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 
 	/* save this value, in case we need it */
-	JSCreate_global_return_val = *rval;
+	tg->jsVRMLBrowser.JSCreate_global_return_val = *rval;
 	return JS_TRUE;
 }
 

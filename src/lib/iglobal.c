@@ -72,6 +72,7 @@ void CRoutes_init(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
 void JScript_init(struct tJScript *t);
 void jsUtils_init(struct tjsUtils *t);
+void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -142,6 +143,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	CScripts_init(&iglobal->CScripts);
 	JScript_init(&iglobal->JScript);
 	jsUtils_init(&iglobal->jsUtils);
+	jsVRMLBrowser_init(&iglobal->jsVRMLBrowser);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -150,6 +152,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->jsVRMLBrowser.prv);
 	FREE_IF_NZ(tg->jsUtils.prv);
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
