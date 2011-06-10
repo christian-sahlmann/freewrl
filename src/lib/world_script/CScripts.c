@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.47 2011/06/02 19:50:49 dug9 Exp $
+$Id: CScripts.c,v 1.48 2011/06/10 00:45:19 dug9 Exp $
 
 ???
 
@@ -225,10 +225,40 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 /* Constructor and destructor */
 /* ************************** */
 
-/* Next handle to be assinged */
-static int handleCnt=0;
+///* Next handle to be assinged */
+//static int handleCnt=0;
+typedef struct pCScripts{
+	/* Next handle to be assinged */
+	int handleCnt;//=0;
+	char *buffer;// = NULL;
 
-static int nextScriptHandle (void) {int retval; retval = handleCnt; handleCnt++; return retval;}
+}* ppCScripts;
+void *CScripts_constructor(){
+	void *v = malloc(sizeof(struct pCScripts));
+	memset(v,0,sizeof(struct pCScripts));
+	return v;
+}
+void CScripts_init(struct tCScripts *t){
+	//public
+	//private
+	t->prv = CScripts_constructor();
+	{
+		ppCScripts p = (ppCScripts)t->prv;
+		/* Next handle to be assinged */
+		p->handleCnt=0;
+		p->buffer = NULL;
+
+	}
+}
+//	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
+static int nextScriptHandle (void) {
+	int retval; 
+	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
+
+	retval = p->handleCnt; 
+	p->handleCnt++; 
+	return retval;
+}
 
 /* copy a Script node in a proto. */
 struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
@@ -245,7 +275,10 @@ struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
 }
 
 /* on a reload, zero script counts */
-void zeroScriptHandles (void) {handleCnt = 0;}
+void zeroScriptHandles (void) {
+	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
+	p->handleCnt = 0;
+}
 
 /* this can be a script, or a shader, take your pick */
 struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
@@ -365,13 +398,14 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
    contains the script; if not, it goes and tries to see if the SFString 
    contains a file that (hopefully) contains the script */
 
-static char *buffer = NULL;
+//static char *buffer = NULL;
 
 static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 {
  size_t i;
  int rv;
  resource_item_t *res;
+	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
   rv = FALSE; /* initialize it */
 
@@ -395,7 +429,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
    	if (me != NULL) {
 		return script_initCode(me, u+1); /* a script */
 	} else {
-		buffer = STRDUP(u+1);
+		p->buffer = STRDUP(u+1);
 		return TRUE; /* a shader, program text will be in the "buffer" */
 	}
    }
@@ -420,7 +454,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
-			 	buffer = STRDUP(of->data);
+			 	p->buffer = STRDUP(of->data);
 			 	/* JAS printf("**** Shader:\n%s\n", buffer); 
 				printf ("*** Shader: doing the quick return here\n"); */
 				return TRUE;
@@ -451,17 +485,18 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 /* initialize a script from a url. Expects valid input */
 BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {
 	size_t i;
+	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
 	for(i=0; i!=s->n; ++i) {
-		FREE_IF_NZ(buffer);
+		FREE_IF_NZ(p->buffer);
 		if(script_initCodeFromUri(me, s->p[i]->strptr)) {
-			FREE_IF_NZ(buffer);
+			FREE_IF_NZ(p->buffer);
    			return TRUE;
 		}
 	}
 
 	/* failure... */
-	FREE_IF_NZ(buffer);
+	FREE_IF_NZ(p->buffer);
  	return FALSE;
 }
 
@@ -469,15 +504,16 @@ BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_Strin
 /* pointer is freed (if not NULL) in the Shaders code */
 char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 	size_t i;
+	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
 	for(i=0; i!=s->n; ++i) {
-		FREE_IF_NZ(buffer);
+		FREE_IF_NZ(p->buffer);
 		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
-   			return &buffer;
+   			return &p->buffer;
 		}
 	}
 
 	/* failure... */
-	FREE_IF_NZ(buffer);
+	FREE_IF_NZ(p->buffer);
  	return NULL;
 }

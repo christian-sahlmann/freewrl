@@ -322,6 +322,9 @@ iOLDCODE	}Component_Networking;
 
 		void *prv;
 	}CRoutes;
+	struct tCScripts{
+		void *prv;
+	}CScripts;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
