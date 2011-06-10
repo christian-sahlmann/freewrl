@@ -70,6 +70,7 @@ void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
+void JScript_init(struct tJScript *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -138,6 +139,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	CProto_init(&iglobal->CProto);
 	CRoutes_init(&iglobal->CRoutes);
 	CScripts_init(&iglobal->CScripts);
+	JScript_init(&iglobal->JScript);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -146,6 +148,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
 	FREE_IF_NZ(tg->CRoutes.prv);
 	FREE_IF_NZ(tg->CProto.prv);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.37 2011/06/10 00:27:17 dug9 Exp $
+$Id: JScript.c,v 1.38 2011/06/10 01:42:16 dug9 Exp $
 
 Javascript C language binding.
 
@@ -54,19 +54,76 @@ Javascript C language binding.
 #include "jsVRMLBrowser.h"
 
 
-int JSMaxScript = 0;
-/* Script name/type table */
-struct CRjsnameStruct *JSparamnames = NULL;
-int jsnameindex = -1;
-int MAXJSparamNames = 0;
+//int JSMaxScript = 0;
+///* Script name/type table */
+//struct CRjsnameStruct *JSparamnames = NULL;
+
+//int jsnameindex = -1;
+//int MAXJSparamNames = 0;
+//static JSRuntime *runtime = NULL;
+static JSClass staticGlobalClass = {
+	"global",
+	0,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	JS_EnumerateStub,
+	globalResolve,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+typedef struct pJScript{
+	/* Script name/type table */
+	struct CRjsnameStruct *JSparamnames;// = NULL;
+	int JSMaxScript;// = 0;
+	JSRuntime *runtime;// = NULL;
+	JSClass globalClass;
+
+}* ppJScript;
+void *JScript_constructor(){
+	void *v = malloc(sizeof(struct pJScript));
+	memset(v,0,sizeof(struct pJScript));
+	return v;
+}
+void JScript_init(struct tJScript *t){
+	//public
+	t->jsnameindex = -1;
+	t->MAXJSparamNames = 0;
+
+	//private
+	t->prv = JScript_constructor();
+	{
+		ppJScript p = (ppJScript)t->prv;
+		/* Script name/type table */
+		p->JSparamnames = NULL;
+		p->JSMaxScript = 0;
+		p->runtime = NULL;
+		memcpy(&p->globalClass,&staticGlobalClass,sizeof(staticGlobalClass));
+	}
+}
+//	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+
+struct CRjsnameStruct *getJSparamnames()
+{
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	return p->JSparamnames;
+}
+void setJSparamnames(struct CRjsnameStruct *JSparamnames)
+{
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
+	p->JSparamnames = JSparamnames;
+}
 
 /* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
 void SaveScriptText(int num, const char *text) {
 	ttglobal tg = gglobal();
+	ppJScript p = (ppJScript)tg->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
-	if (num >= JSMaxScript)  {
+	if (num >= p->JSMaxScript)  {
 		ConsoleMessage ("SaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}
@@ -147,30 +204,31 @@ static char *DefaultScriptMethods = "function initialize() {}; " \
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
 			"";
 
-static JSRuntime *runtime = NULL;
-static JSClass globalClass = {
-	"global",
-	0,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	JS_EnumerateStub,
-	globalResolve,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
+//static JSRuntime *runtime = NULL;
+//static JSClass globalClass = {
+//	"global",
+//	0,
+//	JS_PropertyStub,
+//	JS_PropertyStub,
+//	JS_PropertyStub,
+//	JS_PropertyStub,
+//	JS_EnumerateStub,
+//	globalResolve,
+//	JS_ConvertStub,
+//	JS_FinalizeStub
+//};
 
 
 /* housekeeping routines */
 void kill_javascript(void) {
 	int i;
 	ttglobal tg = gglobal();
+	ppJScript p = (ppJScript)tg->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("calling kill_javascript()\n"); */
 	zeroScriptHandles();
-	if (runtime != NULL) {
+	if (p->runtime != NULL) {
 		for (i=0; i<=tg->CRoutes.max_script_found_and_initialized; i++) {
 			/* printf ("kill_javascript, looking at %d\n",i); */
 			if (ScriptControl[i].cx != 0) {
@@ -179,19 +237,19 @@ void kill_javascript(void) {
 			}
 		}
 
-		JS_DestroyRuntime(runtime);
-		runtime = NULL;
+		JS_DestroyRuntime(p->runtime);
+		p->runtime = NULL;
 	}
-	JSMaxScript = 0;
+	p->JSMaxScript = 0;
 	tg->CRoutes.max_script_found = -1;
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	FREE_IF_NZ (ScriptControl);
 	FREE_IF_NZ(tg->CRoutes.scr_act);
 
 	/* Script name/type table */
-	FREE_IF_NZ(JSparamnames);
-	jsnameindex = -1;
-	MAXJSparamNames = 0;
+	FREE_IF_NZ(p->JSparamnames);
+	tg->JScript.jsnameindex = -1;
+	tg->JScript.MAXJSparamNames = 0;
 
 }
 
@@ -204,16 +262,17 @@ void JSMaxAlloc() {
 	/* perform some REALLOCs on JavaScript database stuff for interfacing */
 	int count;
 	ttglobal tg = gglobal();
+	ppJScript p = (ppJScript)tg->JScript.prv;
 	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
-	JSMaxScript += 10;
-	setScriptControl( (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript));
+	p->JSMaxScript += 10;
+	setScriptControl( (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * p->JSMaxScript));
 	ScriptControl = getScriptControl();
-	tg->CRoutes.scr_act = (int *)REALLOC (tg->CRoutes.scr_act, sizeof (*tg->CRoutes.scr_act) * JSMaxScript);
+	tg->CRoutes.scr_act = (int *)REALLOC (tg->CRoutes.scr_act, sizeof (*tg->CRoutes.scr_act) * p->JSMaxScript);
 
 	/* mark these scripts inactive */
-	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
+	for (count=p->JSMaxScript-10; count<p->JSMaxScript; count++) {
 		tg->CRoutes.scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
 		ScriptControl[count].eventsProcessed = NULL;
@@ -228,13 +287,13 @@ void JSMaxAlloc() {
 
 /* set up table entry for this new script */
 void JSInit(int num) {
-
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("JSinit: script %d\n",num);
 	#endif
 
 	/* more scripts than we can handle right now? */
-	if (num >= JSMaxScript)  {
+	if (num >= p->JSMaxScript)  {
 		JSMaxAlloc();
 	}
 }
@@ -243,12 +302,13 @@ void JSInitializeScriptAndFields (int num) {
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
 	jsval rval;
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
 	/* run through paramList, and run the script */
 	/* printf ("JSInitializeScriptAndFields, running through params and main script\n");  */
-	if (num >= JSMaxScript)  {
+	if (num >= p->JSMaxScript)  {
 		ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
 		return;
 	}
@@ -287,12 +347,13 @@ void JSCreateScriptContext(int num) {
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* is this the first time through? */
-	if (runtime == NULL) {
-		runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
-		if (!runtime) freewrlDie("JS_NewRuntime failed");
+	if (p->runtime == NULL) {
+		p->runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
+		if (!p->runtime) freewrlDie("JS_NewRuntime failed");
 
 		#ifdef JAVASCRIPTVERBOSE 
 		printf("\tJS runtime created,\n");
@@ -300,7 +361,7 @@ void JSCreateScriptContext(int num) {
 	}
 
 
-	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
+	_context = JS_NewContext(p->runtime, STACK_CHUNK_SIZE);
 	if (!_context) freewrlDie("JS_NewContext failed");
 
 	#ifdef JAVASCRIPTVERBOSE 
@@ -308,7 +369,7 @@ void JSCreateScriptContext(int num) {
 	#endif
 
 
-	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
+	_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
 	#ifdef JAVASCRIPTVERBOSE 
@@ -623,8 +684,9 @@ void SaveScriptField (int num, indexT kind, indexT type, const char* field, unio
 	struct ScriptParamList **nextInsert;
 	struct ScriptParamList *newEntry;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
+	ppJScript p = (ppJScript)gglobal()->JScript.prv;
 
-	if (num >= JSMaxScript)  {
+	if (num >= p->JSMaxScript)  {
 		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}

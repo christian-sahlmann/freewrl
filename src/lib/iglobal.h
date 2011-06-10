@@ -325,6 +325,12 @@ iOLDCODE	}Component_Networking;
 	struct tCScripts{
 		void *prv;
 	}CScripts;
+	struct tJScript{
+		int jsnameindex; //= -1;
+		int MAXJSparamNames;// = 0;
+
+		void *prv;
+	}JScript;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

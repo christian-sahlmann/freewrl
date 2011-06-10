@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.23 2011/06/10 00:27:17 dug9 Exp $
+$Id: CScripts.h,v 1.24 2011/06/10 01:42:16 dug9 Exp $
 
 Class to wrap a java script for CParser
 
@@ -49,9 +49,11 @@ struct CRjsnameStruct {
 /* ************************************************************************** */
 /* ************************ Generic defines/function protos   *************** */
 /* ************************************************************************** */
-extern struct CRjsnameStruct *JSparamnames;
-extern int jsnameindex;
-extern int MAXJSparamNames;
+//extern struct CRjsnameStruct *JSparamnames;
+struct CRjsnameStruct *getJSparamnames();
+void setJSparamnames(struct CRjsnameStruct *);
+//extern int jsnameindex;
+//extern int MAXJSparamNames;
 
 #define JS_GET_PROPERTY_STUB JS_PropertyStub
 /* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.45 2011/06/10 00:27:17 dug9 Exp $
+$Id: fieldGet.c,v 1.46 2011/06/10 01:42:16 dug9 Exp $
 
 Javascript C language binding.
 
@@ -69,6 +69,7 @@ this sends events to scripts that have eventIns defined.
 
 void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	#ifdef SETFIELDVERBOSE 
 		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
@@ -124,6 +125,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	JSContext *cx;
 	JSObject *obj;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
 		tonode,toname,JSparamnames[toname].name,dataType,datalen); 
@@ -173,6 +176,7 @@ void setScriptECMAtype (int num) {
 	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 	struct CRStruct *CRoutes = getCRoutes();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 	len = CRoutes[num].len;
@@ -207,6 +211,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	char *chptr;
 	struct Uni_String  **uniptr;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get context and global object for this script */
 	cx =  ScriptControl[tonode].cx;
@@ -697,6 +702,7 @@ int setMFElementtype (int num) {
 	char *pptr;
 	struct Multi_Node *mfp;
 	struct CRStruct *CRoutes = getCRoutes();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 
 	#ifdef SETFIELDVERBOSE 
@@ -775,6 +781,7 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 	void *_privPtr;
 	JSObject *sfObj;
 	jsval retval;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
@@ -856,6 +863,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	JSObject *obj;
 	void **pp;
 	struct CRscriptStruct *ScriptControl = getScriptControl();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* get context and global object for this script */
 	cx =  ScriptControl[tonode].cx;

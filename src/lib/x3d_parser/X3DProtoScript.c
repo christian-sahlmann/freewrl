@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.72 2011/06/02 19:50:49 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.73 2011/06/10 01:42:16 dug9 Exp $
 
 ???
 
@@ -277,6 +277,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 	int accessType;
 	int nodeOffs;
 	struct Shader_Script *holder; /* not used, only for parameter in getRoutingInfo */
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -437,6 +438,7 @@ void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	int pfInd;
 	struct Shader_Script* myObj;
 	int matched;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	nfInd=INT_ID_UNDEFINED;
 	pfInd=INT_ID_UNDEFINED;
@@ -862,6 +864,7 @@ static void verifyExternAndProtoFields(void) {
 	struct Shader_Script *curProF;
 	struct ScriptFieldDecl* curField;
 	struct ScriptFieldDecl* extField;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* we will have in the stack, ExternProtoDeclare then the CurrentProto */
 	if (currentProtoDeclare <1) {
@@ -1174,6 +1177,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	int fdl;
 	size_t readSizeThrowAway;
 	char uniqueIDstring[20];
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 
 	/* initialization */

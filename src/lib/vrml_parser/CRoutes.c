@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.80 2011/06/10 00:27:17 dug9 Exp $
+$Id: CRoutes.c,v 1.81 2011/06/10 01:42:16 dug9 Exp $
 
 ???
 
@@ -514,6 +514,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 	int touched;
 	ppCRoutes p;
 	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	p = (ppCRoutes)tg->CRoutes.prv;
 
 	touched = FALSE;
@@ -909,6 +910,8 @@ int JSparamIndex (const char *name, const char *type) {
 	size_t len;
 	int ty;
 	int ctr;
+	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	#ifdef CRVERBOSE
 	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
@@ -927,7 +930,7 @@ int JSparamIndex (const char *name, const char *type) {
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
-	for (ctr=0; ctr<=jsnameindex; ctr++) {
+	for (ctr=0; ctr<=tg->JScript.jsnameindex; ctr++) {
 		if (ty==JSparamnames[ctr].type) {
 			if ((strlen(JSparamnames[ctr].name) == len) &&
 				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
@@ -942,25 +945,26 @@ int JSparamIndex (const char *name, const char *type) {
 
 	/* nope, not duplicate */
 
-	jsnameindex ++;
+	tg->JScript.jsnameindex ++;
 
 	/* ok, we got a name and a type */
-	if (jsnameindex >= MAXJSparamNames) {
+	if (tg->JScript.jsnameindex >= tg->JScript.MAXJSparamNames) {
 		/* oooh! not enough room at the table */
-		MAXJSparamNames += 100; /* arbitrary number */
-		JSparamnames = (struct CRjsnameStruct*)REALLOC (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
+		tg->JScript.MAXJSparamNames += 100; /* arbitrary number */
+		setJSparamnames( (struct CRjsnameStruct*)REALLOC (JSparamnames, sizeof(*JSparamnames) * tg->JScript.MAXJSparamNames));
+		JSparamnames = getJSparamnames();
 	}
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
-	strncpy (JSparamnames[jsnameindex].name,name,len);
-	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
-	JSparamnames[jsnameindex].type = ty;
-	JSparamnames[jsnameindex].eventInFunction = NULL;
+	strncpy (JSparamnames[tg->JScript.jsnameindex].name,name,len);
+	JSparamnames[tg->JScript.jsnameindex].name[len] = 0; /* make sure terminated */
+	JSparamnames[tg->JScript.jsnameindex].type = ty;
+	JSparamnames[tg->JScript.jsnameindex].eventInFunction = NULL;
 	#ifdef CRVERBOSE
 	printf ("JSparamIndex, returning %d\n",jsnameindex); 
 	#endif
 
-	return jsnameindex;
+	return tg->JScript.jsnameindex;
 }
 
 /********************************************************************
@@ -1129,7 +1133,7 @@ static void actually_do_CRoutes_Register() {
 
 #ifdef CRVERBOSE  
 		printf ("CRoutes_Register adrem %d from %u ",newEntry->adrem, newEntry->from);
-		if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
+		//if (newEntry->from > JSMaxScript) printf ("(%s) ",stringNodeType(X3D_NODE(newEntry->from->_nodeType)));
 
 		printf ("off %u to %u intptr %p\n",
 				newEntry->fromoffset, newEntry->to, newEntry->intptr);
@@ -1446,6 +1450,7 @@ static void gatherScriptEventOuts(void) {
 	CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
 	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	p = (ppCRoutes)tg->CRoutes.prv;
 
 	/* go through all routes, looking for this script as an eventOut */
@@ -2064,6 +2069,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 void resetScriptTouchedFlag(int actualscript, int fptr) {
 #ifdef HAVE_JAVASCRIPT
 	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
 	#ifdef CRVERBOSE
 	printf ("resetScriptTouchedFlag, name %s type %s script %d, fptr %d\n",JSparamnames[fptr].name, stringFieldtypeType(JSparamnames[fptr].type), actualscript, fptr);
