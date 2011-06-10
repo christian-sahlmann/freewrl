@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.34 2011/06/07 14:17:03 dug9 Exp $
+$Id: Component_Geometry2D.c,v 1.35 2011/06/10 22:28:33 dug9 Exp $
 
 X3D Geometry2D  Component
 
@@ -673,12 +673,12 @@ void collide_Disk2D (struct X3D_Disk2D *node) {
 
 void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 		/* Modified Box code. */
-
+		ttglobal tg = gglobal();
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
 	       GLDOUBLE modelMatrix[16];
 	       //GLDOUBLE upvecmat[16];

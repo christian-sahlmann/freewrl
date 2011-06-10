@@ -343,6 +343,18 @@ iOLDCODE	}Component_Networking;
 	struct tjsVRMLClasses{
 		void *prv;
 	}jsVRMLClasses;
+	struct tBindable{
+		struct sNaviInfo naviinfo;
+		int background_tos;// = -1;
+		int navi_tos;// = -1;
+		int viewpoint_tos;// = -1;
+		int fog_tos;// = -1;
+		uintptr_t *background_stack;//[MAX_STACK];
+		uintptr_t *viewpoint_stack;//[MAX_STACK];
+		uintptr_t *navi_stack;//[MAX_STACK];
+		uintptr_t *fog_stack;//[MAX_STACK];
+		void *prv;
+	}Bindable;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

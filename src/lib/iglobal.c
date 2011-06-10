@@ -81,6 +81,7 @@ void jsUtils_init(struct tjsUtils *t);
 void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 #endif
+void Bindable_init(struct tBindable *t);
 
 
 //static ttglobal iglobal; //<< for initial development witn single instance
@@ -159,6 +160,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	jsVRMLBrowser_init(&iglobal->jsVRMLBrowser);
 	jsVRMLClasses_init(&iglobal->jsVRMLClasses);
 #endif
+	Bindable_init(&iglobal->Bindable);
 
 
 	uiThread = pthread_self();
@@ -168,9 +170,12 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->Bindable.prv);
+#ifdef HAVE_JAVASCRIPT
 	FREE_IF_NZ(tg->jsVRMLClasses.prv);
 	FREE_IF_NZ(tg->jsVRMLBrowser.prv);
 	FREE_IF_NZ(tg->jsUtils.prv);
+#endif
 	FREE_IF_NZ(tg->JScript.prv);
 	FREE_IF_NZ(tg->CScripts.prv);
 	FREE_IF_NZ(tg->CRoutes.prv);

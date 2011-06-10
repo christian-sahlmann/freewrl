@@ -1,5 +1,5 @@
 /*
-  $Id: common.h,v 1.1 2011/06/10 17:37:20 couannette Exp $
+  $Id: common.h,v 1.2 2011/06/10 22:28:33 dug9 Exp $
 
   FreeWRL support library.
 
@@ -50,5 +50,8 @@ void setMessageBar();
 void setCursor();
 void setWindowTitle();
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
 
 #endif /* __LIBFREEWRL_UI_COMMON_H__ */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.73 2011/06/09 03:48:26 dug9 Exp $
+$Id: Viewer.c,v 1.74 2011/06/10 22:28:33 dug9 Exp $
 
 CProto ???
 
@@ -300,7 +300,8 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 }
 
 void fwl_set_viewer_type(const int type) {
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	ttglobal tg = gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
 
 	switch(type) {
 	case VIEWER_NONE:
@@ -322,7 +323,7 @@ void fwl_set_viewer_type(const int type) {
 
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (navi_tos != -1)
+	if (tg->Bindable.navi_tos != -1)
 		if (p->Viewer.oktypes[type]==FALSE) {
 			setMenuButton_navModes(p->Viewer.type);
 			return;

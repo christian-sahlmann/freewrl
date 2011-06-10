@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.207 2011/06/10 19:10:05 couannette Exp $
+  $Id: OpenGL_Utils.c,v 1.208 2011/06/10 22:28:33 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1528,6 +1528,8 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	GLDOUBLE MM[16];
 
 	int ci;
+	ttglobal tg = gglobal();
+	X3D_Viewer *viewer = Viewer();
 
 	#ifdef VERBOSE
 	printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
@@ -1540,9 +1542,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		(vpnode->_nodeType != NODE_OrthoViewpoint) &&
 		(vpnode->_nodeType != NODE_GeoViewpoint)) {
 		printf ("can not do this node type yet %s, for cpf\n",stringNodeType(vpnode->_nodeType));
-		Viewer()->nearPlane = DEFAULT_NEARPLANE;
-		Viewer()->farPlane = DEFAULT_FARPLANE;
-		Viewer()->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
+		viewer->nearPlane = DEFAULT_NEARPLANE;
+		viewer->farPlane = DEFAULT_FARPLANE;
+		viewer->backgroundPlane = DEFAULT_BACKGROUNDPLANE;
 		return;
 	}	
 
@@ -1597,14 +1599,14 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	#endif
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
-	Viewer()->nearPlane = cnp; 
+	viewer->nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
-	if (background_stack[0]!= 0) {
-		Viewer()->farPlane = cfp * 10.0;
-		Viewer()->backgroundPlane = cfp*5.0;
+	if (tg->Bindable.background_stack[0]!= 0) {
+		viewer->farPlane = cfp * 10.0;
+		viewer->backgroundPlane = cfp*5.0;
 	} else {
-		Viewer()->farPlane = cfp;
-		Viewer()->backgroundPlane = cfp; /* just set it to something */
+		viewer->farPlane = cfp;
+		viewer->backgroundPlane = cfp; /* just set it to something */
 	}
 }
 
@@ -3049,7 +3051,7 @@ X3D_GROUP(node)->removeChildren.n);
 			}
 
 			/* tell mainloop that we have to do a sensitive pass now */
-			gglobal()->Mainloop.HaveSensitive = TRUE;
+			tg->Mainloop.HaveSensitive = TRUE;
 			nParents = 0;
 		}
 
@@ -3058,7 +3060,7 @@ X3D_GROUP(node)->removeChildren.n);
 			anchorPtr->_renderFlags = anchorPtr->_renderFlags  | VF_Sensitive;
 
 			/* tell mainloop that we have to do a sensitive pass now */
-			gglobal()->Mainloop.HaveSensitive = TRUE;
+			tg->Mainloop.HaveSensitive = TRUE;
 			anchorPtr = NULL;
 		}
 
@@ -3068,7 +3070,7 @@ X3D_GROUP(node)->removeChildren.n);
 			if (*setBindPtr < 100) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
-				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
+				bind_node ((void *)node, &tg->Bindable.viewpoint_tos,&tg->Bindable.viewpoint_stack[0]);
 
 				//dug9 added July 24, 2009: when you bind, it should set the 
 				//avatar to the newly bound viewpoint pose and forget any 
@@ -3118,9 +3120,9 @@ X3D_GROUP(node)->removeChildren.n);
 	}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (viewpoint_stack[viewpoint_tos] != 0) {
-		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
-		calculateNearFarplanes(X3D_NODE(viewpoint_stack[viewpoint_tos]));
+	if (tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos] != 0) {
+		update_renderFlag(X3D_NODE(tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos]), VF_Viewpoint);
+		calculateNearFarplanes(X3D_NODE(tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos]));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;

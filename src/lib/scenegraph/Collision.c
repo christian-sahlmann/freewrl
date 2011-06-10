@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.21 2011/06/09 21:43:01 dug9 Exp $
+$Id: Collision.c,v 1.22 2011/06/10 22:28:33 dug9 Exp $
 
 Render the children of nodes.
 
@@ -989,11 +989,12 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	int hit,i;
 	double tmin[3],tmax[3]; /* MBB for facet */
 	struct sFallInfo *fi;
-	GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	GLDOUBLE astep = -naviinfo.height+naviinfo.step;
-	ppcollision pp = (ppcollision)gglobal()->collision.prv;
+	ttglobal tg = gglobal();
+	GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
+	ppcollision pp = (ppcollision)tg->collision.prv;
 	result = zero;
 	pp->get_poly_mindisp = 0.0;
 	fi = FallInfo();
@@ -2520,6 +2521,7 @@ void get_collisionoffset(double *x, double *y, double *z)
 	struct sFallInfo *fi;
 		struct point_XYZ xyz;
         struct point_XYZ res;
+		ttglobal tg = gglobal();
 		ci = CollisionInfo();
 		fi = FallInfo();
 		res = ci->Offset;
@@ -2541,9 +2543,9 @@ void get_collisionoffset(double *x, double *y, double *z)
 				double floatfactor = .1;
 				if(fi->allowClimbing) floatfactor = 0.0; /*popcycle method */
 				if(fi->smoothStep)
-					xyz.y = DOUBLE_MAX(fi->hfall,-fi->fallStep) + naviinfo.height*floatfactor; 
+					xyz.y = DOUBLE_MAX(fi->hfall,-fi->fallStep) + tg->Bindable.naviinfo.height*floatfactor; 
 				else
-					xyz.y = fi->hfall + naviinfo.height*floatfactor; //.1; 
+					xyz.y = fi->hfall + tg->Bindable.naviinfo.height*floatfactor; //.1; 
 				if(fi->verticalOnly)
 				{
 					xyz.x = 0.0;

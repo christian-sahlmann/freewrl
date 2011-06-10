@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.70 2011/06/09 21:07:12 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.71 2011/06/10 22:28:33 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -1350,14 +1350,15 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	   prminvals[3],prmaxvals[3] - MBB minimum bounding box or extent of shape, in shape space
 	   the fastTestMethod can be set in mainloop.c render_collisions()
 	*/
+	ttglobal tg = gglobal();
 	struct sFallInfo* fi = FallInfo();
 	if(fi->walking)
 	{
 		/* cylindrical / popcycle shaped avatar collision volume */
-		GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-		GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-		GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-		GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+		GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+		GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+		GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+		GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
 		/* the following 2 flags are checked a few levels down, in the triangle/quad intersect avatar code get_poly_disp_2(p, 3, nused) */
 		fi->checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
@@ -1423,7 +1424,7 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 	else
 	{
 		/* examine/fly spherical avatar collision volume */
-		GLDOUBLE awidth = naviinfo.width; /*avatar width - used as avatar sphere radius*/
+		GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width - used as avatar sphere radius*/
 		if(fi->fastTestMethod==2 || fi->fastTestMethod == 0)
 			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
 		if(fi->fastTestMethod == 1 )
@@ -1691,11 +1692,11 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLDOUBLE dist2;
 	       struct point_XYZ delta = {0,0,0};
 	       GLDOUBLE radius;
-
+			ttglobal tg = gglobal();
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
 		/* this sucker initialized yet? */
 		if (node->__points.p == NULL) return;
@@ -1894,10 +1895,11 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 void collide_Box (struct X3D_Box *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+			ttglobal tg = gglobal();
+	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
 	       GLDOUBLE modelMatrix[16];
 	       struct point_XYZ iv = {0,0,0};
@@ -2120,10 +2122,11 @@ DEBUGGINGCODE}
 void collide_Cone (struct X3D_Cone *node) {
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+			ttglobal tg = gglobal();
+	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
 
                 float h = (node->height) /2;
@@ -2400,10 +2403,11 @@ DEBUGGING_CODE}
 
 void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
-	       GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-	       GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+			ttglobal tg = gglobal();
+	       GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+	       GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
 
                 float h = (node->height)/2;
                 float r = (node->radius);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.48 2011/06/09 03:48:26 dug9 Exp $
+$Id: Component_Navigation.c,v 1.49 2011/06/10 22:28:33 dug9 Exp $
 
 X3D Navigation Component
 
@@ -52,7 +52,7 @@ X3D Navigation Component
 
 void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
-
+	GLint viewPort[10];
 	if (!renderstate()->render_vp) return;
 
         /* printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -268,10 +268,11 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	ttglobal tg = gglobal();
 	if (node->set_bind < 100) {
 		if (node->set_bind == 1) set_naviinfo(node);
 
-		bind_node (X3D_NODE(node), &navi_tos,&navi_stack[0]);
+		bind_node (X3D_NODE(node), &tg->Bindable.navi_tos,&tg->Bindable.navi_stack[0]);
 	}
 	if(!node->isBound) return;
 }

@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.32 2011/06/10 19:10:05 couannette Exp $
+  $Id: fwWindow32.c,v 1.33 2011/06/10 22:28:33 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -23,6 +23,7 @@
 
 #include <libFreeWRL.h>
 #include <float.h>
+#include "common.h"
 
 
 
@@ -601,7 +602,6 @@ int doEventsWin32A()
     eventcount = 0;
     return FALSE;
 }
-
 void setCursor()
 {
 	switch (ccurse) {
@@ -612,7 +612,37 @@ void setCursor()
 	}
 	SetCursor(cursor);
 }
+void setWindowTitle()
+{
+	//XStoreName(Xdpy, Xwin, window_title);
+	//XSetIconName(Xdpy, Xwin, window_title);
+	//http://msdn.microsoft.com/en-us/library/ms633546(VS.85).aspx
+	//SetWindowText(
+	 // __in      HWND hWnd,
+	 // __in_opt  LPCTSTR lpString);
+	SetWindowText(ghWnd,window_title);
+}
+void fv_setGeometry_from_cmdline(const char *gstring)
+{
+	int w,h,i;
+	char *tok[2];
+	char *str = malloc(sizeof(gstring)+1);
+	strcpy(str,gstring);
+	tok[0] = str;
+	for(i=0;i<strlen(gstring);i++)
+		if(str[i] == 'x' || str[i] == 'X')
+		{
+			str[i] = '\0';
+			tok[1] = i+1;
+			break;
+		}
+	sscanf(tok[0],"%d",&w);
+	sscanf(tok[1],"%d",&h);
+	gglobal()->display.win_width = w; 
+    gglobal()->display.win_height = h; 
+	free(str);
 
+}
 /*======== "VIRTUAL FUNCTIONS" ==============*/
 
 /**

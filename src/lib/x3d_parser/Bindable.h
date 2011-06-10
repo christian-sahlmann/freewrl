@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.h,v 1.9 2011/06/03 00:46:13 dug9 Exp $
+$Id: Bindable.h,v 1.10 2011/06/10 22:28:33 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
@@ -34,7 +34,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 /* Bind stack */
 #define MAX_STACK 20
 
-extern GLint viewPort[];
+//extern GLint viewPort[];
 
 /* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
 //extern void * *fognodes;
@@ -44,14 +44,14 @@ extern GLint viewPort[];
 //extern int totfognodes, totbacknodes, totnavnodes;//, totviewpointnodes;
 //extern int currboundvpno;
 
-extern int viewpoint_tos;
-extern int background_tos;
-extern int fog_tos;
-extern int navi_tos;
-
-extern uintptr_t viewpoint_stack[];
-extern uintptr_t background_stack[];
-extern uintptr_t navi_stack[];
+//extern int viewpoint_tos;
+//extern int background_tos;
+//extern int fog_tos;
+//extern int navi_tos;
+//
+//extern uintptr_t viewpoint_stack[];
+//extern uintptr_t background_stack[];
+//extern uintptr_t navi_stack[];
 
 void
 reset_upvector(void);

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.88 2011/06/09 17:15:14 dug9 Exp $
+  $Id: ProdCon.c,v 1.89 2011/06/10 22:28:33 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -326,7 +326,8 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 /* interface for telling the parser side to forget about everything...  */
 void EAI_killBindables (void) {
 	int complete;
-	ppProdCon p = gglobal()->ProdCon.prv;
+	ttglobal tg = gglobal();
+	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
 	WAIT_WHILE_PARSER_BUSY;
 	complete=0;
@@ -351,10 +352,10 @@ void EAI_killBindables (void) {
 	UNLOCK;
 
 	/* and, reset our stack pointers */
-	background_tos = INT_ID_UNDEFINED;
-	fog_tos = INT_ID_UNDEFINED;
-	navi_tos = INT_ID_UNDEFINED;
-	viewpoint_tos = INT_ID_UNDEFINED;
+	tg->Bindable.background_tos = INT_ID_UNDEFINED;
+	tg->Bindable.fog_tos = INT_ID_UNDEFINED;
+	tg->Bindable.navi_tos = INT_ID_UNDEFINED;
+	tg->Bindable.viewpoint_tos = INT_ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */
