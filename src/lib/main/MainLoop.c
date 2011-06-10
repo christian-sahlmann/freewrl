@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.204 2011/06/10 00:27:17 dug9 Exp $
+  $Id: MainLoop.c,v 1.205 2011/06/10 18:17:26 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2005,8 +2005,8 @@ void emulate_multitouch(const int mev, const unsigned int button, int x, int y)
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
     ttglobal tg = gglobal();
 
-	//printf ("fwl_handle_aqua, type %d, screen %d %d, orig x,y %d %d\n",
-      //      mev,tg->display.screenWidth, tg->display.screenHeight,x,y);
+	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
+            mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
 
 	// do we have to worry about screen orientations (think mobile devices)
 	#if defined (IPHONE) || defined (_ANDROID)
@@ -2018,27 +2018,58 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
         // while standard opengl is (0,0) in lower left hand corner...
 		int ox = x;
 		int oy = y;
-		switch (Viewer()->screenOrientation) {
-			case 0: 
-				x = tg->display.screenHeight-x;
-                
-				break;
-			case 90: 
-				x = oy;
-				y = ox;
-				break;
-			case 180:
-				x = x;
-				y = -y;
-				break;
-			case 270:
-				x = tg->display.screenWidth - oy;
-				y = tg->display.screenHeight - ox;
-				break;
-			default:{}
 
+		// these make sense for walk navigation
+		if (Viewer()->type == VIEWER_WALK) {
+			switch (Viewer()->screenOrientation) {
+				case 0: 
+					x = tg->display.screenHeight-x;
+	                
+					break;
+				case 90: 
+					x = oy;
+					y = ox;
+					break;
+				case 180:
+					x = x;
+					y = -y;
+					break;
+				case 270:
+					x = tg->display.screenWidth - oy;
+					y = tg->display.screenHeight - ox;
+					break;
+				default:{}
+			}
+
+		// these make sense for examine navigation
+		} else if (Viewer()->type == VIEWER_EXAMINE) {
+			switch (Viewer()->screenOrientation) {
+				case 0: 
+					break;
+				case 90: 
+					x = tg->display.screenWidth - oy;
+					y = ox;
+					break;
+				case 180:
+					x = tg->display.screenWidth -x;
+					y = tg->display.screenHeight -y;
+					break;
+				case 270:
+					// nope x = tg->display.screenWidth - oy;
+					// nope y = tg->display.screenHeight - ox;
+
+					x = tg->display.screenHeight - oy;
+					y = tg->display.screenWidth - ox;
+
+					//printf ("resulting in x %d  y %d\n",x,y);
+					break;
+				default:{}
+			}
 
 		}
+printf ("fwl_handle_aqua, oriengation %d, mouse is now at %d,%d, realizing that 0,0 is lower left corner\n",
+Viewer()->screenOrientation,
+x,y);
 	}
 
 	#endif
