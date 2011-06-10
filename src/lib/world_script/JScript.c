@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.36 2011/06/04 19:05:42 crc_canada Exp $
+$Id: JScript.c,v 1.37 2011/06/10 00:27:17 dug9 Exp $
 
 Javascript C language binding.
 
@@ -62,6 +62,8 @@ int MAXJSparamNames = 0;
 
 /* Save the text, so that when the script is initialized in the fwl_RenderSceneUpdateScene thread, it will be there */
 void SaveScriptText(int num, const char *text) {
+	ttglobal tg = gglobal();
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("SaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
 	if (num >= JSMaxScript)  {
@@ -71,7 +73,7 @@ void SaveScriptText(int num, const char *text) {
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num].scriptText = STRDUP(text);
 
-	if (((int)num) > max_script_found) max_script_found = num;
+	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
 	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
 	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
 }
@@ -163,11 +165,13 @@ static JSClass globalClass = {
 /* housekeeping routines */
 void kill_javascript(void) {
 	int i;
+	ttglobal tg = gglobal();
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("calling kill_javascript()\n"); */
 	zeroScriptHandles();
 	if (runtime != NULL) {
-		for (i=0; i<=max_script_found_and_initialized; i++) {
+		for (i=0; i<=tg->CRoutes.max_script_found_and_initialized; i++) {
 			/* printf ("kill_javascript, looking at %d\n",i); */
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
@@ -179,10 +183,10 @@ void kill_javascript(void) {
 		runtime = NULL;
 	}
 	JSMaxScript = 0;
-	max_script_found = -1;
-	max_script_found_and_initialized = -1;
+	tg->CRoutes.max_script_found = -1;
+	tg->CRoutes.max_script_found_and_initialized = -1;
 	FREE_IF_NZ (ScriptControl);
-	FREE_IF_NZ(scr_act);
+	FREE_IF_NZ(tg->CRoutes.scr_act);
 
 	/* Script name/type table */
 	FREE_IF_NZ(JSparamnames);
@@ -199,16 +203,18 @@ void cleanupDie(int num, const char *msg) {
 void JSMaxAlloc() {
 	/* perform some REALLOCs on JavaScript database stuff for interfacing */
 	int count;
-
+	ttglobal tg = gglobal();
 	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	JSMaxScript += 10;
-	ScriptControl = (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = (int *)REALLOC (scr_act, sizeof (*scr_act) * JSMaxScript);
+	setScriptControl( (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript));
+	ScriptControl = getScriptControl();
+	tg->CRoutes.scr_act = (int *)REALLOC (tg->CRoutes.scr_act, sizeof (*tg->CRoutes.scr_act) * JSMaxScript);
 
 	/* mark these scripts inactive */
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
-		scr_act[count]= FALSE;
+		tg->CRoutes.scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
 		ScriptControl[count].eventsProcessed = NULL;
 		ScriptControl[count].cx = 0;
@@ -237,6 +243,7 @@ void JSInitializeScriptAndFields (int num) {
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
 	jsval rval;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
 	/* run through paramList, and run the script */
@@ -280,6 +287,8 @@ void JSCreateScriptContext(int num) {
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
 	/* is this the first time through? */
 	if (runtime == NULL) {
 		runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
@@ -368,6 +377,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	int len;
 	JSContext *_context;
 	JSObject *_globalObj;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 
 	/* get context and global object for this script */
@@ -612,6 +622,7 @@ void SFVec4dNativeAssign(void *top, void *fromp) {
 void SaveScriptField (int num, indexT kind, indexT type, const char* field, union anyVrml value) {
 	struct ScriptParamList **nextInsert;
 	struct ScriptParamList *newEntry;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	if (num >= JSMaxScript)  {
 		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
@@ -694,6 +705,7 @@ static void InitScriptField(int num, indexT kind, indexT type, const char* field
 	double defaultDouble[] = {0.0, 0.0, 0.0, 0.0};
 	struct Uni_String *sptr[1];
 	struct X3D_Node *defaultVoid[] = {NULL,NULL};
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	#ifdef JAVASCRIPTVERBOSE
 	printf ("calling InitScriptField from thread %u\n",pthread_self());
@@ -1058,6 +1070,7 @@ static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
 	jsval rval = INT_TO_JSVAL(0);
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
 	_context =  ScriptControl[num].cx;
@@ -1079,6 +1092,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	jsval _rval = INT_TO_JSVAL(0);
 	JSContext *_context;
 	JSObject *_globalObj;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
 	_context =  ScriptControl[num].cx;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.h,v 1.11 2010/05/25 16:57:36 davejoubert Exp $
+$Id: CRoutes.h,v 1.12 2011/06/10 00:27:17 dug9 Exp $
 
 VRML-parsing routines in C.
 
@@ -50,7 +50,8 @@ struct CRStruct {
         int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
 	int 	intTimeStamp;	/* used for ROUTE loop breaking */
 };
-extern struct CRStruct *CRoutes;
+//extern struct CRStruct *CRoutes;
+struct CRStruct *getCRoutes();
 
 /* function protos */
 int get_valueChanged_flag (int, int);
@@ -62,8 +63,8 @@ void resetScriptTouchedFlag(int actualscript, int fptr);
 void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 
 void CRoutes_js_new (int num,int scriptType);
-extern int max_script_found;
-extern int max_script_found_and_initialized;
-extern int *scr_act;
+//extern int max_script_found;
+//extern int max_script_found_and_initialized;
+//extern int *scr_act;
 
 #endif /* __FREEWRL_CROUTES_H__ */

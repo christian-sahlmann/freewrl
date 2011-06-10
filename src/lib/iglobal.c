@@ -68,6 +68,7 @@ void statusbar_init(struct tstatusbar *t);
 void CParse_init(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
+void CRoutes_init(struct tCRoutes *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -134,6 +135,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	CParse_init(&iglobal->CParse);
 	CParseParser_init(&iglobal->CParseParser);
 	CProto_init(&iglobal->CProto);
+	CRoutes_init(&iglobal->CRoutes);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
@@ -142,6 +144,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->CRoutes.prv);
 	FREE_IF_NZ(tg->CProto.prv);
 	FREE_IF_NZ(tg->CParseParser.prv);
 	FREE_IF_NZ(tg->CParse.prv);

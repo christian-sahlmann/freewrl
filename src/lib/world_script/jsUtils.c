@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.35 2011/05/10 13:40:49 crc_canada Exp $
+$Id: jsUtils.c,v 1.36 2011/06/10 00:27:17 dug9 Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -301,7 +301,7 @@ static void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataTy
 
 /* make an MF type from the X3D node. This can be fairly slow... */
 static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval *newval) {
-
+	ttglobal tg = gglobal();
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling JS_MF_TO_X3D on type %s\n",FIELDTYPES[dataType]);
 	printf ("JS_MF_TO_X3D, we have object %u, newval %u\n",obj,*newval);
@@ -315,7 +315,7 @@ static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType
 	printf ("JS_MF_TO_X3D, vp is a "); printJSNodeType(cx,JSVAL_TO_OBJECT(*newval));
 	#endif
 
-	JSglobal_return_val = *newval;
+	tg->CRoutes.JSglobal_return_val = *newval;
 	getJSMultiNumType (cx, (struct Multi_Vec3f*) Data, convertToSFType(dataType));
 
 }

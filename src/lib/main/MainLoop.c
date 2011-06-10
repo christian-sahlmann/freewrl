@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.203 2011/06/09 20:17:03 crc_canada Exp $
+  $Id: MainLoop.c,v 1.204 2011/06/10 00:27:17 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -297,16 +297,17 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
 */
 
 #define INITIALIZE_ANY_SCRIPTS \
-        if (max_script_found != max_script_found_and_initialized) { \
+        if (tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) { \
+				struct CRscriptStruct *ScriptControl = getScriptControl(); \
                 int i; jsval retval; \
-                for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) { \
+                for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) { \
                         /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
                         JSCreateScriptContext(i); \
                         JSInitializeScriptAndFields(i); \
 			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
                         /* printf ("initialized script %d\n",i);*/  \
                 } \
-                max_script_found_and_initialized = max_script_found; \
+                tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; \
         }
 
 /* we bind bindable nodes on parse in this thread */

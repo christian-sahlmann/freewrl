@@ -311,6 +311,17 @@ iOLDCODE	}Component_Networking;
 	struct tCProto{
 		void *prv;
 	}CProto;
+	struct tCRoutes{
+		/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
+		int CRoutesExtra;// = 0;
+		jsval JSglobal_return_val;
+		void *JSSFpointer;
+		int *scr_act;// = 0;				/* this script has been sent an eventIn */
+		int max_script_found;// = -1;			/* the maximum script number found */
+		int max_script_found_and_initialized;// = -1;	/* the maximum script number found */
+
+		void *prv;
+	}CRoutes;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

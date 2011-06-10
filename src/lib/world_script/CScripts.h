@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.h,v 1.22 2011/04/08 19:20:50 istakenv Exp $
+$Id: CScripts.h,v 1.23 2011/06/10 00:27:17 dug9 Exp $
 
 Class to wrap a java script for CParser
 
@@ -185,7 +185,9 @@ struct CRscriptStruct {
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
 };
-extern struct CRscriptStruct *ScriptControl;
+//extern struct CRscriptStruct *ScriptControl;
+struct CRscriptStruct *getScriptControl();
+void setScriptControl(struct CRscriptStruct *ScriptControl);
 
 /* function protos */
 

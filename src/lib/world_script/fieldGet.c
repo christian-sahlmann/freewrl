@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.44 2011/06/02 19:50:49 dug9 Exp $
+$Id: fieldGet.c,v 1.45 2011/06/10 00:27:17 dug9 Exp $
 
 Javascript C language binding.
 
@@ -123,7 +123,7 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	jsval newval;
 	JSContext *cx;
 	JSObject *obj;
-
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
 		tonode,toname,JSparamnames[toname].name,dataType,datalen); 
@@ -172,6 +172,7 @@ void setScriptECMAtype (int num) {
 	int len;
 	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
+	struct CRStruct *CRoutes = getCRoutes();
 
 	fn = offsetPointer_deref(void *, CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 	len = CRoutes[num].len;
@@ -205,6 +206,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	/* for MFStrings we have: */
 	char *chptr;
 	struct Uni_String  **uniptr;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
 	cx =  ScriptControl[tonode].cx;
@@ -694,6 +696,7 @@ int setMFElementtype (int num) {
 	CRnodeStruct *to_ptr = NULL;
 	char *pptr;
 	struct Multi_Node *mfp;
+	struct CRStruct *CRoutes = getCRoutes();
 
 
 	#ifdef SETFIELDVERBOSE 
@@ -852,6 +855,7 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	JSContext *cx;
 	JSObject *obj;
 	void **pp;
+	struct CRscriptStruct *ScriptControl = getScriptControl();
 
 	/* get context and global object for this script */
 	cx =  ScriptControl[tonode].cx;
@@ -894,13 +898,15 @@ void setScriptMultiElementtype (int num)
 	int tptr, fptr;
 	int len;
 	int to_counter;
-
-	CRnodeStruct *to_ptr = NULL;
-
 	void *fn;
 
 	JSContext *cx;
 	JSObject *obj;
+
+	CRnodeStruct *to_ptr = NULL;
+	struct CRStruct *CRoutes = getCRoutes();
+	struct CRscriptStruct *ScriptControl = getScriptControl();
+
 
 	fn = (void *)CRoutes[num].routeFromNode;
 	fptr = CRoutes[num].fnptr;

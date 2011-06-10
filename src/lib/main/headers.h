@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.162 2011/06/08 19:52:19 crc_canada Exp $
+$Id: headers.h,v 1.163 2011/06/10 00:27:17 dug9 Exp $
 
 Global includes.
 
@@ -608,7 +608,7 @@ int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to ty
 //extern double BrowserSpeed;
 void render_polyrep(void *node);
 
-extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
+//extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
 
 /* types of scripts. */
 #define NOSCRIPT 	0

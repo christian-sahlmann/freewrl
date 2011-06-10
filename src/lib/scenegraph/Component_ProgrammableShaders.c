@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.54 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_ProgrammableShaders.c,v 1.55 2011/06/10 00:27:17 dug9 Exp $
 
 X3D Programmable Shaders Component
 
@@ -491,7 +491,7 @@ void getField_ToShader(int num) {
 	size_t i;
 	GLfloat* sourceData;
 	GLuint currentShader;	
-
+	struct CRStruct *CRoutes = getCRoutes();
 
 	/* go through each destination for this node */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {

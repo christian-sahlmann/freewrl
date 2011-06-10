@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.13 2011/06/02 19:50:43 dug9 Exp $
+$Id: EAIEventsOut.c,v 1.14 2011/06/10 00:27:17 dug9 Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -69,11 +69,11 @@ void EAIListener () {
 	//p = (ppEAIServ)tg->EAIServ.prv;
 
 	/* get the type and the id.*/
-	tp = CRoutesExtra&0xff;
-	id = (CRoutesExtra & 0xffffff00) >>8;
+	tp = tg->CRoutes.CRoutesExtra&0xff;
+	id = (tg->CRoutes.CRoutesExtra & 0xffffff00) >>8;
 
 	if (eaiverbose) {
-		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),CRoutesExtra);
+		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),tg->CRoutes.CRoutesExtra);
 	}	
 
 	/* convert the data to string form, for sending to the EAI java client */

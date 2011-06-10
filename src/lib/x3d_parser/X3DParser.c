@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.88 2011/06/02 19:50:49 dug9 Exp $
+$Id: X3DParser.c,v 1.89 2011/06/10 00:27:17 dug9 Exp $
 
 ???
 
@@ -1410,6 +1410,7 @@ static void parseAttributes(void) {
 					if (offs != INT_ID_UNDEFINED) {
 
 					        struct ScriptParamList *thisEntry;
+							struct CRscriptStruct *ScriptControl = getScriptControl();
 
         					thisEntry = ScriptControl[myObj->num].paramList;
         					while (thisEntry != NULL) {
