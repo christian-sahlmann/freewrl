@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.38 2011/06/10 01:42:16 dug9 Exp $
+$Id: JScript.c,v 1.39 2011/06/10 13:31:42 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -54,6 +54,8 @@ Javascript C language binding.
 #include "jsVRMLBrowser.h"
 
 
+#ifdef HAVE_JAVASCRIPT
+
 //int JSMaxScript = 0;
 ///* Script name/type table */
 //struct CRjsnameStruct *JSparamnames = NULL;
@@ -74,14 +76,23 @@ static JSClass staticGlobalClass = {
 	JS_FinalizeStub
 };
 
+
+#endif // HAVE_JAVASCRIPT
+
+
 typedef struct pJScript{
 	/* Script name/type table */
 	struct CRjsnameStruct *JSparamnames;// = NULL;
 	int JSMaxScript;// = 0;
+
+#ifdef HAVE_JAVASCRIPT
 	JSRuntime *runtime;// = NULL;
 	JSClass globalClass;
+#endif // HAVE_JAVASCRIPT
 
 }* ppJScript;
+
+
 void *JScript_constructor(){
 	void *v = malloc(sizeof(struct pJScript));
 	memset(v,0,sizeof(struct pJScript));
@@ -98,9 +109,12 @@ void JScript_init(struct tJScript *t){
 		ppJScript p = (ppJScript)t->prv;
 		/* Script name/type table */
 		p->JSparamnames = NULL;
+#ifdef HAVE_JAVASCRIPT
 		p->JSMaxScript = 0;
 		p->runtime = NULL;
 		memcpy(&p->globalClass,&staticGlobalClass,sizeof(staticGlobalClass));
+#endif // HAVE_JAVASCRIPT
+
 	}
 }
 //	ppJScript p = (ppJScript)gglobal()->JScript.prv;
@@ -134,7 +148,6 @@ void SaveScriptText(int num, const char *text) {
 	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
 	printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
 }
-
 
 #ifdef HAVE_JAVASCRIPT
 
