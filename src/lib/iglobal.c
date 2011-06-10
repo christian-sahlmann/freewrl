@@ -164,7 +164,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 
 
 	uiThread = pthread_self();
-	set_thread2global(iglobal, uiThread );
+	set_thread2global(iglobal, uiThread ,"UI thread");
 	return iglobal;
 }
 void iglobal_destructor(ttglobal tg)
@@ -235,14 +235,17 @@ struct t2g {
 };
 static struct t2g thread2global[MAXINSTANCES*5];
 static int nglobalthreads = 0;
-void set_thread2global(ttglobal fwl, pthread_t any )
+void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
-printf ("set_thread2global, thread %p\n",any);
+printf ("set_thread2global, thread %p desc: %s\n",any, type);
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
 	nglobalthreads++;
 }
 
+
+
+#if !(defined(IPHONE) || defined(_ANDROID))
 ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
@@ -266,16 +269,29 @@ ttglobal gglobal0()
 		}
 	return iglobal;
 }
+#else
+
+// on systems where there can only be 1 window running, and when the GUI
+// handles the window, simplify the calls so that we do not have to
+// register the ui window handling thread (and including associated .h files)
+
+ttglobal gglobal0()
+{
+	if (nglobalthreads >=1) {
+		return thread2global[0].iglobal;
+	} 
+	return NULL;
+}
+
+#endif // ANDROID AND IPHONE
+
+
+
 ttglobal gglobal()
 {
 	ttglobal iglobal = gglobal0();
 	if(iglobal == NULL)
 	{
-#ifdef AQUA
-		printf("ouch - no state for this thread -nglobalthreads %d looking for %p\n",nglobalthreads,pthread_self());
-return thread2global[0].iglobal;
-
-#endif
 		printf("ouch - no state for this thread - hit a key to exit\n");
 		getchar();
 		//let it bomb exit(-1);

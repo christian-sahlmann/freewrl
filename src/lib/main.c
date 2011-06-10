@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.59 2011/06/09 11:38:54 daytonavid Exp $
+  $Id: main.c,v 1.60 2011/06/10 15:22:58 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -304,7 +304,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 
 	gglobal()->threads.mainThread = pthread_self();
 
-	set_thread2global((ttglobal)fwl, gglobal()->threads.mainThread );
+	set_thread2global((ttglobal)fwl, gglobal()->threads.mainThread ,"main thread");
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
@@ -334,19 +334,19 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	fwl_initializeDisplayThread();
 
 	usleep(50);
-	set_thread2global(fwl,gglobal()->threads.DispThrd );
+	set_thread2global(fwl,gglobal()->threads.DispThrd "display thread");
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
-	set_thread2global(fwl, gglobal()->threads.PCthread );
+	set_thread2global(fwl, gglobal()->threads.PCthread ,"parse thread");
 
 	while (!fwl_isInputThreadInitialized()) {
 		usleep(50);
 	}
 
 	fwl_initializeTextureThread();
-	set_thread2global(fwl, gglobal()->threads.loadThread );
+	set_thread2global(fwl, gglobal()->threads.loadThread ,"texture loading thread");
 	while (!fwl_isTextureinitialized()) {
 		usleep(50);
 	}
