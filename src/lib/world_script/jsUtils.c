@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.36 2011/06/10 00:27:17 dug9 Exp $
+$Id: jsUtils.c,v 1.37 2011/06/10 01:54:02 dug9 Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -79,9 +79,30 @@ extern char *parser_getNameFromNode(struct X3D_Node *ptr) ; /* vi +/dump_scene s
    on these because it would be a recursive call; thus we set the private data */
 
 
-static int insetSFStr = FALSE;
-static JSBool reportWarnings = JS_TRUE;
+//static int insetSFStr = FALSE;
+//static JSBool reportWarnings = JS_TRUE;
+typedef struct pjsUtils{
+	int insetSFStr;// = FALSE;
+	JSBool reportWarnings;// = JS_TRUE;
 
+}* ppjsUtils;
+void *jsUtils_constructor(){
+	void *v = malloc(sizeof(struct pjsUtils));
+	memset(v,0,sizeof(struct pjsUtils));
+	return v;
+}
+void jsUtils_init(struct tjsUtils *t){
+	//public
+	//private
+	t->prv = jsUtils_constructor();
+	{
+		ppjsUtils p = (ppjsUtils)t->prv;
+		p->insetSFStr = FALSE;
+		p->reportWarnings = JS_TRUE;
+
+	}
+}
+//	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
 #if JS_VERSION < 185
 static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 #else
@@ -93,10 +114,11 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, JSBool strict,
 	JSObject *me;
 	JSObject *par;
 	jsval ele; 
+	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
 
 	/* when we save the value, we will be called again, so we make sure that we
 	   know if we are being called from within, or from without */
-	if (insetSFStr) { 
+	if (p->insetSFStr) { 
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("setSF_in_MF: already caught this value; this is our JS_SetElement call\n"); 
 		#endif
@@ -104,7 +126,7 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, JSBool strict,
 	}
 
 	/* ok, we are really called to replace an existing SFNode MF value assignment */
-	insetSFStr = TRUE; 
+	p->insetSFStr = TRUE; 
 
 	if (JSVAL_IS_INT(id)) {
 		if (!JS_ValueToInt32(cx,id,&num)) {
@@ -172,7 +194,7 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid id, JSBool strict,
 		me = par;
 		par = JS_GetParent(cx, me);
 	}
-	insetSFStr = FALSE;
+	p->insetSFStr = FALSE;
 	return JS_TRUE;
 }
 
@@ -755,11 +777,17 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 }
 
 void
-reportWarningsOn() { reportWarnings = JS_TRUE; }
+reportWarningsOn() { 
+	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
+	p->reportWarnings = JS_TRUE; 
+}
 
 
 void
-reportWarningsOff() { reportWarnings = JS_FALSE; }
+reportWarningsOff() { 
+	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
+	p->reportWarnings = JS_FALSE; 
+}
 
 
 void
@@ -767,6 +795,7 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 {
 	char *errorReport = 0;
 	int len = 0, charPtrSize = (int) sizeof(char *);
+	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
 
 printf ("*** errorReporter ***\n");
 
@@ -776,7 +805,7 @@ printf ("*** errorReporter ***\n");
     }
 
     /* Conditionally ignore reported warnings. */
-    if (JSREPORT_IS_WARNING(report->flags) && !reportWarnings) {
+    if (JSREPORT_IS_WARNING(report->flags) && !p->reportWarnings) {
 		return;
 	}
 

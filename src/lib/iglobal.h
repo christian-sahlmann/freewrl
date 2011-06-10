@@ -331,6 +331,9 @@ iOLDCODE	}Component_Networking;
 
 		void *prv;
 	}JScript;
+	struct tjsUtils{
+		void *prv;
+	}jsUtils;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
