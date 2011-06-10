@@ -64,16 +64,24 @@ void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
 void Tess_init(struct tTess *t);
 void Viewer_init(struct tViewer *t);
+
+#if !(defined(IPHONE) || defined(_ANDROID))
 void statusbar_init(struct tstatusbar *t);
+#endif
+
 void CParse_init(struct tCParse *t);
 void CParseParser_init(struct tCParseParser *t);
 void CProto_init(struct tCProto *t);
 void CRoutes_init(struct tCRoutes *t);
 void CScripts_init(struct tCScripts *t);
 void JScript_init(struct tJScript *t);
+
+#ifdef HAVE_JAVASCRIPT
 void jsUtils_init(struct tjsUtils *t);
 void jsVRMLBrowser_init(struct tjsVRMLBrowser *t);
 void jsVRMLClasses_init(struct tjsVRMLClasses *t);
+#endif
+
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -136,16 +144,24 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	StreamPoly_init(&iglobal->StreamPoly);
 	Tess_init(&iglobal->Tess);
 	Viewer_init(&iglobal->Viewer);
+
+#if !(defined(IPHONE) || defined(_ANDROID))
 	statusbar_init(&iglobal->statusbar);
+#endif
+
 	CParse_init(&iglobal->CParse);
 	CParseParser_init(&iglobal->CParseParser);
 	CProto_init(&iglobal->CProto);
 	CRoutes_init(&iglobal->CRoutes);
 	CScripts_init(&iglobal->CScripts);
 	JScript_init(&iglobal->JScript);
+
+#ifdef HAVE_JAVASCRIPT
 	jsUtils_init(&iglobal->jsUtils);
 	jsVRMLBrowser_init(&iglobal->jsVRMLBrowser);
 	jsVRMLClasses_init(&iglobal->jsVRMLClasses);
+#endif
+
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread );
