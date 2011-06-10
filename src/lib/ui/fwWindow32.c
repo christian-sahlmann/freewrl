@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.31 2011/06/02 19:50:49 dug9 Exp $
+  $Id: fwWindow32.c,v 1.32 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -319,8 +319,9 @@ bool fv_bind_GLcontext()
 }
 
 
-static int sensor_cursor = 0;
 static HCURSOR hSensor, hArrow;
+static HCURSOR cursor;
+
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
@@ -387,18 +388,9 @@ static int shiftState = 0;
 	fwl_doQuit();
 	break; 
 
-	/*
-	case WM_SETCURSOR: 
-	break;
-    if(sensor_cursor) 
-	{
-        SetCursor(hSensor);
-		break;
-	}
-    else
-		SetCursor(hArrow);
-    break; 
-	*/
+    case WM_SETCURSOR:
+	    setCursor();
+	    break;
 
 /**************************************************************\
  *     WM_PAINT:                                                *
@@ -610,24 +602,16 @@ int doEventsWin32A()
     return FALSE;
 }
 
-void arrow_cursor32()
+void setCursor()
 {
-	/*
-http://msdn.microsoft.com/en-us/library/ms648380(VS.85).aspx 
-http://msdn.microsoft.com/en-us/library/ms648393(VS.85).aspx
-http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx 
-	*/
-	if( sensor_cursor )
-		SetCursor(hArrow);
-	sensor_cursor = 0;
+	switch (ccurse) {
+	case SCURSE: cursor = hSensor;
+	case ACURSE: cursor = hArrow;
+	default:
+		DEBUG_MSG("setCursor: invalid value for ccurse: %d\n", ccurse);
+	}
+	SetCursor(cursor);
 }
-
-void sensor_cursor32()
-{
-	sensor_cursor = 1;
-	SetCursor(hSensor);
-}
-
 
 /*======== "VIRTUAL FUNCTIONS" ==============*/
 
@@ -753,7 +737,7 @@ int create_main_window0(int argc, char *argv[])
    
     return TRUE;
 }
-extern freewrl_params_t fwl_params;
+
 int fv_create_main_window(int argc, char *argv[])
 {
 	if( fwl_params.winToEmbedInto > 0 )

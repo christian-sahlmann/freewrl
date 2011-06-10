@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.32 2011/06/08 17:03:15 istakenv Exp $
+  $Id: fwMotifWindow.c,v 1.33 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -41,14 +41,7 @@
 #include "../vrml_parser/Structs.h"
 #include "../opengl/OpenGL_Utils.h"
 
-s_renderer_capabilities_t rdr_caps;
-bool initialize_rdr_caps();
-void rdr_caps_dump();
-float myFps;
-int win_height; /* window */
-int win_width;
-long int winToEmbedInto;
-char *window_title;
+#include "ui/common.h"
 
 #include <Xm/MainW.h>
 #include <Xm/RowColumn.h>
@@ -211,8 +204,8 @@ int fv_create_main_window(int argc, char *argv[])
 
 	/* XtVaAppInitialize ??? */
 	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(window_title, XmSTRING_DEFAULT_CHARSET)); initArgc++;
-	XtSetArg(initArgs[initArgc], XmNheight, win_height); initArgc++;
-	XtSetArg(initArgs[initArgc], XmNwidth, win_width); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNheight, fwl_params.height); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNwidth, fwl_params.width); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNmappedWhenManaged, False); initArgc++;
 
 	/**
@@ -237,9 +230,6 @@ int fv_create_main_window(int argc, char *argv[])
 		      XmNvisual, Xvi->visual,
 		      XmNcolormap, colormap,
 		      NULL);
-
-	/* zero status stuff */
-	myMenuStatus[0] = '\0';
 	
 	mainw = XmCreateMainWindow(freewrlTopWidget, window_title, NULL, 0);
 	if (!mainw)
@@ -264,16 +254,17 @@ int fv_create_main_window(int argc, char *argv[])
 	
 	XtRealizeWidget (freewrlTopWidget);
 
+	/* FIXME: see fwBareWindow.c */
 	/* Roberto Gerson */
 	/* If -d is setted, so reparent the window */
-	if(winToEmbedInto != -1){
+	if (fwl_params.winToEmbedInto != -1){
 		printf("fwMotifWindow::Trying to reparent window: %ld, to new parent: %ld\n",
 			XtWindow(freewrlTopWidget),
-			winToEmbedInto);
+			fwl_params.winToEmbedInto);
 
 		XReparentWindow(XtDisplay(freewrlTopWidget),
-		XtWindow(freewrlTopWidget),
-		winToEmbedInto, 0, 0);
+				XtWindow(freewrlTopWidget),
+				fwl_params.winToEmbedInto, 0, 0);
 
 		XMapWindow(XtDisplay(freewrlTopWidget), XtWindow(freewrlTopWidget));
 	}
@@ -968,29 +959,6 @@ void frontendUpdateButtons()
         consmsgChanged = FALSE;
     }
 }
-
-/* #if defined(STATUSBAR_STD) */
-#if STATUSBAR_STD
-void setMessageBar()
-{   
-    if (menumessagewindow != NULL) {
-        /* make up new line to display */
-        if (strlen(myMenuStatus) == 0) {
-            strcat (myMenuStatus, "NONE");
-        }
-        if ( 
-	    fwl_isinputThreadParsing() || 
-	    fwl_isTextureParsing() || 
-	    (!fwl_isInputThreadInitialized())) {
-            sprintf (fpsstr, "(Loading...)  speed: %4.1f", myFps);
-        } else {
-            sprintf (fpsstr,"fps: %4.1f Viewpoint: %s",myFps,myMenuStatus);
-        }
-        msgChanged = TRUE;
-    }
-
-}
-#endif /* STATUSBAR_STD */
 
 void getMotifWindowedGLwin(Window *win)
 {

@@ -1,11 +1,10 @@
 /*
-  $Id: main.h,v 1.10 2011/05/25 19:26:33 davejoubert Exp $
+  $Id: main.h,v 1.11 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL/X3D main program.
   Internal header: helper macros.
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -27,18 +26,12 @@
 ****************************************************************************/
 
 
-
 #ifndef __FREEWRL_MAIN_H__
 #define __FREEWRL_MAIN_H__
 
 
-#if defined(_MSC_VER)
-extern int optind;
-#endif
+extern freewrl_params_t *fv_params;
+extern char *start_url;
 
-extern freewrl_params_t *params;
-
-void fv_startFreeWRL(char *start_url);
-bool fv_initFreeWRL(freewrl_params_t *params);
 
 #endif /* __FREEWRL_MAIN_H__ */

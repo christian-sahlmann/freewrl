@@ -6,7 +6,7 @@
  *
  * Version embedded.
  *
- * $Id: internal.h,v 1.7 2010/12/08 13:05:54 crc_canada Exp $
+ * $Id: internal.h,v 1.8 2011/06/10 19:10:05 couannette Exp $
  *
  *******************************************************************/
 
@@ -48,7 +48,8 @@ extern const char *freewrl_get_version();
 #define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
-#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
+/* Error message should always be printed */
+#define ERROR_MSG(...) fprintf(stderr, __VA_ARGS__)
 
 #ifdef VERBOSE
 #define DEBUG_FW(...) DEBUG_(printf("FW: " __VA_ARGS__))

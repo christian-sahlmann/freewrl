@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.61 2011/06/10 16:50:22 dug9 Exp $
+  $Id: main.c,v 1.62 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -41,7 +41,8 @@
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 #include "input/InputFunctions.h"
-// JAS #include "x3d_parser/Bindable.h"
+
+#include "ui/common.h"
 
 char consoleBuffer[200];
 freewrl_params_t fwl_params;
@@ -55,6 +56,7 @@ void libFreeWRL_init(void)
 void __attribute__ ((constructor)) libFreeWRL_init(void)
 #endif
 {
+	memset(&fwl_params, 0, sizeof(fwl_params));
 }
 
 /**
@@ -272,6 +274,7 @@ void fwl_initParams(freewrl_params_t *params)
 		memset(&fwl_params, 0, sizeof(freewrl_params_t));
 	}
 }
+
 void fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
 void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
 void fwl_setp_winToEmbedInto	(long int foo)	{ fwl_params.winToEmbedInto = foo; }
@@ -326,6 +329,9 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 
 	/* Initialize parser */
 	fwl_initialize_parser();
+
+	/* Initialize common UI variables */
+	myMenuStatus[0] = '\0';
 
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 	/* OK the display is now initialized,

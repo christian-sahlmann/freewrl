@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.36 2011/06/02 19:57:51 dug9 Exp $
+  $Id: options.c,v 1.37 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -263,18 +263,24 @@ int fv_parseCommandLine (int argc, char **argv)
 #endif /* TARGET_AQUA */
 	    break;
 
-	case 'g': /* --geometry, required argument: string "WxH" */
+	case 'g': /* --geometry, required argument: string (ex: 1024x768+100+50) */
 	    if (!optarg) {
 		ERROR_MSG("Argument missing for option -g/--geometry\n");
 		exit(1);
 	    } else {
-		fv_setGeometry_from_cmdline(optarg);
+		    if (!fwl_parse_geometry_string(optarg, 
+						   &fv_params->width, &fv_params->height,
+						   &fv_params->xpos, &fv_params->ypos)) {
+			    ERROR_MSG("Malformed geometry string: %s\n", optarg);
+			    return FALSE;
+		    }
 	    }
 	    break;
 
 	case 'b': /* --big, no argument */
-	    fv_setGeometry_from_cmdline("800x600");
-	    break;
+		fv_params->width = 800;
+		fv_params->height = 600;
+		break;
 
 	case 'd': /* --display, required argument int */
 		printf ("Parameter --display = %s\n", optarg);
@@ -425,17 +431,13 @@ int fv_parseCommandLine (int argc, char **argv)
 
     if (optind < argc) {
 	if (optind != (argc-1)) {
-	    WARN_MSG("WARNING: expect only 1 file on command line; running file: %s\n",
-		    argv[optind]);
+		ERROR_MSG("FreeWRL accepts only one argument: we have %d\n", (argc-optind));
+		return FALSE;
 	}
-
-	/* save the url for later use, if required */
-/*MBFILES 	setFullPath(argv[optind]); */
-    } else {
-	/* printf ("no options  - just make BrowserFullPath point to nothing\n"); */
-	//MBFILES setFullPath("");
-	return FALSE;
+	DEBUG_MSG("Start url: %s\n", argv[optind]);
+	start_url = STRDUP(argv[optind]);
     }
+
     return TRUE;
 }
 

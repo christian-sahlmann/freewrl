@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarStub.c,v 1.1 2009/12/28 02:55:21 dug9 Exp $
+  $Id: statusbarStub.c,v 1.2 2011/06/10 19:10:05 couannette Exp $
 
 */
 
@@ -38,9 +38,6 @@ void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
-void setMenuStatus(char *stat) {}
-void setMenuFps (float fps) {}
-
 int handleStatusbarHud(int mev, int* clipplane)
 {return 0;}
 void drawStatusBar()

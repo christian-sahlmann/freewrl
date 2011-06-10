@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.51 2011/06/09 21:07:12 crc_canada Exp $
+$Id: internal.h,v 1.52 2011/06/10 19:10:05 couannette Exp $
 
 ???
 
@@ -195,8 +195,9 @@ int DEBUG_MSG(const char *fmt, ...)
 #define DEBUG_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(FPRINTF(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(FPRINTF(stdout, __VA_ARGS__))
-#define ERROR_MSG(...) DEBUG_(FPRINTF(stderr, __VA_ARGS__))
-#define PERROR_MSG(...) DEBUG_(fw_perror(stderr, __VA_ARGS__))
+/* Error message should always be printed */
+#define ERROR_MSG(...) FPRINTF(stderr, __VA_ARGS__)
+#define PERROR_MSG(...) fw_perror(stderr, __VA_ARGS__)
 #ifdef VERBOSE
 #define DEBUG_FW(...) DEBUG_(PRINTF("FW: " __VA_ARGS__))
 #else

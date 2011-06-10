@@ -108,6 +108,9 @@ AM_CONDITIONAL([FW_DEBUG],[test "$sw_debug" != no])
 # debug feature: colorized threads
 AC_MY_DEFINE_SWITCH([thread_colorized],[enable colorized thread console output (default=off)],off,FREEWRL_THREAD_COLORIZED)
 
+# debug feature: plugin debug messages
+AC_MY_DEFINE_SWITCH([debug_plugin],[enable debugging (default=off)],off,FW_DEBUG_PLUGIN)
+
 # Fonts configuration
 AC_ARG_WITH([fontsdir],
             [AS_HELP_STRING([--with-fontsdir=DIR],
@@ -494,29 +497,6 @@ fi
 # do AC_SUBST(MAYBE_SOUND) after checking for existance of soundconv
 
 # ======================================
-# Java configuration
-# ======================================
-
-AC_MY_SWITCH(java,[enable building of java classes],off)
-if test x$sw_java = xno; then
-  AC_MSG_NOTICE([Not building java classes])
-  MAYBE_JAVA=
-else
-  MAYBE_JAVA=java
-fi
-# do AC_SUBST(MAYBE_JAVA) after checking for existance of javac
-
-# Java classes install dir configuration
-AC_ARG_WITH([javadir],
-            [AS_HELP_STRING([--with-javadir=DIR],
-                           [font path @<:@DATADIR/$PACKAGE/lib@:>@])],
-            [fontsdir=$withval],
-            [fontsdir=$datadir/$PACKAGE/lib])
-
-AC_DEFINE_DIR([JAVA_DIR],[javadir],[Directory for java classes.])
-
-
-# ======================================
 # Internet browser plugin configuration
 # ======================================
 
@@ -667,6 +647,30 @@ case "$os_type" in
           ;;
 esac # case $os_type
 
+# ======================================
+# Java configuration
+# ======================================
+
+AC_MY_DEFINE_SWITCH([java],[enable Java support (default=off)],off,JAVA_SUPPORT)
+if test x$sw_java = xno; then
+  AC_MSG_NOTICE([Not building java classes])
+  MAYBE_JAVA=
+else
+  # Java classes install dir configuration
+  AC_ARG_WITH([javadir],
+              [AS_HELP_STRING([--with-javadir=DIR],
+              [font path @<:@DATADIR/$PACKAGE/lib@:>@])],
+              [fontsdir=$withval],
+              [fontsdir=$datadir/$PACKAGE/lib])
+  AC_DEFINE_DIR([JAVA_DIR],[javadir],[Directory for java classes.])
+  # java compiler check (javac)
+  AC_MY_HELPERAPP([javac],[JAVAC],[java compiler],[$DEFAULT_JAVAC],[AC_MSG_ERROR([fail])])
+  # java archiver check (jar)
+  AC_MY_HELPERAPP([jar],[JAR],[java archiver],[$DEFAULT_JAR],[AC_MSG_ERROR([fail])])
+  MAYBE_JAVA=java
+fi
+AC_SUBST([MAYBE_JAVA])
+
 # Quick hack to merge Doug's patch... we'll have to clean up
 # this with proper autotools macros for Windows...
 
@@ -683,21 +687,6 @@ if test x$MAYBE_SOUND = xsound; then
         ])
 fi
 AC_SUBST([MAYBE_SOUND])
-
-## java compiler check (javac) and archiver check (jar)
-if test x$MAYBE_JAVA = xjava; then
-    AC_MY_HELPERAPP([javac],[JAVAC],[java compiler],[$DEFAULT_JAVAC],[
-	MAYBE_JAVA=
-	AC_MSG_WARN([javac not found -- not building java classes])
-	])
-    if test x$MAYBE_JAVA = xjava; then
-	AC_MY_HELPERAPP([jar],[JAR],[java archiver],[$DEFAULT_JAR],[
-	    MAYBE_JAVA=
-	    AC_MSG_WARN([jar not found -- not building java classes])
-	    ])
-    fi
-fi
-AC_SUBST([MAYBE_JAVA])
 
 ## Unzip check
 AC_MY_HELPERAPP([unzip],[UNZIP],[zip decompressor],[$DEFAULT_UNZIP],[

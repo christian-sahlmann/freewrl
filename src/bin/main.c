@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.43 2011/06/02 19:57:51 dug9 Exp $
+  $Id: main.c,v 1.44 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL main program.
 
@@ -25,7 +25,6 @@
 ****************************************************************************/
 
 
-
 #include <config.h>
 #include <system.h>
 #include <internal.h>
@@ -34,30 +33,16 @@
 
 #include "main.h"
 #include "options.h"
-#include <display.h>
 
-/*
-#include <config.h>
-#include <system.h>
-#include <system_threads.h>
-#include <internal.h>
-
-#include <libFreeWRL.h>
-#include <list.h>
-#include <io_files.h>
-#include <resources.h>
-#include <threads.h>
-#include "vrml_parser/Structs.h"
-#include "main/ProdCon.h"
-#include "input/InputFunctions.h"
-*/
 
 /**
  * FreeWRL parameters
  */
-/* freewrl_params_t *fv_params = NULL; */
-static freewrl_params_t *fv_params = NULL;
-/*static freewrl_params_t *OSXparams = NULL; */
+
+/* library parameters */
+freewrl_params_t *fv_params = NULL;
+/* file/url to start FreeWRL with */
+char *start_url;
 
 /**
  * Signal handlers 
@@ -83,7 +68,6 @@ char *strBackslash2fore(char *str);
  */
 int main (int argc, char **argv)
 {
-    char *start_url = NULL;	/* file/url to start FreeWRL with */
     const char *libver;
 #ifndef AQUA
     const char  *progver;
@@ -300,12 +284,3 @@ void fv_catch_SIGALRM(int sig)
 
 #endif
 
-#if !KEEP_FV_INLIB
-void fv_setGeometry_from_cmdline(const char *gstring);
-int fv_display_initialize(void);
-void fv_setScreenDim(int wi, int he);
-
-void fv_setGeometry_from_cmdline(const char *gstring) {}
-int fv_display_initialize() {return 0;}
-void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
-#endif

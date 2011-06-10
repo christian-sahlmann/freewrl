@@ -400,3 +400,19 @@ to work correctly OpenGL-ES requires the use of =VBO=.
 
  - a new source file could be created with the unique accessor
    function
+
+* Annexes
+
+** Debug with Firefox
+
+Work with local Firefox
+$ export LD_LIBRARY_PATH=<path of local firefox>:$LD_LIBRARY_PATH
+
+In local firefox plugin dir:
+$ ln -s <path of development version of libFreeWRLplugin.so> libFreeWRLplugin.so
+
+Debug LD:
+$ export LD_WARN=yes
+$ export LD_DEBUG=all
+$ export LD_DEBUG_OUTPUT=/tmp/ld.log
+

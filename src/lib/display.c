@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.81 2011/06/02 19:50:43 dug9 Exp $
+  $Id: display.c,v 1.82 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -38,6 +38,8 @@
 #include "opengl/RasterFont.h"
 #include "opengl/OpenGL_Utils.h"
 
+#include "ui/common.h"
+
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 #include "plugin/pluginUtils.h"
 #endif
@@ -69,10 +71,10 @@
 //int shutterGlasses = 0; /* stereo shutter glasses */
 //int quadbuff_stereo_mode = 0;
 //
-//s_renderer_capabilities_t rdr_caps;
+
+s_renderer_capabilities_t rdr_caps;
+
 //
-//float myFps = (float) 0.0;
-//char myMenuStatus[MAXSTAT];
 //
 //GLenum _global_gl_err;
 
@@ -81,9 +83,6 @@
 /* display part specific to Mac */
 
 #ifndef IPHONE
-
-int ccurse = ACURSE;
-int ocurse = ACURSE;
 
 /* for handling Safari window changes at the top of the display event loop */
 int PaneClipnpx;
@@ -162,9 +161,14 @@ int fv_display_initialize()
 	if (0 != d->screenWidth)  d->win_width  = d->screenWidth;
 	if (0 != d->screenHeight) d->win_height = d->screenHeight;
 	fv_setScreenDim(d->win_width,d->win_height); /* recompute screenRatio */
+
+	snprintf(window_title, sizeof(window_title), "FreeWRL");
+
 	if (!fv_create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
+
+	setWindowTitle();
 
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	fv_bind_GLcontext();
@@ -203,13 +207,25 @@ int fv_display_initialize()
  *   fv_setGeometry_from_cmdline: scan command line arguments (X11 convention), to
  *                             set up the window dimensions.
  */
-void fv_setGeometry_from_cmdline(const char *gstring)
+int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_height, 
+			      int *out_xpos, int *out_ypos)
 {
-    int c;
-	struct tdisplay* d = &gglobal()->display;
-    c = sscanf(gstring,"%dx%d+%d+%d", &d->win_width, &d->win_height, &d->xPos, &d->yPos);
-    /* tell OpenGL what the screen dims are */
-    fv_setScreenDim(d->win_width,d->win_height);
+	int width, height, xpos, ypos;
+	int c;
+
+	width = height = xpos = ypos = 0;
+
+	c = sscanf(geometry, "%dx%d+%d+%d", 
+		   &width, &height, &xpos, &ypos);
+
+	if (out_width) *out_width = width;
+	if (out_height) *out_height = height;
+	if (out_xpos) *out_xpos = xpos;
+	if (out_ypos) *out_ypos = ypos;
+
+	if (c > 0)
+		return TRUE;
+	return FALSE;
 }
 
 void fv_setScreenDim(int wi, int he) { fwl_setScreenDim(wi,he); }
@@ -228,7 +244,6 @@ void fwl_setScreenDim(int wi, int he)
     else gglobal()->display.screenRatio =  gglobal()->display.screenWidth;
 }
 
-
 /**
  *   resize_GL: when the window is resized we have to update the GL viewport.
  */
@@ -242,32 +257,25 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
  * On all platforms, when we don't have GLEW, we simulate it.
  * In any case we setup the rdr_capabilities struct.
  */
-#ifdef _MSC_VER
-# define strnstr strncmp
-# define NULL 0
-#endif
-#if defined(TARGET_X11) || defined(TARGET_MOTIF)
-# define strnstr(aa,bb,cc) strstr(aa,bb)
-#endif
 bool initialize_rdr_caps()
 {
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/
-        gglobal()->display.rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
-        gglobal()->display.rdr_caps.version    = (char *) FW_GL_GETSTRING(GL_VERSION);
-        gglobal()->display.rdr_caps.vendor     = (char *) FW_GL_GETSTRING(GL_VENDOR);
-	gglobal()->display.rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
-	/* gglobal()->display.rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
-    gglobal()->display.rdr_caps.versionf = (float) atof(gglobal()->display.rdr_caps.version); 
+        rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
+        rdr_caps.version    = (char *) FW_GL_GETSTRING(GL_VERSION);
+        rdr_caps.vendor     = (char *) FW_GL_GETSTRING(GL_VENDOR);
+	rdr_caps.extensions = (char *) FW_GL_GETSTRING(GL_EXTENSIONS);
+	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
+    rdr_caps.versionf = (float) atof(rdr_caps.version); 
 	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
-    gglobal()->display.rdr_caps.have_GL_VERSION_1_1 = gglobal()->display.rdr_caps.versionf >= 1.1f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_1_2 = gglobal()->display.rdr_caps.versionf >= 1.2f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_1_3 = gglobal()->display.rdr_caps.versionf >= 1.3f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_1_4 = gglobal()->display.rdr_caps.versionf >= 1.4f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_1_5 = gglobal()->display.rdr_caps.versionf >= 1.5f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_2_0 = gglobal()->display.rdr_caps.versionf >= 2.0f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_2_1 = gglobal()->display.rdr_caps.versionf >= 2.1f;
-    gglobal()->display.rdr_caps.have_GL_VERSION_3_0 = gglobal()->display.rdr_caps.versionf >= 3.0f;
+    rdr_caps.have_GL_VERSION_1_1 = rdr_caps.versionf >= 1.1f;
+    rdr_caps.have_GL_VERSION_1_2 = rdr_caps.versionf >= 1.2f;
+    rdr_caps.have_GL_VERSION_1_3 = rdr_caps.versionf >= 1.3f;
+    rdr_caps.have_GL_VERSION_1_4 = rdr_caps.versionf >= 1.4f;
+    rdr_caps.have_GL_VERSION_1_5 = rdr_caps.versionf >= 1.5f;
+    rdr_caps.have_GL_VERSION_2_0 = rdr_caps.versionf >= 2.0f;
+    rdr_caps.have_GL_VERSION_2_1 = rdr_caps.versionf >= 2.1f;
+    rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
 
 #ifdef HAVE_LIBGLEW
 
@@ -275,7 +283,7 @@ bool initialize_rdr_caps()
 	{
 	GLenum err;
 	err = glewInit();
-    printf("opengl version=%s\n",gglobal()->display.rdr_caps.version);
+    printf("opengl version=%s\n",rdr_caps.version);
 	if (GLEW_OK != err) {
 		/* Problem: glewInit failed, something is seriously wrong. */
 		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
@@ -283,36 +291,36 @@ bool initialize_rdr_caps()
 	}
 	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
 
-	gglobal()->display.rdr_caps.av_glsl_shaders = GLEW_ARB_fragment_shader;
-	gglobal()->display.rdr_caps.av_multitexture = GLEW_ARB_multitexture;
-	gglobal()->display.rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
-	gglobal()->display.rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
-	gglobal()->display.rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
+	rdr_caps.av_glsl_shaders = GLEW_ARB_fragment_shader;
+	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
+	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
+	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
+	rdr_caps.av_texture_rect = GLEW_ARB_texture_rectangle;
 	}
 
 #else
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Shaders */
-        gglobal()->display.rdr_caps.av_glsl_shaders = (strstr (gglobal()->display.rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
+        rdr_caps.av_glsl_shaders = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
 	
 	/* Multitexturing */
-	gglobal()->display.rdr_caps.av_multitexture = (strstr (gglobal()->display.rdr_caps.extensions, "GL_ARB_multitexture")!=0);
+	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
 
 	/* Occlusion Queries */
-	gglobal()->display.rdr_caps.av_occlusion_q = (strstr (gglobal()->display.rdr_caps.extensions, "GL_ARB_occlusion_query") !=0);
+	rdr_caps.av_occlusion_q = (strstr (rdr_caps.extensions, "GL_ARB_occlusion_query") !=0);
 
 	/* Non-power-of-two textures */
-	gglobal()->display.rdr_caps.av_npot_texture = (strstr (gglobal()->display.rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
+	rdr_caps.av_npot_texture = (strstr (rdr_caps.extensions, "GL_ARB_texture_non_power_of_two") !=0);
 
 	/* Texture rectangle (x != y) */
-	gglobal()->display.rdr_caps.av_texture_rect = (strstr (gglobal()->display.rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
+	rdr_caps.av_texture_rect = (strstr (rdr_caps.extensions, "GL_ARB_texture_rectangle") !=0);
 #endif
 
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
 	#ifdef SHADERS_2011
-		if (gglobal()->display.rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
-		gglobal()->display.rdr_caps.av_npot_texture=FALSE;
+		if (rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
+		rdr_caps.av_npot_texture=FALSE;
 	#endif /* SHADERS_2011 */
 
 
@@ -321,34 +329,34 @@ bool initialize_rdr_caps()
 		GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
 		
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
-		gglobal()->display.rdr_caps.max_texture_size = (int) tmp;
+		rdr_caps.max_texture_size = (int) tmp;
 
 		#ifdef GL_ES_VERSION_2_0
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
 		#else
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
 		#endif
-		gglobal()->display.rdr_caps.texture_units = (int) tmp;
+		rdr_caps.texture_units = (int) tmp;
 	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
-	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gglobal()->display.rdr_caps.anisotropicDegree);
+	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
 
 	/* User settings in environment */
 
 	if (gglobal()->internalc.global_texture_size > 0) {
 		DEBUG_MSG("Environment set texture size: %d", gglobal()->internalc.global_texture_size);
-		gglobal()->display.rdr_caps.max_texture_size = gglobal()->internalc.global_texture_size;
+		rdr_caps.max_texture_size = gglobal()->internalc.global_texture_size;
 	}
 
 	/* Special drivers settings */
 	if (
-	strstr(gglobal()->display.rdr_caps.renderer, "Intel GMA 9") != NULL ||
-	strstr(gglobal()->display.rdr_caps.renderer, "Intel(R) 9") != NULL ||
-	strstr(gglobal()->display.rdr_caps.renderer, "i915") != NULL ||
-	strstr(gglobal()->display.rdr_caps.renderer, "NVIDIA GeForce2") != NULL
+	strstr(rdr_caps.renderer, "Intel GMA 9") != NULL ||
+	strstr(rdr_caps.renderer, "Intel(R) 9") != NULL ||
+	strstr(rdr_caps.renderer, "i915") != NULL ||
+	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
-		if (gglobal()->display.rdr_caps.max_texture_size > 1024) gglobal()->display.rdr_caps.max_texture_size = 1024;
+		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
 		gglobal()->internalc.global_use_VBOs = false;
 	}
 
@@ -365,7 +373,7 @@ bool initialize_rdr_caps()
 	are set to 0 by the memset above; 0 means no shader */
 
 	/* print some debug infos */
-	rdr_caps_dump(&gglobal()->display.rdr_caps);
+	rdr_caps_dump(&rdr_caps);
 
 	return TRUE;
 }
@@ -391,7 +399,7 @@ void rdr_caps_dump()
 #ifdef VERBOSE
 	{
 		char *p, *pp;
-		p = pp = STRDUP(gglobal()->display.rdr_caps.extensions);
+		p = pp = STRDUP(rdr_caps.extensions);
 		while (*pp != '\0') {
 			if (*pp == ' ') *pp = '\n';
 			pp++;
@@ -401,11 +409,11 @@ void rdr_caps_dump()
 	}
 #endif //VERBOSE
 
-	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(gglobal()->display.rdr_caps.av_glsl_shaders));
-	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(gglobal()->display.rdr_caps.av_multitexture));
-	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(gglobal()->display.rdr_caps.av_occlusion_q));
-	DEBUG_MSG ("Max texture size      %d\n", gglobal()->display.rdr_caps.max_texture_size);
-	DEBUG_MSG ("Texture units         %d\n", gglobal()->display.rdr_caps.texture_units);
+	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps.av_glsl_shaders));
+	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps.av_multitexture));
+	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
+	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
+	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
 }
 
 /* Local Variables: */

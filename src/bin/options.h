@@ -1,5 +1,5 @@
 /*
-  $Id: options.h,v 1.5 2011/04/09 00:33:19 davejoubert Exp $
+  $Id: options.h,v 1.6 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL command line arguments.
 
@@ -32,8 +32,6 @@
 
 extern int fv_parseCommandLine (int argc, char **argv);
 void fv_parseEnvVars(void);
-
-extern void fv_setGeometry_from_cmdline(const char *gstring); /* See lib/display.c : scan command line arguments (X11 convention) */
 
 
 #endif /* __FREEWRL_MAIN_OPTIONS_H__ */

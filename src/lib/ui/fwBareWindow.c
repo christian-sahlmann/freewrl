@@ -1,5 +1,5 @@
 /*
-  $Id: fwBareWindow.c,v 1.16 2011/05/25 19:26:34 davejoubert Exp $
+  $Id: fwBareWindow.c,v 1.17 2011/06/10 19:10:05 couannette Exp $
 
   Create X11 window. Manage events.
 
@@ -34,10 +34,6 @@
 
 #include <libFreeWRL.h>
 
-/* #include <X11/keysym.h> */
-/* #include <X11/Intrinsic.h> */
-/* #include <X11/cursorfont.h> */
-
 #include "fwBareWindow.h"
 
 XTextProperty windowName;
@@ -50,8 +46,6 @@ void frontendUpdateButtons() {}
 /* void setMenuButton_headlight (int val) {} */
 /* void setMenuButton_navModes (int type) {} */
 /* void setMenuButton_texSize (int size) {} */
-void setMessageBar() {}
-
 
 void getBareWindowedGLwin (Window *win)
 {
@@ -67,11 +61,11 @@ void openBareMainWindow (int argc, char **argv)
 
 int fv_create_main_window(int argc, char *argv[])
 {
-    Window root_ret;
-    Window child_ret;
-    int root_x_ret;
-    int root_y_ret;
-    unsigned int mask_ret;
+    /* Window root_ret; */
+    /* Window child_ret; */
+    /* int root_x_ret; */
+    /* int root_y_ret; */
+    /* unsigned int mask_ret; */
 
     attr.background_pixel = 0;
     attr.border_pixel = 0;
@@ -79,7 +73,7 @@ int fv_create_main_window(int argc, char *argv[])
 
     attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | LeaveWindowMask | MapNotify | ButtonPressMask | ButtonReleaseMask | FocusChangeMask;
 
-    if (fullscreen) {
+    if (fwl_params.fullscreen) {
 	mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
 	attr.override_redirect = true;
 	attr.backing_store = NotUseful;
@@ -88,17 +82,18 @@ int fv_create_main_window(int argc, char *argv[])
 	mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
     }
 		
-    Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, win_width, win_height,
+    Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, 
+			 fwl_params.width, fwl_params.height,
 			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
 
+    /* FIXME: Caller / front-end should reparent FreeWRL window itself */
     /* Roberto Gerson */
     /* If -d is setted, so reparent the window */
-    if(winToEmbedInto != -1){
-		printf("fwBareWindow::Trying to reparent window: %ld, to new parent: %ld\n",
-			Xwin,
-			winToEmbedInto);
-
-	XReparentWindow(Xdpy, Xwin, (Window) winToEmbedInto, 0, 0);
+    if (fwl_params.winToEmbedInto > 0) {
+	    DEBUG_MSG("create_main_window: reparent %ld to %ld\n",
+		      Xwin,
+		      fwl_params.winToEmbedInto);
+	    XReparentWindow(Xdpy, Xwin, (Window) fwl_params.winToEmbedInto, 0, 0);
     }
 
 
@@ -107,7 +102,7 @@ int fv_create_main_window(int argc, char *argv[])
 	    XFlush(Xdpy);
     }
 		
-    if (fullscreen) {
+    if (fwl_params.fullscreen) {
 	XMoveWindow(Xdpy, Xwin, 0, 0);
 	XRaiseWindow(Xdpy, Xwin);
 	XFlush(Xdpy);
@@ -121,12 +116,8 @@ int fv_create_main_window(int argc, char *argv[])
 	XSetWMProtocols(Xdpy, Xwin, &WM_DELETE_WINDOW, 1);
     }
 		
-    XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret,
-		  &mouse_x, &mouse_y, &mask_ret);
-
-    window_title = "FreeWRL";
-    XStoreName(Xdpy, Xwin, window_title);
-    XSetIconName(Xdpy, Xwin, window_title);
+    /* XQueryPointer(Xdpy, Xwin, &root_ret, &child_ret, &root_x_ret, &root_y_ret, */
+		  /* &mouse_x, &mouse_y, &mask_ret); */
 
     GLwin = Xwin;
 		

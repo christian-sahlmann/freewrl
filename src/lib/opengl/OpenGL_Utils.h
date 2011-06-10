@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.43 2011/06/02 19:50:43 dug9 Exp $
+$Id: OpenGL_Utils.h,v 1.44 2011/06/10 19:10:05 couannette Exp $
 
 Screen snapshot.
 
@@ -30,112 +30,7 @@ Screen snapshot.
 #ifndef __FREEWRL_OPENGL_UTILS_H__
 #define __FREEWRL_OPENGL_UTILS_H__
 
-typedef enum shader_type {
-	/* Background shaders */
-	backgroundSphereShader,
-	backgroundTextureBoxShader,
 
-	/* generic (not geometry Shader specific) shaders */
-	noMaterialNoAppearanceShader,
-	noTexOneMaterialShader,
-	noTexTwoMaterialShader,
-	oneTexOneMaterialShader,
-	oneTexTwoMaterialShader,
-	complexTexOneMaterialShader,
-	complexTexTwoMaterialShader,
-
-	/* Sphere Geometry Shaders */
-	noMaterialNoAppearanceSphereShader,
-	noTexOneMaterialSphereShader,
-	noTexTwoMaterialSphereShader,
-	oneTexOneMaterialSphereShader,
-	oneTexTwoMaterialSphereShader,
-	complexTexOneMaterialSphereShader,
-	complexTexTwoMaterialSphereShader,
-
-	/* Shape has Color node */
-	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
-	noTexTwoMaterialColourShader,
-	noTexOneMaterialColourShader,
-	oneTexTwoMaterialColourShader,
-	oneTexOneMaterialColourShader,
-
-	/* final one, used for array sizing */
-	max_enum_shader_type
-} shader_type_t;
-
-
-/* OpenGL renderer capabilities */
-typedef struct {
-	GLint compiledOK;
-	GLuint myShaderProgram;
-
-	GLint myMaterialAmbient;
-	GLint myMaterialDiffuse;
-	GLint myMaterialSpecular;
-	GLint myMaterialShininess;
-	GLint myMaterialEmission;
-
-	GLint myMaterialBackAmbient;
-	GLint myMaterialBackDiffuse;
-	GLint myMaterialBackSpecular;
-	GLint myMaterialBackShininess;
-	GLint myMaterialBackEmission;
-
-	GLint lightState;
-        GLint lightAmbient;
-        GLint lightDiffuse;
-        GLint lightSpecular;
-        GLint lightPosition;
-
-	GLint ModelViewMatrix;
-	GLint ProjectionMatrix;
-	GLint NormalMatrix;
-	GLint Vertices;
-	GLint Normals;
-	GLint Colours;
-	GLint TexCoords;
-	GLint Texture0;
-
-	
-	/* some geom shaders have particular uniforms, eg geom radius */
-	GLint specialUniform1;
-	GLint specialUniform2;
-	GLint specialUniform3;
-	GLint specialUniform4;
-} s_shader_capabilities_t;
-
-typedef struct {
-
-	const char *renderer; /* replace GL_REN */
-	const char *version;
-	const char *vendor;
-	const char *extensions;
-	float versionf;
-	bool have_GL_VERSION_1_1;
-	bool have_GL_VERSION_1_2;
-	bool have_GL_VERSION_1_3;
-	bool have_GL_VERSION_1_4;
-	bool have_GL_VERSION_1_5;
-	bool have_GL_VERSION_2_0;
-	bool have_GL_VERSION_2_1;
-	bool have_GL_VERSION_3_0;
-
-	bool av_multitexture; /* Multi textures available ? */
-	bool av_glsl_shaders; /* GLSL shaders available ? */ 
-	bool av_npot_texture; /* Non power of 2 textures available ? */
-	bool av_texture_rect; /* Rectangle textures available ? */
-	bool av_occlusion_q;  /* Occlusion query available ? */
-	
-	int texture_units;
-	int max_texture_size;
-	float anisotropicDegree;
-
-	s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
-} s_renderer_capabilities_t;
-
-
-//extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);

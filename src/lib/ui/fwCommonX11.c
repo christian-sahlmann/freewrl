@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.10 2011/06/03 17:23:51 davejoubert Exp $
+  $Id: fwCommonX11.c,v 1.11 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -37,9 +37,11 @@
 
 #include <libFreeWRL.h>
 
-Cursor arrowc;
-Cursor sensorc;
-Cursor curcursor;
+#include "ui/common.h"
+
+static Cursor arrowc;
+static Cursor sensorc;
+static Cursor cursor;
 
 #if KEEP_X11_INLIB
 
@@ -177,12 +179,6 @@ int fv_create_colormap()
 	colormap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),Xvi->visual, AllocNone);
 	return TRUE;
 }
-
-/* void setMenuStatus(char *stat) */
-/* { */
-/* 	strncpy(myMenuStatus, stat, MAXSTAT); */
-/* 	setMessageBar(); */
-/* } */
 
 /* void setMenuFps(float fps) */
 /* { */
@@ -339,3 +335,24 @@ bool fv_bind_GLcontext()
 #endif /* KEEP_FV_INLIB */
 
 #endif /* IPHONE */
+
+/*
+ * setCursor() declared as generic in common.h
+ * specific X11 implementation
+ */
+void setCursor()
+{
+	switch (ccurse) {
+	case SCURSE: cursor = sensorc;
+	case ACURSE: cursor = arrowc;
+	default:
+		DEBUG_MSG("setCursor: invalid value for ccurse: %d\n", ccurse);
+	}
+	XDefineCursor(Xdpy, GLwin, cursor);
+}
+
+void setWindowTitle()
+{
+	XStoreName(Xdpy, Xwin, window_title);
+	XSetIconName(Xdpy, Xwin, window_title);
+}

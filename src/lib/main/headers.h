@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.163 2011/06/10 00:27:17 dug9 Exp $
+$Id: headers.h,v 1.164 2011/06/10 19:10:05 couannette Exp $
 
 Global includes.
 
@@ -599,7 +599,6 @@ void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
 void setConsoleMessage(char *stat) ;
-void setMenuFps (float fps) ;
 void setMenuButton_texSize (int size);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */

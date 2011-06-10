@@ -65,7 +65,7 @@ void StreamPoly_init(struct tStreamPoly *t);
 void Tess_init(struct tTess *t);
 void Viewer_init(struct tViewer *t);
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if defined(STATUSBAR_HUD)
 void statusbar_init(struct tstatusbar *t);
 #endif
 
@@ -144,11 +144,9 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	StreamPoly_init(&iglobal->StreamPoly);
 	Tess_init(&iglobal->Tess);
 	Viewer_init(&iglobal->Viewer);
-
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if defined(STATUSBAR_HUD)
 	statusbar_init(&iglobal->statusbar);
 #endif
-
 	CParse_init(&iglobal->CParse);
 	CParseParser_init(&iglobal->CParseParser);
 	CProto_init(&iglobal->CProto);

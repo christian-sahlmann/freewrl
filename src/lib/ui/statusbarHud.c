@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.30 2011/06/09 16:40:48 dug9 Exp $
+  $Id: statusbarHud.c,v 1.31 2011/06/10 19:10:05 couannette Exp $
 
 */
 
@@ -953,24 +953,6 @@ void printString(char *s)
 //#define STATUS_LEN 2000
 //char messagebar[200];
 void render_init(void);
-void setMessageBar()
-{
-	ppstatusbar p; 
-	ttglobal tg = gglobal();
-	p = (ppstatusbar)tg->statusbar.prv;
-
-	sprintf(&p->messagebar[0],"%10f",tg->display.myFps);
-	sprintf(&p->messagebar[15],"%s",tg->display.myMenuStatus);
-}
-void setMenuStatus(char *stat) {
-    strncpy (gglobal()->display.myMenuStatus, stat, MAXSTAT);
-    setMessageBar();
-}
-
-void setMenuFps (float fps) {
-    gglobal()->display.myFps = fps;
-    setMessageBar();
-}
 
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
@@ -1739,9 +1721,7 @@ SM	int screenWidth,clipPlane;
 S	drawStatusBar() - call before swapbuffers in mainloop
 S	void update_status(char* msg); //when cursor over sensitive
 S	void kill_status (void); //not sure - called from Mainloop L1331 and OpenGL_Utils L770
-S	void setMessageBar();
 S	void setMenuFps (float fps);
-SM	void setMenuStatus(char *stat);
 M	void setMenuButton_collision(int val); //called from mainloop do_KeyPress
 M	void setMenuButton_headlight(int val); // "
 M	void setMenuButton_navModes(int type); // "

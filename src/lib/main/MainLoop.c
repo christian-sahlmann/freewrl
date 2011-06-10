@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.205 2011/06/10 18:17:26 crc_canada Exp $
+  $Id: MainLoop.c,v 1.206 2011/06/10 19:10:05 couannette Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -62,6 +62,9 @@
 #include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 
+#include "ui/common.h"
+
+
 void (*newResetGeometry) (void) = NULL;
 
 #ifdef WANT_OSC
@@ -71,15 +74,11 @@ void (*newResetGeometry) (void) = NULL;
 #endif
 
 #if defined(_ANDROID )
-int ccurse;
-int ocurse;
 void  setAquaCursor(int ctype) { };
 
 #endif // _ANDROID
 
 #ifdef IPHONE
-int ccurse;
-int ocurse;
 void  setAquaCursor(int ctype) { };
 
 #include <OpenGLES/ES2/gl.h>
@@ -450,11 +449,6 @@ void fwl_RenderSceneUpdateScene() {
 
     PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
     
-
-#if defined(TARGET_X11) || defined(TARGET_MOTIF)
-        Cursor cursor;
-#endif /* TARGET_X11 or TARGET_MOTIF */
-
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
 		     BOOL_STR(fwl_isinputThreadParsing()), BOOL_STR(resource_is_root_loaded()));
 
@@ -745,24 +739,10 @@ void fwl_RenderSceneUpdateScene() {
                         }
                 }
 
-                /* do we have to change cursor? */
-#if !defined( AQUA ) && !defined( WIN32 ) && !defined(_ANDROID)
-
-                if (cursor != curcursor) {
-                        curcursor = cursor;
-#if KEEP_X11_INLIB
-                        XDefineCursor (Xdpy, GLwin, cursor);
-#endif /* KEEP_X11_INLIB */
-                }
-#elif defined( WIN32 ) || defined(_ANDROID)
-				/*win32 - dont know what goes here */
-#else
                 if (ccurse != ocurse) {
                         ocurse = ccurse;
-                        setAquaCursor(ccurse);
+                        setCursor();
                 }
-#endif /* CURSOR CHANGING CODE */
-
         } /* (!NavigationMode && HaveSensitive) */
 
 
@@ -770,7 +750,6 @@ void fwl_RenderSceneUpdateScene() {
         if (tg->Snapshot.doSnapshot) {
                 Snapshot();
         }
-
 
         /* do OcclusionCulling, etc */
         OcclusionCulling();
