@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.h,v 1.17 2011/06/10 02:08:58 dug9 Exp $
+$Id: jsUtils.h,v 1.18 2011/06/10 02:24:57 dug9 Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -64,8 +64,8 @@ struct ECMAValueStruct {
 };
 
 
-extern struct ECMAValueStruct ECMAValues[];
-extern int maxECMAVal;
+//extern struct ECMAValueStruct ECMAValues[];
+//extern int maxECMAVal;
 int findInECMATable(JSContext *context, jsval toFind);
 int findNameInECMATable(JSContext *context, char *toFind);
 void resetNameInECMATable(JSContext *context, char *toFind);

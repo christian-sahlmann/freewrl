@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.26 2011/04/08 19:20:50 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.27 2011/06/10 02:24:57 dug9 Exp $
 
 ???
 
@@ -65,10 +65,29 @@ void _set4f(double len, double *mat, int row);
 
 /* for keeping track of the ECMA values */
 #define ECMAValueTableSize 100
-struct ECMAValueStruct ECMAValues[ECMAValueTableSize];
-int maxECMAVal = 0;
+//struct ECMAValueStruct ECMAValues[ECMAValueTableSize];
+//int maxECMAVal = 0;
 
-
+typedef struct pjsVRMLClasses{
+	struct ECMAValueStruct ECMAValues[ECMAValueTableSize];
+	int maxECMAVal;// = 0;
+}* ppjsVRMLClasses;
+void *jsVRMLClasses_constructor(){
+	void *v = malloc(sizeof(struct pjsVRMLClasses));
+	memset(v,0,sizeof(struct pjsVRMLClasses));
+	return v;
+}
+void jsVRMLClasses_init(struct tjsVRMLClasses *t){
+	//public
+	//private
+	t->prv = jsVRMLClasses_constructor();
+	{
+		ppjsVRMLClasses p = (ppjsVRMLClasses)t->prv;
+		//p->ECMAValues[ECMAValueTableSize];
+		p->maxECMAVal = 0;
+	}
+}
+//	ppjsVRMLClasses p = (ppjsVRMLClasses)gglobal()->jsVRMLClasses.prv;
 /*
  * VRML Node types as JS classes:
  */
@@ -1646,23 +1665,23 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 /* go through and see if the setECMA routine touched this name */
 int findNameInECMATable(JSContext *context, char *toFind) {
 	int i;
-
+	ppjsVRMLClasses p = (ppjsVRMLClasses)gglobal()->jsVRMLClasses.prv;
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("findNameInECMATable, looking for %s context %u\n",toFind,context);
 	#endif
 	
 	i=0;
-	while (i < maxECMAVal) { 
+	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
+		printf ("	%d: %s==%s cx %u==%u\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
 		#endif
 
 		
-		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
+		if ((p->ECMAValues[i].context == context) && (strcmp(p->ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("fineInECMATable: found value at %d\n",i);
 			#endif
-			return ECMAValues[i].valueChanged;
+			return p->ECMAValues[i].valueChanged;
 		}
 		i++;
 	}
@@ -1678,23 +1697,23 @@ int findNameInECMATable(JSContext *context, char *toFind) {
 /* go through the ECMA table, and reset the valueChanged flag. */
 void resetNameInECMATable(JSContext *context, char *toFind) {
 	int i;
-
+	ppjsVRMLClasses p = (ppjsVRMLClasses)gglobal()->jsVRMLClasses.prv;
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("findNameInECMATable, looking for %s\n",toFind);
 	#endif
 	
 	i=0;
-	while (i < maxECMAVal) { 
+	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
+		printf ("	%d: %s==%s cx %u==%u\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
 		#endif
 
 		
-		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
+		if ((p->ECMAValues[i].context == context) && (strcmp(p->ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("fineInECMATable: found value at %d\n",i);
 			#endif
-			ECMAValues[i].valueChanged = FALSE;
+			p->ECMAValues[i].valueChanged = FALSE;
 			return;
 		}
 		i++;
@@ -1704,23 +1723,23 @@ void resetNameInECMATable(JSContext *context, char *toFind) {
 /* set the valueChanged flag - add a new entry to the table if required */
 void setInECMATable(JSContext *context, char *toFind) {
 	int i;
-
+	ppjsVRMLClasses p = (ppjsVRMLClasses)gglobal()->jsVRMLClasses.prv;
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("setInECMATable, looking for %s\n",toFind);
 	#endif
 	
 	i=0;
-	while (i < maxECMAVal) { 
+	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
 		#endif
 
 		
-		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
+		if ((p->ECMAValues[i].context == context) && (strcmp(p->ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("setInECMATable: found value at %d\n",i);
 			#endif
-			ECMAValues[i].valueChanged = TRUE;
+			p->ECMAValues[i].valueChanged = TRUE;
 			return;
 		}
 		i++;
@@ -1731,15 +1750,15 @@ void setInECMATable(JSContext *context, char *toFind) {
 	printf ("setInECMATable - new entry at %d for %s\n",maxECMAVal, toFind);
 	#endif
 
-	maxECMAVal ++;
-	if (maxECMAVal == ECMAValueTableSize) {
+	p->maxECMAVal ++;
+	if (p->maxECMAVal == ECMAValueTableSize) {
 		ConsoleMessage ("problem in setInECMATable for scripting\n");
-		maxECMAVal = ECMAValueTableSize - 10;
+		p->maxECMAVal = ECMAValueTableSize - 10;
 	}
-	ECMAValues[maxECMAVal-1].JS_address = (jsval) toFind;
-	ECMAValues[maxECMAVal-1].valueChanged = TRUE;
-	ECMAValues[maxECMAVal-1].name = STRDUP(toFind);
-	ECMAValues[maxECMAVal-1].context = context;
+	p->ECMAValues[p->maxECMAVal-1].JS_address = (jsval) toFind;
+	p->ECMAValues[p->maxECMAVal-1].valueChanged = TRUE;
+	p->ECMAValues[p->maxECMAVal-1].name = STRDUP(toFind);
+	p->ECMAValues[p->maxECMAVal-1].context = context;
 }
 
 JSBool

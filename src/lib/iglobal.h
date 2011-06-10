@@ -340,6 +340,9 @@ iOLDCODE	}Component_Networking;
 		jsval JSCreate_global_return_val;
 		void *prv;
 	}jsVRMLBrowser;
+	struct tjsVRMLClasses{
+		void *prv;
+	}jsVRMLClasses;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1
