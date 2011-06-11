@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.61 2011/06/04 19:05:42 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.62 2011/06/11 01:14:25 couannette Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.62  2011/06/11 01:14:25  couannette
+# A mistake that prevented VRMLC.pm to generate file when it didn't exist.
+#
 # Revision 1.61  2011/06/04 19:05:42  crc_canada
 # comment out MIDI code
 #
@@ -450,8 +453,8 @@ sub open_possible_cvs_file(*;$)
     my $filename = shift;
 
     if (! -f $filename) {
-	print <STDERR>, "$filename does not exist\n";
-	return;
+	print <STDERR>, "note: creating $filename\n";
+	`touch $filename`;
     }
 
     if (! -w $filename) {
