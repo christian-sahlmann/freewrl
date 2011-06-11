@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.73 2011/06/10 01:42:16 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.74 2011/06/11 19:26:36 dug9 Exp $
 
 ???
 
@@ -249,7 +249,7 @@ static int getProtoKind(struct VRMLLexer *myLexer, int ProtoInvoc, char *id) {
 	return getFieldAccessMethodFromProtoInterface (myLexer, id, ProtoInvoc);
 }
 
-#define TOD parentStack[parentIndex]
+#define TOD gglobal()->X3DParser.parentStack[gglobal()->X3DParser.parentIndex]
 
 
 /*
@@ -673,15 +673,16 @@ void parseProtoInstanceFields(const char *name, char **atts) {
 			  or like this:
               <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
 			*/
+			ttglobal tg = gglobal();
 			////BIGPUSH  added by dug9 July 18,2010
 			fieldNodeParsingStateA[curProtoInsStackInd].parsingMFSFNode = 1;
 			if(!fieldNodeParsingStateA[curProtoInsStackInd].fieldHolderInitialized)
 				fieldNodeParsingStateA[curProtoInsStackInd].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
 			pushParserMode(PARSING_NODES);
 			INCREMENT_PARENTINDEX //parentIndex++;
-			parentStack[parentIndex] = fieldNodeParsingStateA[curProtoInsStackInd].fieldHolder;
-			if (getChildAttributes(parentIndex)!=NULL) deleteChildAttributes(parentIndex); 
-			setChildAttributes(parentIndex,NULL);
+			tg->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = fieldNodeParsingStateA[curProtoInsStackInd].fieldHolder;
+			if (getChildAttributes(gglobal()->X3DParser.parentIndex)!=NULL) deleteChildAttributes(gglobal()->X3DParser.parentIndex); 
+			setChildAttributes(gglobal()->X3DParser.parentIndex,NULL);
 		}
 		else  /* no name or no name and value */
 		{
@@ -1644,7 +1645,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	struct ScriptFieldDecl* sdecl;
 	indexT name;
 	union anyVrml defaultVal;
-
+	ttglobal tg = gglobal();
 	/* initialization */
 	/* myScriptNumber = 0; */
 	myValueString = NULL;
@@ -1683,31 +1684,31 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 		}
 	} else {
 		/* configure internal variables, and check sanity for top of stack This should be a Script node */
-		switch (parentStack[parentIndex]->_nodeType) {
+		switch (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType) {
 			case NODE_Script: {
 				struct X3D_Script* myScr = NULL;
-				myScr = X3D_SCRIPT(parentStack[parentIndex]);
+				myScr = X3D_SCRIPT(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 				myObj = (struct Shader_Script *) myScr->__scriptObj;
 				/* myScriptNumber = myObj->num; */
 				break; }
 			case NODE_ComposedShader: {
 				struct X3D_ComposedShader* myScr = NULL;
-				myScr = X3D_COMPOSEDSHADER(parentStack[parentIndex]);
+				myScr = X3D_COMPOSEDSHADER(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 				myObj = (struct Shader_Script *) myScr->__shaderObj;
 				break; }
 			case NODE_ShaderProgram: {
 				struct X3D_ShaderProgram* myScr = NULL;
-				myScr = X3D_SHADERPROGRAM(parentStack[parentIndex]);
+				myScr = X3D_SHADERPROGRAM(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 				myObj = (struct Shader_Script *) myScr->__shaderObj;
 				break; }
 			case NODE_PackagedShader: {
 				struct X3D_PackagedShader* myScr = NULL;
-				myScr = X3D_PACKAGEDSHADER(parentStack[parentIndex]);
+				myScr = X3D_PACKAGEDSHADER(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 				myObj = (struct Shader_Script *) myScr->__shaderObj;
 				break; }
 			default: {
 				ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle field for parent type %s",
-					stringNodeType(parentStack[parentIndex]->_nodeType));
+					stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType));
 				return;
 			}
 
@@ -1903,24 +1904,24 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
       To manage recursion, we keep the Group node in an array 
 	  And because a proto can have many MFNode fields, we malloc a data structure when we find a field
     */
-	fieldNodeParsingStateB[parentIndex].parsingMFSFNode = 0;
+	fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].parsingMFSFNode = 0;
 	if( ((getParserMode() == PARSING_NODES)||(getParserMode() == PARSING_PROTOINTERFACE)) && (myValueType == FIELDTYPE_SFNode || myValueType == FIELDTYPE_MFNode)  )
 	{
 		if ((myAccessType == PKW_initializeOnly) || (myAccessType == PKW_inputOutput)) 
 		{
-			fieldNodeParsingStateB[parentIndex].parsingMFSFNode = 1;
-			if(!fieldNodeParsingStateB[parentIndex].fieldHolderInitialized)
-				fieldNodeParsingStateB[parentIndex].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
-			X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children.n = 0;
+			fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].parsingMFSFNode = 1;
+			if(!fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolderInitialized)
+				fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolder = (struct X3D_Node*)createNewX3DNode(NODE_Group);
+			X3D_GROUP(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolder)->children.n = 0;
 			pushParserMode(PARSING_NODES);
 			INCREMENT_PARENTINDEX //parentIndex++;
-			parentStack[parentIndex] = fieldNodeParsingStateB[parentIndex-1].fieldHolder;
-			if (getChildAttributes(parentIndex)!=NULL) deleteChildAttributes(parentIndex); //deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
-			setChildAttributes(parentIndex,NULL);
+			tg->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].fieldHolder;
+			if (getChildAttributes(gglobal()->X3DParser.parentIndex)!=NULL) deleteChildAttributes(gglobal()->X3DParser.parentIndex); //deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
+			setChildAttributes(gglobal()->X3DParser.parentIndex,NULL);
 			/* saving sdecl and script index for convenience when we pop/end element- see below */
-			fieldNodeParsingStateB[parentIndex-1].mfnodeSdecl = sdecl;
-			fieldNodeParsingStateB[parentIndex-1].myObj_num = myObj->num;
-			fieldNodeParsingStateB[parentIndex-1].myObj = myObj;
+			fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].mfnodeSdecl = sdecl;
+			fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].myObj_num = myObj->num;
+			fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].myObj = myObj;
 		}
 	}
 #undef X3DPARSERVERBOSE
@@ -1929,10 +1930,10 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
 void endScriptProtoField()  
 {
 	///BIGPOP 
-	if(fieldNodeParsingStateB[parentIndex-1].parsingMFSFNode == 1)
+	if(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex-1].parsingMFSFNode == 1)
 	{
 		DECREMENT_PARENTINDEX //parentIndex--;
-        if(X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children.n > 0)
+        if(X3D_GROUP(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolder)->children.n > 0)
 		{ 
 			/* we got something */
 			union anyVrml v;
@@ -1940,9 +1941,9 @@ void endScriptProtoField()
 			int j;
 			int myValueType;
 			struct Multi_Node *kids;
-			kids = &X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children; 
+			kids = &X3D_GROUP(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolder)->children; 
 			n = kids->n;
-			myValueType = fieldDecl_getType(fieldNodeParsingStateB[parentIndex].mfnodeSdecl->fieldDecl);
+			myValueType = fieldDecl_getType(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].mfnodeSdecl->fieldDecl);
 			//myValueType = FIELDTYPE_MFNode;
 			if(myValueType ==  FIELDTYPE_MFNode)
 			{
@@ -1974,23 +1975,23 @@ void endScriptProtoField()
 				//remove_parent((struct X3D_Node *)kids->p[0], fieldNodeParsingState[curProtoInsStackInd].fieldHolder);
 				/* if we were ambitious we would FREE any extra children here */
 			}
-			scriptFieldDecl_setFieldValue(fieldNodeParsingStateB[parentIndex].mfnodeSdecl, v);
+			scriptFieldDecl_setFieldValue(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].mfnodeSdecl, v);
 			//		script_addField(myObj,sdecl);
 		   //if (fieldNodeParsingState[curProtoInsStackInd].myObj->ShaderScriptNode->_nodeType==NODE_Script) 
-		   if(fieldNodeParsingStateB[parentIndex].myObj_num > -1)
+		   if(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].myObj_num > -1)
 			   #ifdef HAVE_JAVASCRIPT
-			   scriptFieldDecl_jsFieldInit(fieldNodeParsingStateB[parentIndex].mfnodeSdecl, fieldNodeParsingStateB[parentIndex].myObj->num);
+			   scriptFieldDecl_jsFieldInit(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].mfnodeSdecl, fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].myObj->num);
 			   #endif
 
 			/* clean up holder for next time */
-			X3D_GROUP(fieldNodeParsingStateB[parentIndex].fieldHolder)->children.n = 0;
+			X3D_GROUP(fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].fieldHolder)->children.n = 0;
 		}
 		else
 		{
 			//fieldNodeParsingState[curProtoInsStackInd].mfnodeSdecl->value = NULL; default set in start element above
-			fieldNodeParsingStateB[parentIndex].mfnodeSdecl->valueSet = FALSE;
+			fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].mfnodeSdecl->valueSet = FALSE;
 		}
-		fieldNodeParsingStateB[parentIndex].parsingMFSFNode = 0;
+		fieldNodeParsingStateB[gglobal()->X3DParser.parentIndex].parsingMFSFNode = 0;
 		popParserMode();
 	}
 }
@@ -2005,12 +2006,12 @@ void initScriptWithScript() {
 	struct X3D_Script * me;
 	char *myText;
 	struct Shader_Script *myObj;
-
+	ttglobal tg = gglobal();
 	/* initialization */
 	myText = NULL;
 
 	/* semantic checking... */
-	me = X3D_SCRIPT(parentStack[parentIndex]);
+	me = X3D_SCRIPT(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
 	myObj = (struct Shader_Script *) me->__scriptObj;
 
 	if (me->_nodeType != NODE_Script) {
@@ -2026,7 +2027,7 @@ void initScriptWithScript() {
 	myScriptNumber = myObj->num;
 
 	/* did the script text come from a CDATA node?? */
-	if (CDATA_Text != NULL) if (CDATA_Text[0] != '\0') myText = CDATA_Text;
+	if (tg->X3DParser.CDATA_Text != NULL) if (tg->X3DParser.CDATA_Text[0] != '\0') myText = tg->X3DParser.CDATA_Text;
 
 
 	/* is this CDATA text? */
@@ -2044,7 +2045,7 @@ void initScriptWithScript() {
 	}
 
 	/* finish up here; if we used the CDATA area, set its length to zero */
-	if (myText != NULL) CDATA_Text_curlen=0;
+	if (myText != NULL) tg->X3DParser.CDATA_Text_curlen=0;
 
 	//supposed to be matched setParserMode(PARSING_NODES);
 	#ifdef X3DPARSERVERBOSE

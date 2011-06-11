@@ -355,6 +355,13 @@ iOLDCODE	}Component_Networking;
 		uintptr_t *fog_stack;//[MAX_STACK];
 		void *prv;
 	}Bindable;
+	struct tX3DParser{
+		int parentIndex;// = -1;
+		struct X3D_Node *parentStack[PARENTSTACKSIZE];
+		char *CDATA_Text;// = NULL;
+		int CDATA_Text_curlen;// = 0;
+		void *prv;
+	}X3DParser;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

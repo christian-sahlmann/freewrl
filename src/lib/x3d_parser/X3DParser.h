@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.24 2011/03/08 20:20:49 crc_canada Exp $
+$Id: X3DParser.h,v 1.25 2011/06/11 19:26:36 dug9 Exp $
 
 X3D parser functions.
 
@@ -59,12 +59,12 @@ struct nameValuePairs {
 
 #ifndef VERBOSE
 #define DECREMENT_PARENTINDEX \
-        if (parentIndex > 0) { parentIndex--; } else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
+        if (gglobal()->X3DParser.parentIndex > 0) { gglobal()->X3DParser.parentIndex--; } else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
 
 #define INCREMENT_PARENTINDEX \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-                parentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+        if (gglobal()->X3DParser.parentIndex < (PARENTSTACKSIZE-2))  { \
+                gglobal()->X3DParser.parentIndex++; \
+                gglobal()->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("X3DParser, line %d stack overflow",LINE);
 #else
 #define DECREMENT_PARENTINDEX \
@@ -81,7 +81,7 @@ struct nameValuePairs {
 
 int freewrl_XML_GetCurrentLineNumber();
 #define LINE freewrl_XML_GetCurrentLineNumber()
-#define TTY_SPACE {int tty; printf ("%3d ",parentIndex); for (tty = 0; tty < parentIndex; tty++) printf ("  ");}
+#define TTY_SPACE {int tty; printf ("%3d ",gglobal()->X3DParser.parentIndex); for (tty = 0; tty < gglobal()->X3DParser.parentIndex; tty++) printf ("  ");}
 //extern int getParserMode(void);
 //extern void debugsetParserMode(int,char*, int);
 int getParserMode(void);
@@ -91,10 +91,13 @@ void debugpopParserMode(char *fle, int line);
 #define popParserMode() debugpopParserMode(__FILE__,__LINE__)
 
 #define PARENTSTACKSIZE 256
-extern int parentIndex;
-extern struct X3D_Node *parentStack[PARENTSTACKSIZE];
-extern char *CDATA_Text;
-extern int CDATA_Text_curlen;
+//extern int parentIndex;
+//int gglobal()->X3DParser.parentIndex;
+//int setParentIndex(int newParentIndex);
+
+//extern struct X3D_Node *parentStack[PARENTSTACKSIZE];
+//extern char *CDATA_Text;
+//extern int CDATA_Text_curlen;
 
 
 /* function protos */

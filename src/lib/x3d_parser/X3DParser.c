@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.89 2011/06/10 00:27:17 dug9 Exp $
+$Id: X3DParser.c,v 1.90 2011/06/11 19:26:36 dug9 Exp $
 
 ???
 
@@ -100,30 +100,15 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
  #define XMLCALL
 #endif /* XMLCALL */
 
-
-static struct VRMLLexer *myLexer = NULL;
-static Stack* DEFedNodes = NULL;
 #define MAX_CHILD_ATTRIBUTE_DEPTH 32
-static struct Vector** childAttributes= NULL;
-void setChildAttributes(int index,void *ptr)
-{
-	childAttributes[index] = ptr;
-}
-void *getChildAttributes(int index)
-{
-	return childAttributes[index];
-}
-void deleteChildAttributes(int index)
-{
-	deleteVector (struct nameValuePairs*, childAttributes[index]);
-}
-char *CDATA_Text = NULL;
-static int CDATA_TextMallocSize = 0;
-int CDATA_Text_curlen = 0;
 
-/* for testing Johannes Behrs fieldValue hack for getting data in */
-static int in3_3_fieldValue = FALSE;
-static int in3_3_fieldIndex = INT_ID_UNDEFINED;
+//char *CDATA_Text = NULL;
+//int CDATA_Text_curlen = 0;
+
+//static int CDATA_TextMallocSize = 0;
+///* for testing Johannes Behrs fieldValue hack for getting data in */
+//static int in3_3_fieldValue = FALSE;
+//static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
 #ifdef XML_LARGE_SIZE
@@ -136,8 +121,86 @@ static int in3_3_fieldIndex = INT_ID_UNDEFINED;
 #define XML_FMT_INT_MOD "l"
 #endif
 
-int parentIndex = -1;
-struct X3D_Node *parentStack[PARENTSTACKSIZE];
+//static int _parentIndex = -1;
+//int gglobal()->X3DParser.parentIndex
+//{
+//	return _parentIndex;
+//}
+//int setParentIndex(int newParentIndex)
+//{
+//	_parentIndex = newParentIndex;
+//	return _parentIndex;
+//}
+//struct X3D_Node *parentStack[PARENTSTACKSIZE];
+
+
+typedef struct pX3DParser{
+	struct VRMLLexer *myLexer;// = NULL;
+	Stack* DEFedNodes;// = NULL;
+	struct Vector** childAttributes;//= NULL;
+	int CDATA_TextMallocSize;// = 0;
+	/* for testing Johannes Behrs fieldValue hack for getting data in */
+	int in3_3_fieldValue;// = FALSE;
+	int in3_3_fieldIndex;// = INT_ID_UNDEFINED;
+	/* XML parser variables */
+	int X3DParserRecurseLevel;// = INT_ID_UNDEFINED;
+	XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
+	XML_Parser currentX3DParser;// = NULL;
+
+	int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
+	int currentParserModeIndex;// = 0; //INT_ID_UNDEFINED;
+
+}* ppX3DParser;
+void *X3DParser_constructor(){
+	void *v = malloc(sizeof(struct pX3DParser));
+	memset(v,0,sizeof(struct pX3DParser));
+	return v;
+}
+void X3DParser_init(struct tX3DParser *t){
+	//public
+	t->parentIndex = -1;
+	t->CDATA_Text = NULL;
+	t->CDATA_Text_curlen = 0;
+	//private
+	t->prv = X3DParser_constructor();
+	{
+		ppX3DParser p = (ppX3DParser)t->prv;
+		p->myLexer = NULL;
+		p->DEFedNodes = NULL;
+		p->childAttributes= NULL;
+		p->CDATA_TextMallocSize = 0;
+		/* for testing Johannes Behrs fieldValue hack for getting data in */
+		p->in3_3_fieldValue = FALSE;
+		p->in3_3_fieldIndex = INT_ID_UNDEFINED;
+		/* XML parser variables */
+		p->X3DParserRecurseLevel = INT_ID_UNDEFINED;
+		p->x3dparser[PROTOINSTANCE_MAX_LEVELS];
+		p->currentX3DParser = NULL;
+
+		p->currentParserMode[PROTOINSTANCE_MAX_LEVELS];
+		p->currentParserModeIndex = 0; //INT_ID_UNDEFINED;
+
+	}
+}
+	//ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+
+
+void setChildAttributes(int index,void *ptr)
+{
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	p->childAttributes[index] = ptr;
+}
+void *getChildAttributes(int index)
+{
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	return p->childAttributes[index];
+}
+void deleteChildAttributes(int index)
+{
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	deleteVector (struct nameValuePairs*, p->childAttributes[index]);
+}
+
 
 #ifdef X3DPARSERVERBOSE
 static const char *parserModeStrings[] = {
@@ -157,16 +220,17 @@ static const char *parserModeStrings[] = {
 		
 //int currentParserMode = PARSING_NODES;
 
-/* XML parser variables */
-static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
-static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
-static XML_Parser currentX3DParser = NULL;
-
-static int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
-static int currentParserModeIndex = 0; //INT_ID_UNDEFINED;
+///* XML parser variables */
+//static int X3DParserRecurseLevel = INT_ID_UNDEFINED;
+//static XML_Parser x3dparser[PROTOINSTANCE_MAX_LEVELS];
+//static XML_Parser currentX3DParser = NULL;
+//
+//static int currentParserMode[PROTOINSTANCE_MAX_LEVELS];
+//static int currentParserModeIndex = 0; //INT_ID_UNDEFINED;
 void debugpushParserMode(int newmode, char *fle, int line) {
-	currentParserModeIndex++;
-	currentParserMode[currentParserModeIndex] = newmode; //Q. need 2D [currentParserModeIndex][X3DParserRecurseLevel] or keep using same stack for nested expansions? Same stack for now
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	p->currentParserModeIndex++;
+	p->currentParserMode[p->currentParserModeIndex] = newmode; //Q. need 2D [currentParserModeIndex][X3DParserRecurseLevel] or keep using same stack for nested expansions? Same stack for now
 #ifdef X3DPARSERVERBOSE
 	printf("pushParserMode index=%d ",currentParserModeIndex);
 	printf (" mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
@@ -174,23 +238,28 @@ void debugpushParserMode(int newmode, char *fle, int line) {
 }
 void debugpopParserMode(char *fle, int line)
 {
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 #ifdef X3DPARSERVERBOSE
 	printf("popParserMode index=%d mode %s at %s:%d\n",currentParserModeIndex,parserModeStrings[currentParserMode[currentParserModeIndex]],fle,line);
 #endif
-	currentParserMode[currentParserModeIndex] = 0;
-	currentParserModeIndex--;
-	if(currentParserModeIndex < 0) 
+	p->currentParserMode[p->currentParserModeIndex] = 0;
+	p->currentParserModeIndex--;
+	if(p->currentParserModeIndex < 0) 
 	{ConsoleMessage("stack underflow in popParserMode\n");getchar();getchar();getchar();}
 }
-int getParserMode(void) { return currentParserMode[currentParserModeIndex]; }
+int getParserMode(void) { 
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	return p->currentParserMode[p->currentParserModeIndex]; 
+}
 
 
 /* get the line number of the current parser for error purposes */
 int freewrl_XML_GetCurrentLineNumber(void) {
-	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	if (p->X3DParserRecurseLevel > INT_ID_UNDEFINED)
 	{
-		currentX3DParser = x3dparser[X3DParserRecurseLevel]; /*dont trust current*/
-		return (int) XML_GetCurrentLineNumber(currentX3DParser); 
+		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel]; /*dont trust current*/
+		return (int) XML_GetCurrentLineNumber(p->currentX3DParser); 
 	}
 	return INT_ID_UNDEFINED;
 }
@@ -243,48 +312,53 @@ con:
 
 /* add this data to the end of the current CData array for later use */
 static void appendDataToFieldValue(char *data, int len) {
-	if ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
-		while ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
-			if (CDATA_TextMallocSize == 0) CDATA_TextMallocSize = 2048;
-			else CDATA_TextMallocSize *= 2;
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	if ((tg->X3DParser.CDATA_Text_curlen+len) > p->CDATA_TextMallocSize-100) {
+		while ((tg->X3DParser.CDATA_Text_curlen+len) > p->CDATA_TextMallocSize-100) {
+			if (p->CDATA_TextMallocSize == 0) p->CDATA_TextMallocSize = 2048;
+			else p->CDATA_TextMallocSize *= 2;
 		}
-		CDATA_Text = REALLOC (CDATA_Text,CDATA_TextMallocSize);
+		tg->X3DParser.CDATA_Text = REALLOC (tg->X3DParser.CDATA_Text,p->CDATA_TextMallocSize);
 	}
 
-	memcpy(&CDATA_Text[CDATA_Text_curlen],data,len);
-	CDATA_Text_curlen+=len;
-	CDATA_Text[CDATA_Text_curlen]='\0';
+	memcpy(&tg->X3DParser.CDATA_Text[tg->X3DParser.CDATA_Text_curlen],data,len);
+	tg->X3DParser.CDATA_Text_curlen+=len;
+	tg->X3DParser.CDATA_Text[tg->X3DParser.CDATA_Text_curlen]='\0';
 }
 
 void endProtoInstanceFieldTypeNode(const char *name);
 static void endProtoInstanceField(const char *name);
 /* we are finished with a 3.3 fieldValue, tie it in */
 static void setFieldValueDataActive(const char* name) {
-	if (!in3_3_fieldValue) 
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+
+	if (!p->in3_3_fieldValue) 
 		endProtoInstanceField(name);
 	else
 	{
 		//printf ("expected this to be in a fieldValue\n");
 
 		/* if we had a valid field for this node... */
-		if (in3_3_fieldIndex != INT_ID_UNDEFINED) {
+		if (p->in3_3_fieldIndex != INT_ID_UNDEFINED) {
 
 #ifdef X3DPARSERVERBOSE
 			printf ("setFieldValueDataActive field %s, parent is a %s\n",
 				stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); 
 #endif
 
-			setField_fromJavascript (parentStack[parentIndex], (char *) stringFieldType(in3_3_fieldIndex),
-				CDATA_Text, TRUE);
+			setField_fromJavascript (tg->X3DParser.parentStack[tg->X3DParser.parentIndex], (char *) stringFieldType(p->in3_3_fieldIndex),
+				tg->X3DParser.CDATA_Text, TRUE);
 		} else {
 
 			printf ("in a end field tag, what should we do here?? \n");
 		}
 
 		/* free data */
-		in3_3_fieldValue = FALSE;
-		CDATA_Text_curlen = 0;
-		in3_3_fieldIndex = INT_ID_UNDEFINED;
+		p->in3_3_fieldValue = FALSE;
+		tg->X3DParser.CDATA_Text_curlen = 0;
+		p->in3_3_fieldIndex = INT_ID_UNDEFINED;
 	}
 }
 
@@ -295,21 +369,22 @@ static void setFieldValueDataActive(const char* name) {
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
 	indexT ind;
 	struct X3D_Node* node;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 	/* printf ("X3DParser_getNameFromNode called on %u, DEFedNodes %u\n",myNode,DEFedNodes); */
-	if (!DEFedNodes) return NULL;
+	if (!p->DEFedNodes) return NULL;
 	/* printf ("X3DParser_getNameFromNode, DEFedNodes not null\n"); */
 
 	/* go through the DEFed nodes and match the node pointers */
-	for (ind=0; ind<vector_size(stack_top(struct Vector*, DEFedNodes)); ind++) {
-		node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
+	for (ind=0; ind<vector_size(stack_top(struct Vector*, p->DEFedNodes)); ind++) {
+		node=vector_get(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes),ind);
 		
 		/* did we have a match? */
 		/* printf ("X3DParser_getNameFromNode, comparing %u and %u at %d\n",myNode,node,ind); */
 		if (myNode == node) {
 			/* we have the index into the lexers name table; return the name */
 			struct Vector *ns;
-			ns = stack_top(struct Vector*, myLexer->userNodeNames);
+			ns = stack_top(struct Vector*, p->myLexer->userNodeNames);
 			return ((char *)vector_get (const char*, ns,ind));
 		}
 	}
@@ -330,25 +405,27 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
 	int i;
-	FREE_IF_NZ(childAttributes);
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
-	if (DEFedNodes != NULL) {
-		for (i=0; i<vector_size(DEFedNodes); i++) {
-			struct Vector * myele = vector_get (struct Vector*, DEFedNodes, i);
+	FREE_IF_NZ(p->childAttributes);
+
+	if (p->DEFedNodes != NULL) {
+		for (i=0; i<vector_size(p->DEFedNodes); i++) {
+			struct Vector * myele = vector_get (struct Vector*, p->DEFedNodes, i);
 
 			/* we DO NOT delete individual elements of this vector, as they are pointers
 			   to struct X3D_Node*; these get deleted in the general "Destroy all nodes
 			   and fields" routine; kill_X3DNodes(void). */
 			deleteVector (struct Vector *,myele);
 		}
-		deleteVector(struct Vector*, DEFedNodes);
+		deleteVector(struct Vector*, p->DEFedNodes);
 	}
 
 	/* now, for the lexer... */
-	if (myLexer != NULL) {
-		lexer_destroyData(myLexer);
-		deleteLexer(myLexer);
-		myLexer=NULL;
+	if (p->myLexer != NULL) {
+		lexer_destroyData(p->myLexer);
+		deleteLexer(p->myLexer);
+		p->myLexer=NULL;
 	}
 
 	/* do we have a parser for scanning string values to memory? */
@@ -361,6 +438,7 @@ void kill_X3DDefs(void) {
 the new node */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
 	indexT ind = ID_UNDEFINED;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 #ifdef X3DPARSERVERBOSE
 	printf ("DEFNameIndex, looking for :%s:, force %d nodePointer %u\n",name,force,node);
@@ -368,32 +446,32 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
 	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
 
-	if (myLexer == NULL) return NULL;
+	if (p->myLexer == NULL) return NULL;
 
-	lexer_fromString(myLexer,STRDUP(name));
+	lexer_fromString(p->myLexer,STRDUP(name));
 
-	if(!lexer_defineNodeName(myLexer, &ind))
+	if(!lexer_defineNodeName(p->myLexer, &ind))
 		printf ("Expected nodeNameId after DEF!\n");
 
 #ifdef X3DPARSERVERBOSE
 	printf ("DEF returns id of %d for %s\n",ind,name);
 #endif
 
-	ASSERT(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
+	ASSERT(ind<=vector_size(stack_top(struct Vector*, p->DEFedNodes)));
 
 #ifdef X3DPARSERVERBOSE
 	printf ("so, in DEFNameIndex, we have ind %d, vector_size %d\n",ind,vector_size(stack_top(struct Vector*, DEFedNodes)));
 #endif
 
-	if(ind==vector_size(stack_top(struct Vector*, DEFedNodes))) {
-		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), node);
+	if(ind==vector_size(stack_top(struct Vector*, p->DEFedNodes))) {
+		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes), node);
 	}
-	ASSERT(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
+	ASSERT(ind<vector_size(stack_top(struct Vector*, p->DEFedNodes)));
 
 	/* if we did not find this node, just return */
 	if (ind == ID_UNDEFINED) {return NULL; }
 
-	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),ind);
+	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes),ind);
 
 #ifdef X3DPARSERVERBOSE
 	if (node != NULL) printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType));
@@ -605,6 +683,8 @@ static void parseRoutes (char **atts) {
 
 	int fromType;
 	int toType;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("\nstart ofrouting\n");	
 	#endif
@@ -646,9 +726,9 @@ static void parseRoutes (char **atts) {
 	/* second pass - get the fields of the nodes */
 	for (i = 0; atts[i]; i += 2) {
 		if (strcmp("fromField",atts[i])==0) {
-			error = getRouteField(myLexer, &fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
+			error = getRouteField(p->myLexer, &fromNode, &fromOffset, &fromType, (char *)atts[i+1],0);
 		} else if (strcmp("toField",atts[i]) ==0) {
-			error = getRouteField(myLexer, &toNode, &toOffset, &toType, (char *)atts[i+1],1);
+			error = getRouteField(p->myLexer, &toNode, &toOffset, &toType, (char *)atts[i+1],1);
 		}
 	}	
 
@@ -728,17 +808,18 @@ void linkNodeIn(char *where, int lineno) {
 	char *memptr;
 	int myContainer;
 	int defaultContainer;
+	ttglobal tg = gglobal();
 
 	/* did we have a valid node here? Things like ProtoDeclares are NOT valid nodes, and we can ignore them,
 	   because there will be no code associated with them */
 	
 	/* bounds check */
-	if (parentIndex < 1) {
+	if (tg->X3DParser.parentIndex < 1) {
 		ConsoleMessage ("linkNodeIn: stack underflow");
 		return;
 	}
 
-	if ((parentStack[parentIndex] == NULL) || (parentStack[parentIndex-1] == NULL)) {
+	if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex] == NULL) || (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1] == NULL)) {
 		ConsoleMessage ("linkNodeIn: NULL found in stack");
 		return;
 	}
@@ -777,7 +858,7 @@ void linkNodeIn(char *where, int lineno) {
 	#endif
 
 	/* where to put this node... */
-	myContainer = parentStack[parentIndex]->_defaultContainer;
+	myContainer = tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer;
 	
 	/* kid swap - any parent nodes -like GeoLOD- that have a children field, but intend 
 	   to put _defaultContainer=FIELDNAMES_children xml child nodes 
@@ -785,13 +866,13 @@ void linkNodeIn(char *where, int lineno) {
 	*/
 	defaultContainer = myContainer;
 	/* GeoLOD - put into rootNode field */
-	if(myContainer == FIELDNAMES_children && parentStack[parentIndex-1]->_nodeType == NODE_GeoLOD)
+	if(myContainer == FIELDNAMES_children && tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_GeoLOD)
 	{
 		defaultContainer = FIELDNAMES_rootNode; 
 	}
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
-	findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
+	findFieldInOFFSETS(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType, 
 		defaultContainer, &coffset, &ctype, &ctmp);
 		//parentStack[parentIndex]->_defaultContainer, &coffset, &ctype, &ctmp);
 
@@ -799,18 +880,18 @@ void linkNodeIn(char *where, int lineno) {
 	/* first case, assigning a node to a PROTO Group expansion - eg, in the above example, 
 	   Material should go to appearance, but FORCE it go to children here. */
 
-	if ((ctype == INT_ID_UNDEFINED) && (parentStack[parentIndex-1]->_nodeType == NODE_Group)) {
+	if ((ctype == INT_ID_UNDEFINED) && (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType == NODE_Group)) {
 		/* printf ("problem finding field %d in a Group %u, so we are pretending this is a PROTO for now\n",
 			stringFieldType(parentStack[parentIndex-1],
 			stringFieldType(myContainer)); */
 		/* printf ("and, FreeWRL__protodEf for the group is %d\n",X3D_GROUP(parentStack[parentIndex-1])->FreeWRL__protoDef); */
 
 		/* lets see if we have a base node with a PROTO Group flag. */
-		if (parentIndex>=2) {
+		if (tg->X3DParser.parentIndex>=2) {
 			/* printf ("we have enough space...\n"); */
-			if(parentStack[parentIndex-2]->_nodeType == NODE_Group) {
+			if(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2]->_nodeType == NODE_Group) {
 				/* printf ("and we have a group->group\n"); */
-				if (X3D_GROUP(parentStack[parentIndex-2])->FreeWRL__protoDef == PROTO_MARKER) {
+				if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2])->FreeWRL__protoDef == PROTO_MARKER) {
 					/* printf ("proto, step1, were going to go to a %s, not to children\n",stringFieldType(myContainer)); */
 					findFieldInOFFSETS(NODE_Group, 
 						FIELDNAMES_children, &coffset, &ctype, &ctmp);
@@ -821,13 +902,13 @@ void linkNodeIn(char *where, int lineno) {
 	}
 
 	/* PROTOS, second case: we have the PROTO group, and it is going to an invalid container field.... */
-	if ((ctype == INT_ID_UNDEFINED) && (parentStack[parentIndex]->_nodeType == NODE_Group)) {
+	if ((ctype == INT_ID_UNDEFINED) && (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_Group)) {
 		/* is this linking in the PROTO? */
-		if (X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef == PROTO_MARKER) {
+		if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->FreeWRL__protoDef == PROTO_MARKER) {
 			/* printf ("WE HAVE PROTODEF %d\n",X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
 			printf ("GROUP has %d children\n",X3D_GROUP(parentStack[parentIndex])->children.n); */
-			if (X3D_GROUP(parentStack[parentIndex])->children.n>0) {
-				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(parentStack[parentIndex])->children.p[0]);
+			if (X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->children.n>0) {
+				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(tg->X3DParser.parentStack[tg->X3DParser.parentIndex])->children.p[0]);
 
 				/* printf ("first child is of type %s\n", stringNodeType(firstCh->_nodeType)); */
 
@@ -847,14 +928,14 @@ void linkNodeIn(char *where, int lineno) {
 					stringFieldType(parentStack[parentIndex+2]->_defaultContainer));
 					*/
 					
-					myContainer = parentStack[parentIndex+2]->_defaultContainer;
+					myContainer = tg->X3DParser.parentStack[tg->X3DParser.parentIndex+2]->_defaultContainer;
 					
 					/*
 					printf ("and, we are going to look for container %s\n",stringFieldType(myContainer));
 					printf ("in a node type of %s\n",stringNodeType(X3D_NODE(parentStack[parentIndex-1])->_nodeType));
 					*/
 
-					findFieldInOFFSETS(X3D_NODE(parentStack[parentIndex-1])->_nodeType, myContainer,
+					findFieldInOFFSETS(X3D_NODE(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1])->_nodeType, myContainer,
 						&coffset, &ctype, &ctmp);
 				}
 			}
@@ -863,12 +944,12 @@ void linkNodeIn(char *where, int lineno) {
 
 	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
 
-	if ((coffset <= 0) && (!gglobal()->internalc.global_strictParsing)) {
-		if ((parentStack[parentIndex]->_nodeType == NODE_MetadataFloat) ||
-		    (parentStack[parentIndex]->_nodeType == NODE_MetadataString) ||
-		    (parentStack[parentIndex]->_nodeType == NODE_MetadataDouble) ||
-		    (parentStack[parentIndex]->_nodeType == NODE_MetadataInteger)) {
-			findFieldInOFFSETS(parentStack[parentIndex-1]->_nodeType, 
+	if ((coffset <= 0) && (!tg->internalc.global_strictParsing)) {
+		if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataFloat) ||
+		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataString) ||
+		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataDouble) ||
+		    (tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataInteger)) {
+			findFieldInOFFSETS(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType, 
 				FIELDNAMES_metadata, &coffset, &ctype, &ctmp);
 
 			/*
@@ -888,7 +969,7 @@ void linkNodeIn(char *where, int lineno) {
 		} else {
 			printf ("X3DParser - warning line %d, incorrect Metadata; \"%s\" defaultContainer changed to \"metadata\"\n",
 				LINE,
-				stringNodeType(parentStack[parentIndex]->_nodeType));
+				stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType));
 		}
 	}
 
@@ -897,30 +978,32 @@ void linkNodeIn(char *where, int lineno) {
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
 		ConsoleMessage ("X3DParser: warning, line %d: trouble linking to containerField :%s: of parent node type :%s: (specified in a :%s: node)", LINE,
 			stringFieldType(myContainer),
-			stringNodeType(parentStack[parentIndex-1]->_nodeType),
-			stringNodeType(parentStack[parentIndex]->_nodeType));
+			stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
+			stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType));
 		return;
 	}
-	memptr = offsetPointer_deref (char *, parentStack[parentIndex-1],coffset);
+	memptr = offsetPointer_deref (char *, tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1],coffset);
 	if (ctype == FIELDTYPE_SFNode) {
 		/* copy over a single memory pointer */
-		memcpy (memptr, &parentStack[parentIndex],sizeof(struct X3D_Node *));
-		ADD_PARENT(parentStack[parentIndex], parentStack[parentIndex-1]);
+		memcpy (memptr, &tg->X3DParser.parentStack[tg->X3DParser.parentIndex],sizeof(struct X3D_Node *));
+		ADD_PARENT(tg->X3DParser.parentStack[tg->X3DParser.parentIndex], tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]);
 	} else {
 		AddRemoveChildren (
-			parentStack[parentIndex-1], /* parent */
+			tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1], /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
-			&(parentStack[parentIndex]),	/* this child, 1 node */
+			&(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]),	/* this child, 1 node */
                 1, 1,__FILE__,__LINE__);
 	}
 }
 
 
 void endCDATA (void *user_data, const xmlChar *string, int len) {
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	/* JAS printf ("cdata_element, :%s:\n",string); */
         if (getParserMode() == PARSING_PROTOBODY) {
                 dumpCDATAtoProtoBody ((char *)string);
-        } else if (in3_3_fieldValue) {
+        } else if (p->in3_3_fieldValue) {
 		appendDataToFieldValue((char *)string,len);
 	} else {
 		/* most likely we have a script here */
@@ -929,12 +1012,12 @@ void endCDATA (void *user_data, const xmlChar *string, int len) {
 		#endif
 
 		/* copy the CDATA text over to the CDATA_Text string, so that the script can get to it */
-		FREE_IF_NZ(CDATA_Text);
-		CDATA_Text = MALLOC(char *, len+1);
-		CDATA_TextMallocSize = len+1;
-		CDATA_Text_curlen = len;
+		FREE_IF_NZ(tg->X3DParser.CDATA_Text);
+		tg->X3DParser.CDATA_Text = MALLOC(char *, len+1);
+		p->CDATA_TextMallocSize = len+1;
+		tg->X3DParser.CDATA_Text_curlen = len;
 
-		memcpy(CDATA_Text,string,CDATA_TextMallocSize*sizeof(char));
+		memcpy(tg->X3DParser.CDATA_Text,string,p->CDATA_TextMallocSize*sizeof(char));
 	}
 }
 
@@ -1055,6 +1138,7 @@ static void parseMeta(char **atts) {
 static void parseFieldValue(const char *name, char **atts) {
 	int i;
 	int nameIndex = INT_ID_UNDEFINED;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -1072,16 +1156,16 @@ static void parseFieldValue(const char *name, char **atts) {
 	if ((getParserMode() == PARSING_EXTERNPROTODECLARE) || (getParserMode() == PARSING_PROTOINSTANCE)) {
 		parseProtoInstanceFields(name,atts);
 	} else {
-		if (in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
-		in3_3_fieldValue = TRUE;
+		if (p->in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
+		p->in3_3_fieldValue = TRUE;
 
 		if (nameIndex == INT_ID_UNDEFINED) {
 			printf ("did not find name field for this 3.3 fieldType test\n");
-			in3_3_fieldIndex = INT_ID_UNDEFINED;
+			p->in3_3_fieldIndex = INT_ID_UNDEFINED;
 		} else {
 		/* printf ("parseFieldValue field %s, parent is a %s\n",atts[nameIndex],stringNodeType(parentStack[parentIndex]->_nodeType)); */
 
-			in3_3_fieldIndex = findFieldInFIELDNAMES(atts[nameIndex]);
+			p->in3_3_fieldIndex = findFieldInFIELDNAMES(atts[nameIndex]);
 		}
 	}
 }
@@ -1161,6 +1245,7 @@ static void endProtoDeclareTag() {
 
 static void endProtoInstanceField(const char *name) {
 	struct X3D_Group *protoExpGroup = NULL;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 	/* ending </field> */
 	#ifdef X3DPARSERVERBOSE
@@ -1194,7 +1279,7 @@ static void endProtoInstanceField(const char *name) {
 			}
 			#endif
 	
-		expandProtoInstance(myLexer, protoExpGroup);
+		expandProtoInstance(p->myLexer, protoExpGroup);
 		popParserMode();
 	
 #ifdef X3DPARSERVERBOSE
@@ -1265,8 +1350,8 @@ static void saveProtoInstanceFields (const char *name, char **atts) {
 
 #define INCREMENT_CHILDREN_LEVEL \
 	{ \
-		if ((parentIndex <0) || (parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
-		childAttributes[parentIndex] = newVector (struct nameValuePairs *, 8); \
+		if ((gglobal()->X3DParser.parentIndex <0) || (gglobal()->X3DParser.parentIndex > MAX_CHILD_ATTRIBUTE_DEPTH)) {printf ("stack overflow\n"); return;} \
+		p->childAttributes[gglobal()->X3DParser.parentIndex] = newVector (struct nameValuePairs *, 8); \
 	}
 
 
@@ -1275,12 +1360,14 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	int i;
 	struct X3D_Node *thisNode;
 	struct X3D_Node *fromDEFtable;
-	
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+
 	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",parentIndex,parentIndex);
 	
 	/* create the scenegraph node for this one */
         thisNode = createNewX3DNode(myNodeType);
-        parentStack[parentIndex] = thisNode;
+        tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode;
 
 	if (myNodeType == NODE_Script) {
 		#ifdef HAVE_JAVASCRIPT
@@ -1344,7 +1431,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 					thisNode->referenceCount--; //dug9 added but should???
 					thisNode = fromDEFtable;
 					thisNode->referenceCount++; //dug9 added but should???
-					parentStack[parentIndex] = thisNode; 
+					tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode; 
 					#ifdef X3DPARSERVERBOSE
 					printf ("successful copying for field %s defName %s\n",atts[i], atts[i+1]);
 					#endif
@@ -1358,7 +1445,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 			nvp->fieldName = STRDUP(atts[i]);
 			nvp->fieldValue=STRDUP(atts[i+1]);
 			nvp->fieldType = 0;
-			vector_pushBack(struct nameValuePairs*, childAttributes[parentIndex], nvp);
+			vector_pushBack(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex], nvp);
 		}
 	}
 }
@@ -1369,12 +1456,14 @@ static void parseAttributes(void) {
 	size_t ind;
 	struct nameValuePairs *nvp;
 	struct X3D_Node *thisNode;
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
-	thisNode = parentStack[parentIndex];
+	thisNode = tg->X3DParser.parentStack[tg->X3DParser.parentIndex];
 	 /* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
-	if(childAttributes[parentIndex])
-	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
-		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
+	if(p->childAttributes[tg->X3DParser.parentIndex])
+	for (ind=0; ind<vector_size(p->childAttributes[tg->X3DParser.parentIndex]); ind++) {
+		nvp = vector_get(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex],ind);
 		 /* printf ("	nvp %ld, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
 
 		/* see if we have a containerField here */
@@ -1401,7 +1490,7 @@ static void parseAttributes(void) {
 					struct Shader_Script *myObj;
 
 					/* this is a Shader/Script, look through the parameters and see if there is a replacement for value */
-					rv = getRoutingInfo (myLexer, thisNode, &offs, &type, &accessType, &myObj, nvp->fieldName,0);
+					rv = getRoutingInfo (p->myLexer, thisNode, &offs, &type, &accessType, &myObj, nvp->fieldName,0);
 					/* printf ("parseAttributes, for fieldName %s value %s have offs %d type %d accessType %d rv %d\n",
 						nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv); */
 
@@ -1603,6 +1692,8 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	char **myAtts;
 	char *blankAtts[] = {NULL,NULL};
     const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
 	/* libxml passes NULL, while expat passes {0,0}. Make them the same */
 	if (atts == NULL) myAtts = blankAtts;
@@ -1662,12 +1753,12 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 			case X3DSP_X3D: parseX3Dhead(myAtts); break;
 			case X3DSP_fieldValue:  parseFieldValue(name,myAtts); break;
 			case X3DSP_field: 
-				parseScriptProtoField (myLexer, myAtts); break;
+				parseScriptProtoField (p->myLexer, myAtts); break;
 			case X3DSP_IS: parseIS(); break;
 			case X3DSP_component: parseComponent(myAtts); break;
 			case X3DSP_export: parseExport(myAtts); break;
 			case X3DSP_import: parseImport(myAtts); break;
-			case X3DSP_connect: parseConnect(myLexer, myAtts,childAttributes[parentIndex]); break;
+			case X3DSP_connect: parseConnect(p->myLexer, myAtts,p->childAttributes[gglobal()->X3DParser.parentIndex]); break;
 
 			default: printf ("	huh? startElement, X3DSPECIAL, but not handled?? %d, :%s:\n",myNodeIndex,X3DSPECIAL[myNodeIndex]);
 		}
@@ -1681,6 +1772,9 @@ void endScriptProtoField(); //struct VRMLLexer* myLexer);
 static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	int myNodeIndex;
     const char*name = (const char*) iname;
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+
     /* printf ("X3DEndElement for %s\n",name); */
     
 	#ifdef X3DPARSERVERBOSE
@@ -1706,7 +1800,7 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 
 	/* is this an SFNode for a Script field? */
 	if (getParserMode() == PARSING_SCRIPT) {
-		switch (parentStack[parentIndex-1]->_nodeType) {
+		switch (tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType) {
 			case NODE_Script:
 
 /* I wonder if there is a better way of handling this case */
@@ -1742,11 +1836,11 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 		//setParserMode(PARSING_NODES);
 		//popParserMode();
 
-		if (childAttributes[parentIndex]!=NULL) deleteVector (struct nameValuePairs*, childAttributes[parentIndex]);
-		childAttributes[parentIndex] = NULL;
+		if (p->childAttributes[tg->X3DParser.parentIndex]!=NULL) deleteVector (struct nameValuePairs*, p->childAttributes[gglobal()->X3DParser.parentIndex]);
+		p->childAttributes[tg->X3DParser.parentIndex] = NULL;
 
 		DECREMENT_PARENTINDEX
-		DEBUG_X3DPARSER (" 	destroying vector for parentIndex %d\n",parentIndex); 
+		DEBUG_X3DPARSER (" 	destroying vector for parentIndex %d\n",gglobal()->X3DParser.parentIndex); 
 		return;
 	}
 
@@ -1790,80 +1884,86 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 }
 
 static XML_Parser initializeX3DParser () {
-	X3DParserRecurseLevel++;
+	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	p->X3DParserRecurseLevel++;
 
-	if (X3DParserRecurseLevel >= PROTOINSTANCE_MAX_LEVELS) {
+	if (p->X3DParserRecurseLevel >= PROTOINSTANCE_MAX_LEVELS) {
 		ConsoleMessage ("XML_PARSER init: XML file PROTO nested too deep\n");
-		X3DParserRecurseLevel--;
+		p->X3DParserRecurseLevel--;
 	} else {
-		XML_CreateParserLevel(x3dparser[X3DParserRecurseLevel]);
-		XML_SetElementHandler(x3dparser[X3DParserRecurseLevel], X3DstartElement, X3DendElement);
-		XML_SetCdataSectionHandler (x3dparser[X3DParserRecurseLevel], startCDATA, endCDATA);
-		XML_SetDefaultHandler (x3dparser[X3DParserRecurseLevel],handleCDATA);
-		XML_SetUserData(x3dparser[X3DParserRecurseLevel], &parentIndex);
+		XML_CreateParserLevel(p->x3dparser[p->X3DParserRecurseLevel]);
+		XML_SetElementHandler(p->x3dparser[p->X3DParserRecurseLevel], X3DstartElement, X3DendElement);
+		XML_SetCdataSectionHandler (p->x3dparser[p->X3DParserRecurseLevel], startCDATA, endCDATA);
+		XML_SetDefaultHandler (p->x3dparser[p->X3DParserRecurseLevel],handleCDATA);
+		XML_SetUserData(p->x3dparser[p->X3DParserRecurseLevel], &parentIndex);
 	}
 	/* printf ("initializeX3DParser, level %d, parser %u\n",x3dparser[X3DParserRecurseLevel]); */
 	pushParserMode(PARSING_NODES);
-	return x3dparser[X3DParserRecurseLevel];
+	return p->x3dparser[p->X3DParserRecurseLevel];
 }
 
 static void shutdownX3DParser () {
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+
 	/* printf ("shutdownX3DParser, recurseLevel %d\n",X3DParserRecurseLevel); */
-	XML_ParserFree(x3dparser[X3DParserRecurseLevel]);
-	X3DParserRecurseLevel--;
+	XML_ParserFree(p->x3dparser[p->X3DParserRecurseLevel]);
+	p->X3DParserRecurseLevel--;
 	
 	/* lets free up memory here for possible PROTO variables */
-	if (X3DParserRecurseLevel == INT_ID_UNDEFINED) {
+	if (p->X3DParserRecurseLevel == INT_ID_UNDEFINED) {
 		/* if we are at the bottom of the parser call nesting, lets reset parentIndex */
-		parentIndex = 0;
+		gglobal()->X3DParser.parentIndex = 0; //setParentIndex( 0 );
 		freeProtoMemory ();
 	}
 
-	if (X3DParserRecurseLevel < INT_ID_UNDEFINED) {
+	if (p->X3DParserRecurseLevel < INT_ID_UNDEFINED) {
 		ConsoleMessage ("XML_PARSER close underflow");
-		X3DParserRecurseLevel = INT_ID_UNDEFINED;
+		p->X3DParserRecurseLevel = INT_ID_UNDEFINED;
 	}
 
 	/* CDATA text space, free it up */
-        FREE_IF_NZ(CDATA_Text);
-        CDATA_TextMallocSize = 0; 
-	if (X3DParserRecurseLevel > INT_ID_UNDEFINED)
-		currentX3DParser = x3dparser[X3DParserRecurseLevel];
+        FREE_IF_NZ(tg->X3DParser.CDATA_Text);
+        p->CDATA_TextMallocSize = 0; 
+	if (p->X3DParserRecurseLevel > INT_ID_UNDEFINED)
+		p->currentX3DParser = p->x3dparser[p->X3DParserRecurseLevel];
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 	popParserMode();
 }
 
 int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
-	currentX3DParser = initializeX3DParser();
+	ttglobal tg = gglobal();
+	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
+	p->currentX3DParser = initializeX3DParser();
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
 
-	if (childAttributes == NULL) {
+	if (p->childAttributes == NULL) {
 		int count;
 		DEBUG_X3DPARSER ("initializing childAttributes stack \n");
-		childAttributes = MALLOC(struct Vector**, sizeof(struct Vector*) * MAX_CHILD_ATTRIBUTE_DEPTH);
-		for (count=0; count<MAX_CHILD_ATTRIBUTE_DEPTH; count++) childAttributes[count] = NULL;
+		p->childAttributes = MALLOC(struct Vector**, sizeof(struct Vector*) * MAX_CHILD_ATTRIBUTE_DEPTH);
+		for (count=0; count<MAX_CHILD_ATTRIBUTE_DEPTH; count++) p->childAttributes[count] = NULL;
 	}
 
 
 	/* Use classic parser Lexer for storing DEF name info */
-	if (myLexer == NULL) myLexer = newLexer();
-	if (DEFedNodes == NULL) {
-		DEFedNodes = newStack(struct Vector*);
-		ASSERT(DEFedNodes);
+	if (p->myLexer == NULL) p->myLexer = newLexer();
+	if (p->DEFedNodes == NULL) {
+		p->DEFedNodes = newStack(struct Vector*);
+		ASSERT(p->DEFedNodes);
 		#define DEFMEM_INIT_SIZE 16
-		stack_push(struct Vector*, DEFedNodes,
+		stack_push(struct Vector*, p->DEFedNodes,
         	       newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
-		ASSERT(!stack_empty(DEFedNodes));
+		ASSERT(!stack_empty(p->DEFedNodes));
 	}
 
 
 	INCREMENT_PARENTINDEX
-	parentStack[parentIndex] = X3D_NODE(myParent);
+	tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = X3D_NODE(myParent);
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
 	
-	if (XML_ParseFile(currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_ParseFile(p->currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %d\n",
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),

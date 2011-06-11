@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.19 2011/06/03 19:45:06 crc_canada Exp $
+$Id: ColladaParser.c,v 1.20 2011/06/11 19:26:36 dug9 Exp $
 
 ???
 
@@ -54,9 +54,9 @@ $Id: ColladaParser.c,v 1.19 2011/06/03 19:45:06 crc_canada Exp $
 
 
 #define INCREMENT_PARENTINDEXC \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-                p->colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+        if (p->parentIndex < (PARENTSTACKSIZE-2))  { \
+                p->parentIndex++; \
+                p->colladaParentStack[p->parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
 #include <libxml/parser.h>
@@ -106,7 +106,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 typedef struct pColladaParser{
 	XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
 	XML_Parser currentColladaParser;// = NULL;
-	//int parentIndex = 0;
+	int parentIndex;// = 0;
 	int ColladaParserRecurseLevel;// = 0;
 	int inCDATA;// = FALSE;
 	struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
@@ -131,18 +131,19 @@ void ColladaParser_init(struct tColladaParser *t){
 		p->inCDATA = FALSE;
 		//p->colladaParentStack[PARENTSTACKSIZE];
 		p->indentLevel = 0;
-
+		p->parentIndex = 0;
 	}
 }
 
 static void XMLCALL startCDATA (void *userData) {
-        if (CDATA_Text_curlen != 0) {
+	ttglobal tg = gglobal();
+        if (tg->X3DParser.CDATA_Text_curlen != 0) {
 /*
                 ConsoleMessage ("X3DParser - hmmm, expected CDATA_Text_curlen to be 0, is not");
                 printf ("CDATA_TEXT_CURLEN is %d\n",CDATA_Text_curlen);
 printf ("CADAT_Text:%s:\n",CDATA_Text);
 */
-                CDATA_Text_curlen = 0;
+                tg->X3DParser.CDATA_Text_curlen = 0;
         }
 
         #ifdef COLLADAPARSERVERBOSE
@@ -214,7 +215,7 @@ static XML_Parser initializeColladaParser () {
 		XML_SetElementHandler(p->colladaParser[p->ColladaParserRecurseLevel], ColladaStartElement, ColladaEndElement);
 		XML_SetCdataSectionHandler (p->colladaParser[p->ColladaParserRecurseLevel], startCDATA, endCDATA);
 		XML_SetDefaultHandler (p->colladaParser[p->ColladaParserRecurseLevel],handleCDATA);
-		XML_SetUserData(p->colladaParser[p->ColladaParserRecurseLevel], &parentIndex);
+		XML_SetUserData(p->colladaParser[p->ColladaParserRecurseLevel], &p->parentIndex);
 	}
 	/* printf ("initializeColladaParser, level %d, parser %u\n",colladaParser[ColladaParserRecurseLevel]); */
 
@@ -222,7 +223,8 @@ static XML_Parser initializeColladaParser () {
 }
 
 static void shutdownColladaParser () {
-	ppColladaParser p = (ppColladaParser)gglobal()->ColladaParser.prv;
+	ttglobal tg = gglobal();
+	ppColladaParser p = (ppColladaParser)tg->ColladaParser.prv;
 	/* printf ("shutdownColladaParser, recurseLevel %d\n",ColladaParserRecurseLevel); */
 	XML_ParserFree(p->colladaParser[p->ColladaParserRecurseLevel]);
 	p->ColladaParserRecurseLevel--;
@@ -230,7 +232,7 @@ static void shutdownColladaParser () {
 	/* lets free up memory here for possible PROTO variables */
 	if (p->ColladaParserRecurseLevel == INT_ID_UNDEFINED) {
 		/* if we are at the bottom of the parser call nesting, lets reset parentIndex */
-		parentIndex = 0;
+		p->parentIndex = 0;
 		/* x3d specific freeProtoMemory (); */
 	}
 
@@ -240,7 +242,7 @@ static void shutdownColladaParser () {
 	}
 
 	/* CDATA text space, free it up */
-        FREE_IF_NZ(CDATA_Text);
+        FREE_IF_NZ(tg->X3DParser.CDATA_Text);
 	if (p->ColladaParserRecurseLevel > INT_ID_UNDEFINED)
 		p->currentColladaParser = p->colladaParser[p->ColladaParserRecurseLevel];
 
@@ -255,7 +257,7 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 
 
 	INCREMENT_PARENTINDEXC
-	p->colladaParentStack[parentIndex] = X3D_NODE(myParent);
+	p->colladaParentStack[p->parentIndex] = X3D_NODE(myParent);
 
 	if (XML_ParseFile(p->currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,

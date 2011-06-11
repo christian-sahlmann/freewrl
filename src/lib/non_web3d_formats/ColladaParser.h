@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.h,v 1.6 2011/06/03 16:08:14 davejoubert Exp $
+$Id: ColladaParser.h,v 1.7 2011/06/11 19:26:36 dug9 Exp $
 
 Collada parser functions.
 
@@ -46,8 +46,8 @@ int freewrl_XML_GetCurrentLineNumber();
 #endif
 
 
-extern int CDATA_Text_curlen;
-extern char *CDATA_Text;
+//extern int CDATA_Text_curlen;
+//extern char *CDATA_Text;
 
 //extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
