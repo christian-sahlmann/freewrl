@@ -118,3 +118,6 @@ endif
 if WINDOW_USE_WIN32
 AM_CPPFLAGS+=-DTARGET_WIN32
 endif
+
+GeneratedCode.c: $(top_srcdir)/codegen/VRMLC.pm
+	cd $(top_srcdir)/codegen && perl VRMLC.pm
