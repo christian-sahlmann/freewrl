@@ -83,6 +83,7 @@ void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 #endif
 void Bindable_init(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
+void X3DProtoScript_init(struct tX3DProtoScript *t);
 
 
 //static ttglobal iglobal; //<< for initial development witn single instance
@@ -163,6 +164,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 #endif
 	Bindable_init(&iglobal->Bindable);
 	X3DParser_init(&iglobal->X3DParser);
+	X3DProtoScript_init(&iglobal->X3DProtoScript);
 
 
 	uiThread = pthread_self();
@@ -172,6 +174,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->X3DProtoScript.prv);
 	FREE_IF_NZ(tg->X3DParser.prv);
 	FREE_IF_NZ(tg->Bindable.prv);
 #ifdef HAVE_JAVASCRIPT

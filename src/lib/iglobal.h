@@ -362,6 +362,9 @@ iOLDCODE	}Component_Networking;
 		int CDATA_Text_curlen;// = 0;
 		void *prv;
 	}X3DParser;
+	struct tX3DProtoScript{
+		void *prv;
+	}X3DProtoScript;
 
 } * ttglobal;
 #define INSTANCEGLOBAL 1

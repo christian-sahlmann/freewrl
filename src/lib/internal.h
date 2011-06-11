@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.52 2011/06/10 19:10:05 couannette Exp $
+$Id: internal.h,v 1.53 2011/06/11 20:41:48 dug9 Exp $
 
 ???
 
@@ -64,26 +64,26 @@ $Id: internal.h,v 1.52 2011/06/10 19:10:05 couannette Exp $
 ////static int currentProtoInstance = INT_ID_UNDEFINED;
 //static int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 //#else
-extern int currentProtoDeclare;
-extern int MAXProtos;
-extern int curProDecStackInd;
+//extern int currentProtoDeclare;
+//extern int MAXProtos;
+//extern int curProDecStackInd;
 //static int currentProtoInstance = INT_ID_UNDEFINED;
 //extern int currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 //#endif
 #define STATIC_ONCE 1
 /* static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, char *fieldName, int protono); */
 
-#define CPI ProtoInstanceTable[curProtoInsStackInd]
-#define CPD PROTONames[currentProtoDeclare]
+//#define CPI ProtoInstanceTable[curProtoInsStackInd]
+//#define CPD PROTONames[currentProtoDeclare]
 
-/* for parsing script initial fields */
-#define MP_NAME 0
-#define MP_ACCESSTYPE 1
-#define MP_TYPE 2
-#define MP_VALUE 3
-#define MPFIELDS 4 /* MUST be the highest MP* plus one - array size */
-
-#define UNIQUE_NUMBER_HOLDER "-fReeWrl-UniqueNumH"
+///* for parsing script initial fields */
+//#define MP_NAME 0
+//#define MP_ACCESSTYPE 1
+//#define MP_TYPE 2
+//#define MP_VALUE 3
+//#define MPFIELDS 4 /* MUST be the highest MP* plus one - array size */
+//
+//#define UNIQUE_NUMBER_HOLDER "-fReeWrl-UniqueNumH"
 
 /* ProtoInstance table This table is a dynamic table that is used for keeping track of ProtoInstance field values... */
 //#ifndef CURPROINSTSTACK
@@ -114,12 +114,12 @@ extern int curProDecStackInd;
 //};
 //static struct PROTOnameStruct *PROTONames = NULL;
 //#else
-extern int curProtoInsStackInd;
+//extern int curProtoInsStackInd;
 
 // JAS extern struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
 /* PROTO table */
-extern struct PROTOnameStruct *PROTONames;
+//extern struct PROTOnameStruct *PROTONames;
 //#endif
 
 //=======
