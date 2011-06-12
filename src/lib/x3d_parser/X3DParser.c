@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.90 2011/06/11 19:26:36 dug9 Exp $
+$Id: X3DParser.c,v 1.91 2011/06/12 13:57:08 dug9 Exp $
 
 ???
 
@@ -1363,7 +1363,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	ttglobal tg = gglobal();
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 
-	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",parentIndex,parentIndex);
+	DEBUG_X3DPARSER ("	saveAttributes, parentIndex %d parentIndex %d\n",tg->X3DParser.parentIndex,tg->X3DParser.parentIndex);
 	
 	/* create the scenegraph node for this one */
         thisNode = createNewX3DNode(myNodeType);
@@ -1730,7 +1730,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		INCREMENT_PARENTINDEX 
-		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",parentIndex); 
+		DEBUG_X3DPARSER ("	creating new vector for parentIndex %d\n",tg->X3DParser.parentIndex); 
 		INCREMENT_CHILDREN_LEVEL
 		saveAttributes(myNodeIndex,(const xmlChar *)name,myAtts);
 		return;

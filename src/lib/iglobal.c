@@ -246,10 +246,11 @@ static struct t2g thread2global[MAXINSTANCES*5];
 static int nglobalthreads = 0;
 void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
-printf ("set_thread2global, thread %p desc: %s\n",any, type);
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
 	nglobalthreads++;
+    printf ("set_thread2global, thread %p desc: %s\n",any, type);
+
 }
 
 
