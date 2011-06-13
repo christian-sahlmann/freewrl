@@ -169,7 +169,7 @@ union DDS_header {
       unsigned int    dwReserved;
     }               sCaps;
     unsigned int    dwReserved2;
-  } JASdefStruct; // put "name" in here to get rid of compiler warning
+  }; //JASdefStruct; // put "name" in here to get rid of compiler warning
 char data[ 128 ];
 };
 
