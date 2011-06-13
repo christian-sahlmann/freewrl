@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.206 2011/06/10 19:10:05 couannette Exp $
+  $Id: MainLoop.c,v 1.207 2011/06/13 15:41:15 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -62,7 +62,7 @@
 #include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 
 void (*newResetGeometry) (void) = NULL;

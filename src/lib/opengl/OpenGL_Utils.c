@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.208 2011/06/10 22:28:33 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.209 2011/06/13 15:41:15 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -69,7 +69,7 @@
 
 #include "../x3d_parser/Bindable.h"
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 
 #define USE_JS_EXPERIMENTAL_CODE 0
