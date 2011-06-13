@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.128 2011/06/11 01:29:59 couannette Exp $
+  $Id: display.h,v 1.129 2011/06/13 16:37:35 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -422,7 +422,7 @@ typedef struct {
 	s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
-extern s_renderer_capabilities_t rdr_caps;
+// JAS extern s_renderer_capabilities_t rdr_caps;
 
 bool initialize_rdr_caps();
 void initialize_rdr_functions();

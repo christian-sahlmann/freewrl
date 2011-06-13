@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindowAqua.c,v 1.4 2011/05/26 13:27:08 crc_canada Exp $
+  $Id: fwWindowAqua.c,v 1.5 2011/06/13 16:37:35 crc_canada Exp $
 
   FreeWRL support library.
   Aqua specific functions.
@@ -87,4 +87,15 @@ printf ("OSX - bind_GLContext called \n");
 	/* Guess: call the aglMakeCurrent ... */
 
 	return TRUE;
+}
+
+
+/* set cursor - see the X11 implementation, for instance */
+void setCursor() {
+
+}
+
+
+void setWindowTitle() {
+
 }

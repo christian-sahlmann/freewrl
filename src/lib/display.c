@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.84 2011/06/11 01:29:59 couannette Exp $
+  $Id: display.c,v 1.85 2011/06/13 16:37:35 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -73,7 +73,7 @@
 //int quadbuff_stereo_mode = 0;
 //
 
-s_renderer_capabilities_t rdr_caps;
+// JAS - no longer need this one s_renderer_capabilities_t rdr_caps;
 
 //
 //

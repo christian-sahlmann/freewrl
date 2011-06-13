@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.114 2011/06/07 22:45:27 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.115 2011/06/13 16:37:35 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -337,6 +337,7 @@ void enableGlobalShader(shader_type_t requestedShader) {
 	getAppearanceProperties()->currentShaderProperties = &(gglobal()->display.rdr_caps.backgroundShaderArrays[requestedShader]);
 	getAppearanceProperties()->currentShader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 	USE_SHADER(getAppearanceProperties()->currentShader);
+
 
 	/* send in the current position and modelview matricies */
 	sendMatriciesToShader(getAppearanceProperties()->currentShaderProperties); 
