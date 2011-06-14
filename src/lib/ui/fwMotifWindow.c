@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.33 2011/06/10 19:10:05 couannette Exp $
+  $Id: fwMotifWindow.c,v 1.34 2011/06/14 16:20:49 istakenv Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -352,8 +352,8 @@ void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 
     ver = libFreeWRL_get_version();
 
-    rdr = rdr_caps.renderer;
-    vendor = rdr_caps.vendor;
+    rdr = gglobal()->display.rdr_caps.renderer;
+    vendor = gglobal()->display.rdr_caps.vendor;
 
     msg = malloc(strlen(ABOUT_FREEWRL) + strlen(ver) 
 		 + strlen(rdr) + strlen(vendor));
