@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.129 2011/06/13 16:37:35 crc_canada Exp $
+  $Id: display.h,v 1.130 2011/06/15 19:22:40 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -568,34 +568,39 @@ void getMotifWindowedGLwin(Window *win);
 
 //extern GLenum _global_gl_err;
 
-#if defined(_ANDROID)
-#define PRINT_GL_ERROR_IF_ANY(_where) { \
-                                              GLenum _global_gl_err = glGetError(); \
-                                              while (_global_gl_err != GL_NO_ERROR) { \
-						if (_global_gl_err == GL_INVALID_ENUM) {DROIDDEBUG ("GL_INVALID_ENUM"); } \
-						else if (_global_gl_err == GL_INVALID_VALUE) {DROIDDEBUG("GL_INVALID_VALUE"); } \
-						else if (_global_gl_err == GL_INVALID_OPERATION) {DROIDDEBUG("GL_INVALID_OPERATION"); } \
-						else if (_global_gl_err == GL_OUT_OF_MEMORY) {DROIDDEBUG("GL_OUT_OF_MEMORY"); } \
-						else DROIDDEBUG("unknown error"); \
-                                                 DROIDDEBUG(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
-                                                 _global_gl_err = glGetError(); \
-                                              } \
-                                           } 
+#if defined (FW_DEBUG)
 
-#else
-/* This used to be IPHONE only, but it is best if no code in the library depends on gluErrorString() */
-#define PRINT_GL_ERROR_IF_ANY(_where) { \
-                                              GLenum _global_gl_err = glGetError(); \
-                                              while (_global_gl_err != GL_NO_ERROR) { \
-						if (_global_gl_err == GL_INVALID_ENUM) {printf ("GL_INVALID_ENUM"); } \
-						else if (_global_gl_err == GL_INVALID_VALUE) {printf ("GL_INVALID_VALUE"); } \
-						else if (_global_gl_err == GL_INVALID_OPERATION) {printf ("GL_INVALID_OPERATION"); } \
-						else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
-						else printf ("unknown error"); \
-                                                 printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
-                                                 _global_gl_err = glGetError(); \
-                                              } \
-                                           } 
+	#if defined(_ANDROID)
+		#define PRINT_GL_ERROR_IF_ANY(_where) { \
+			GLenum _global_gl_err = glGetError(); \
+			while (_global_gl_err != GL_NO_ERROR) { \
+				if (_global_gl_err == GL_INVALID_ENUM) {DROIDDEBUG ("GL_INVALID_ENUM"); } \
+				else if (_global_gl_err == GL_INVALID_VALUE) {DROIDDEBUG("GL_INVALID_VALUE"); } \
+				else if (_global_gl_err == GL_INVALID_OPERATION) {DROIDDEBUG("GL_INVALID_OPERATION"); } \
+				else if (_global_gl_err == GL_OUT_OF_MEMORY) {DROIDDEBUG("GL_OUT_OF_MEMORY"); } \
+				else DROIDDEBUG("unknown error"); \
+				DROIDDEBUG(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
+				_global_gl_err = glGetError(); \
+			} \
+		} 
+
+	#else
+		#define PRINT_GL_ERROR_IF_ANY(_where) { \
+			GLenum _global_gl_err = glGetError(); \
+			while (_global_gl_err != GL_NO_ERROR) { \
+				if (_global_gl_err == GL_INVALID_ENUM) {printf ("GL_INVALID_ENUM"); } \
+				else if (_global_gl_err == GL_INVALID_VALUE) {printf ("GL_INVALID_VALUE"); } \
+				else if (_global_gl_err == GL_INVALID_OPERATION) {printf ("GL_INVALID_OPERATION"); } \
+				else if (_global_gl_err == GL_OUT_OF_MEMORY) {printf ("GL_OUT_OF_MEMORY"); } \
+				else printf ("unknown error"); \
+				printf(" here: %s (%s:%d)\n", _where,__FILE__,__LINE__); \
+				_global_gl_err = glGetError(); \
+			} \
+		} 
+	#endif
+
+#else // FW_DEBUG
+	#define PRINT_GL_ERROR_IF_ANY(_where) /* do nothing */
 #endif
 
 #define GL_ERROR_MSG (\
