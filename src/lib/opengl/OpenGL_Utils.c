@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.210 2011/06/13 16:37:35 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.211 2011/06/18 13:17:10 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1097,7 +1097,10 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 
 		case oneTexTwoMaterialShader:
 		case oneTexTwoMaterialSphereShader: {
+			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			#endif
+
 			return FALSE;
 			break;
 		}
@@ -1139,7 +1142,9 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 		case complexTexTwoMaterialShader:
 		case complexTexOneMaterialSphereShader:
 		case complexTexTwoMaterialSphereShader: {
+			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			#endif
 			return FALSE;
 			break;
 		}

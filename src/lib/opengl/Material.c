@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.22 2011/03/26 19:23:16 crc_canada Exp $
+$Id: Material.c,v 1.23 2011/06/18 13:17:10 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -49,7 +49,7 @@ GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
 #ifdef GL_ES_VERSION_2_0
-printf ("do_shininess called\n");
+	//printf ("do_shininess called\n");
 #else
 
 	/* which should it be? From the spec:

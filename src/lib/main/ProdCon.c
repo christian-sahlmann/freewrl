@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.89 2011/06/10 22:28:33 dug9 Exp $
+  $Id: ProdCon.c,v 1.90 2011/06/18 13:17:10 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -317,6 +317,8 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
+
+    
 	if (!ret) {
 		ConsoleMessage ("Parser Unsuccessful");
 	}
@@ -511,6 +513,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
+    int parsedOk = FALSE; // results from parser
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;
@@ -532,7 +535,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		insert_node = X3D_GROUP(res->where); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhere;
 
-		PARSE_STRING(res->request, nRn);
+		parsedOk = PARSE_STRING(res->request, nRn);
 	} else {
 		/* standard file parsing */
 		l = (s_list_t *) res->openned_files;
@@ -575,7 +578,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 	
 		/* ACTUALLY CALLS THE PARSER */
-		PARSE_STRING(of->data, nRn);
+		parsedOk = PARSE_STRING(of->data, nRn);
 	
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
 			tg->CParse.globalParser = t->savedParser;
@@ -813,6 +816,10 @@ void _inputParseThread(void)
 				ml_foreach(p->resource_list_to_parse, parser_process_res(__l));
 			}
 			p->inputThreadParsing = FALSE;
+
+#if defined (IPHONE) || defined (_ANDROID)
+            if (res->status == ress_parsed) setMenuStatus ("ok"); else setMenuStatus("parse failed");
+#endif
 
 			/* Unlock the resource list */
 			PARSER_FINISHING;

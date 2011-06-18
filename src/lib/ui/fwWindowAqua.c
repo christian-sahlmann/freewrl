@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindowAqua.c,v 1.5 2011/06/13 16:37:35 crc_canada Exp $
+  $Id: fwWindowAqua.c,v 1.6 2011/06/18 13:17:10 crc_canada Exp $
 
   FreeWRL support library.
   Aqua specific functions.
@@ -38,7 +38,7 @@
 
 int fv_open_display()
 {
-printf ("OSX - fv_open_display called\n");
+	//printf ("OSX - fv_open_display called\n");
 
 	/* Guess: We are linked with libAquaInt....
 	   display is alread initialized....
@@ -50,7 +50,7 @@ printf ("OSX - fv_open_display called\n");
 int fv_create_main_window(int argc, char *argv[])
 {
 
-printf ("OSX - create_main_window called\n");
+	//printf ("OSX - create_main_window called\n");
 
 	/* Guess: We are linked with libAquaInt....
 	   display is alread initialized....
@@ -66,7 +66,7 @@ printf ("OSX - create_main_window called\n");
 bool fv_create_GLcontext()
 {	
 
-printf ("OSX - createGLContext called\n");
+	//printf ("OSX - createGLContext called\n");
 	fwl_thread_dump();
 
 	/* Guess: call the aglCreateContext ... */
@@ -81,7 +81,7 @@ printf ("OSX - createGLContext called\n");
 bool fv_bind_GLcontext()
 {
 
-printf ("OSX - bind_GLContext called \n");
+	//printf ("OSX - bind_GLContext called \n");
 	fwl_thread_dump();
 
 	/* Guess: call the aglMakeCurrent ... */

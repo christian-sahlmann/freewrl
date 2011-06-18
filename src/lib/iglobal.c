@@ -249,7 +249,7 @@ void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
 	nglobalthreads++;
-    printf ("set_thread2global, thread %p desc: %s\n",any, type);
+        //printf ("set_thread2global, thread %p desc: %s\n",any, type);
 
 }
 

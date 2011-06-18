@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.207 2011/06/13 15:41:15 crc_canada Exp $
+  $Id: MainLoop.c,v 1.208 2011/06/18 13:17:10 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2046,9 +2046,6 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 			}
 
 		}
-printf ("fwl_handle_aqua, oriengation %d, mouse is now at %d,%d, realizing that 0,0 is lower left corner\n",
-Viewer()->screenOrientation,
-x,y);
 	}
 
 	#endif
