@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.90 2011/06/18 13:17:10 crc_canada Exp $
+  $Id: ProdCon.c,v 1.91 2011/06/20 14:59:48 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -64,6 +64,8 @@
 
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
+
+#include "../ui/common.h"
 
 #include "../opengl/Textures.h"
 #include "../opengl/LoadTextures.h"
@@ -689,23 +691,24 @@ static bool parser_process_res_SHADER(resource_item_t *res)
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  */
-static void parser_process_res(s_list_t *item)
+static bool parser_process_res(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	resource_item_t *res;
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+    bool retval = TRUE;
 
 	if (!item || !item->elem)
-		return;
+		return retval;
 
 	res = ml_elem(item);
 
-	/* printf("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status)); */
-
+	//printf("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status)); 
 	switch (res->status) {
 
 	case ress_invalid:
 	case ress_none:
+            retval = FALSE;
 		resource_identify(res->parent, res);
 		if (res->type == rest_invalid) {
 			remove_it = TRUE;
@@ -725,6 +728,7 @@ static void parser_process_res(s_list_t *item)
 		break;
 
 	case ress_failed:
+            retval = FALSE;
 		remove_it = TRUE;
 		break;
 
@@ -742,8 +746,10 @@ static void parser_process_res(s_list_t *item)
 			if (parser_process_res_VRML_X3D(res)) {
 				DEBUG_MSG("parser successfull: %s\n", res->request);
 				res->status = ress_parsed;
+                
 			} else {
 				ERROR_MSG("parser failed for resource: %s\n", res->request);
+                retval = FALSE;
 			}
 			break;
 		case resm_pshader:
@@ -752,6 +758,7 @@ static void parser_process_res(s_list_t *item)
 				DEBUG_MSG("parser successfull: %s\n", res->request);
 				res->status = ress_parsed;
 			} else {
+                retval = FALSE;
 				ERROR_MSG("parser failed for resource: %s\n", res->request);
 			}
 			break;
@@ -768,6 +775,7 @@ static void parser_process_res(s_list_t *item)
 
 	case ress_not_loaded:
 		remove_it = TRUE;
+            retval = FALSE;
 		break;
 
 	case ress_parsed:
@@ -775,6 +783,7 @@ static void parser_process_res(s_list_t *item)
 		break;
 
 	case ress_not_parsed:
+            retval = FALSE;
 		remove_it = TRUE;
 		break;		
 	}
@@ -788,6 +797,8 @@ static void parser_process_res(s_list_t *item)
 	}
 
 	dump_parser_wait_queue();
+    
+    return retval;
 }
 
 /**
@@ -799,6 +810,7 @@ void _inputParseThread(void)
 	ENTER_THREAD("input parser");
 	{
 		ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+        bool result;
 
 		p->inputParseInitialized = TRUE;
 
@@ -809,16 +821,19 @@ void _inputParseThread(void)
 		for (;;) {
 			WAIT_WHILE_NO_DATA;
 
+            result = TRUE;
 			p->inputThreadParsing = TRUE;
 
 			/* go through the resource list until it is empty */
 			while (p->resource_list_to_parse != NULL) {
-				ml_foreach(p->resource_list_to_parse, parser_process_res(__l));
+				ml_foreach(p->resource_list_to_parse, result=parser_process_res(__l));
+                //printf ("ml_foreach, result %d, TRUE %d, false %d\n",result,TRUE,FALSE);
 			}
 			p->inputThreadParsing = FALSE;
 
 #if defined (IPHONE) || defined (_ANDROID)
-            if (res->status == ress_parsed) setMenuStatus ("ok"); else setMenuStatus("parse failed");
+            
+            if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
 #endif
 
 			/* Unlock the resource list */

@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.3 2011/06/18 13:17:10 crc_canada Exp $
+  $Id: common.c,v 1.4 2011/06/20 14:59:48 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -34,14 +34,6 @@ void setMenuFps(float fps)
 void setMenuStatus(char *stat)
 {
 	int loading = FALSE;
-
-/* - JAS - for testing IPHONE
-printf ("setMenuStatus, %d %d %d, true %d\n",fwl_isinputThreadParsing(),
-fwl_isTextureParsing(),
-!fwl_isInputThreadInitialized(),
-TRUE);
-*/
-
 
         if (fwl_isinputThreadParsing() || 
 	    fwl_isTextureParsing() || 
