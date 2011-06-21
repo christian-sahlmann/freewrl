@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.25 2011/02/13 18:00:20 roelofs Exp $
+$Id: Component_Rendering.c,v 1.26 2011/06/21 18:19:46 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -117,16 +117,21 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	int curSeg;			/* for colours, !cpv, this is the color index 	*/
 	int nVertices;			/* how many vertices in the streamed set	*/
 	int segLength;			/* temporary					*/
-	int *vertCountPtr;		/* temporary, for vertexCount filling		*/
-	uintptr_t *indxStartPtr;	/* temporary, for creating pointer to index arr */
+	ushort *vertCountPtr;		/* temporary, for vertexCount filling		*/
+	ushort **indxStartPtr;	/* temporary, for creating pointer to index arr */
 
-	GLint * pt;
+	ushort * pt;
 	int vtc;			/* temp counter - "vertex count"		*/
 	int curcolor;			/* temp for colorIndexing.			*/
-	int * colorInd;			/* used for streaming colors			*/
+	int * colorIndInt;			/* used for streaming colors			*/
+	ushort * colorIndShort;			/* used for streaming colors			*/
 
 	/* believe it or not - material emissiveColor can affect us... */
 	GLfloat defcolorRGBA[] = {1.0f, 1.0f, 1.0f,1.0f};
+
+    /* we either use the (sizeof (int)) indices passed in from user, or calculated ushort one */
+	colorIndInt = NULL;
+	colorIndShort = NULL;
 
 	MARK_NODE_COMPILED
 	nSegments = 0;
@@ -185,33 +190,36 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
 	   coordinates 0, 1, and 2 */
 	FREE_IF_NZ (node->__vertArr);
-	node->__vertArr = MALLOC (GLint *, sizeof(GLint)*(nVertices+1));
-	pt = (GLint *)node->__vertArr;
+	node->__vertArr = MALLOC (ushort *, sizeof(ushort)*(nVertices+1));
+	pt = (ushort *)node->__vertArr;
 
 	for (vtc = 0; vtc < nVertices; vtc++) {
 		*pt=vtc; pt++; /* ie, index n contains the number n */
 	}
 
+    
 	/* now, lets go through and; 1) copy old vertices into new vertex array; and 
 	   2) create an array of indexes into "__vertArr" for sending to the GL call */
 
 	FREE_IF_NZ (node->__vertIndx);
-	node->__vertIndx = MALLOC (uintptr_t *,sizeof(uintptr_t)*(nSegments));
+	node->__vertIndx = MALLOC (ushort **,sizeof(ushort)*(nSegments));
 
 	FREE_IF_NZ (node->__vertices);
 	node->__vertices = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(nVertices+1));
 
 	FREE_IF_NZ (node->__vertexCount);
-	node->__vertexCount = MALLOC (int *,sizeof(int)*(nSegments));
+	node->__vertexCount = MALLOC (ushort *,sizeof(ushort)*(nSegments));
 
-	indxStartPtr = (uintptr_t *)node->__vertIndx;
+	indxStartPtr = (ushort **)node->__vertIndx;
 	newpoints = node->__vertices;
-	vertCountPtr = (int *) node->__vertexCount;
-	pt = (GLint *)node->__vertArr;
+	vertCountPtr = (ushort *) node->__vertexCount;
+    
+	pt = (ushort *)node->__vertArr;
 
 	vtc=0;
 	segLength=0;
-	*indxStartPtr =  (uintptr_t) pt; /* first segment starts off at index zero */
+	*indxStartPtr = pt; /* first segment starts off at index zero */
+
 	indxStartPtr++;
 
 	for (i=0; i<node->coordIndex.n; i++) {
@@ -219,7 +227,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		if (node->coordIndex.p[i] == -1) {
 			if (i!=((node->coordIndex.n)-1)) {
 				/* new segment */
-				*indxStartPtr =  (uintptr_t) pt;
+				*indxStartPtr =  pt;
 				indxStartPtr++;
 
 				/* record the old segment length */
@@ -240,6 +248,8 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* do we have to worry about colours? */
 	/* sanity check the colors, if they exist */
 	if (node->color) {
+printf ("we have a color node here\n");
+        
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
 		FREE_IF_NZ (node->__colours);
 		node->__colours = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*(nVertices+1));
@@ -254,27 +264,30 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		/* 4 choices here - we have colorPerVertex, and, possibly, a ColorIndex */
 
 		if (node->colorPerVertex) {
+printf ("cpv here\n");
 			/* assume for now that we are using the coordIndex for colour selection */
-			colorInd = node->coordIndex.p; 
+			colorIndInt = node->coordIndex.p; 
 			/* so, we have a color per line segment. Lets check this stuff... */
 			if ((node->colorIndex.n)>0) {
 				if ((node->colorIndex.n) < (node->coordIndex.n)) {
 					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords\n");
 					return;
 				}
-				colorInd = node->colorIndex.p; /*use ColorIndex */
+                colorIndInt = node->colorIndex.p; /* use ColorIndex */
 			}
 		} else {
-			/* assume for now that we are using the simple index for colour selection */
-			colorInd = node->__vertArr; 
+printf ("NOT CPV here\n");
 			/* so, we have a color per line segment. Lets check this stuff... */
 			if ((node->colorIndex.n)>0) {
 				if ((node->colorIndex.n) < (nSegments)) {
 					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords\n");
 					return;
 				}
-				colorInd = node->colorIndex.p; /* use ColorIndex */
-			}
+				colorIndInt = node->colorIndex.p; /* use ColorIndex */
+			} else {
+                /* we are using the simple index for colour selection */
+                colorIndShort = node->__vertArr;                 
+            }
 		}
 
 
@@ -284,11 +297,16 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			if (node->coordIndex.p[i] != -1) {
 				/* have a vertex, match colour  */
 				if (node->colorPerVertex) {
-					curcolor = colorInd[i];
+                    if (colorIndInt != NULL) 
+                        curcolor = colorIndInt[i];
+                    else
+                        curcolor = colorIndShort[i];
 				} else {
-					curcolor = colorInd[curSeg];
+                    if (colorIndInt != NULL)
+                        curcolor = colorIndInt[curSeg];
+                    else
+                        curcolor = colorIndShort[i];
 				}
-
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
 					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
 						curcolor, i, curSeg, cc->color.n);
@@ -324,8 +342,8 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	DEFAULT_COLOUR_POINTER
-	GLvoid **indices;
-	GLsizei *count;
+    ushort **indxStartPtr;
+	ushort *count;
 	int i;
 
 	/* is there an emissiveColor here??? */
@@ -341,29 +359,27 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                 X3D_NODE(node));
 
 
-	/* do we have to re-verify IndexedLineSet? */
+	/* If we have segments... */
 	if (node->__segCount > 0) {
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
 		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,node->__vertices);
 
 		if (node->__colours) {
+
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
 		} else {
 			DO_COLOUR_POINTER
 		}
 
-		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
-		indices = node->__vertIndx;
-		count  = node->__vertexCount;
+        indxStartPtr = (ushort **)node->__vertIndx;
+        count  = node->__vertexCount;
+
 		for (i=0; i<node->__segCount; i++) {
-			FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+            FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_SHORT,indxStartPtr[i]);
 		}
-		/* otherwise we could use
-			glMultiDrawElements ( GL_LINE_STRIP, node->__vertexCount, GL_UNSIGNED_INT,
-				node->__vertIndx, node->__segCount); 
-		*/
+
 
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		if (node->__colours) {
@@ -371,6 +387,9 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		}
 	}
 }
+
+
+
 
 void compile_PointSet (struct X3D_PointSet *node) {
 	/* do nothing, except get the extents here */
@@ -617,7 +636,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	node->__vertIndx = MALLOC (uintptr_t *, sizeof(uintptr_t)*(nvertexc));
 	c = 0;
 	pt = (GLuint *)node->__vertArr;
-	vpt = (uintptr_t *) node->__vertIndx;
+	vpt = (uintptr_t*) node->__vertIndx;
 	for (vtc=0; vtc<nvertexc; vtc++) {
 		*vpt =  (uintptr_t) pt;
 		vpt++;

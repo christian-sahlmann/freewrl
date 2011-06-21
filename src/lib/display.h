@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.130 2011/06/15 19:22:40 crc_canada Exp $
+  $Id: display.h,v 1.131 2011/06/21 18:19:46 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -108,6 +108,16 @@ typedef char GLchar;
 	#define DOUBLE_MIN min
 #endif
 
+/* OpenGL ES 2.0 - send unlit colours to selected shader */
+#ifdef GL_ES_VERSION_2_0
+void glColor3d (double r, double g, double b);
+void glColor3dv (double *cols);
+void glColor3fv (float *cols);
+void glColor4fv (float *cols);
+void glColorMaterial (GLenum face, GLenum mode);
+void glMaterialfv (GLenum face, GLenum pname, float *param);
+void glMaterialf (GLenum face, GLenum pname, float param);
+#endif
 
 /* face culling */
 #ifdef GL_ES_VERSION_2_0
@@ -150,6 +160,7 @@ typedef char GLchar;
 	#define GL_SPECULAR                       0x1202
 	#define GL_EMISSION                       0x1600
 	#define GL_ENABLE_BIT				0x00002000
+	#define GL_COLOR_MATERIAL		0xDEAD
 /*
 	#define GL_LIGHTING                       0x0B50
 */
@@ -250,9 +261,7 @@ typedef char GLchar;
 	#define GL_SPOT_EXPONENT                  0x1205
 	#define GL_SPOT_CUTOFF                    0x1206
 
-//#if !defined(_ANDROID)
 	#define HAVE_SHADERS
-//#endif
 	#define VERTEX_SHADER GL_VERTEX_SHADER
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
@@ -264,7 +273,7 @@ typedef char GLchar;
 	#define DELETE_SHADER glDeleteShader
 	#define DELETE_PROGRAM glDeleteProgram
 	#define USE_SHADER(aaa) glUseProgram(aaa)
-	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d\n",aaa); glUseProgram(aaa);}
+	#define VERBOSE_USE_SHADER(aaa) {printf ("glUseShader %d %s:%d\n",aaa,__FILE__,__LINE__); glUseProgram(aaa);}
 	#define GET_SHADER_INFO glGetShaderiv
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS
@@ -349,6 +358,7 @@ typedef enum shader_type {
 	noTexOneMaterialColourShader,
 	oneTexTwoMaterialColourShader,
 	oneTexOneMaterialColourShader,
+	linePointColorNodeShader,
 
 	/* final one, used for array sizing */
 	max_enum_shader_type
@@ -840,9 +850,10 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
 	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
-
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
+
+
 int usingAnaglyph2();
 /* color functions subject to draw-gray anaglyph >>  */
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.90 2011/06/09 21:07:12 crc_canada Exp $
+$Id: Component_Shape.c,v 1.91 2011/06/21 18:19:46 crc_canada Exp $
 
 X3D Shape Component
 
@@ -599,6 +599,10 @@ void render_Material (struct X3D_Material *node) {
 #define NO_GEOM_SHADER 0x0000
 #define SPHERE_GEOM_SHADER 0x0100
 
+/* fourth least significant hex digit - lines, points */
+#define NO_LINES_POINTS 0x0000
+#define HAVE_LINEPOINTS 0x1000
+
 #define CHECK_COLOUR_FIELD(aaa) \
 	case NODE_##aaa: { \
 		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
@@ -614,6 +618,27 @@ void render_Material (struct X3D_Material *node) {
 		else return HAVE_COLOUR_SHADER; \
 		break; \
 	} \
+
+/* if this is a LineSet, PointSet, etc... */
+static int getIfLinePoints(struct X3D_Node *myGeom) {
+	struct X3D_Node *realNode;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return NO_GEOM_SHADER;
+	switch (realNode->_nodeType) {
+		case NODE_IndexedLineSet:
+		case NODE_LineSet:
+		case NODE_VRML1_IndexedLineSet:
+		case NODE_PointSet:
+		case NODE_VRML1_PointSet:
+			return  HAVE_LINEPOINTS;
+
+	}
+	return NO_LINES_POINTS;
+}
+
+
 
 /* Some shapes have Color nodes - if so, then we have other shaders */
 static int getShapeColourShader (struct X3D_Node *myGeom) {
@@ -731,15 +756,18 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichGeometryShader = -1;
 	int whichAppearanceShader = -1;
 	int whichShapeColorShader = -1;
+	int isUnlitGeometry = -1;
 
 	whichGeometryShader = getGeometryShader(node->geometry);
 	whichShapeColorShader = getShapeColourShader(node->geometry);
 	whichAppearanceShader = getAppearanceShader(node->appearance);
+	isUnlitGeometry = getIfLinePoints(node->geometry);
+
 
 
 	/* choose the shader. Note that we just "or" the results together */
 
-	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader ) {
+	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
 
 	/* SECTION 1 - Spheres CAN NOT have colour nodes, we can ignore the ColourShader field */
 	case SPHERE_GEOM_SHADER | NO_APPEARANCE_SHADER:
@@ -787,6 +815,17 @@ void compile_Shape (struct X3D_Shape *node) {
 	
 
 	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
+
+	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
+	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+		node->_shaderTableEntry = linePointColorNodeShader;
+		break;
+
 	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = backgroundSphereShader;
 		break;
@@ -811,10 +850,13 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
 	}
-
+/*
+printf ("forcing to use noMaterialNoAppearanceShader\n");
+node->_shaderTableEntry = noMaterialNoAppearanceShader;
+*/
 
 /* debug */
-/* 
+ 
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -837,9 +879,10 @@ case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); br
 case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
 case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
 case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
+case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
-*/
+
 
 
 	#endif /* SHADERS_2011 */

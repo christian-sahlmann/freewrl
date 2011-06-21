@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.55 2011/06/08 22:39:30 dug9 Exp $
+$Id: Polyrep.c,v 1.56 2011/06/21 18:19:46 crc_canada Exp $
 
 ???
 
@@ -831,12 +831,9 @@ void render_polyrep(void *node) {
 		LIGHTING_ON
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 	
-		#ifndef GL_ES_VERSION_2_0
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
 		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
-
 		FW_GL_COLOR4FV(diffuseColor);
-		#endif /* GL_ES_VERSION_2_0 */
 	
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
@@ -917,9 +914,7 @@ void render_polyrep(void *node) {
 		if (hasc) {
 			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 
-			#ifndef GL_ES_VERSION_2_0
 			FW_GL_DISABLE(GL_COLOR_MATERIAL);
-			#endif
 
 		}
 #ifndef GL_ES_VERSION_2_0

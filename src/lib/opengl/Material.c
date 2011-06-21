@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.23 2011/06/18 13:17:10 crc_canada Exp $
+$Id: Material.c,v 1.24 2011/06/21 18:19:46 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -48,10 +48,6 @@ GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
-#ifdef GL_ES_VERSION_2_0
-	//printf ("do_shininess called\n");
-#else
-
 	/* which should it be? From the spec:
 		"Lower shininess values produce soft glows, while higher values result in sharper, smaller highlights."
 	so, we either do 1.0-shininess * 128, or we do shininess * 128... */
@@ -68,8 +64,8 @@ void do_shininess (GLenum face, float shininess) {
 	}
 
 	FW_GL_MATERIALF(face, GL_SHININESS, (float)shininess);
-#endif
 }
+
 
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b)
 {
@@ -105,9 +101,6 @@ void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
 
 void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
-#ifdef GL_ES_VERSION_2_0
-/* printf ("fwglMaterialfv called... %f %f %f\n",params[0],params[1],params[2]); */
-#else
 	if(usingAnaglyph2())
 		switch(pname)
 		{
@@ -129,14 +122,10 @@ void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 		}
 	else
 		glMaterialfv(face,pname,params);
-#endif
 }
 
 void fwglColor3fv(float *color)
 {
-#ifdef GL_ES_VERSION_2_0
-printf ("fwglColor3fv called\n");
-#else
 	if(usingAnaglyph2())
 	{
 		float gray, ccc[3];
@@ -147,14 +136,10 @@ printf ("fwglColor3fv called\n");
 	}
 	else
 		glColor3fv(color);
-#endif
 
 }
 void fwglColor4fv(float *rgba)
 {
-#ifdef GL_ES_VERSION_2_0
-printf ("fwglColor4fv called\n");
-#else
 	if(usingAnaglyph2())
 	{
 		float gray, ccc[4];
@@ -165,14 +150,10 @@ printf ("fwglColor4fv called\n");
 	}
 	else
 		glColor4fv(rgba);
-#endif
-
 }
+
 void fwglColor3d(double r, double g, double b)
 {
-#ifdef GL_ES_VERSION_2_0
-printf ("fwglColor3d called\n");
-#else
 	if(usingAnaglyph2())
 	{
 		double gray, ccc[3];
@@ -185,9 +166,8 @@ printf ("fwglColor3d called\n");
 	}
 	else
 		glColor3d(r,g,b);
-#endif
-
 }
+
 void fwglColor3f(float r, float g, float b)
 {
 	float ccc[3];
@@ -208,7 +188,6 @@ void fwglColor4f(float r, float g, float b, float a)
 
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
-	/* unused int i; */
 
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	FW_GL_MATERIALFV(face,pname,param);
@@ -241,4 +220,37 @@ int verify_scale(GLfloat *params) {
 
 	return TRUE;
 }
+
+/* for OpenGL ES, we mimic the old glColor stuff from fixed functionality */
+#ifdef GL_ES_VERSION_2_0
+void glColor3d (double r, double g, double b) {
+//printf ("glColor3d %lf %lf %lf\n",r,g,b);
+}
+
+void glColor3dv (double *cols) {
+//printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
+}
+
+void glColor3fv (float *cols) {
+//printf ("glColor3fv %f %f %f\n",cols[0],cols[1],cols[2]);
+}
+
+void glColor4fv (float *cols) {
+//printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
+}
+
+void glColorMaterial (GLenum face, GLenum mode) {
+//printf ("glColorMaterial %x, %d\n",face,mode);
+}
+
+void glMaterialf (GLenum face, GLenum pname, float param) {
+//printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
+//	face,pname,GL_SHININESS,param);
+}
+
+void glMaterialfv (GLenum face, GLenum pname, float *param) {
+//printf ("glMaterialfv, face %d pname %d (GL_SHININESS == %d), param %f\n",
+//	face,pname,GL_SHININESS,*param);
+}
+#endif
 
