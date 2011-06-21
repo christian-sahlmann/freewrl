@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.131 2011/06/21 18:19:46 crc_canada Exp $
+  $Id: display.h,v 1.132 2011/06/21 19:08:50 istakenv Exp $
 
   FreeWRL support library.
 
@@ -436,7 +436,7 @@ typedef struct {
 
 bool initialize_rdr_caps();
 void initialize_rdr_functions();
-void rdr_caps_dump();
+void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps);
 
 
 /**

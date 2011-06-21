@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.86 2011/06/18 13:17:10 crc_canada Exp $
+  $Id: display.c,v 1.87 2011/06/21 19:08:50 istakenv Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -393,12 +393,12 @@ void initialize_rdr_functions()
 	
 }
 
-void rdr_caps_dump()
+void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps)
 {
 #ifdef VERBOSE
 	{
 		char *p, *pp;
-		p = pp = STRDUP(rdr_caps.extensions);
+		p = pp = STRDUP(rdr_caps->extensions);
 		while (*pp != '\0') {
 			if (*pp == ' ') *pp = '\n';
 			pp++;
@@ -408,11 +408,11 @@ void rdr_caps_dump()
 	}
 #endif //VERBOSE
 
-	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps.av_glsl_shaders));
-	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps.av_multitexture));
-	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
-	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
-	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
+	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps->av_glsl_shaders));
+	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps->av_multitexture));
+	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps->av_occlusion_q));
+	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->max_texture_size);
+	DEBUG_MSG ("Texture units         %d\n", rdr_caps->texture_units);
 }
 
 /* Local Variables: */
