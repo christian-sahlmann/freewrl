@@ -78,6 +78,10 @@ libFreeWRLplugin_la_SOURCES = $(SOURCES_common)
 # Mozilla UNIX support
 if WINDOW_USE_X11
 libFreeWRLplugin_la_SOURCES += npunix.c
+else
+if WINDOW_USE_MOTIF
+libFreeWRLplugin_la_SOURCES += npunix.c
+endif
 endif
 
 libFreeWRLplugin_la_SOURCES += internal_version.c
