@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.26 2011/06/21 18:19:46 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.27 2011/06/26 21:27:26 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -201,14 +201,16 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* now, lets go through and; 1) copy old vertices into new vertex array; and 
 	   2) create an array of indexes into "__vertArr" for sending to the GL call */
 
+
 	FREE_IF_NZ (node->__vertIndx);
-	node->__vertIndx = MALLOC (ushort **,sizeof(ushort)*(nSegments));
+	node->__vertIndx = MALLOC (ushort **,sizeof(ushort*)*(nSegments));
 
 	FREE_IF_NZ (node->__vertices);
 	node->__vertices = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(nVertices+1));
 
 	FREE_IF_NZ (node->__vertexCount);
 	node->__vertexCount = MALLOC (ushort *,sizeof(ushort)*(nSegments));
+
 
 	indxStartPtr = (ushort **)node->__vertIndx;
 	newpoints = node->__vertices;
@@ -248,11 +250,14 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* do we have to worry about colours? */
 	/* sanity check the colors, if they exist */
 	if (node->color) {
-printf ("we have a color node here\n");
+
         
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
+
+
 		FREE_IF_NZ (node->__colours);
 		node->__colours = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*(nVertices+1));
+
 		newcolors = (struct SFColorRGBA *) node->__colours;
 			POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
                		/* cc = (struct X3D_Color *) node->color; */
@@ -264,7 +269,6 @@ printf ("we have a color node here\n");
 		/* 4 choices here - we have colorPerVertex, and, possibly, a ColorIndex */
 
 		if (node->colorPerVertex) {
-printf ("cpv here\n");
 			/* assume for now that we are using the coordIndex for colour selection */
 			colorIndInt = node->coordIndex.p; 
 			/* so, we have a color per line segment. Lets check this stuff... */
@@ -273,10 +277,12 @@ printf ("cpv here\n");
 					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords\n");
 					return;
 				}
-                colorIndInt = node->colorIndex.p; /* use ColorIndex */
+                		colorIndInt = node->colorIndex.p; /* use ColorIndex */
+			} else {
+				colorIndShort = node->__vertArr;
 			}
 		} else {
-printf ("NOT CPV here\n");
+
 			/* so, we have a color per line segment. Lets check this stuff... */
 			if ((node->colorIndex.n)>0) {
 				if ((node->colorIndex.n) < (nSegments)) {
@@ -297,16 +303,17 @@ printf ("NOT CPV here\n");
 			if (node->coordIndex.p[i] != -1) {
 				/* have a vertex, match colour  */
 				if (node->colorPerVertex) {
-                    if (colorIndInt != NULL) 
-                        curcolor = colorIndInt[i];
-                    else
-                        curcolor = colorIndShort[i];
+       			             if (colorIndInt != NULL) 
+                		        curcolor = colorIndInt[i];
+ 	                  	     else
+                    		    	curcolor = colorIndShort[i];
 				} else {
-                    if (colorIndInt != NULL)
-                        curcolor = colorIndInt[curSeg];
-                    else
-                        curcolor = colorIndShort[i];
+                    			if (colorIndInt != NULL)
+                        		curcolor = colorIndInt[curSeg];
+                    			else
+                        		curcolor = colorIndShort[i];
 				}
+
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
 					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
 						curcolor, i, curSeg, cc->color.n);
@@ -325,13 +332,13 @@ printf ("NOT CPV here\n");
 				} else {
 					memcpy (newcolors, oldcolor,sizeof(struct SFColorRGBA));
 				}
+                //printf ("colout selected %f %f %f %f\n",newcolors->c[0],newcolors->c[1],newcolors->c[2],newcolors->c[3]);
 				newcolors ++; 
 			} else {
 				curSeg++;
 			}
 		}
 	}
-
 
 	/* finished worrying about colours */
 
@@ -366,9 +373,8 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,node->__vertices);
 
 		if (node->__colours) {
-
-			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
+			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		} else {
 			DO_COLOUR_POINTER
 		}
@@ -377,13 +383,36 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
         count  = node->__vertexCount;
 
 		for (i=0; i<node->__segCount; i++) {
-            FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_SHORT,indxStartPtr[i]);
+            // draw. Note the casting of the last param - it is ok, because we tell that
+            // we are sending in ushorts; it gets around a compiler warning.
+            
+
+#ifdef DEBUG
+            if (node->__colours) {
+                int j;
+                ushort *indx = indxStartPtr[i];
+                struct SFColorRGBA * cp = (struct SFColorRGBA*)node->__colours;
+                printf ("seg %d, count %d \n",i,count[i]);
+                for (j=0; j<count[i]; j++) {
+                    printf ("   vert %d, indx %d col %f %f %f %F\n",j,indx[j],
+                                    cp[indx[j]].c[0],
+                                       cp[indx[j]].c[1],
+                            cp[indx[j]].c[2],
+                            cp[indx[j]].c[3]
+                                       
+                                       );
+                }
+                
+            }
+#endif
+
+            FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_SHORT,(int *)indxStartPtr[i]);
 		}
 
 
 		FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		if (node->__colours) {
-			FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+		//	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 		}
 	}
 }

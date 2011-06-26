@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.91 2011/06/21 18:19:46 crc_canada Exp $
+$Id: Component_Shape.c,v 1.92 2011/06/26 21:27:26 crc_canada Exp $
 
 X3D Shape Component
 
@@ -133,10 +133,6 @@ struct X3D_Node *getThis_textureTransform(){
 }
 
 void render_LineProperties (struct X3D_LineProperties *node) {
-
-#if defined(IPHONE) || defined(_ANDROID)
-printf ("LineProperties ignored\n");
-#else
 	GLint	factor;
 	GLushort pat;
 
@@ -148,8 +144,10 @@ printf ("LineProperties ignored\n");
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
 		}
-			
+
+
 		if (node->linetype > 0) {
+#ifndef GL_ES_VERSION_2_0
 			factor = 2;
 			pat = 0xffff; /* can not support fancy line types - this is the default */
 			switch (node->linetype) {
@@ -167,9 +165,11 @@ printf ("LineProperties ignored\n");
 			}
 			FW_GL_LINE_STIPPLE(factor,pat);
 			FW_GL_ENABLE(GL_LINE_STIPPLE);
+#else
+            ConsoleMessage ("OpenGL-ES - no line stipple");
+#endif
 		}
 	}
-#endif
 }
 
 
@@ -856,7 +856,8 @@ node->_shaderTableEntry = noMaterialNoAppearanceShader;
 */
 
 /* debug */
- 
+
+    
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;

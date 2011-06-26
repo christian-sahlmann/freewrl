@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.212 2011/06/21 18:19:46 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.213 2011/06/26 21:27:26 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1016,7 +1016,7 @@ static char *phongSimpleVertexColourShader = " \
 
 /* LineSet and PointSet style nodes with a Colour node */
 static char *linePointFragmentColourShader =
-" void main () {gl_FragColor = v_color;}";
+" varying vec4 v_color; void main () {gl_FragColor = v_color;}";
 
 static char *linePointVertexColourShader = " \
         varying        vec4 v_color; \
@@ -1027,7 +1027,6 @@ static char *linePointVertexColourShader = " \
 	void main(void) { \
 	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
 		v_color = fw_Color; \
-v_color = vec4(1.0,0.0,0.0,1.0);\
 	}";
 
 
@@ -1765,6 +1764,7 @@ OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	getGenericShader(noTexOneMaterialColourShader);
 	getGenericShader(oneTexTwoMaterialColourShader);
 	getGenericShader(oneTexOneMaterialColourShader);
+	getGenericShader(linePointColorNodeShader);
 
 
 

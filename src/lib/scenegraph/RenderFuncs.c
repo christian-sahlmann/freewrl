@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.116 2011/06/18 13:17:10 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.117 2011/06/26 21:27:26 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -387,6 +387,15 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 				break;
 			case FW_COLOR_POINTER_TYPE:
 			if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
+{static int doOnce=FALSE;
+if (!doOnce) {
+doOnce=TRUE;
+printf ("enabling colours, vert %d dataSize %d type %d normalized %d, stride %d,pointer %p\n",
+getAppearanceProperties()->currentShaderProperties->Colours, 
+dataSize, dataType, normalized, stride, pointer);
+}}
+
+
 				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
 				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Colours, dataSize, dataType, normalized, stride, pointer);
 			}
