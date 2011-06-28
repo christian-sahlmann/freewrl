@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.26 2011/04/08 19:20:50 istakenv Exp $
+$Id: jsVRML_MFClasses.c,v 1.27 2011/06/28 17:36:29 crc_canada Exp $
 
 ???
 
@@ -102,7 +102,7 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 	
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -168,7 +168,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH (argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {
@@ -243,7 +243,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	#endif
 
 	ADD_ROOT(cx,obj)
-        DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
         DEFINE_MF_ECMA_HAS_CHANGED
 	
 	if (!argv) {
@@ -331,7 +331,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -425,7 +425,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {
@@ -489,7 +489,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -553,7 +553,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -611,8 +611,8 @@ static void _getmatrix (JSContext *cx, JSObject *obj, double *fl) {
 	int i;
 	double d;
 
-	if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf( "JS_GetProperty failed for \"length\" in _getmatrix.\n");
+	if (!JS_GetProperty(cx, obj,  MF_LENGTH_FIELD, &_length_val)) {
+		printf( "JS_GetProperty failed for \"%s\" in _getmatrix.\n", MF_LENGTH_FIELD);
 		_length = 0;
 	} else {
 		_length = JSVAL_TO_INT(_length_val);
@@ -1164,7 +1164,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		return JS_FALSE;
 	}
 
-	DEFINE_LENGTH(16,obj)
+	DEFINE_LENGTH(cx,obj,16)
 
 	if (argc == 16) {
 		for (i = 0; i < 16; i++) {
@@ -1200,8 +1200,8 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 	int32 _length, _index;
     jsval _length_val;
 
-    if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf( "JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
+    if (!JS_GetProperty(cx, obj,  MF_LENGTH_FIELD, &_length_val)) {
+		printf( "JS_GetProperty failed for \"%s\" in VrmlMatrixGetProperty.\n", MF_LENGTH_FIELD);
         return JS_FALSE;
 	}
 	_length = JSVAL_TO_INT(_length_val);
@@ -1288,7 +1288,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -1379,8 +1379,8 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 	printf("MFStringGetProperty: obj = %p\n", obj);
 	#endif
 
-    if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf( "JS_GetProperty failed for \"length\" in MFStringGetProperty.\n");
+    if (!JS_GetProperty(cx, obj,  MF_LENGTH_FIELD, &_length_val)) {
+		printf( "JS_GetProperty failed for \"%s\" in MFStringGetProperty.\n", MF_LENGTH_FIELD);
         return JS_FALSE;
 	}
 	_length = JSVAL_TO_INT(_length_val);
@@ -1477,7 +1477,7 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	#endif
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc,obj)
+	DEFINE_LENGTH(cx,obj,argc)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {

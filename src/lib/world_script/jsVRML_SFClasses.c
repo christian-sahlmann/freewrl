@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.37 2011/04/08 19:20:50 istakenv Exp $
+  $Id: jsVRML_SFClasses.c,v 1.38 2011/06/28 17:36:29 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -767,7 +767,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 				return JS_FALSE;
 			}
 		}
-		DEFINE_LENGTH(4,obj)
+		DEFINE_LENGTH(cx,obj,4)
 
 		return JS_TRUE; 
 	}
@@ -778,7 +778,8 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		return JS_FALSE;
 	}
 
-	DEFINE_LENGTH(argc,obj)
+
+	DEFINE_LENGTH(cx,obj,argc)
 
 	/* expect arguments to be number, number, number, mfint32 */
 	for (i=0; i<3; i++) {
@@ -823,7 +824,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		#endif
  
 		CHECK_CLASS(cx,(JSObject *)argv[3],NULL,__FUNCTION__,MFInt32Class)
-		if (!JS_GetProperty(cx, (JSObject *)argv[3], "length", &mv)) {
+		if (!JS_GetProperty(cx, (JSObject *)argv[3],  MF_LENGTH_FIELD, &mv)) {
 			printf( "JS_GetProperty failed for MFInt32 length in SFImageConstr\n");
 	        	return JS_FALSE;
 		}

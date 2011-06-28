@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.46 2011/06/10 01:42:16 dug9 Exp $
+$Id: fieldGet.c,v 1.47 2011/06/28 17:36:29 crc_canada Exp $
 
 Javascript C language binding.
 
@@ -233,7 +233,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -281,7 +281,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -328,7 +328,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -375,7 +375,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -420,7 +420,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -459,7 +459,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (double);
@@ -498,7 +498,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (float);
@@ -540,7 +540,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			uniptr = (struct Uni_String **) ip_in;
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			for (x=0; x<datalen; x++) {
@@ -576,7 +576,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			elementlen = (int) sizeof (void *);
@@ -614,7 +614,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			ADD_ROOT (cx, newMFObject)
 
 			/* define the "length" property for this object */ 
-			DEFINE_LENGTH(cx,newMFObject)
+			DEFINE_LENGTH(cx,newMFObject,datalen)
 
 			/* fill in private pointer area */
 			mePix = (struct X3D_PixelTexture *) ip_in;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.27 2011/06/10 02:24:57 dug9 Exp $
+$Id: jsVRMLClasses.c,v 1.28 2011/06/28 17:36:29 crc_canada Exp $
 
 ???
 
@@ -274,7 +274,7 @@ JSFunctionSpec (SFVec2fFunctions)[] = {
 	{"add", SFVec2fAdd, 0},
 	{"divide", SFVec2fDivide, 0},
 	{"dot", SFVec2fDot, 0},
-	{"length", SFVec2fLength, 0},
+	{MF_LENGTH_FIELD, SFVec2fLength, 0},
 	{"multiply", SFVec2fMultiply, 0},
 	{"normalize", SFVec2fNormalize, 0},
 	{"subtract", SFVec2fSubtract, 0},
@@ -307,7 +307,7 @@ JSFunctionSpec (SFVec2dFunctions)[] = {
 	{"add", SFVec2dAdd, 0},
 	{"divide", SFVec2dDivide, 0},
 	{"dot", SFVec2dDot, 0},
-	{"length", SFVec2dLength, 0},
+	{MF_LENGTH_FIELD, SFVec2dLength, 0},
 	{"multiply", SFVec2dMultiply, 0},
 	{"normalize", SFVec2dNormalize, 0},
 	{"subtract", SFVec2dSubtract, 0},
@@ -403,7 +403,7 @@ JSFunctionSpec (SFVec3fFunctions)[] = {
 	{"cross", SFVec3fCross, 0},
 	{"divide", SFVec3fDivide, 0},
 	{"dot", SFVec3fDot, 0},
-	{"length", SFVec3fLength, 0},
+	{MF_LENGTH_FIELD, SFVec3fLength, 0},
 	{"multiply", SFVec3fMultiply, 0},
 	{"negate", SFVec3fNegate, 0},
 	{"normalize", SFVec3fNormalize, 0},
@@ -439,7 +439,7 @@ JSFunctionSpec (SFVec3dFunctions)[] = {
 	{"cross", SFVec3dCross, 0},
 	{"divide", SFVec3dDivide, 0},
 	{"dot", SFVec3dDot, 0},
-	{"length", SFVec3dLength, 0},
+	{MF_LENGTH_FIELD, SFVec3dLength, 0},
 	{"multiply", SFVec3dMultiply, 0},
 	{"negate", SFVec3dNegate, 0},
 	{"normalize", SFVec3dNormalize, 0},
@@ -1003,13 +1003,13 @@ JSBool _standardMFAssign(JSContext *cx,
 		return JS_FALSE;
 	}
 
-	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
-		printf("JS_GetProperty failed for \"length\" in %s.\n",stringFieldtypeType(type));
+	if (!JS_GetProperty(cx, _from_obj, MF_LENGTH_FIELD, &val)) {
+		printf("JS_GetProperty failed for \"%s\" in %s.\n",MF_LENGTH_FIELD,stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
-	if (!JS_SetProperty(cx, obj, "length", &val)) {
-		printf("JS_SetProperty failed for \"length\" in %s\n",stringFieldtypeType(type));
+	if (!JS_SetProperty(cx, obj, MF_LENGTH_FIELD, &val)) {
+		printf("JS_SetProperty failed for \"%s\" in %s\n",MF_LENGTH_FIELD,stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
@@ -1057,8 +1057,8 @@ _standardMFGetProperty(JSContext *cx,
 	printJSNodeType (cx,obj);
 	#endif
 
-	if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf( "JS_GetProperty failed for \"length\" in %d.\n",type);
+	if (!JS_GetProperty(cx, obj, MF_LENGTH_FIELD, &_length_val)) {
+		printf( "JS_GetProperty failed for \"%s\" in %d.\n",MF_LENGTH_FIELD,type);
 		return JS_FALSE;
 	}
 
@@ -1153,9 +1153,9 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	JSBool isImage = JS_FALSE;
 
 
-    if (!JS_GetProperty(cx, obj, "length", &_v)) {
-		printf( "JS_GetProperty failed for \"length\" in doMFToString for %s.\n",
-				className);
+    if (!JS_GetProperty(cx, obj, MF_LENGTH_FIELD, &_v)) {
+		printf( "JS_GetProperty failed for \"%s\" in doMFToString for %s.\n",
+				MF_LENGTH_FIELD,className);
         return JS_FALSE;
 	}
 	len = JSVAL_TO_INT(_v);
@@ -1316,7 +1316,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
 	#endif
 
 	p_len = strlen(p);
-	if (!strcmp(p, "length") ||
+	if (!strcmp(p, MF_LENGTH_FIELD) ||
 		!strcmp(p, "MF_ECMA_has_changed") ||
 		!strcmp(p, "_parentField") ||
 		!strcmp(p, "toString") ||
@@ -1346,8 +1346,8 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
 		return JS_FALSE;
 	}
-	if (!JS_GetProperty(cx, obj, "length", &v)) {
-		printf( "JS_GetProperty failed for \"length\" in doMFAddProperty.\n");
+	if (!JS_GetProperty(cx, obj, MF_LENGTH_FIELD, &v)) {
+		printf( "JS_GetProperty failed for \"%s\" in doMFAddProperty.\n",MF_LENGTH_FIELD);
 		return JS_FALSE;
 	}
 
@@ -1360,8 +1360,8 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
 		#endif
 
 		v = INT_TO_JSVAL(len);
-		if (!JS_SetProperty(cx, obj, "length", &v)) {
-			printf( "JS_SetProperty failed for \"length\" in doMFAddProperty.\n");
+		if (!JS_SetProperty(cx, obj, MF_LENGTH_FIELD, &v)) {
+			printf( "JS_SetProperty failed for \"%s\" in doMFAddProperty.\n",MF_LENGTH_FIELD);
 			return JS_FALSE;
 		}
 	}
@@ -1500,8 +1500,8 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 		}
 
 		/* has the length changed? */
-		if (!JS_GetProperty(cx, obj, "length", &myv)) {
-			printf("JS_GetProperty failed for \"length\" in doMFSetProperty.\n");
+		if (!JS_GetProperty(cx, obj, MF_LENGTH_FIELD, &myv)) {
+			printf("JS_GetProperty failed for \"%s\" in doMFSetProperty.\n", MF_LENGTH_FIELD);
 			return JS_FALSE;
 		}
 
@@ -1512,8 +1512,8 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 		if (JSVAL_TO_INT(myv) < (JSVAL_TO_INT(id)+1)) {
 			printf ("new length is %d\n",JSVAL_TO_INT(id)+1);
 			myv = INT_TO_JSVAL(JSVAL_TO_INT(id)+1);
-			if (!JS_SetProperty(cx, obj, "length", &myv)) {
-				printf("JS_SetProperty failed for \"length\" in doMFSetProperty.\n");
+			if (!JS_SetProperty(cx, obj, MF_LENGTH_FIELD, &myv)) {
+				printf("JS_SetProperty failed for \"%s\" in doMFSetProperty.\n", MF_LENGTH_FIELD);
 				return JS_FALSE;
 			}
 		}

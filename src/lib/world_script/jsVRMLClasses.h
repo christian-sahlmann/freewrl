@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.20 2011/06/02 19:50:49 dug9 Exp $
+$Id: jsVRMLClasses.h,v 1.21 2011/06/28 17:36:29 crc_canada Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -51,13 +51,13 @@ of garbage collection */
 	/* printf ("removing root %u\n",b); \
         JS_RemoveRoot(a,&b);  */
 
+#define MF_LENGTH_FIELD "mf_len"
 
-#define DEFINE_LENGTH(thislength,thisobject) \
-	{jsval zimbo = INT_TO_JSVAL(thislength);\
-	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
-	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
-		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
-		/* printf ("myThread is %u\n",pthread_self()); */ \
+#define DEFINE_LENGTH(this_context,this_object,this_length) \
+	{jsval zimbo = INT_TO_JSVAL(this_length);\
+	/* printf ("defining length to %d for %d %d\n",this_length,this_context,this_object);*/ \
+	if (!JS_DefineProperty(this_context, this_object, MF_LENGTH_FIELD, zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
+		printf( "JS_DefineProperty failed for \"%s\" at %s:%d.\n",MF_LENGTH_FIELD,__FILE__,__LINE__); \
 		return JS_FALSE;\
 	}}
 
@@ -111,9 +111,8 @@ of garbage collection */
 #define SET_LENGTH(cx,newMFObject,length) \
 	{ jsval lenval; \
                 lenval = INT_TO_JSVAL(length); \
-                if (!JS_SetProperty(cx, newMFObject, "length", &lenval)) { \
-                        printf( "JS_SetProperty failed for \"length\" at %s:%d\n",__FILE__,__LINE__); \
-		/* printf ("myThread is %u\n",pthread_self()); */ \
+                if (!JS_SetProperty(cx, newMFObject,  MF_LENGTH_FIELD, &lenval)) { \
+                        printf( "JS_SetProperty failed for \"%s\" at %s:%d\n", MF_LENGTH_FIELD,__FILE__,__LINE__); \
                         return JS_FALSE; \
                 }} 
 
