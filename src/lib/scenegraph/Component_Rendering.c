@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.27 2011/06/26 21:27:26 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.28 2011/06/28 16:22:20 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -292,7 +292,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 				colorIndInt = node->colorIndex.p; /* use ColorIndex */
 			} else {
                 /* we are using the simple index for colour selection */
-                colorIndShort = node->__vertArr;                 
+     	           colorIndShort = node->__vertArr;                 
             }
 		}
 
@@ -311,7 +311,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                     			if (colorIndInt != NULL)
                         		curcolor = colorIndInt[curSeg];
                     			else
-                        		curcolor = colorIndShort[i];
+                        		curcolor = colorIndShort[curSeg];
 				}
 
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
