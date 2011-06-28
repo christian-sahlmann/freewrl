@@ -7,9 +7,6 @@ WGET => "/usr/bin/curl",
 ASCIITERM => "/usr/X11R6/bin/rxvt",
 UNZIP => "/usr/bin/gunzip",
 
-# Java compiler - if no java, comment this line and the JAVA_INST line below.
-JAVA => "/usr/bin/java",
-
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
 FREEWRL_CCFLAGS => '-arch '.
@@ -44,11 +41,6 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
-
-############################################################################
-# Netscape installation
-    NETSCAPE_INST => '/Users/johnstewart/temp',
-    JAVA_INST => '/Users/johnstewart/temp',
 
 ############################################################################
 # LD flags

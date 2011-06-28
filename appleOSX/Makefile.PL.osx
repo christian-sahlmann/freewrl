@@ -7,12 +7,12 @@
 chomp ($pwd = getcwd());
 
 # What compilers do we have?
-my $JAVAC = `which javac`;
-my $JAR = `which jar`;
-if (($JAVAC eq "") || ($JAR eq "")) { 
-	print "can not find a java compiler and archiver  - skipping java class making\n";
-	$JAVAC = "";
-}
+#JAS my $JAVAC = `which javac`;
+#JAS my $JAR = `which jar`;
+#JAS if (($JAVAC eq "") || ($JAR eq "")) { 
+#JAS 	print "can not find a java compiler and archiver  - skipping java class making\n";
+#JAS 	$JAVAC = "";
+#JAS }
 
 # some versions of Linux require the command 
 #chcon -t texrel_shlib_t /usr/lib/libFreeWRL*so to be run.
@@ -87,11 +87,11 @@ push @ldflags, $VRML_CONFIG{LDFLAGS};
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 
-if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
-{
-	$VRML_CONFIG{JAVA} = $ENV{JAVA_HOME}.'/bin/java';
-	$VRML_CONFIG{JAVA_INST} = $ENV{JAVA_HOME};
-}
+#JASif (defined $VRML_CONFIG{'USE_JAVA_HOME'})
+#JAS{
+#JAS	$VRML_CONFIG{JAVA} = $ENV{JAVA_HOME}.'/bin/java';
+#JAS	$VRML_CONFIG{JAVA_INST} = $ENV{JAVA_HOME};
+#JAS}
 
 #put the version to a file that is compiled
 open OUT, ">../src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSversion file");
@@ -169,7 +169,7 @@ writeAllTarget();
 
 writeMakefileLibFreeWRL();
 
-write_linux_makefile_javaClasses();
+#JAS write_linux_makefile_javaClasses();
 writeMakefileDistclean();
 writeMakefileFinalTargets();
 
@@ -178,7 +178,7 @@ print "The Makefile has been generated. Type \"make\" and\/or \"make install\" t
 sub writeAllTarget () {
 	# should edit this line to suit build
 	print MK "all: libFreeWRL";
-	if ($JAVAC ne "") {print MK " JavaClasses";}
+	#JAS if ($JAVAC ne "") {print MK " JavaClasses";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
 }
@@ -214,7 +214,7 @@ sub writeMakefileInitialize() {
 	# do the headers.
 	print MK "#Make file for FreeWRL\n";
 	print MK "CC = gcc\n";
-	print MK "JAVAC = javac\n";
+	#JAS print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
 	print MK "DEFINE = $noStackProtector -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
 	#print MK "DEFINE = $noStackProtector $MYDEFINE\n";
@@ -226,8 +226,8 @@ sub writeMakefileInitialize() {
 	print MK "MYMESLIBS = $MYMESLIBS\n";
 	print MK "FRONTEND_DIR = $FRONTEND_DIR\n";
 	print MK "LIB_DIR = $LIB_DIR\n";
-	print MK "JAVAC = $JAVAC\n";
-	print MK "JAR = $JAR\n";
+	#JAS print MK "JAVAC = $JAVAC\n";
+	#JAS print MK "JAR = $JAR\n";
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 
 	print MK "CFLAGS = \$(FWFLAGS) \$(INC) \$(DEFINE)\n";
@@ -245,10 +245,10 @@ sub writeMakefileFinalTargets() {
 	}
 
 	
-	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
-		print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
-		print MK "\tinstall ../src/java/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
-	}
+	#JAS if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
+	#JAS 	print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
+	#JAS 	print MK "\tinstall ../src/java/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+	#JAS }
 	print MK "\tcp -f ./OSX_Specific/freex3d.aquascript /usr/bin/freex3d\n";
 	print MK "\tchmod 755 /usr/bin/freex3d\n";
 	print MK "\tcp -f ./OSX_Specific/freewrl.aquascript /usr/bin/freewrl\n";
@@ -308,33 +308,33 @@ sub write_linux_makefile_javascript() {
 
 
 
-sub write_linux_makefile_javaClasses() {
-	if ($JAVAC ne "" ) {
-		# JAS - simplify this
-		my @JavaSourceFiles = split (' ',`find ../src/java -name "*\.java"`);
-
-		foreach my $fullname (@JavaSourceFiles) {
-			# remove the Java from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
-	
-			print MK "$nm:\n	\$(JAVAC) -source 1.3 -deprecation -target 1.1 -classpath ../src/java $fullname\n";
-		}
-		
-		print MK "JavaClasses:\t";
-		foreach my $fullname (@JavaSourceFiles) {
-			# remove the Java from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
-	
-			print MK "$nm ";
-		}
-		print MK "\n";
-	
-		# make the jar file here
-		print MK "	\$(JAR) -cf ../src/java/vrml.jar $@ `find ../src/java/vrml -name *.class`\n";
-	}
-}
+#JAS sub write_linux_makefile_javaClasses() {
+#JAS 	if ($JAVAC ne "" ) {
+#JAS 		# JAS - simplify this
+#JAS 		my @JavaSourceFiles = split (' ',`find ../src/java -name "*\.java"`);
+#JAS 
+#JAS 		foreach my $fullname (@JavaSourceFiles) {
+#JAS 			# remove the Java from the front, and the .c from the end.
+#JAS 			my $nm = $fullname;
+#JAS 			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
+#JAS 	
+#JAS 			print MK "$nm:\n	\$(JAVAC) -source 1.3 -deprecation -target 1.1 -classpath ../src/java $fullname\n";
+#JAS 		}
+#JAS 		
+#JAS 		print MK "JavaClasses:\t";
+#JAS 		foreach my $fullname (@JavaSourceFiles) {
+#JAS 			# remove the Java from the front, and the .c from the end.
+#JAS 			my $nm = $fullname;
+#JAS 			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
+#JAS 	
+#JAS 			print MK "$nm ";
+#JAS 		}
+#JAS 		print MK "\n";
+#JAS 	
+#JAS 		# make the jar file here
+#JAS 		print MK "	\$(JAR) -cf ../src/java/vrml.jar $@ `find ../src/java/vrml -name *.class`\n";
+#JAS 	}
+#JAS }
 
 sub writeMakefileDistclean() {
 	#############################################################################
@@ -346,19 +346,19 @@ sub writeMakefileDistclean() {
 		print MK "	rm -f ../../SoundEngine/*o\n";
 		print MK "	rm -f ../../SoundEngine/FreeWRL_SoundServer\n";
 	}
-	print MK "	rm -f ../src/java/vrml/external/field/*class\n";
-	print MK "	rm -f ../src/java/vrml/field/*class\n";
-	print MK "	rm -f ../src/java/vrml/external/node/*class\n";
-	print MK "	rm -f ../src/java/vrml/external/FreeWRLEAI/*class\n";
-	print MK "	rm -f ../src/java/vrml/external/*class\n";
-	print MK "	rm -f ../src/java/vrml/external/exception/*class\n";
-	print MK "	rm -f ../src/java/vrml/node/*class\n";
-	print MK "	rm -f ../src/java/vrml/*class\n";
-	print MK "	rm -f ../src/java/vrml/*class\n";
-	print MK "	rm -f ../src/java/sai/*class\n";
-	print MK "	rm -f ../src/java/sai/eai/*class\n";
-	print MK "	rm -f ../src/java/org/web3d/x3d/sai/*class\n";
-	print MK "	rm -f ../src/java/vrml.jar\n";
+#JAS	print MK "	rm -f ../src/java/vrml/external/field/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/field/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/external/node/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/external/FreeWRLEAI/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/external/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/external/exception/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/node/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml/*class\n";
+#JAS	print MK "	rm -f ../src/java/sai/*class\n";
+#JAS	print MK "	rm -f ../src/java/sai/eai/*class\n";
+#JAS	print MK "	rm -f ../src/java/org/web3d/x3d/sai/*class\n";
+#JAS	print MK "	rm -f ../src/java/vrml.jar\n";
 
 	print MK "	rm -f ../src/bin/*\.o\n";
 	print MK "	rm -f ../src/lib/*\.o\n";
@@ -452,7 +452,8 @@ sub linux_system_info() {
 
 sub findAndPrintUtilities() {
 	# lets just dump out some standard defines, from the vrml.conf file.
-	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "JAVA");
+	#JAS my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "JAVA");
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT");
 
 	my $val;
 
@@ -496,8 +497,8 @@ sub tryToFind() {
 		if ("" eq $try) {$try = `which curl`; $try =~ s/^\s+//; $try =~ s/\s+$//;}
 	} elsif ("CONVERT" eq $tofind) {
 		$try = `which convert`; $try =~ s/^\s+//; $try =~ s/\s+$//;
-	} elsif ("JAVA" eq $tofind) {
-		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+#JAS	} elsif ("JAVA" eq $tofind) {
+#JAS		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	}
 
 	if ("" ne $try) {
