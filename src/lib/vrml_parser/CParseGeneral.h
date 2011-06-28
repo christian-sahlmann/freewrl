@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseGeneral.h,v 1.10 2010/02/19 22:01:42 sdumoulin Exp $
+$Id: CParseGeneral.h,v 1.11 2011/06/28 18:38:55 crc_canada Exp $
 
 General header for VRML-parser (lexer/parser)
 
@@ -29,9 +29,9 @@ General header for VRML-parser (lexer/parser)
 
 #ifndef __FREEWRL_CPARSE_GENERAL_H__
 #define __FREEWRL_CPARSE_GENERAL_H__
-#ifdef REWIRE
-#include "../../libeai/EAI_C.h"
-#else
+// JAS - OLDCODE #ifdef REWIRE
+// JAS - OLDCODE #include "../../libeai/EAI_C.h"
+// JAS - OLDCODE #else
 
 /* Typedefs for VRML-types. */
 typedef int	vrmlBoolT;
@@ -55,7 +55,7 @@ typedef struct SFMatrix3f	vrmlMatrix3fT;
 typedef struct SFMatrix3d vrmlMatrix3dT;
 typedef struct SFMatrix4f	vrmlMatrix4fT;
 typedef struct SFMatrix4d vrmlMatrix4dT;
-#endif
+// JAS - OLDCODE #endif
 
 /* This is an union to hold every vrml-type */
 union anyVrml

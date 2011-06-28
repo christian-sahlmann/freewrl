@@ -18,10 +18,10 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifndef REWIRE
+// JAS - OLDCODE #ifndef REWIRE
 #include "config.h"
 #include "system.h"
-#endif
+// JAS - OLDCODE #endif
 #include "EAI_C.h"
 
 void X3D_freeEventIn(X3DEventIn* ev) {

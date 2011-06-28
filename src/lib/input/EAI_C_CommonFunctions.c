@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.40 2011/06/28 18:38:55 crc_canada Exp $
 
 ???
 
@@ -29,11 +29,11 @@ $Id: EAI_C_CommonFunctions.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
 
 
 
-#ifndef REWIRE
+// JAS - OLDCODE #ifndef REWIRE
 #include <config.h>
 #include <system.h>
 #include <libFreeWRL.h>
-#endif
+// JAS - OLDCODE #endif
 #include <display.h>
 #include <internal.h>
 
@@ -51,10 +51,10 @@ $Id: EAI_C_CommonFunctions.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
 #include "EAIHelpers.h"
 
 /* TODO: clean-up Rewire */
-#ifdef REWIRE
-# include "../../libeai/EAI_C.h"
-# define ADD_PARENT(a,b)
-#endif
+// JAS - OLDCODE #ifdef REWIRE
+// JAS - OLDCODE # include "../../libeai/EAI_C.h"
+// JAS - OLDCODE # define ADD_PARENT(a,b)
+// JAS - OLDCODE #endif
 
 /* assume eaiverbose is false, unless told otherwise */
 //int eaiverbose = FALSE;
@@ -195,9 +195,9 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFMatrix3f: return (int) sizeof (struct SFMatrix3f); break;
 		case FIELDTYPE_SFMatrix3d: return (int) sizeof (struct SFMatrix3d); break;
 /* FIXME FIND DEF FOR SFVEC4F */
-#ifndef REWIRE
+// JAS - OLDCODE #ifndef REWIRE
 		case FIELDTYPE_SFVec4f: return (int) sizeof (struct SFVec4f) ; break;
-#endif
+// JAS - OLDCODE #endif
 		case FIELDTYPE_SFMatrix4f: return (int) sizeof (struct SFMatrix4f); break;
 		case FIELDTYPE_SFVec2d: return (int) sizeof (struct SFVec2d); break;
 		case FIELDTYPE_SFDouble: return (int) sizeof (double); break;
