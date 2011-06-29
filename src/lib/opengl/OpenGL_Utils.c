@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.213 2011/06/26 21:27:26 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.214 2011/06/29 18:28:07 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1828,13 +1828,15 @@ OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
 	
-	#ifndef GL_ES_VERSION_2_0
+	
 	{
 		float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
 		FW_GL_LINEWIDTH(gl_linewidth);
+        #ifndef GL_ES_VERSION_2_0
 		FW_GL_POINTSIZE(gl_linewidth);
+        #endif
 	}
-	#endif
+	
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
     
