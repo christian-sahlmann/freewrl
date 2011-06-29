@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.214 2011/06/29 18:28:07 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.215 2011/06/29 20:19:00 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1029,6 +1029,17 @@ static char *linePointVertexColourShader = " \
 		v_color = fw_Color; \
 	}";
 
+static char *linePointVertexNoColourShader = " \
+        varying        vec4 v_color; \
+	attribute      vec4 fw_Vertex; \
+        uniform        vec3 fw_genericMaterialColour; \
+	uniform        mat4 fw_ModelViewMatrix; \
+	uniform        mat4 fw_ProjectionMatrix; \
+	void main(void) { \
+	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+		v_color = vec4(fw_genericMaterialColour,1.0); \
+	}";
+
 
 
 
@@ -1110,6 +1121,11 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 			break;
 		}
 
+		case linePointNoColorNodeShader: {
+			*fragmentSource = linePointFragmentColourShader;
+			*vertexSource = linePointVertexNoColourShader;
+			break;
+		}
 
 		/* still to be written */
 		case oneTexTwoMaterialColourShader:
@@ -1236,6 +1252,8 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackShininess = GET_UNIFORM(myProg,"fw_BackMaterial.shininess");
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
+
+	me->myMaterialColour = GET_UNIFORM(myProg,"fw_genericMaterialColour");
 
         me->lightState = GET_UNIFORM(myProg,"lightState");
         me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
@@ -1765,6 +1783,9 @@ OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	getGenericShader(oneTexTwoMaterialColourShader);
 	getGenericShader(oneTexOneMaterialColourShader);
 	getGenericShader(linePointColorNodeShader);
+
+	/* lines, points, no colour node, get colour from material */
+	getGenericShader(linePointNoColorNodeShader);
 
 
 

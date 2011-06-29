@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.93 2011/06/29 18:28:07 crc_canada Exp $
+$Id: Component_Shape.c,v 1.94 2011/06/29 20:19:00 crc_canada Exp $
 
 X3D Shape Component
 
@@ -828,6 +828,17 @@ void compile_Shape (struct X3D_Shape *node) {
 		node->_shaderTableEntry = linePointColorNodeShader;
 		break;
 
+	
+	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
+	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+		node->_shaderTableEntry = linePointNoColorNodeShader;
+		break;
+
 	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = backgroundSphereShader;
 		break;
@@ -883,6 +894,7 @@ case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); br
 case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
 case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
 case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
+case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
 
@@ -916,8 +928,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if(!(node->geometry)) { return; }
 
-PRINT_GL_ERROR_IF_ANY("");
-
 	RECORD_DISTANCE
 
 	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
@@ -942,28 +952,28 @@ PRINT_GL_ERROR_IF_ANY("");
 		/* copy the material stuff in preparation for copying all to the shader */
 		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+
 	}
 	/* enable the shader for this shape */
         enableGlobalShader (node->_shaderTableEntry);
-
-
-PRINT_GL_ERROR_IF_ANY("");
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
 
-
-PRINT_GL_ERROR_IF_ANY("");
-
 		if (p->material_oneSided != NULL) {
 
 			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,&(p->material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
+
 		} else if (p->material_twoSided != NULL) {
 			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
 			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,&(p->material_twoSided->_verifiedFrontColor.p[0]), 3*sizeof(float));
 		} else {
 			/* no materials selected.... */
 		}
@@ -983,18 +993,17 @@ PRINT_GL_ERROR_IF_ANY("");
 		#endif
 	}
 
-
-PRINT_GL_ERROR_IF_ANY("");
-
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
 
+    
+	/* did the lack of an Appearance or Material node turn lighting off? */
+	LIGHTING_ON;
+
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
-
-PRINT_GL_ERROR_IF_ANY("");
 
 }
 

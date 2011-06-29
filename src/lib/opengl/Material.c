@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.24 2011/06/21 18:19:46 crc_canada Exp $
+$Id: Material.c,v 1.25 2011/06/29 20:19:00 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -221,36 +221,53 @@ int verify_scale(GLfloat *params) {
 	return TRUE;
 }
 
+#include "Component_Shape.h"
+
 /* for OpenGL ES, we mimic the old glColor stuff from fixed functionality */
 #ifdef GL_ES_VERSION_2_0
 void glColor3d (double r, double g, double b) {
-//printf ("glColor3d %lf %lf %lf\n",r,g,b);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glColor3d %lf %lf %lf\n",r,g,b);
 }
 
 void glColor3dv (double *cols) {
-//printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
 }
 
 void glColor3fv (float *cols) {
+//printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor3fv %f %f %f\n",cols[0],cols[1],cols[2]);
+    cols[2] = 1.0; cols[0] = 0.0;
+    if (getAppearanceProperties()->currentShaderProperties != NULL) {
+    if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
+     GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
+                  1,cols);
+    }
+    }
+    
 }
 
 void glColor4fv (float *cols) {
-//printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
 }
 
 void glColorMaterial (GLenum face, GLenum mode) {
-//printf ("glColorMaterial %x, %d\n",face,mode);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glColorMaterial %x, %d\n",face,mode);
 }
 
 void glMaterialf (GLenum face, GLenum pname, float param) {
-//printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
-//	face,pname,GL_SHININESS,param);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
+	face,pname,GL_SHININESS,param);
 }
 
 void glMaterialfv (GLenum face, GLenum pname, float *param) {
-//printf ("glMaterialfv, face %d pname %d (GL_SHININESS == %d), param %f\n",
-//	face,pname,GL_SHININESS,*param);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("glMaterialfv, face %d pname %d (GL_SHININESS == %d), param %f\n",
+	face,pname,GL_SHININESS,*param);
 }
 #endif
 
