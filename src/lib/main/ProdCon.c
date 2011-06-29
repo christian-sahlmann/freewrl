@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.91 2011/06/20 14:59:48 crc_canada Exp $
+  $Id: ProdCon.c,v 1.92 2011/06/29 19:09:02 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -510,12 +510,12 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int i;
 	int offsetInNode;
 	int shouldBind;
+    int parsedOk = FALSE; // results from parser
 	ppProdCon p;
 	struct tProdCon *t;
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
-    int parsedOk = FALSE; // results from parser
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;
