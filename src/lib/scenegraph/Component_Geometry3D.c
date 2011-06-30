@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.71 2011/06/10 22:28:33 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.72 2011/06/30 15:13:21 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -208,7 +208,8 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 
 	/* use VBOS for Cylinders? */
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+	 {
 		struct MyVertex cylVert[CYLDIV * 4 * 3];
 		int indx = 0;
 
@@ -398,8 +399,10 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-
-	} else {
+     }
+#else // not SHADERS_2011
+         
+ {
 		/*  MALLOC memory (if possible)*/
 		if (!node->__points.p) tmpptr = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+4));
 		else tmpptr = node->__points.p;
@@ -427,6 +430,8 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
 		node->__points.p = tmpptr;
 	}
+#endif // SHADERS_2011
+         
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -455,7 +460,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 	CULL_FACE(node->solid)
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+	 {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -477,9 +483,9 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	} else {
-#if !defined(IPHONE) && !defined(_ANDROID)
+     }
+#else // not SHADERS_2011
+	 {
 		/*  Display the shape*/
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	
@@ -512,8 +518,10 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
 		}
-#endif /* IPHONE - the above uses GL_QUAD_STRIPs */
+
 	}
+#endif // SHADERS_2011
+         
 	textureDraw_end();
 }
 
@@ -538,7 +546,8 @@ void compile_Cone (struct X3D_Cone *node) {
 	MARK_NODE_COMPILED
 
 	
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		struct MyVertex coneVert[CONEDIV * 2 * 3];
 		int indx = 0;
 
@@ -653,7 +662,9 @@ void compile_Cone (struct X3D_Cone *node) {
 		FREE_IF_NZ(node->__sidepoints.p);
 		FREE_IF_NZ(node->__normals.p);
 
-	} else {
+	} 
+#else // SHADERS_2011
+    {
 
 		/*  MALLOC memory (if possible)*/
 		if (!node->__botpoints.p) node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
@@ -712,6 +723,8 @@ void compile_Cone (struct X3D_Cone *node) {
 		/* ok, finished compiling, finish */
 		node->__normals.p = ptr;
 	} 
+#endif // SHADERS_2011
+    
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -741,7 +754,8 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -762,10 +776,9 @@ void render_Cone (struct X3D_Cone *node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	} else {
-#if defined(IPHONE) || defined(_ANDROID)
-		printf ("iphone, not vbos ignoring\n");
-#else
+	}
+#else // SHADERS_2011
+    {
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
@@ -788,8 +801,9 @@ void render_Cone (struct X3D_Cone *node) {
 			gglobal()->Mainloop.trisThisLoop += 60;
 		}
 
-#endif
-	}
+    }
+#endif // SHADERS_2011
+
 
 	textureDraw_end();
 }
@@ -1109,7 +1123,8 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	START_TRIG1
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
@@ -1188,7 +1203,9 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		FREE_IF_NZ(SphVBO);
                 FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
-	} else {
+	} 
+#else // SHADERS_2011
+    {
 		for(v=0; v<SPHDIV; v++) {
 			float vsin1 = SIN1;
 			float vcos1 = COS1, vsin2,vcos2;
@@ -1211,10 +1228,14 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			}
 		}	
 	}
+#endif // SHADERS_2011
 
 	/* finished - for threading */
 	node->__points.p = ptr;
 }
+
+
+
 void render_Sphere (struct X3D_Sphere *node) {
 	/*  make the divisions 20; dont change this, because statics.c values*/
 	/*  will then need recaculating.*/
@@ -1238,7 +1259,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -1261,8 +1283,9 @@ void render_Sphere (struct X3D_Sphere *node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	} else {
-#if !defined(IPHONE) && !defined(_ANDROID)
+	} 
+#else  // SHADERS_2011
+    {
 		int count;
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -1274,8 +1297,8 @@ void render_Sphere (struct X3D_Sphere *node) {
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 			gglobal()->Mainloop.trisThisLoop += (SPHDIV+1) * 4;
 		}
-#endif /* IPHONE - the above uses GL_QUAD_STRIP */
-	}
+ 	}
+#endif // SHADERS_2011
 
 	textureDraw_end();
 
@@ -2003,7 +2026,8 @@ void collisionCone_init(struct X3D_Cone *node)
 	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
 	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		struct SFVec3f *pt;
@@ -2043,6 +2067,7 @@ void collisionCone_init(struct X3D_Cone *node)
 		/*  wrap bottom point around once again... ie, final right point = initial left point*/
 		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
 	}
+#endif // SHADERS_2011
 
 	if(node->bottom) {
 		pts = node->__botpoints.p;
@@ -2088,13 +2113,15 @@ void collisionCone_init(struct X3D_Cone *node)
 	collisionCone.smin[1] = -1.0; //-h;
 	collisionCone.smax[1] =  1.0; //h;
 	
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+    {
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		FREE_IF_NZ(node->__botpoints.p);
 		FREE_IF_NZ(node->__sidepoints.p);
 	}
-
+#endif
+    
 }
 
 #ifdef DEBUGGING_CODE
@@ -2141,11 +2168,13 @@ void collide_Cone (struct X3D_Cone *node) {
 	       struct point_XYZ delta;
 
                 /* is this node initialized? if not, get outta here and do this later */
-		if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+		
 			if (node->__coneVBO == 0) return;
-		} else {
-                	if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
-		}
+#else
+           
+            if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
+#endif
 
 	       iv.y = h; jv.y = -h;
 
@@ -2245,7 +2274,10 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	struct SFVec3f *pts;// = node->__botpoints;
 	
 	/* not initialized yet - wait for next pass */
-	if (!gglobal()->internalc.global_use_VBOs) {if (!node->__points.p) return;}
+
+#ifdef SHADERS_2011
+    if (!node->__points.p) return;
+#endif
 
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
@@ -2279,7 +2311,8 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+	 {
 		float a1, a2;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
@@ -2303,11 +2336,15 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 		/*  center points of top and bottom*/
 		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
 		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
-	} else {
+	} 
+#else  // SHADERS_2011
+    
 		/* have points via the vertex array */
 		pts = node->__points.p;
-	}
+	
+#endif // SHADERS_2011
 
+    
 	for(i=0;i<collisionCylinder.npts;i++)
 	{
 		/* points */
@@ -2361,9 +2398,10 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	collisionCylinder.smin[1] = -1.0; //-h/2;
 	collisionCylinder.smax[1] =  1.0; //h/2;
 
-	if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
 		FREE_IF_NZ(pts);
-	}
+#endif
+	
 }
 
 #ifdef DEBUGGING_CODE

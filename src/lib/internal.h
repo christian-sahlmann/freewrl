@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.53 2011/06/11 20:41:48 dug9 Exp $
+$Id: internal.h,v 1.54 2011/06/30 15:13:21 crc_canada Exp $
 
 ???
 
@@ -511,6 +511,5 @@ void *freewrlStrdup(int line, char *file, char *str);
 //extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 
 //extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
-//extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
 
 #endif /* __LIBFREEWRL_DECL_H__ */

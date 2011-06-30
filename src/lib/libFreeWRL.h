@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.37 2011/06/10 19:10:05 couannette Exp $
+  $Id: libFreeWRL.h,v 1.38 2011/06/30 15:13:21 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -176,7 +176,6 @@ void fwl_set_plugin_print(bool flag);
 void fwl_set_occlusion_disable(bool flag);
 void fwl_set_print_opengl_errors(bool flag);
 void fwl_set_trace_threads(bool flag);
-void fwl_set_use_VBOs(bool flag);
 void fwl_set_texture_size(unsigned int texture_size);
 void fwl_set_glClearColor (float red , float green , float blue , float alpha);
 void fwl_thread_dump(void);

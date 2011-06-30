@@ -71,13 +71,6 @@ typedef struct iiglobal //InstanceGlobal
 		unsigned global_texture_size;// = 0;
 		bool global_print_opengl_errors;// = FALSE;
 		bool global_trace_threads;// = FALSE;
-
-		/* having trouble with VBOs, make false unless otherwise told to do so */
-		#ifdef SHADERS_2011
-			bool global_use_VBOs;// = TRUE;
-		#else
-			bool global_use_VBOs;// = FALSE;
-		#endif /* SHADERS_2011 */
 		void *prv;
 	} internalc;
 	struct tio_http {

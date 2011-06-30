@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.87 2011/06/21 19:08:50 istakenv Exp $
+  $Id: display.c,v 1.88 2011/06/30 15:13:21 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -359,15 +359,7 @@ bool initialize_rdr_caps()
 	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
-		gglobal()->internalc.global_use_VBOs = false;
 	}
-
-	/* JAS - temporary warning message */
-	#ifndef GL_ES_VERSION_2_0
-	if (gglobal()->internalc.global_use_VBOs) {
-		printf ("NOTE: Trying to use Vertex Buffer Objects - turn off with the environment var if desired\n");
-	}
-	#endif
 
 	/* print some debug infos */
 	rdr_caps_dump(&rdr_caps);

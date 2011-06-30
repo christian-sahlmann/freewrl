@@ -1,5 +1,5 @@
 /*
-  $Id: internal.c,v 1.30 2011/06/10 19:10:05 couannette Exp $
+  $Id: internal.c,v 1.31 2011/06/30 15:13:21 crc_canada Exp $
 
   FreeWRL support library.
   Internal functions: some very usefull functions are not always
@@ -146,12 +146,7 @@ void fw_perror(FILE *f, const char *format, ...)
 //bool global_print_opengl_errors = FALSE;
 //bool global_trace_threads = FALSE;
 //
-///* having trouble with VBOs, make false unless otherwise told to do so */
-//#ifdef SHADERS_2011
-//	bool global_use_VBOs = TRUE;
-//#else
-//	bool global_use_VBOs = FALSE;
-//#endif /* SHADERS_2011 */
+
 
 void internalc_init(struct tinternalc* ic)
 {
@@ -163,12 +158,6 @@ ic->global_texture_size = 0;
 ic->global_print_opengl_errors = FALSE;
 ic->global_trace_threads = FALSE;
 
-/* having trouble with VBOs, make false unless otherwise told to do so */
-#ifdef SHADERS_2011
-ic->global_use_VBOs = TRUE;
-#else
-ic->global_use_VBOs = FALSE;
-#endif /* SHADERS_2011 */
 	//private
 }
 
@@ -186,10 +175,7 @@ void fwl_set_plugin_print	(bool flag) { gglobal()->internalc.global_plugin_print
 void fwl_set_occlusion_disable	(bool flag) { gglobal()->internalc.global_occlusion_disable = flag; }
 void fwl_set_print_opengl_errors(bool flag) { gglobal()->internalc.global_print_opengl_errors = flag;}
 void fwl_set_trace_threads	(bool flag) { gglobal()->internalc.global_trace_threads = flag;}
-void fwl_set_use_VBOs		(bool flag) { 
-	gglobal()->internalc.global_use_VBOs = flag ; 
-	//getchar();
-}
+
 void fwl_set_texture_size	(unsigned int texture_size) { gglobal()->internalc.global_texture_size = texture_size ; }
 
 #ifdef FREEWRL_THREAD_COLORIZED

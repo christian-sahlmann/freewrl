@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.23 2011/06/07 22:45:27 dug9 Exp $
+$Id: Component_Texturing.c,v 1.24 2011/06/30 15:13:21 crc_canada Exp $
 
 X3D Texturing Component
 
@@ -161,13 +161,15 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		#endif
 
 		/* We doing VBOs? */
-		if (gglobal()->internalc.global_use_VBOs) {
+#ifdef SHADERS_2011
+		 {
 			if (node->__VBO == 0) {
 				GLuint tmp;
 				/* do this in 2 steps to get around 32/64 bit OSX warnings */
 				glGenBuffers(1,&tmp);
 				node->__VBO = tmp;
 			}
+
 
 /* 
 debugging code
@@ -190,6 +192,7 @@ printf ("       %d: %4.3f ",i,*tp); tp++; printf ("%4.3f\n",*tp); tp++;
 			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*tg->Textures.global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW);
 			FREE_IF_NZ(node->__compiledpoint.p);
 		}
+#endif
 	}
 
 

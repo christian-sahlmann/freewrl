@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.133 2011/06/29 20:18:59 crc_canada Exp $
+  $Id: display.h,v 1.134 2011/06/30 15:13:21 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -120,7 +120,7 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 #endif
 
 /* face culling */
-#ifdef GL_ES_VERSION_2_0
+#ifdef XXXGL_ES_VERSION_2_0
 #define CULL_FACE(v) /* printf ("nodeSolid %d getAppearanceProperties()->cullFace %d GL_FALSE %d FALSE %d\n",v,getAppearanceProperties()->cullFace,GL_FALSE,FALSE); */ \
                 if (v != getAppearanceProperties()->cullFace) {    \
                         getAppearanceProperties()->cullFace = v; \

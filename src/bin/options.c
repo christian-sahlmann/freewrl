@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.37 2011/06/10 19:10:05 couannette Exp $
+  $Id: options.c,v 1.38 2011/06/30 15:13:21 crc_canada Exp $
 
   FreeWRL command line arguments.
 
@@ -458,6 +458,4 @@ void fv_parseEnvVars()
 			fwl_set_texture_size(local_texture_size);
 		}
 	}
-	fwl_set_use_VBOs (FALSE);
-	if (getenv("FREEWRL_USE_VBOS") != NULL) fwl_set_use_VBOs(TRUE);
 }

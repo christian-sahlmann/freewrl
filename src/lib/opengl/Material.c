@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.25 2011/06/29 20:19:00 crc_canada Exp $
+$Id: Material.c,v 1.26 2011/06/30 15:13:21 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -226,31 +226,74 @@ int verify_scale(GLfloat *params) {
 /* for OpenGL ES, we mimic the old glColor stuff from fixed functionality */
 #ifdef GL_ES_VERSION_2_0
 void glColor3d (double r, double g, double b) {
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
-printf ("glColor3d %lf %lf %lf\n",r,g,b);
+    float cols[3];
+    cols[0] = (float)r;
+    cols[1] = (float)g;
+    cols[2] = (float)b;
+    
+//printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+//printf ("glColor3d %lf %lf %lf\n",r,g,b);
+    
+    if (getAppearanceProperties()->currentShaderProperties != NULL) {
+        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
+            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
+                         1,cols);
+        } else {
+            ConsoleMessage ("glColor3d called; no shader property to send to");
+        }
+    }
+
 }
 
-void glColor3dv (double *cols) {
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
-printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
+void glColor3dv (double *dcols) {
+    float cols[3];
+    cols[0] = (float)dcols[0];
+    cols[1] = (float)dcols[1];
+    cols[2] = (float)dcols[2];
+
+//printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+//printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
+    
+    if (getAppearanceProperties()->currentShaderProperties != NULL) {
+        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
+            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
+                         1,cols);
+        } else {
+            ConsoleMessage ("glColor3dv called; no shader property to send to");
+        }
+    }
+
 }
 
 void glColor3fv (float *cols) {
 //printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor3fv %f %f %f\n",cols[0],cols[1],cols[2]);
-    cols[2] = 1.0; cols[0] = 0.0;
     if (getAppearanceProperties()->currentShaderProperties != NULL) {
     if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
      GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
                   1,cols);
+    } else {
+        ConsoleMessage ("glColor3fv called; no shader property to send to");
     }
     }
     
 }
 
 void glColor4fv (float *cols) {
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
-printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
+    
+    // ignore the alpha
+    
+//printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+//printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
+    if (getAppearanceProperties()->currentShaderProperties != NULL) {
+        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
+            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
+                         1,cols);
+    } else {
+        ConsoleMessage ("glColor4fv called; no shader property to send to");
+
+    }
+    }
 }
 
 void glColorMaterial (GLenum face, GLenum mode) {
