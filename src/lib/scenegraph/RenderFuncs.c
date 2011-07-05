@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.117 2011/06/26 21:27:26 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.118 2011/07/05 19:05:53 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -54,34 +54,6 @@
 
 typedef float shaderVec4[4];
 
-///* which arrays are enabled, and defaults for each array */
-//static int shaderNormalArray = TRUE;
-//static int shaderVertexArray = TRUE;
-//static int shaderColourArray = FALSE;
-//static int shaderTextureArray = FALSE;
-//
-//static float light_linAtten[8];
-//static float light_constAtten[8];
-//static float light_quadAtten[8];
-//static float light_spotCut[8];
-//static float light_spotExp[8];
-//static shaderVec4 light_amb[8];
-//static shaderVec4 light_dif[8];
-//static shaderVec4 light_pos[8];
-//static shaderVec4 light_spec[8];
-//static shaderVec4 light_spot[8];
-//
-///* Rearrange to take advantage of headlight when off */
-//static int nextFreeLight = 0;
-//
-///* lights status. Light 7 is the headlight */
-//static GLint lightOnOff[8];
-//
-///* should we send light changes along? */
-//static bool lightStatusDirty = FALSE;
-//static bool lightParamsDirty = FALSE;
-//
-
 
 typedef struct pRenderFuncs{
 #ifdef RENDERVERBOSE
@@ -102,7 +74,7 @@ typedef struct pRenderFuncs{
 	shaderVec4 light_dif[8];
 	shaderVec4 light_pos[8];
 	shaderVec4 light_spec[8];
-	shaderVec4 light_spot[8];
+	shaderVec4 light_spotDir[8];
 
 	/* Rearrange to take advantage of headlight when off */
 	int nextFreeLight;// = 0;
@@ -190,7 +162,8 @@ int nextlight() {
 /* keep track of lighting */
 void lightState(GLint light, int status) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
+    //printf ("start lightState, light %d, status %d\n",light,status);
+    
     PRINT_GL_ERROR_IF_ANY("start lightState");
     
     
@@ -237,7 +210,16 @@ void restoreLightState(int *ls) {
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	/* printf ("fwglLightfv %d %d %f %f %f %f\n",light,pname,params[0], params[1],params[2],params[3]);  */
+	/*printf ("fwglLightfv light: %d ",light);
+	switch (pname) {
+		case GL_AMBIENT: printf ("GL_AMBIENT"); break;
+		case GL_DIFFUSE: printf ("GL_DIFFUSE"); break;
+		case GL_POSITION: printf ("GL_POSITION"); break;
+		case GL_SPECULAR: printf ("GL_SPECULAR"); break;
+		case GL_SPOT_DIRECTION: printf ("GL_SPOT_DIRECTION"); break;
+	}
+	printf (" %f %f %f %f\n",params[0], params[1],params[2],params[3]);
+     */
 	#ifndef GL_ES_VERSION_2_0
 		glLightfv(GL_LIGHT0+light,pname,params);
 	#endif
@@ -256,7 +238,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 			memcpy ((void *)p->light_spec[light],(void *)params,sizeof(shaderVec4));
 			break;
 		case GL_SPOT_DIRECTION:
-			memcpy ((void *)p->light_spot[light],(void *)params,sizeof(shaderVec4));
+			memcpy ((void *)p->light_spotDir[light],(void *)params,sizeof(shaderVec4));
 			break;
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
@@ -265,12 +247,20 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	//printf ("glLightf %d %d %f\n",light,pname,param);
-	#ifndef GL_ES_VERSION_2_0
+	/*
+	printf ("glLightf light: %d ",light);
+	switch (pname) {
+		case GL_CONSTANT_ATTENUATION: printf ("GL_CONSTANT_ATTENUATION"); break;
+		case GL_LINEAR_ATTENUATION: printf ("GL_LINEAR_ATTENUATION"); break;
+		case GL_QUADRATIC_ATTENUATION: printf ("GL_QUADRATIC_ATTENUATION"); break;
+		case GL_SPOT_CUTOFF: printf ("GL_SPOT_CUTOFF"); break;
+		case GL_SPOT_EXPONENT: printf ("GL_SPOT_EXPONENT"); break;
+	}
+	printf (" %f\n",param);
+	*/
 
+	#ifndef GL_ES_VERSION_2_0
 		glLightf(GL_LIGHT0+light,pname,param);
-	#else
-		printf ("skipping glLightf in fwglLightf\n");
 	#endif
 
 	switch (pname) {
@@ -298,20 +288,30 @@ void fwglLightf (int light, int pname, GLfloat param) {
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 		/* for debugging: */
-/*
-			int i;
+
+			/* int i;
 			printf ("sendMAt - sending in lightState ");
 			for (i=0; i<8; i++) printf ("%d:%d ",i,p->lightOnOff[i]); printf ("\n");
-*/
+			*/
 		
 
-		/* if one of these are equal to -1, we had an error in the shaders... */
-		GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
-		GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
-		GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
-		GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
-		GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
-	}
+	/* if one of these are equal to -1, we had an error in the shaders... */
+	GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
+    
+	GLUNIFORM1FV (me->lightConstAtten, 8, p->light_constAtten);
+	GLUNIFORM1FV (me->lightLinAtten, 8, p->light_linAtten);
+	GLUNIFORM1FV(me->lightQuadAtten, 8, p->light_quadAtten);
+	GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
+	GLUNIFORM1FV(me->lightSpotExp, 8, p->light_spotExp);
+   
+	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
+    
+	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
+	GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
+	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
+	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
+     
+}
 
 /* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
@@ -613,8 +613,11 @@ void initializeLightTables() {
         	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
         	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
         	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
-            
-
+          	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
+        	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
+        	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
+        	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,180.0f);
+        	FW_GL_LIGHTF(i, GL_SPOT_EXPONENT,0.0f);
             
             PRINT_GL_ERROR_IF_ANY("initizlizeLight2");
         }
