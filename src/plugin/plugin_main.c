@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: plugin_main.c,v 1.19 2011/04/07 12:45:33 couannette Exp $
+   $Id: plugin_main.c,v 1.20 2011/07/07 20:51:27 istakenv Exp $
    
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -728,10 +728,12 @@ NPError NPP_Initialize(void) {
         return NPERR_NO_ERROR;
 }
 
+#ifdef OJI
 jref NPP_GetJavaClass( void )
 {
 	return NULL;
 }
+#endif
 
 /*
 ** NPP_Shutdown is called when your DLL is being unloaded to do any

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.47 2011/06/28 17:36:29 crc_canada Exp $
+$Id: fieldGet.c,v 1.48 2011/07/07 20:51:27 istakenv Exp $
 
 Javascript C language binding.
 
@@ -432,7 +432,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				fp_in = offsetPointer_deref(float *,fp_in,elementlen);
 
 				/* put this object into the MF class */
-				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
 					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
@@ -471,7 +471,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				dp_in = offsetPointer_deref(double *,dp_in,elementlen);
 
 				/* put this object into the MF class */
-				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
+				if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
 					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 						printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 				}
@@ -506,7 +506,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				/* create a new SFInt32 object */
 				
 				ip = (int *)ip_in; 
-				newjsval = INT_TO_JSVAL(ip);
+				newjsval = INT_TO_JSVAL(ip); /* NOTE--this is assigning the pointer itself as an int, not its content */
 				ip_in = offsetPointer_deref(int *,ip_in,elementlen);
 
 				/* put this object into the MF class */
@@ -582,7 +582,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 			elementlen = (int) sizeof (void *);
 			for (x=0; x<datalen; x++) {
 				ip = ip_in; 
-				newjsval = INT_TO_JSVAL(ip);
+				newjsval = INT_TO_JSVAL(ip); /* NOTE--assigning pointer itself as int, not its content */
 				ip_in = offsetPointer_deref(double *,ip_in,elementlen);
 
 				/* put this object into the MF class */

@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.38 2011/06/28 17:36:29 crc_canada Exp $
+  $Id: jsVRML_SFClasses.c,v 1.39 2011/07/07 20:51:27 istakenv Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -126,8 +126,13 @@ void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double
 }
 
 JSBool
-SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorGetHSV(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(cx,vp);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
 	JSObject *result;
 	double xp[3];
 	jsval _v;
@@ -165,12 +170,22 @@ SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
         } 
 
         /* JAS - should we remove this here, or on finalize? JS_RemoveRoot(cx, &result);  */
+#if JS_VERSION < 185
         *rval = OBJECT_TO_JSVAL(result); 
+#else
+        JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(result));
+#endif
 	return JS_TRUE;
 }
 
 JSBool
+#if JS_VERSION < 185
 SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorSetHSV(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(cx,vp);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFColorNative *ptr;
 	double hue, saturation, value;
 	double red,green,blue;
@@ -199,15 +214,23 @@ SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
         printf("hsv code, now rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFColorToString(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorToString(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(cx,vp);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFColorNative *ptr;
     JSString *_str;
 	char _buff[STRING];
@@ -223,15 +246,23 @@ SFColorToString(JSContext *cx, JSObject *obj,
 	sprintf(_buff, "%.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, _buff);
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
-
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
     return JS_TRUE;
 }
 
 JSBool
-SFColorAssign(JSContext *cx, JSObject *obj,
-			   uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFColorNative *ptr, *fptr;
     char *_id_str;
@@ -244,7 +275,13 @@ SFColorAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFColorClass) 
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFColorAssign.\n");
 		return JS_FALSE;
 	}
@@ -260,15 +297,23 @@ SFColorAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFColorNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+    JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFColorConstr(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFColorClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFColorNative *ptr;
 	jsdouble pars[3];
 
@@ -302,24 +347,39 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 		return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorConstr: obj = %p args, %f %f %f\n",
+		printf("SFColorConstr: obj = %p args = %d, %f %f %f\n",
 			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	return JS_TRUE;
 }
 
 
 JSBool
-SFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFColorGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFColorNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFColorGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorGetProperty.\n");
@@ -360,10 +420,21 @@ SFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFColorSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFColorNative *ptr;
 	jsval _val;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFColorSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorSetProperty.\n");
@@ -411,9 +482,15 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 /* copy code from SFColorGetHSV if the spec ever decides to implement this. */
 JSBool
-SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorRGBAGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorRGBAGetHSV(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
+
+
 	JSObject *_arrayObj;
 	jsdouble hue = 0, saturation = 0, value = 0;
 	jsval _v;
@@ -427,7 +504,6 @@ SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
 		printf( "JS_NewArrayObject failed in SFColorRGBAGetHSV.\n");
 		return JS_FALSE;
 	}
-	*rval = OBJECT_TO_JSVAL(_arrayObj);
 
 	/* construct new double before conversion? */
 	JS_NewNumberValue(cx,hue,&_v); /* was: 	_v = DOUBLE_TO_JSVAL(&hue); */
@@ -445,15 +521,25 @@ SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
 		printf( "JS_SetElement failed for value in SFColorRGBAGetHSV.\n");
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
+	*rval = OBJECT_TO_JSVAL(_arrayObj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(_arrayObj));
+#endif
 
     return JS_TRUE;
 }
 
 /* implement later?? Copy most of code from SFColorSetHSV if we require this */
 JSBool
-SFColorRGBASetHSV(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorRGBASetHSV(JSContext *cx, JSObject *obj,	uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorRGBASetHSV(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
+
     SFColorRGBANative *ptr;
 	jsdouble hue, saturation, value;
 
@@ -469,15 +555,24 @@ SFColorRGBASetHSV(JSContext *cx, JSObject *obj,
 
 	/* do conversion here!!! */
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFColorRGBAToString(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorRGBAToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorRGBAToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
+
     SFColorRGBANative *ptr;
     JSString *_str;
 	char _buff[STRING];
@@ -493,15 +588,26 @@ SFColorRGBAToString(JSContext *cx, JSObject *obj,
 	sprintf(_buff, "%.9g %.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],(ptr->v).c[3]);
 	_str = JS_NewStringCopyZ(cx, _buff);
+
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFColorRGBAAssign(JSContext *cx, JSObject *obj,
-			   uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorRGBAAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorRGBAAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
+
     JSObject *_from_obj;
     SFColorRGBANative *ptr, *fptr;
     char *_id_str;
@@ -513,7 +619,13 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFColorRGBAClass)
 	
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFColorRGBAAssign.\n");
 		return JS_FALSE;
 	}
@@ -530,15 +642,25 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFColorRGBANativeAssign(ptr, fptr);
+
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFColorRGBAConstr(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFColorRGBAConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFColorRGBAClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
+
 	SFColorRGBANative *ptr;
 	jsdouble pars[4];
 
@@ -583,16 +705,31 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 			   obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],(ptr->v).c[3]);
 	#endif
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	return JS_TRUE;
 }
 
 JSBool
-SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFColorRGBANative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFColorRGBAGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorRGBAGetProperty.\n");
@@ -642,10 +779,21 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFColorRGBANative *ptr;
 	jsval _val;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFColorRGBASetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorRGBASetProperty.\n");
@@ -699,28 +847,64 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
+#if JS_VERSION < 185
 SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFImageToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	jsval rval;
+	JSBool retval;
+#endif
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFImageToString: obj = %p, %u args\n", obj, argc);
 	#endif
 
 	UNUSED(argc);
 	UNUSED(argv);
+	
+#if JS_VERSION < 185
 	return doMFToString(cx, obj, "SFImage", rval);
+#else
+	retval = doMFToString(cx, obj, "SFImage", &rval);
+	JS_SET_RVAL(cx,vp,rval);
+	return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFImageAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	jsval rval;
+	JSBool retval;
+#endif
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFImageAssign: obj = %p, %u args\n", obj, argc);
 	#endif
 
+#if JS_VERSION < 185
 	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,FIELDTYPE_SFImage);
+#else
+	retval = _standardMFAssign (cx, obj, argc, argv, &rval, &SFImageClass,FIELDTYPE_SFImage);
+	JS_SET_RVAL(cx,vp,rval);
+	return retval;
+#endif
 }
 
 JSBool
-SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFImageConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFImageClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	unsigned int i;
 	jsval mv;
 	int param[3];
@@ -760,7 +944,14 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		mv = INT_TO_JSVAL(0);
 		for (i=0; i<4; i++) {
 			if (i==3) {
+#if JS_VERSION < 185
 				MFInt32Constr(cx, obj, 0, NULL, &mv);
+#else
+				/* note - old default constructor call allocates a new obj and assigns to mv,
+				 * but calling fn directly may not actually do that, so as it is written this
+				 * does not occur.  May need debugging to see if this is required. */
+				MFInt32ConstrInternals(cx, obj, 0, NULL, &mv);
+#endif
 			}
 			if (!JS_DefineElement(cx, obj, (jsint) i, mv, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB6, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
@@ -820,11 +1011,11 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (argc == 4) {
 		#ifdef JSVRMLCLASSESVERBOSE
-		printJSNodeType(cx,argv[3]);
+		printJSNodeType(cx,JSVAL_TO_OBJECT(argv[3]));
 		#endif
  
-		CHECK_CLASS(cx,(JSObject *)argv[3],NULL,__FUNCTION__,MFInt32Class)
-		if (!JS_GetProperty(cx, (JSObject *)argv[3],  MF_LENGTH_FIELD, &mv)) {
+		CHECK_CLASS(cx,JSVAL_TO_OBJECT(argv[3]),NULL,__FUNCTION__,MFInt32Class)
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(argv[3]),  MF_LENGTH_FIELD, &mv)) {
 			printf( "JS_GetProperty failed for MFInt32 length in SFImageConstr\n");
 	        	return JS_FALSE;
 		}
@@ -843,7 +1034,11 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 	
 	/* if we are here, we must have had some success... */
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
@@ -858,7 +1053,11 @@ SFImageGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 }
 
 JSBool
+#if JS_VERSION < 185
 SFImageSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
+#else
+SFImageSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp) {
+#endif
 	return doMFSetProperty(cx, obj, id, vp, FIELDTYPE_SFImage);
 }
 
@@ -867,8 +1066,15 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) {
 
 /* returns a string rep of the pointer to the node in memory */
 JSBool
-SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFNodeToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	jsval rvalinst;
+	jsval *rval = &rvalinst;
+#endif
 	SFNodeNative *ptr;
 
 	UNUSED(argc);
@@ -910,18 +1116,29 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("SFNodeToString, handle %p ",ptr->handle);
-	printf ("SFNodeToString, handle as unsignned  %u ",ptr->handle);
+	printf ("SFNodeToString, handle as unsignned  %u ",(unsigned int)ptr->handle);
 	if (ptr->handle != NULL) {
 		printf (" (%s) ", stringNodeType (((struct X3D_Node *)ptr->handle)->_nodeType));
 	}
 	printf ("string \"%s\"\n",ptr->X3DString);
 	#endif
+
+#if JS_VERSION >= 185
+	JS_SET_RVAL(cx,vp,*rval);
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFNodeAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
+
 	JSObject *_from_obj;
 	SFNodeNative *fptr, *ptr;
 	char *_id_str;
@@ -942,10 +1159,16 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 	/* get the from, and the string */
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("SFNodeAssign, we have %d and %d\n",argv[0], argv[1]);
+	printf ("SFNodeAssign, we have %d and %d\n",(int)argv[0], (int)argv[1]);
 	#endif
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFNodeAssign.\n");
 		return JS_FALSE;
 	}
@@ -968,7 +1191,11 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	    return JS_FALSE;
 	}
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("end of SFNodeAssign\n");
@@ -978,7 +1205,15 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 /* define JSVRMLCLASSESVERBOSE */
 
-JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+JSBool
+#if JS_VERSION < 185
+SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFNodeClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
+
 	SFNodeNative *newPtr;
 	SFNodeNative *oldPtr;
 
@@ -993,7 +1228,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	cString = NULL;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("Start of SFNodeConstr argc %d object %u\n",argc,obj);
+	printf ("Start of SFNodeConstr argc %d object %p\n",argc,obj);
 	#endif
 
 	/* verify the argc */
@@ -1018,7 +1253,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			printf ("SFNodeConstr, cstring was an object\n");
 			#endif
 
-        		if ((oldPtr = (SFNodeNative *)JS_GetPrivate(cx, (JSObject *)argv[0])) == NULL) {
+        		if ((oldPtr = (SFNodeNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(argv[0]))) == NULL) {
 				#ifdef JSVRMLCLASSESVERBOSE
                 		printf( "JS_GetPrivate failed in SFNodeConstr.\n");
 				#endif
@@ -1168,7 +1403,12 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			   obj, argc, newHandle, stringNodeType(newHandle->_nodeType),cString);
 	}
 	#endif
+
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	return JS_TRUE;
 }
@@ -1209,7 +1449,11 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 }
 
 JSBool
-SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 
 	/* We can't really get a property of a SFNode. There are no sub-indexes, etc...
@@ -1220,6 +1464,13 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
         JSString *_idStr;
         char *_id_c;
 	jsval rval;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFNodeGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
         _idStr = JS_ValueToString(cx, id);
 #if JS_VERSION < 185
@@ -1255,7 +1506,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 		}
 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("wondering about rval.. %d. it is a\n",rval);
+		printf ("wondering about rval.. %d. it is a\n",(int)rval);
 		if (JSVAL_IS_INT(rval)) printf ("IS AN INT\n");
 		if (JSVAL_IS_OBJECT(rval)) printf ("IS AN OBJECT\n");
 		if (JSVAL_IS_STRING(rval)) printf ("IS AN STRING\n");
@@ -1289,14 +1540,24 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	JSString *_idStr, *_valStr;
 	char *_id_c, *_val_c;
 	SFNodeNative *ptr;
 	int val_len;
 	size_t tmp;
-
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFNodeSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	_idStr = JS_ValueToString(cx, id);
 	_valStr = JS_ValueToString(cx, *vp);
@@ -1347,7 +1608,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("JS_IS_INT false\n");
 
-		printf ("SFNodeSetProperty, setting node %d field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		printf ("SFNodeSetProperty, setting node %p field %s to value %s\n", ptr->handle,_id_c,_val_c);
 
 		{
 			struct X3D_Node* ptx;
@@ -1365,8 +1626,13 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 /********************************************************************/
 
 JSBool
-SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationGetAxis(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	JSObject *_retObj;
 	SFRotationNative *_rot;
 	SFVec3fNative *_retNative;
@@ -1381,7 +1647,12 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_ConstructObject failed in SFRotationGetAxis.\n");
 		return JS_FALSE;
 	}
+
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(_retObj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(_retObj));
+#endif
 
 	if ((_rot = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFRotationGetAxis.\n");
@@ -1409,8 +1680,13 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 }
 
 JSBool
-SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationInverse(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	JSObject *_retObj, *_proto;
 	SFRotationNative *_rot, *_retNative;
 	Quaternion q1,qret;
@@ -1430,7 +1706,11 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_ConstructObject failed in SFRotationInverse.\n");
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(_retObj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(_retObj));
+#endif
 
 	if ((_rot = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFRotationInverse.\n");
@@ -1465,8 +1745,13 @@ SFRotationInverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 }
 
 JSBool
-SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationMultiply(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	Quaternion q1,q2,qret;
 	double a,b,c,d;
 
@@ -1491,7 +1776,13 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 		printf( "JS_ConstructObject failed in SFRotationMultiply.\n");
 		return JS_FALSE;
 	}
+
+
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(_retObj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(_retObj));
+#endif
 
 	if ((_rot1 = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFRotationMultiply.\n");
@@ -1533,8 +1824,13 @@ SFRotationMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 }
 
 JSBool
-SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationMultVec(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	JSObject *_multObj, *_retObj, *_proto;
 	SFRotationNative *_rot;
 	SFVec3fNative *_vec, *_retNative;
@@ -1561,7 +1857,12 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 		printf( "JS_ConstructObject failed in SFRotationMultVec.\n");
 		return JS_FALSE;
 	}
+
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(_retObj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(_retObj));
+#endif
 
 	if ((_rot = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFRotationMultVec.\n");
@@ -1597,8 +1898,13 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 }
 
 JSBool
-SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationSetAxis(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	JSObject *_setAxisObj;
 	SFRotationNative *_rot;
 	SFVec3fNative *_vec;
@@ -1629,7 +1935,11 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	(_rot->v).c[1] = (_vec->v).c[1];
 	(_rot->v).c[2] = (_vec->v).c[2];
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFRotationSetAxis: obj = %p, result = [%.9g, %.9g, %.9g, %.9g]\n",
@@ -1644,8 +1954,15 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 }
 
 JSBool
-SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationSlerp(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	jsval rvalinst;
+	jsval *rval = &rvalinst;
+#endif
 	JSObject *_destObj, *_retObj, *_proto;
 	SFRotationNative *_rot, *_dest, *_ret;
 	Quaternion _quat, _quat_dest, _quat_ret;
@@ -1721,12 +2038,20 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 							  (double *) &(_ret->v).c[3]);
 	}
 
+#if JS_VERSION >= 185
+	JS_SET_RVAL(cx,vp,*rval);
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationToString(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(cx,vp);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFRotationNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -1748,7 +2073,11 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 			ptr->v.c[0], ptr->v.c[1], ptr->v.c[2], ptr->v.c[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
 
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 	
 	REMOVE_ROOT (cx,ptr)
 	REMOVE_ROOT (cx,_str)
@@ -1756,8 +2085,14 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 }
 
 JSBool
-SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFRotationNative *fptr, *ptr;
     char *_id_str;
@@ -1773,7 +2108,13 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFRotationClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFRotationAssign.\n");
 		return JS_FALSE;
 	}
@@ -1781,7 +2122,11 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	/* is this an assignment of NULL? */
 	if (_from_obj == NULL) {
 		printf ("we have an assignment to null in SFRotationAssign\n");
+#if JS_VERSION < 185
 		*rval = 0;
+#else
+		JS_SET_RVAL(cx,vp,JSVAL_VOID);
+#endif
 	} else {
 
 
@@ -1797,14 +2142,27 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		#endif
 
 	    SFRotationNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
 		*rval = OBJECT_TO_JSVAL(obj);
+#else
+		JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	}
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("SFRotationAssign: returning object as jsval\n");
+	#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFRotationConstr(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_NewObject(cx,&SFRotationClass,NULL,NULL);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
+
 	SFVec3fNative *_vec = NULL;
 	SFVec3fNative *_vec2;
 	SFRotationNative *ptr;
@@ -1820,7 +2178,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	printf ("start of SFRotationConstr\n");
 	#endif
 
-	ADD_ROOT(cx,obj)
+/*	ADD_ROOT(cx,obj) */
 	if ((ptr = (SFRotationNative *)SFRotationNativeNew()) == NULL) {
 		printf( "SFRotationNativeNew failed in SFRotationConstr.\n");
 		return JS_FALSE;
@@ -1830,6 +2188,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		printf( "JS_DefineProperties failed in SFRotationConstr.\n");
 		return JS_FALSE;
 	}
+
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFRotationConstr.\n");
 		return JS_FALSE;
@@ -1841,7 +2200,9 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	} else if (argc == 2) {
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
 		if (JSVAL_IS_OBJECT(argv[0])) {
-			_ob1 = (JSObject *)argv[0];
+/*			_ob1 = (JSObject *)argv[0]; */
+			_ob1 = JSVAL_TO_OBJECT(argv[0]);
+
 
 			CHECK_CLASS(cx,_ob1,argv,__FUNCTION__,SFVec3fClass)
 
@@ -1851,7 +2212,8 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			}
 		}
 		if (JSVAL_IS_OBJECT(argv[1])) {
-			_ob2 = (JSObject *)argv[1];
+/*			_ob2 = (JSObject *)argv[1]; */
+			_ob2 = JSVAL_TO_OBJECT(argv[2]);
 
 			v3fv3f = TRUE;
 
@@ -1915,15 +2277,31 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
+
 	return JS_TRUE;
 }
 
 JSBool
-SFRotationGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFRotationGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFRotationNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFRotationGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationGetProperty\n");
@@ -1978,10 +2356,21 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFRotationSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFRotationSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFRotationNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFRotationSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationSetProperty\n");
@@ -2216,51 +2605,118 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec2fAdd(JSContext *cx, JSObject *obj,
-		   uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FADD);
+#else
+SFVec2fAdd(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	jsval rval;
+	JSBool retval =	SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FADD);
+	JS_SET_RVAL(cx,vp,rval);
+	return retval;
+#endif
 }
 
 JSBool
-SFVec2fDivide(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fDivide(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FDIVIDE);
+#else
+SFVec2fDivide(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FDIVIDE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fMultiply(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FMULT);
+#else
+SFVec2fMultiply(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FMULT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fSubtract(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FSUBT);
+#else
+SFVec2fSubtract(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FSUBT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fDot(JSContext *cx, JSObject *obj,
-		   uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fDot(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FDOT);
+#else
+SFVec2fDot(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FDOT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fLength(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fLength(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FLENGTH);
+#else
+SFVec2fLength(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FLENGTH);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fNormalize(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval) {
+#if JS_VERSION < 185
+SFVec2fNormalize(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	return SFVec2fGeneric(cx, obj, argc, argv, rval, __2FNORMALIZE);
+#else
+SFVec2fNormalize(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec2fGeneric(cx, obj, argc, argv, &rval, __2FNORMALIZE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec2fToString(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec2fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec2fToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFVec2fNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -2276,15 +2732,24 @@ SFVec2fToString(JSContext *cx, JSObject *obj,
 	sprintf(buff, "%.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1]);
 	_str = JS_NewStringCopyZ(cx, buff);
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+    JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFVec2fAssign(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec2fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec2fAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFVec2fNative *fptr, *ptr;
     char *_id_str;
@@ -2296,7 +2761,13 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec2fClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFVec2fAssign.\n");
 		return JS_FALSE;
 	}
@@ -2313,15 +2784,23 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFVec2fNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+    JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
     return JS_TRUE;
 }
 
 JSBool
-SFVec2fConstr(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec2fConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFVec2fClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFVec2fNative *ptr;
 	jsdouble pars[2];
 
@@ -2360,16 +2839,31 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
 
 JSBool
-SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFVec2fNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec2fGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx,obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec2fGetProperty.\n");
@@ -2402,10 +2896,21 @@ SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFVec2fNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec2fSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec2fSetProperty.\n");
@@ -2664,65 +3169,159 @@ return JS_TRUE;
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fAdd(JSContext *cx, JSObject *obj,
 		   uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FADD);
+#else
+SFVec3fAdd(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FADD);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fCross(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FCROSS);
+#else
+SFVec3fCross(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FCROSS);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fDivide(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FDIVIDE);
+#else
+SFVec3fDivide(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FDIVIDE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fDot(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FDOT);
+#else
+SFVec3fDot(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FDOT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fLength(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FLENGTH);
+#else
+SFVec3fLength(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FLENGTH);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fMultiply(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FMULT);
+#else
+SFVec3fMultiply(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FMULT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fNegate(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FNEGATE);
+#else
+SFVec3fNegate(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FNEGATE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fNormalize(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FNORMALIZE);
+#else
+SFVec3fNormalize(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FNORMALIZE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3fSubtract(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3fGeneric(cx, obj, argc, argv, rval, __3FSUBT);
+#else
+SFVec3fSubtract(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3fGeneric(cx, obj, argc, argv, &rval, __3FSUBT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec3fToString(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3fToString(JSContext *cx, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(cx,vp);
+	jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFVec3fNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -2738,7 +3337,12 @@ SFVec3fToString(JSContext *cx, JSObject *obj,
 	sprintf(buff, "%.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, buff);
+
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFVec3fToString, string is :%s:\n",buff);
@@ -2749,9 +3353,14 @@ SFVec3fToString(JSContext *cx, JSObject *obj,
 
 
 JSBool
-SFVec3fAssign(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3fAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFVec3fNative *fptr, *ptr;
     char *_id_str;
@@ -2767,7 +3376,13 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec3fClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr)) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFVec3fAssign.\n");
 		return JS_FALSE;
 	}
@@ -2784,7 +3399,11 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFVec3fNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("end of SFVec3fAssign\n");
@@ -2794,9 +3413,13 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec3fConstr(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3fConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFVec3fClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFVec3fNative *ptr;
 	jsdouble pars[3];
 	
@@ -2842,15 +3465,30 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFVec3fNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec3fGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
@@ -2905,7 +3543,7 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 		}
 	} else {
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf ("SFVec3fGetProperty, id is NOT an int...\n");
+		printf ("SFVec3fGetProperty, id is NOT an int...\n");
 		#endif
 	}
 
@@ -2913,10 +3551,21 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFVec3fNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec3fSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec3fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec3fSetProperty.\n");
@@ -2963,7 +3612,7 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 /********************************************************************/
 
-/* Generic SFVec3d routines that return a SFVec3d */
+/* Generic SFVec3d routines that return a SFVec3d -- note, already defined above
 #define __3FADD		1
 #define __3FDIVIDE 	2
 #define __3FMULT	3
@@ -2973,6 +3622,7 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 #define __3FNORMALIZE	8
 #define __3FNEGATE	7
 #define __3FCROSS	9
+*/
 
 JSBool SFVec3dGeneric( JSContext *cx, JSObject *obj,
 		   uintN argc, jsval *argv, jsval *rval, int op) {
@@ -3170,65 +3820,159 @@ return JS_TRUE;
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dAdd(JSContext *cx, JSObject *obj,
 		   uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FADD);
+#else
+SFVec3dAdd(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FADD);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dCross(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FCROSS);
+#else
+SFVec3dCross(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FCROSS);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dDivide(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FDIVIDE);
+#else
+SFVec3dDivide(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FDIVIDE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dDot(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FDOT);
+#else
+SFVec3dDot(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FDOT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dLength(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FLENGTH);
+#else
+SFVec3dLength(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FLENGTH);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dMultiply(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FMULT);
+#else
+SFVec3dMultiply(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FMULT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dNegate(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FNEGATE);
+#else
+SFVec3dNegate(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FNEGATE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dNormalize(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FNORMALIZE);
+#else
+SFVec3dNormalize(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FNORMALIZE);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
+#if JS_VERSION < 185
 SFVec3dSubtract(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval) {
 	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FSUBT);
+#else
+SFVec3dSubtract(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+        jsval rval;
+        JSBool retval = SFVec3dGeneric(cx, obj, argc, argv, &rval, __3FSUBT);
+        JS_SET_RVAL(cx,vp,rval);
+        return retval;
+#endif
 }
 
 JSBool
-SFVec3dToString(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3dToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFVec3dNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -3244,7 +3988,11 @@ SFVec3dToString(JSContext *cx, JSObject *obj,
 	sprintf(buff, "%.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, buff);
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+    JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFVec3dToString, string is :%s:\n",buff);
@@ -3254,9 +4002,14 @@ SFVec3dToString(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec3dAssign(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3dAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFVec3dNative *fptr, *ptr;
     char *_id_str;
@@ -3272,7 +4025,13 @@ SFVec3dAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec3dClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFVec3dAssign.\n");
 		return JS_FALSE;
 	}
@@ -3289,7 +4048,11 @@ SFVec3dAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFVec3dNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+    JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("end of SFVec3dAssign\n");
@@ -3299,9 +4062,13 @@ SFVec3dAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec3dConstr(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec3dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec3dConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFVec3dClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFVec3dNative *ptr;
 	jsdouble pars[3];
 	
@@ -3347,15 +4114,30 @@ SFVec3dConstr(JSContext *cx, JSObject *obj,
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFVec3dNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec3dGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
@@ -3418,10 +4200,21 @@ SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFVec3dNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec3dSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec3dNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec3dSetProperty.\n");
@@ -3468,9 +4261,13 @@ SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 
 JSBool
-SFVec4fToString(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4fToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFVec4fNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -3486,7 +4283,11 @@ SFVec4fToString(JSContext *cx, JSObject *obj,
 	sprintf(buff, "%.9g %.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],ptr->v.c[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFVec4fToString, string is :%s:\n",buff);
@@ -3496,9 +4297,14 @@ SFVec4fToString(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec4fAssign(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4fAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFVec4fNative *fptr, *ptr;
     char *_id_str;
@@ -3514,7 +4320,13 @@ SFVec4fAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec4fClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFVec4fAssign.\n");
 		return JS_FALSE;
 	}
@@ -3531,7 +4343,11 @@ SFVec4fAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFVec4fNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("end of SFVec4fAssign\n");
@@ -3541,9 +4357,13 @@ SFVec4fAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec4fConstr(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4fConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFVec4fClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFVec4fNative *ptr;
 	jsdouble pars[4];
 	
@@ -3591,15 +4411,30 @@ SFVec4fConstr(JSContext *cx, JSObject *obj,
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFVec4fNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec4fGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
@@ -3671,10 +4506,21 @@ SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFVec4fNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec4fSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec4fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec4fSetProperty.\n");
@@ -3729,9 +4575,13 @@ SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 
 JSBool
-SFVec4dToString(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4dToString(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
     SFVec4dNative *ptr;
     JSString *_str;
 	char buff[STRING];
@@ -3747,7 +4597,12 @@ SFVec4dToString(JSContext *cx, JSObject *obj,
 	sprintf(buff, "%.9g %.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],ptr->v.c[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
+
+#if JS_VERSION < 185
     *rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(cx,vp,STRING_TO_JSVAL(_str));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFVec4dToString, string is :%s:\n",buff);
@@ -3757,9 +4612,14 @@ SFVec4dToString(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec4dAssign(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4dAssign(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        jsval *argv = JS_ARGV(cx,vp);
+	JSString *_id_jsstr;
+#endif
     JSObject *_from_obj;
     SFVec4dNative *fptr, *ptr;
     char *_id_str;
@@ -3775,7 +4635,13 @@ SFVec4dAssign(JSContext *cx, JSObject *obj,
 
 	CHECK_CLASS(cx,obj,argv,__FUNCTION__,SFVec4dClass)
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr) == JS_TRUE) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf( "JS_ConvertArguments failed in SFVec4dAssign.\n");
 		return JS_FALSE;
 	}
@@ -3792,7 +4658,11 @@ SFVec4dAssign(JSContext *cx, JSObject *obj,
 	#endif
 
     SFVec4dNativeAssign(ptr, fptr);
+#if JS_VERSION < 185
     *rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("end of SFVec4dAssign\n");
@@ -3802,9 +4672,13 @@ SFVec4dAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec4dConstr(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+SFVec4dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+SFVec4dConstr(JSContext *cx, uintN argc, jsval *vp) {
+        JSObject *obj = JS_NewObject(cx,&SFVec4dClass,NULL,NULL);
+        jsval *argv = JS_ARGV(cx,vp);
+#endif
 	SFVec4dNative *ptr;
 	jsdouble pars[4];
 	
@@ -3852,15 +4726,30 @@ SFVec4dConstr(JSContext *cx, JSObject *obj,
 	
 	ptr->valueChanged = 1;
 
+#if JS_VERSION < 185
 	*rval = OBJECT_TO_JSVAL(obj);
+#else
+	JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
 	SFVec4dNative *ptr;
 	jsdouble d;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec4dGetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
@@ -3931,10 +4820,21 @@ SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 }
 
 JSBool
-SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
+#endif
 {
 	SFVec4dNative *ptr;
 	jsval myv;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("JS_IdToValue failed in SFVec4dSetProperty.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if ((ptr = (SFVec4dNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec4dSetProperty.\n");

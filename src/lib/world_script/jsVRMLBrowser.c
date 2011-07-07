@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.49 2011/06/10 02:08:58 dug9 Exp $
+$Id: jsVRMLBrowser.c,v 1.50 2011/07/07 20:51:27 istakenv Exp $
 
 Javascript C language binding.
 
@@ -73,7 +73,11 @@ static JSClass Browser = {
     JS_PropertyStub,
     JS_PropertyStub,
     JS_PropertyStub,
+#if JS_VERSION < 185
     JS_PropertyStub,
+#else
+    JS_StrictPropertyStub,
+#endif
     JS_EnumerateStub,
     JS_ResolveStub,
     JS_ConvertStub,
@@ -241,8 +245,13 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 
 
 JSBool
-VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserGetName(JSContext *context, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(context,vp);
+	jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSString *_str;
 
 	UNUSED(obj);
@@ -250,15 +259,24 @@ VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
 	UNUSED(argv);
 
 	_str = JS_NewStringCopyZ(context,BrowserName);
+#if JS_VERSION < 185
 	*rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(context,vp,STRING_TO_JSVAL(_str));
+#endif
 	return JS_TRUE;
 }
 
 
 /* get the string stored in FWVER into a jsObject */
 JSBool
-VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserGetVersion(JSContext *context, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(context,vp);
+	jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSString *_str;
 
 	UNUSED(obj);
@@ -266,14 +284,23 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv
 	UNUSED(argv);
 
 	_str = JS_NewStringCopyZ(context, libFreeWRL_get_version());
+#if JS_VERSION < 185
 	*rval = STRING_TO_JSVAL(_str);
+#else
+	JS_SET_RVAL(context,vp,STRING_TO_JSVAL(_str));
+#endif
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserGetCurrentSpeed(JSContext *context, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(context,vp);
+	jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSString *_str;
 	char string[1000];
 
@@ -285,14 +312,23 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval 
 	getCurrentSpeed();
 	sprintf (string,"%f",gglobal()->Mainloop.BrowserSpeed);
 	_str = JS_NewStringCopyZ(context,string);
-	*rval = STRING_TO_JSVAL(_str);
+#if JS_VERSION < 185
+        *rval = STRING_TO_JSVAL(_str);
+#else
+        JS_SET_RVAL(context,vp,STRING_TO_JSVAL(_str));
+#endif
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserGetCurrentFrameRate(JSContext *context, uintN argc, jsval *vp) {
+	JSObject *obj = JS_THIS_OBJECT(context,vp);
+	jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSString *_str;
 	char FPSstring[1000];
 
@@ -302,14 +338,23 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 
 	sprintf (FPSstring,"%6.2f",gglobal()->Mainloop.BrowserFPS);
 	_str = JS_NewStringCopyZ(context,FPSstring);
-	*rval = STRING_TO_JSVAL(_str);
+#if JS_VERSION < 185
+        *rval = STRING_TO_JSVAL(_str);
+#else
+        JS_SET_RVAL(context,vp,STRING_TO_JSVAL(_str));
+#endif
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserGetWorldURL(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSString *_str;
 
 	UNUSED(obj);
@@ -317,15 +362,22 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 	UNUSED(argv);
 
 	_str = JS_NewStringCopyZ(context,BrowserFullPath);
-	*rval = STRING_TO_JSVAL(_str);
+#if JS_VERSION < 185
+        *rval = STRING_TO_JSVAL(_str);
+#else
+        JS_SET_RVAL(context,vp,STRING_TO_JSVAL(_str));
+#endif
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
-						uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserReplaceWorld(JSContext *context, uintN argc, jsval *vp) {
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSObject *_obj;
 	JSString *_str;
 	JSClass *_cls;
@@ -365,15 +417,22 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		printf( "\nIncorrect argument format for replaceWorld(%s).\n", _c_args);
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
 	*rval = _rval;
+#else
+	JS_SET_RVAL(context,vp,_rval);
+#endif
 
 	return JS_TRUE;
 }
 struct X3D_Anchor* get_EAIEventsIn_AnchorNode();
 JSBool
-VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
-				   uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserLoadURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserLoadURL(JSContext *context, uintN argc, jsval *vp) {
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
@@ -429,23 +488,34 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 		printf( "\nIncorrect argument format for loadURL(%s).\n", _c_args);
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
 	*rval = INT_TO_JSVAL(0);
+#else
+	JS_SET_RVAL(context,vp,JSVAL_ZERO);
+#endif
 
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
-						  uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserSetDescription(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserSetDescription(JSContext *context, uintN argc, jsval *vp) {
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	char *_c, *_c_args = "SFString description", *_c_format = "s";
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
 
 		/* we do not do anything with the description. If we ever wanted to, it is in _c */
+#if JS_VERSION < 185
 		*rval = INT_TO_JSVAL(0);
+#else
+		JS_SET_RVAL(context,vp,JSVAL_ZERO);
+#endif
 	} else {
 		printf( "\nIncorrect argument format for setDescription(%s).\n", _c_args);
 		return JS_FALSE;
@@ -455,8 +525,15 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 
 
 JSBool
-VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+	jsval _my_rval;
+	jsval *rval = &_my_rval;
+#endif
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 
 	/* for the return of the nodes */
@@ -521,14 +598,24 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		return JS_FALSE;
 	}
 
-
 	/* save this value, in case we need it */
+#if JS_VERSION < 185
 	tg->jsVRMLBrowser.JSCreate_global_return_val = *rval;
+#else
+	JS_SET_RVAL(context,vp,*rval);
+#endif
 	return JS_TRUE;
 }
 
 JSBool
+#if JS_VERSION < 185
 VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+#else
+VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
+        jsval *argv = JS_ARGV(context,vp);
+	jsval _my_rval;
+	jsval *rval = &_my_rval;
+#endif
 	JSString *_str[2];
 	JSClass *_cls[2];
 	SFNodeNative *oldPtr;
@@ -559,11 +646,15 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	#endif
 
 	/* rval is always zero, so lets just set it */
+#if JS_VERSION < 185
 	*rval = INT_TO_JSVAL(0);
+#else
+	*rval = JSVAL_ZERO;
+#endif
 
 	/* first parameter - expect a MFString Object here */
 	if (JSVAL_IS_OBJECT(argv[0])) {
-		if ((_cls[0] = JS_GET_CLASS(context, (JSObject *)argv[0])) == NULL) {
+		if ((_cls[0] = JS_GET_CLASS(context, JSVAL_TO_OBJECT(argv[0]))) == NULL) {
                         printf( "JS_GetClass failed for arg 0 in VrmlBrowserLoadURL.\n");
                         return JS_FALSE;
                 }
@@ -574,7 +665,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* second parameter - expect a SFNode Object here */
 	if (JSVAL_IS_OBJECT(argv[1])) {
-		if ((_cls[1] = JS_GET_CLASS(context, (JSObject *)argv[1])) == NULL) {
+		if ((_cls[1] = JS_GET_CLASS(context, JSVAL_TO_OBJECT(argv[1]))) == NULL) {
                         printf( "JS_GetClass failed for arg 1 in VrmlBrowserLoadURL.\n");
                         return JS_FALSE;
                 }
@@ -630,7 +721,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 
 	/* get a pointer to the SFNode structure, in order to properly place the new string */
-	if ((oldPtr = (SFNodeNative *)JS_GetPrivate(context, (JSObject *)argv[1])) == NULL) {
+	if ((oldPtr = (SFNodeNative *)JS_GetPrivate(context, JSVAL_TO_OBJECT(argv[1]))) == NULL) {
 		printf( "JS_GetPrivate failed in VrmlBrowserLoadURL for SFNode parameter.\n");
 		return JS_FALSE;
 	}
@@ -691,18 +782,30 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	}
 
 	MARK_EVENT(myptr,offs);
+#if JS_VERSION >= 185
+	JS_SET_RVAL(context,vp,*rval);
+#endif
 	return JS_TRUE;
 }
 
 JSBool
-VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	jsval _rval = INT_TO_JSVAL(0);
+#else
+VrmlBrowserAddRoute(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	if (!doVRMLRoute(context, obj, argc, argv, "addRoute")) {
 		printf( "doVRMLRoute failed in VrmlBrowserAddRoute.\n");
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
 	*rval = _rval;
+#else
+	JS_SET_RVAL(context,vp,JSVAL_ZERO);
+#endif
 	return JS_TRUE;
 }
 //#define OLD_CONSOLEMESSAGE_VERSION 1
@@ -710,11 +813,17 @@ VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, 
 #define BrowserPrintConsoleMessage ConsoleMessage
 #endif
 JSBool
-VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{	int count;
+#if JS_VERSION < 185
+VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	jsval _rval = INT_TO_JSVAL(0);
+#else
+VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+#endif
+	int count;
 	JSString *_str;
 	char *_id_c;
-	jsval _rval = INT_TO_JSVAL(0);
 
 	UNUSED (context); UNUSED(obj);
 	/* printf ("FreeWRL:javascript: "); */
@@ -751,13 +860,23 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 			printf ("\n");
 		#endif
 	#endif
+#if JS_VERSION < 185
 	*rval = _rval;
+#else
+	JS_SET_RVAL(context,vp,JSVAL_ZERO);
+#endif
 	return JS_TRUE;
 }
+
 JSBool
-VrmlBrowserPrintln(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{	
+#if JS_VERSION < 185
+VrmlBrowserPrintln(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {	
     VrmlBrowserPrint(context,obj,argc,argv,rval);
+#else
+VrmlBrowserPrintln(JSContext *context, uintN argc, jsval *vp) {
+	/* note, vp holds rval, since it is set in here we should be good */
+	VrmlBrowserPrint(context,argc,vp); 
+#endif
 	#if defined(AQUA) || defined(_MSC_VER)
 		BrowserPrintConsoleMessage("\n"); /* statusbar hud */
 		gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
@@ -768,15 +887,25 @@ VrmlBrowserPrintln(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
 	#endif
 	return JS_TRUE;
 }
+
 JSBool
-VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
+#if JS_VERSION < 185
+VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	jsval _rval = INT_TO_JSVAL(0);
+#else
+VrmlBrowserDeleteRoute(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+#endif
 	if (!doVRMLRoute(context, obj, argc, argv, "deleteRoute")) {
 		printf( "doVRMLRoute failed in VrmlBrowserDeleteRoute.\n");
 		return JS_FALSE;
 	}
+#if JS_VERSION < 185
 	*rval = _rval;
+#else
+	JS_SET_RVAL(context,vp,JSVAL_ZERO);
+#endif
 	return JS_TRUE;
 }
 
@@ -1079,7 +1208,12 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 		*fromFieldString, *toFieldString,
 		*_c_args =
 		"SFNode fromNode, SFString fromEventOut, SFNode toNode, SFString toEventIn",
+#if JS_VERSION < 185
 		*_c_format = "o s o s";
+#else
+		*_c_format = "oSoS";
+	JSString *fromFieldStringJS, *toFieldStringJS;
+#endif
 	struct X3D_Node *fromNode;
 	struct X3D_Node *toNode;
 	int fromOfs, toOfs, len;
@@ -1095,7 +1229,13 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 
 	/* get the arguments, and ensure that they are obj, string, obj, string */
 	if (JS_ConvertArguments(context, argc, argv, _c_format,
+#if JS_VERSION < 185
 				&fromNodeObj, &fromFieldString, &toNodeObj, &toFieldString)) {
+#else
+				&fromNodeObj, &fromFieldStringJS, &toNodeObj, &toFieldStringJS)) {
+		fromFieldString = JS_EncodeString(context,fromFieldStringJS);
+		toFieldString = JS_EncodeString(context,toFieldStringJS);
+#endif
 		if ((_cls[0] = JS_GET_CLASS(context, fromNodeObj)) == NULL) {
 			printf("JS_GetClass failed for arg 0 in doVRMLRoute called from %s.\n",
 					callingFunc);

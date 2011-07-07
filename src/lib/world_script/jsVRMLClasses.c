@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.28 2011/06/28 17:36:29 crc_canada Exp $
+$Id: jsVRMLClasses.c,v 1.29 2011/07/07 20:51:27 istakenv Exp $
 
 ???
 
@@ -274,7 +274,7 @@ JSFunctionSpec (SFVec2fFunctions)[] = {
 	{"add", SFVec2fAdd, 0},
 	{"divide", SFVec2fDivide, 0},
 	{"dot", SFVec2fDot, 0},
-	{MF_LENGTH_FIELD, SFVec2fLength, 0},
+	{"length", SFVec2fLength, 0},
 	{"multiply", SFVec2fMultiply, 0},
 	{"normalize", SFVec2fNormalize, 0},
 	{"subtract", SFVec2fSubtract, 0},
@@ -307,7 +307,7 @@ JSFunctionSpec (SFVec2dFunctions)[] = {
 	{"add", SFVec2dAdd, 0},
 	{"divide", SFVec2dDivide, 0},
 	{"dot", SFVec2dDot, 0},
-	{MF_LENGTH_FIELD, SFVec2dLength, 0},
+	{"length", SFVec2dLength, 0},
 	{"multiply", SFVec2dMultiply, 0},
 	{"normalize", SFVec2dNormalize, 0},
 	{"subtract", SFVec2dSubtract, 0},
@@ -403,7 +403,7 @@ JSFunctionSpec (SFVec3fFunctions)[] = {
 	{"cross", SFVec3fCross, 0},
 	{"divide", SFVec3fDivide, 0},
 	{"dot", SFVec3fDot, 0},
-	{MF_LENGTH_FIELD, SFVec3fLength, 0},
+	{"length", SFVec3fLength, 0},
 	{"multiply", SFVec3fMultiply, 0},
 	{"negate", SFVec3fNegate, 0},
 	{"normalize", SFVec3fNormalize, 0},
@@ -439,7 +439,7 @@ JSFunctionSpec (SFVec3dFunctions)[] = {
 	{"cross", SFVec3dCross, 0},
 	{"divide", SFVec3dDivide, 0},
 	{"dot", SFVec3dDot, 0},
-	{MF_LENGTH_FIELD, SFVec3dLength, 0},
+	{"length", SFVec3dLength, 0},
 	{"multiply", SFVec3dMultiply, 0},
 	{"negate", SFVec3dNegate, 0},
 	{"normalize", SFVec3dNormalize, 0},
@@ -908,7 +908,7 @@ void printJSNodeType (JSContext *context, JSObject *myobj) {
 	i=0;
 	
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("printJSNodeType, obj pointer is %u\n",myobj);
+	printf ("printJSNodeType, obj pointer is %p\n",myobj);
 	#endif
 
 	/* ok - this is an object, lets find out what class it is */
@@ -988,16 +988,27 @@ JSBool _standardMFAssign(JSContext *cx,
 	int32 len;
 	char *_id_str;
         SFImageNative *ptr;
+#if JS_VERSION >= 185
+	JSString *_id_jsstr;
+#endif
 
 	if (!JS_InstanceOf(cx, obj, myClass, argv)) {
 		printf("JS_InstanceOf failed for fieldType %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
+#if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+#else
+	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr)) {
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+	} else {
+#endif
 		printf("JS_ConvertArguments failed in %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
+
+
 	if (!JS_InstanceOf(cx, _from_obj, myClass, argv)) {
 		printf("JS_InstanceOf failed for fieldType %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
@@ -1040,7 +1051,11 @@ JSBool _standardMFAssign(JSContext *cx,
 JSBool
 _standardMFGetProperty(JSContext *cx,
 		JSObject *obj,
-		jsid id,
+#if JS_VERSION < 185
+		jsval id,
+#else
+		jsid iid,
+#endif
 		jsval *vp,
 		char *makeNewElement,
 		int type) {
@@ -1051,6 +1066,13 @@ _standardMFGetProperty(JSContext *cx,
 	/*  in case we need to run makeNewElement*/
 	int newElemenLen;
 	jsval newEle;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf( "JS_IdToValue failed\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("_standardMFGetProperty starting for type %d\n",type);
@@ -1089,10 +1111,12 @@ _standardMFGetProperty(JSContext *cx,
 				return JS_FALSE;
 			}
 
-			*vp = OBJECT_TO_JSVAL(newEle);
+/* error? newEle is already a jsval
+			*vp = OBJECT_TO_JSVAL(newEle); */
+			*vp = newEle;
 
 			#ifdef JSVRMLCLASSESVERBOSE
-			printf ("defining element %d now... is %d %x\n",_index,*vp,*vp);
+			printf ("defining element %d now... is %d %#x\n",_index,(int)*vp,(unsigned int)*vp);
 			#endif
 
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
@@ -1135,7 +1159,7 @@ _standardMFGetProperty(JSContext *cx,
 
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("_standardMFGetProperty finishing; element is %u\n",*vp);
+	printf ("_standardMFGetProperty finishing; element is %u\n",(unsigned int)*vp);
 	#endif
 
 	return JS_TRUE;
@@ -1161,7 +1185,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	len = JSVAL_TO_INT(_v);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("doMFToString, obj%u len %d\n",obj, len);
+	printf ("doMFToString, obj %p len %d\n",obj, len);
 	printJSNodeType (cx,obj);
 	#endif
 
@@ -1169,7 +1193,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		_str = JS_NewStringCopyZ(cx, _empty_array);
 		*rval = STRING_TO_JSVAL(_str);
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("doMFToString, len is zero, returning JS_TRUE, and %d\n",*rval);
+		printf ("doMFToString, len is zero, returning JS_TRUE, and %d\n",(int)*rval);
 		#endif
 		return JS_TRUE;
 	}
@@ -1215,7 +1239,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		}
 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("doMFToString, element %d is %p, string %s\n",i,_v,_tmp_valStr);
+		printf ("doMFToString, element %d is %#x, string %s\n",i,(unsigned int)_v,_tmp_valStr);
 	
 		#endif
 		tmp_valStr_len = strlen(_tmp_valStr) + 1;
@@ -1292,16 +1316,29 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 }
 
 JSBool
-doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
+#if JS_VERSION < 185
+doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
+#else
+doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
+#endif
 	JSString *str;
 	jsval v;
 	jsval myv;
 	char *p;
 	size_t p_len = 0;
-	int len = 0, ind = JSVAL_TO_INT(id);
+	int len, ind;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("\tdoMFAddProperty:%s JS_IdToValue failed\n",name);
+		return JS_FALSE;
+	}
+#endif
+	len = 0;
+	ind = JSVAL_TO_INT(id);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,id);
+		printf("\tdoMFAddProperty:%s id %d (%d) NodeType: ",name,(int)id,ind);
 		printJSNodeType(cx,obj);
 	#endif
 
@@ -1337,12 +1374,12 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,id);
+		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,(int)id);
 		printJSNodeType(cx,obj);
-		printf("\tdoMFAddProperty:%s id %d string %s ",name,id,p);
+		printf("\tdoMFAddProperty:%s id %d string %s ",name,(int)id,p);
 	#endif
 
-	if (!JSVAL_IS_INT(id)){
+	if (!JSVAL_IS_INT(id)){ 
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
 		return JS_FALSE;
 	}
@@ -1376,8 +1413,11 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name) {
 
 
 JSBool
-doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
-{
+#if JS_VERSION < 185
+doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type) {
+#else
+doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
+#endif
 	JSString *_sstr;
 	jsval myv;
 	int i;
@@ -1390,11 +1430,18 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 	jsval pf;
 	jsval nf;
 	char * _cc;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("doMFSetProperty, JS_IdToValue failed.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	JSString *_str;
 	char * _c;
-		printf ("doMFSetProperty, for object %u, vp %u\n", obj,*vp);
+		printf ("doMFSetProperty, for object %p, vp %u\n", obj,(unsigned int)*vp);
 		_str = JS_ValueToString(cx, id);
 #if JS_VERSION < 185
 		_c = JS_GetStringBytes(_str);
@@ -1404,7 +1451,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 		printf ("id is %s\n",_c);
 
 		_sstr = JS_ValueToString(cx, *vp);
-		printf ("looking up value for %d %x object %p\n",*vp,*vp,obj);
+		printf ("looking up value for %d %#x object %p\n",(int)*vp,(unsigned int)*vp,obj);
 #if JS_VERSION < 185
 			_cc = JS_GetStringBytes(_sstr);
 #else
@@ -1468,7 +1515,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("setting changed flag on %d\n",obj);
+	printf ("setting changed flag on %p\n",obj);
 	#endif     
 
 	/* is this an MF ECMA type that uses the MF_ECMA_has_changed flag? */
@@ -1506,7 +1553,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 		}
 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("object %u old length %d, possibly new length is going to be %d\n",obj,JSVAL_TO_INT(myv), JSVAL_TO_INT(id)+1);
+		printf ("object %p old length %d, possibly new length is going to be %d\n",obj,JSVAL_TO_INT(myv), JSVAL_TO_INT(id)+1);
 		#endif
 
 		if (JSVAL_TO_INT(myv) < (JSVAL_TO_INT(id)+1)) {
@@ -1533,15 +1580,15 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 	par = JS_GetParent(cx, me);
 	while (par != NULL) {
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("for obj %u: ",me);
+		printf ("for obj %p: ",me);
 			printJSNodeType(cx,me);
-		printf ("... parent %u\n",par);
+		printf ("... parent %p\n",par);
 			printJSNodeType(cx,par);
 		#endif
 
 		if (JS_InstanceOf (cx, par, &SFNodeClass, NULL)) {
 			#ifdef JSVRMLCLASSESVERBOSE
-			printf (" the parent IS AN SFNODE - it is %u\n",par);
+			printf (" the parent IS AN SFNODE - it is %p\n",par);
 			#endif
 
 
@@ -1554,9 +1601,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type)
 
 			#ifdef JSVRMLCLASSESVERBOSE
 			#if JS_VERSION < 185
-			printf ("parentField is %u \"%s\"\n", pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
+			printf ("parentField is %u \"%s\"\n", (unsigned int)pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
 			#else
-			printf ("parentField is %u \"%s\"\n", pf, JS_EncodeString(cx,JSVAL_TO_STRING(pf)));
+			printf ("parentField is %u \"%s\"\n", (unsigned int)pf, JS_EncodeString(cx,JSVAL_TO_STRING(pf)));
 			#endif
 			#endif
 
@@ -1622,7 +1669,11 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 
 
 JSBool
+#if JS_VERSION < 185
+globalResolve(JSContext *cx, JSObject *obj, jsval id)
+#else
 globalResolve(JSContext *cx, JSObject *obj, jsid id)
+#endif
 {
 	UNUSED(cx);
 	UNUSED(obj);
@@ -1667,13 +1718,13 @@ int findNameInECMATable(JSContext *context, char *toFind) {
 	int i;
 	ppjsVRMLClasses p = (ppjsVRMLClasses)gglobal()->jsVRMLClasses.prv;
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("findNameInECMATable, looking for %s context %u\n",toFind,context);
+	printf ("findNameInECMATable, looking for %s context %p\n",toFind,context);
 	#endif
 	
 	i=0;
 	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s cx %u==%u\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
+		printf ("	%d: %s==%s cx %p==%p\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
 		#endif
 
 		
@@ -1705,7 +1756,7 @@ void resetNameInECMATable(JSContext *context, char *toFind) {
 	i=0;
 	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s cx %u==%u\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
+		printf ("	%d: %s==%s cx %p==%p\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
 		#endif
 
 		
@@ -1731,7 +1782,7 @@ void setInECMATable(JSContext *context, char *toFind) {
 	i=0;
 	while (i < p->maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
+		printf ("	%d: %s==%s cx %p==%p\n",i,p->ECMAValues[i].name,toFind,p->ECMAValues[i].context,context);
 		#endif
 
 		
@@ -1747,7 +1798,7 @@ void setInECMATable(JSContext *context, char *toFind) {
 	
 	/* did not find this one, add it */
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("setInECMATable - new entry at %d for %s\n",maxECMAVal, toFind);
+	printf ("setInECMATable - new entry at %d for %s\n",p->maxECMAVal, toFind);
 	#endif
 
 	p->maxECMAVal ++;
@@ -1755,6 +1806,7 @@ void setInECMATable(JSContext *context, char *toFind) {
 		ConsoleMessage ("problem in setInECMATable for scripting\n");
 		p->maxECMAVal = ECMAValueTableSize - 10;
 	}
+/* Dangerous code, taking a string and casting it directly -- why does this happen? */
 	p->ECMAValues[p->maxECMAVal-1].JS_address = (jsval) toFind;
 	p->ECMAValues[p->maxECMAVal-1].valueChanged = TRUE;
 	p->ECMAValues[p->maxECMAVal-1].name = STRDUP(toFind);
@@ -1763,9 +1815,9 @@ void setInECMATable(JSContext *context, char *toFind) {
 
 JSBool
 #if JS_VERSION < 185
-setECMANative(JSContext *context, JSObject *obj, jsid id, jsval *vp)
+setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 #else
-setECMANative(JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp)
+setECMANative(JSContext *context, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
 #endif
 {
 	JSString *_idStr;
@@ -1775,6 +1827,13 @@ setECMANative(JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *
 
 	char *_vp_c, *_new_vp_c;
 	size_t len = 0;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(context,iid,&id)) {
+		printf( "JS_IdToValue failed\n");
+		return JS_FALSE;
+	}
+#endif
 
 	_idStr = JS_ValueToString(context, id);
 #if JS_VERSION < 185
@@ -1833,12 +1892,23 @@ setECMANative(JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *
 
 /* used mostly for debugging */
 JSBool
-getAssignProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+#if JS_VERSION < 185
+getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+#else
+getAssignProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
+#endif
 {
-
 	#ifdef JSVRMLCLASSESVERBOSE
 	JSString *_idStr, *_vpStr;
 	char *_id_c, *_vp_c;
+
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("getAssignProperty: JS_IdToValue failed -- returning JS_TRUE anyways\n");
+	}
+#endif
+
 		_idStr = JS_ValueToString(cx, id);
 		_vpStr = JS_ValueToString(cx, *vp);
 #if JS_VERSION < 185
@@ -1865,9 +1935,9 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 /* a kind of hack to replace the use of JSPROP_ASSIGNHACK */
 JSBool
 #if JS_VERSION < 185
-setAssignProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
+setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 #else
-setAssignProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp)
+setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *vp)
 #endif
 {
 	JSObject *_o;
@@ -1879,6 +1949,13 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *v
 	jsval newVal, initVal, _argv[_argc];
 #endif
 	char *_id_c;
+#if JS_VERSION >= 185
+	jsval id;
+	if (!JS_IdToValue(cx,iid,&id)) {
+		printf("setAssignProperty: JS_IdToValue failed.\n");
+		return JS_FALSE;
+	}
+#endif
 
 	if (JSVAL_IS_STRING(id)) {
 		_str = JSVAL_TO_STRING(id);
@@ -1896,8 +1973,8 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *v
 			return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("setAssignProperty: obj = %p, id = \"%s\", from = %ld, to = %ld\n",
-				   obj, _id_c, newVal, initVal);
+			printf("setAssignProperty: obj = %p, id = \"%s\", from = %d, to = %d\n",
+				   obj, _id_c, (int)newVal, (int)initVal);
 
                 if (JSVAL_IS_OBJECT(initVal)) printf ("initVal is an OBJECT\n");
                 if (JSVAL_IS_STRING(initVal)) printf ("initVal is an STRING\n");
@@ -1922,9 +1999,9 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *v
 		printf ("initVal is %s\n",JS_GetStringBytes(JS_ValueToString(cx,initVal)));
 		printf ("newVal is %s\n",JS_GetStringBytes(JS_ValueToString(cx,newVal)));
 #else
-		printf ("id is %s\n",JS_EncodeString(cx,(JS_ValueToString(cx,id)));
-		printf ("initVal is %s\n",JS_EncodeString(cx,(JS_ValueToString(cx,initVal)));
-		printf ("newVal is %s\n",JS_EncodeString(cx,(JS_ValueToString(cx,newVal)));
+		printf ("id is %s\n",JS_EncodeString(cx,JS_ValueToString(cx,id)));
+		printf ("initVal is %s\n",JS_EncodeString(cx,JS_ValueToString(cx,initVal)));
+		printf ("newVal is %s\n",JS_EncodeString(cx,JS_ValueToString(cx,newVal)));
 #endif
 		#endif
 

@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: jsVRMLBrowser.h,v 1.8 2011/06/04 19:05:42 crc_canada Exp $
+  $Id: jsVRMLBrowser.h,v 1.9 2011/07/07 20:51:27 istakenv Exp $
 
 */
 
@@ -41,6 +41,7 @@ extern double BrowserFPS;                               /* defined in VRMLC.pm *
 JSBool VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow);
 
 
+#if JS_VERSION < 185
 JSBool VrmlBrowserGetName(JSContext *cx,
                           JSObject *obj,
                           uintN argc,
@@ -136,6 +137,23 @@ JSBool VrmlBrowserDeleteRoute(JSContext *cx,
                               jsval *argv,
                               jsval *rval);
 
+#else
+JSBool VrmlBrowserGetName(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlBrowserGetVersion(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlBrowserGetCurrentSpeed(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlBrowserGetCurrentFrameRate(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserGetWorldURL(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserReplaceWorld(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserLoadURL(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserSetDescription(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserCreateVrmlFromString(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserCreateVrmlFromURL(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserAddRoute(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserPrint(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserPrintln(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserDeleteRoute(JSContext *cx, uintN argc, jsval *vp); 
+
+#endif
 
 #ifdef OLDCODE
 OLDCODEJSBool VrmlBrowserGetMidiDeviceList(JSContext *cx,
@@ -150,5 +168,7 @@ OLDCODE                                    uintN argc,
 OLDCODE                                    jsval *argv,
 OLDCODE                                    jsval *rval);
 #endif // OLDCODE
+
+
 
 #endif /* __FREEWRL_JS_VRML_BROWSER_H__ */

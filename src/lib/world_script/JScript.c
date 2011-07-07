@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.39 2011/06/10 13:31:42 crc_canada Exp $
+$Id: JScript.c,v 1.40 2011/07/07 20:51:27 istakenv Exp $
 
 Javascript C language binding.
 
@@ -65,7 +65,7 @@ Javascript C language binding.
 //static JSRuntime *runtime = NULL;
 static JSClass staticGlobalClass = {
 	"global",
-	0,
+	JSCLASS_GLOBAL_FLAGS,
 	JS_PropertyStub,
 	JS_PropertyStub,
 	JS_PropertyStub,
@@ -381,8 +381,11 @@ void JSCreateScriptContext(int num) {
 	printf("\tJS context created,\n");
 	#endif
 
-
+	#if JS_VERSION < 181
 	_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
+	#else
+	_globalObj = JS_NewCompartmentAndGlobalObject(_context, &p->globalClass, NULL);
+	#endif
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
 	#ifdef JAVASCRIPTVERBOSE 
@@ -405,7 +408,7 @@ void JSCreateScriptContext(int num) {
 	JS_SetErrorReporter(_context, errorReporter);
 
 	#ifdef JAVASCRIPTVERBOSE 
-	printf("\tJS errror reporter set,\n");
+	printf("\tJS error reporter set,\n");
 	#endif
 
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
@@ -459,7 +462,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	_globalObj = ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE
-		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
+		printf("ActualrunScript script called at %s:%d  num: %d cx %p \"%s\", \n", 
 			fn, line, num, _context, script);
 	#endif
 	CLEANUP_JAVASCRIPT(_context)
@@ -486,7 +489,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 	int len;
 
 	#ifdef JAVASCRIPTVERBOSE
-		printf("jsrrunScript script cx %x \"%s\", \n",
+		printf("jsrrunScript script cx %p \"%s\", \n",
 			   _context, script);
 	#endif
 
@@ -533,7 +536,7 @@ int SFNodeNativeAssign(void *top, void *fromp)
 		to->X3DString = STRDUP(from->X3DString);
 
 		#ifdef JAVASCRIPTVERBOSE
-		printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
+		printf ("SFNodeNativeAssign, copied %p to %p, handle %p, string %s\n", from, to, to->handle, to->X3DString);
 		#endif
 	} else {
 		to->handle = 0;
@@ -1174,7 +1177,7 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 	_globalObj = ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE 
-		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
+		printf("addGlobalAssignProperty: cx: %p obj %p name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);
 	#endif
 

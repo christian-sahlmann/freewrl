@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: npunix.c,v 1.12 2011/04/07 13:07:48 couannette Exp $
+   $Id: npunix.c,v 1.13 2011/07/07 20:51:27 istakenv Exp $
 
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -68,7 +68,7 @@
 #include <system.h>
 
 #define XP_UNIX 1
-#define OJI 1
+/* define OJI 1  -- auto-defined in configure.ac when JRIEnv type exists */
 
 #include <npapi.h>
 #if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
@@ -1012,7 +1012,8 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
                 pluginFuncs->javaClass = NULL;
 #endif
 
-                err = NPP_Initialize();
+/*                err = NPP_Initialize(); 
+--note, this never did anything, so skipping the call (fixes compile warning) */
         }
 
         return err;
@@ -1029,6 +1030,7 @@ NPError
 NP_Shutdown(void)
 {
         PLUGINDEBUGSTR("NP_Shutdown");
-        NPP_Shutdown();
+/*        NPP_Shutdown();
+--note, this never did anything, so skipping the call (fixes compile warning) */
         return NPERR_NO_ERROR;
 }

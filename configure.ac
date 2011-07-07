@@ -548,10 +548,12 @@ else
                   AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
                   MAYBE_PLUGIN=plugin
                   AC_MSG_NOTICE([Installing plugin to $plugindir])
+
+		  # Check for JRIEnv type to see if OJI can be defined
+		  AC_CHECK_TYPE(JRIEnv,[AC_DEFINE(OJI,1,[Use Original Java Interface within plugin])],,$MOZILLA_PLUGIN_CFLAGS)
               fi
               ;;
   esac
-
 
 fi
 AC_SUBST(MAYBE_PLUGIN)

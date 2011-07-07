@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.166 2011/06/29 20:19:00 crc_canada Exp $
+$Id: headers.h,v 1.167 2011/07/07 20:51:27 istakenv Exp $
 
 Global includes.
 
@@ -331,8 +331,8 @@ unsigned int setField_FromEAI (char *ptr);
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 
-/* Java Class invocation */
-#undef JSVRMLCLASSESVERBOSE
+/* Java Class invocation 
+undef JSVRMLCLASSESVERBOSE */
 
 /* child node parsing */
 #undef CHILDVERBOSE
@@ -340,8 +340,8 @@ unsigned int setField_FromEAI (char *ptr);
 /* routing */
 #undef CRVERBOSE
 
-/* Javascript */
-#undef JSVERBOSE
+/* Javascript 
+undef JSVERBOSE */
 
 /* sensitive events */
 #undef SEVERBOSE

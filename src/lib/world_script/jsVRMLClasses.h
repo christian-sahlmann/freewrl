@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.21 2011/06/28 17:36:29 crc_canada Exp $
+$Id: jsVRMLClasses.h,v 1.22 2011/07/07 20:51:27 istakenv Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -163,8 +163,13 @@ of garbage collection */
 void JS_MY_Finalize(JSContext *cx, JSObject *obj);
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval); 
+#if JS_VERSION < 185
+JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
+JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type); 
+#else
 JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *name); 
 JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, int type); 
+#endif
 JSBool getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow); 
 JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 
@@ -174,7 +179,11 @@ JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 JSBool
 globalResolve(JSContext *cx,
 			  JSObject *obj,
+#if JS_VERSION < 185
+			  jsval id);
+#else
 			  jsid id);
+#endif
 
 JSBool
 loadVrmlClasses(JSContext *context,
@@ -184,8 +193,10 @@ loadVrmlClasses(JSContext *context,
 JSBool
 setECMANative(JSContext *cx,
 			  JSObject *obj,
+#if JS_VERSION < 185
+			  jsval id,
+#else
 			  jsid id,
-#if JS_VERSION >= 185
 			  JSBool strict,
 #endif
 			  jsval *vp);
@@ -194,20 +205,27 @@ setECMANative(JSContext *cx,
 JSBool
 getAssignProperty(JSContext *context,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 setAssignProperty(JSContext *context,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
-#if JS_VERSION >= 185
 				  JSBool strict,
 #endif
 				  jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
@@ -222,13 +240,23 @@ SFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 JSBool
 SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#else
+JSBool SFColorGetHSV(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorSetHSV(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
 
-JSBool
-SFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+#if JS_VERSION < 185
+JSBool SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+#else
+JSBool SFColorGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
-JSBool
-SFColorSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
-
+#if JS_VERSION < 185
 JSBool
 SFColorRGBAGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
@@ -243,13 +271,23 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 
 JSBool
 SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#else
+JSBool SFColorRGBAGetHSV(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorRGBASetHSV(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorRGBAToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorRGBAAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFColorRGBAConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
 
-JSBool
-SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+#if JS_VERSION < 185
+JSBool SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+#else
+JSBool SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
-JSBool
-SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
-
+#if JS_VERSION < 185
 JSBool
 SFImageToString(JSContext *cx,
 				JSObject *obj,
@@ -271,21 +309,36 @@ SFImageConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool SFImageToString(JSContext *cx, uintN argc,jsval *vp);
+JSBool SFImageAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFImageConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
 
 JSBool
 SFImageGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 SFImageSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+				   JSBool strict,
+#endif
 				   jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 SFNodeToString(JSContext *cx,
 			   JSObject *obj,
@@ -305,23 +358,37 @@ SFNodeConstr(JSContext *cx,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
+#else
+JSBool SFNodeToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFNodeAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFNodeConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
 
 void SFNodeFinalize(JSContext *cx, JSObject *obj);
 
 JSBool
 SFNodeGetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 SFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+				  JSBool strict,
+#endif
 				  jsval *vp);
 
 
-
+#if JS_VERSION < 185
 JSBool
 SFRotationGetAxis(JSContext *cx,
 				  JSObject *obj,
@@ -385,20 +452,42 @@ SFRotationConstr(JSContext *cx,
 				 jsval *argv,
 				 jsval *rval);
 
+#else
+JSBool SFRotationGetAxis(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationInverse(JSContext *cx, uintN argc, jsval *vp); /* not implemented */
+JSBool SFRotationMultiply(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationMultVec(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationSetAxis(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationSlerp(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFRotationConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
+
+
 JSBool
 SFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
+#if JS_VERSION < 185
+					  jsval id,
+#else
 					  jsid id,
+#endif
 					  jsval *vp);
 
 JSBool
 SFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
+#if JS_VERSION < 185
+					  jsval id,
+#else
 					  jsid id,
+					  JSBool strict,
+#endif
 					  jsval *vp);
 
 
-
+#if JS_VERSION < 185
 JSBool
 SFVec2fAdd(JSContext *cx,
 		   JSObject *obj,
@@ -476,21 +565,43 @@ SFVec2fConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool SFVec2fAdd(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fDivide(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fDot(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fLength(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fMultiply(JSContext *cx, uintN argc, jsval *vp);
+/* JSBool SFVec2fNegate(JSContext *cx, uintN argc, jsval *vp); */
+JSBool SFVec2fNormalize(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fSubtract(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec2fConstr(JSContext *cx, uintN argc, jsval *vp);
+#endif
 
 JSBool
 SFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 SFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+				   JSBool strict,
+#endif
 				   jsval *vp);
 
 
-
+#if JS_VERSION < 185
 JSBool SFVec3fAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fCross(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fDivide(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -503,10 +614,26 @@ JSBool SFVec3fSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool SFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+#else
+JSBool SFVec3fAdd(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fCross(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fDivide(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fDot(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fLength(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fMultiply(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fNegate(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fNormalize(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fSubtract(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3fConstr(JSContext *cx, uintN argc, jsval *vp);
 JSBool SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
-JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
+JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
-
+#if JS_VERSION < 185
 JSBool SFVec3dAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dCross(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dDivide(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -519,21 +646,51 @@ JSBool SFVec3dSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool SFVec3dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec3dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+#else
+JSBool SFVec3dAdd(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dCross(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dDivide(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dDot(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dLength(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dMultiply(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dNegate(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dNormalize(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dSubtract(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec3dConstr(JSContext *cx, uintN argc, jsval *vp);
 JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
-JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
+JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
 
-JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
-JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
+#if JS_VERSION < 185
 JSBool SFVec4fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
-JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp);
+JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 JSBool SFVec4dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 JSBool SFVec4dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+#else
+JSBool SFVec4fToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4fAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4fConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec4fSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+JSBool SFVec4dToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4dAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4dConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp); 
+JSBool SFVec4dSetProperty(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
+#if JS_VERSION < 185
 JSBool
 MFColorToString(JSContext *cx,
 			   JSObject *obj,
@@ -554,27 +711,47 @@ MFColorConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool MFColorToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFColorAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFColorConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFColorConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFColorAddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFColorGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFColorSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+				   JSBool strict,
+#endif
 				   jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 MFFloatToString(JSContext *cx,
 			   JSObject *obj,
@@ -595,27 +772,47 @@ MFFloatConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool MFFloatToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFFloatAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFFloatConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFFloatConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFFloatAddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFFloatGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFFloatSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+                                   JSBool strict,
+#endif
 				   jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 MFInt32ToString(JSContext *cx,
 			   JSObject *obj,
@@ -636,26 +833,46 @@ MFInt32Constr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool MFInt32ToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFInt32Assign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFInt32Constr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFInt32ConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFInt32AddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFInt32GetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFInt32SetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
 				   jsid id,
+#else
+				   jsid id,
+                                   JSBool strict,
+#endif
 				   jsval *vp);
 
 
+#if JS_VERSION < 185
 JSBool
 MFNodeToString(JSContext *cx,
 			   JSObject *obj,
@@ -676,27 +893,47 @@ MFNodeConstr(JSContext *cx,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
+#else
+JSBool MFNodeToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFNodeAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFNodeConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFNodeConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFNodeAddProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 MFNodeGetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 MFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+                                  JSBool strict,
+#endif
 				  jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 MFRotationToString(JSContext *cx,
 				   JSObject *obj,
@@ -717,27 +954,46 @@ MFRotationConstr(JSContext *cx,
 				 uintN argc,
 				 jsval *argv,
 				 jsval *rval);
+#else
+JSBool MFRotationToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFRotationAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFRotationConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFRotationConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
+#if JS_VERSION < 185
+					  jsval id,
+#else
 					  jsid id,
+#endif
 					  jsval *vp);
 
 JSBool
 MFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
+#if JS_VERSION < 185
+					  jsval id,
+#else
 					  jsid id,
+                                          JSBool strict,
+#endif
 					  jsval *vp);
 
 JSBool
 MFRotationAddProperty(JSContext *cx,
 					  JSObject *obj,
+#if JS_VERSION < 185
+					  jsval id,
+#else
 					  jsid id,
+#endif
 					  jsval *vp);
 
 
-
+#if JS_VERSION < 185
 JSBool
 MFStringToString(JSContext *cx,
 				 JSObject *obj,
@@ -758,33 +1014,58 @@ MFStringConstr(JSContext *cx,
 			   uintN argc,
 			   jsval *argv,
 			   jsval *rval);
+#else
+JSBool MFStringToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFStringAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFStringConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFStringConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFStringGetProperty(JSContext *cx,
 					JSObject *obj,
+#if JS_VERSION < 185
+					jsval id,
+#else
 					jsid id,
+#endif
 					jsval *vp);
 
 JSBool
 MFStringSetProperty(JSContext *cx,
 					JSObject *obj,
+#if JS_VERSION < 185
+					jsval id,
+#else
 					jsid id,
+                                        JSBool strict,
+#endif
 					jsval *vp);
 
 
 JSBool
 MFStringAddProperty(JSContext *cx,
 					JSObject *obj,
+#if JS_VERSION < 185
+					jsval id,
+#else
 					jsid id,
+#endif
 					jsval *vp);
 
-JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) ;
 JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj) ;
+#if JS_VERSION < 185
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id) ;
+#else
+JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp) ;
 JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsid id) ;
+#endif
 JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, JSType type, jsval *vp) ;
        
 
 
+#if JS_VERSION < 185
 JSBool
 MFTimeToString(JSContext *cx,
 			   JSObject *obj,
@@ -805,27 +1086,47 @@ MFTimeConstr(JSContext *cx,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
+#else
+JSBool MFTimeToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFTimeAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFTimeConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFTimeConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFTimeAddProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 MFTimeGetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+#endif
 				  jsval *vp);
 
 JSBool
 MFTimeSetProperty(JSContext *cx,
 				  JSObject *obj,
+#if JS_VERSION < 185
+				  jsval id,
+#else
 				  jsid id,
+                                  JSBool strict,
+#endif
 				  jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 MFVec2fToString(JSContext *cx,
 				JSObject *obj,
@@ -846,27 +1147,47 @@ MFVec2fConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool MFVec2fToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec2fAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec2fConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec2fConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFVec2fAddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+                                   JSBool strict,
+#endif
 				   jsval *vp);
 
 
 
+#if JS_VERSION < 185
 JSBool
 MFVec3fToString(JSContext *cx,
 				JSObject *obj,
@@ -887,25 +1208,45 @@ MFVec3fConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool MFVec3fToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec3fAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec3fConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool MFVec3fConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 MFVec3fAddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFVec3fGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 MFVec3fSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+                                   JSBool strict,
+#endif
 				   jsval *vp);
 
+#if JS_VERSION < 185
 JSBool
 VrmlMatrixToString(JSContext *cx,
 				JSObject *obj,
@@ -936,27 +1277,58 @@ VrmlMatrixConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+#else
+JSBool VrmlMatrixToString(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixAssign(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixsetTransform(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixgetTransform(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixinverse(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixtranspose(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixmultLeft(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixmultRight(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixmultVecMatrix(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixmultMatrixVec(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixConstr(JSContext *cx, uintN argc, jsval *vp);
+JSBool VrmlMatrixConstrInternals(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+#endif
 
 JSBool
 VrmlMatrixAddProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 VrmlMatrixGetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+#endif
 				   jsval *vp);
 
 JSBool
 VrmlMatrixSetProperty(JSContext *cx,
 				   JSObject *obj,
+#if JS_VERSION < 185
+				   jsval id,
+#else
 				   jsid id,
+				   JSBool strict,
+#endif
 				   jsval *vp);
 
 JSBool _standardMFAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval, JSClass *myClass, int type);
+#if JS_VERSION < 185
+JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *makeNewElement, int type);
+#else
 JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp, char *makeNewElement, int type);
+#endif
 void printJSNodeType (JSContext *context, JSObject *myobj);
 
 extern JSClass SFColorClass;
@@ -1016,19 +1388,20 @@ extern JSFunctionSpec (MFVec3fFunctions)[];
 extern JSClass VrmlMatrixClass;
 extern JSFunctionSpec (VrmlMatrixFunctions)[];
 
-JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsid id, jsval *vp);
 #if JS_VERSION < 185
-JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
-JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 #else
+JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsid id, jsval *vp);
 JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
 JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
