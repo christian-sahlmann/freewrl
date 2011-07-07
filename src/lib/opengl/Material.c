@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.26 2011/06/30 15:13:21 crc_canada Exp $
+$Id: Material.c,v 1.27 2011/07/07 18:24:54 dug9 Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -221,7 +221,7 @@ int verify_scale(GLfloat *params) {
 	return TRUE;
 }
 
-#include "Component_Shape.h"
+#include "../scenegraph/Component_Shape.h"
 
 /* for OpenGL ES, we mimic the old glColor stuff from fixed functionality */
 #ifdef GL_ES_VERSION_2_0

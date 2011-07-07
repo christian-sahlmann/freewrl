@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.72 2011/06/30 15:13:21 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.73 2011/07/07 18:24:54 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -2275,9 +2275,9 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	
 	/* not initialized yet - wait for next pass */
 
-#ifdef SHADERS_2011
+//#if defined(SHADERS_2011) || defined(_MSC_VER)
     if (!node->__points.p) return;
-#endif
+//#endif
 
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)

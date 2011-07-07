@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.44 2011/06/10 19:10:05 couannette Exp $
+  $Id: main.c,v 1.45 2011/07/07 18:25:34 dug9 Exp $
 
   FreeWRL main program.
 
@@ -33,6 +33,9 @@
 
 #include "main.h"
 #include "options.h"
+#ifdef _MSC_VER
+#include "getopt.h"
+#endif
 
 
 /**
