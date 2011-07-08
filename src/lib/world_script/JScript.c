@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.40 2011/07/07 20:51:27 istakenv Exp $
+$Id: JScript.c,v 1.41 2011/07/08 00:42:10 dug9 Exp $
 
 Javascript C language binding.
 
@@ -59,7 +59,10 @@ Javascript C language binding.
 //int JSMaxScript = 0;
 ///* Script name/type table */
 //struct CRjsnameStruct *JSparamnames = NULL;
-
+#ifndef JSCLASS_GLOBAL_FLAGS
+//spidermonkey < 1.7 doesn't have so define here
+#define JSCLASS_GLOBAL_FLAGS 0
+#endif
 //int jsnameindex = -1;
 //int MAXJSparamNames = 0;
 //static JSRuntime *runtime = NULL;

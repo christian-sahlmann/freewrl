@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.22 2011/07/07 20:51:27 istakenv Exp $
+$Id: jsVRMLClasses.h,v 1.23 2011/07/08 00:42:10 dug9 Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -51,7 +51,8 @@ of garbage collection */
 	/* printf ("removing root %u\n",b); \
         JS_RemoveRoot(a,&b);  */
 
-#define MF_LENGTH_FIELD "mf_len"
+//#define MF_LENGTH_FIELD "mf_len"
+#define MF_LENGTH_FIELD "length"
 
 #define DEFINE_LENGTH(this_context,this_object,this_length) \
 	{jsval zimbo = INT_TO_JSVAL(this_length);\
