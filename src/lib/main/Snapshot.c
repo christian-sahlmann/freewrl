@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.22 2011/07/09 01:06:01 dug9 Exp $
+$Id: Snapshot.c,v 1.23 2011/07/09 18:40:59 dug9 Exp $
 
 CProto ???
 
@@ -246,8 +246,14 @@ void Snapshot () {}
 //#include "Vfw.h" //.avi headers
 void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 {
+	//tested for bytesPerPixel == 3 and incoming alignment 1 only
+	//(outgoing/written is byte-aligned 4)
+	int rowlength, extra, alignedwidth, i,j;
+
 	BITMAPINFOHEADER bi; 
 	BITMAPFILEHEADER bmph;
+	char filler[3] = {'\0','\0','\0'};
+
 	FILE *fout = fopen("freewrl_snapshot.bmp","w+b");
 
 	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
@@ -257,16 +263,20 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	bi.biBitCount  = 8 * bytesPerPixel;
 	bi.biXPelsPerMeter = 0;
 	bi.biYPelsPerMeter = 0;
-	bi.biSizeImage = bytesPerPixel*bi.biHeight*bi.biWidth;
- // The width must be DWORD aligned unless the bitmap is RLE 
-    // compressed. 
-    //pi.biSizeImage = ((bi.biWidth * 8*bytesPerPixel +31) & ~31) /8
+	//bi.biSizeImage = bytesPerPixel*bi.biHeight*bi.biWidth;
+ // The width must be DWORD (4byte) aligned unless the bitmap is RLE 
+    // compressed.
+	rowlength = width*bytesPerPixel;
+	extra = 4 - (rowlength % 4);
+	if(extra == 4) extra = 0;
+	alignedwidth = rowlength + extra;
+    //bi.biSizeImage = ((bi.biWidth * 8*bytesPerPixel +31) & ~31) /8
     //                              * bi.biHeight; 
-
+	bi.biSizeImage = alignedwidth * height;
 	bi.biSize = sizeof(bi);
 	bi.biClrUsed = 0;
 	bi.biClrImportant = 0;
-
+	//printf("width=%d height=%d rowlengthmod4= %d extra=%d\n",width,height,rowlength%4,extra);
 
 	memcpy(&bmph.bfType,"BM",2);
 	bmph.bfReserved1 = 0;
@@ -276,19 +286,26 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	fwrite(&bmph,sizeof(BITMAPFILEHEADER),1,fout);
 	fwrite(&bi,sizeof(BITMAPINFO),1,fout);
 
-	if(true); //reverse)
+	if(true) //reverse colors
 	{
-		//reverse R and B
+		//swap GRB TO RGB
 		int i;
 		char c;
-		for(i=0;i<bi.biSizeImage;i+=3)
+		for(i=0;i<rowlength*height;i+=3)
 		{
 			c = buffer[i];
-			buffer[i] = buffer[i+2];
-			buffer[i+2] = c;
+			buffer[i] = buffer[i+1];
+			buffer[i+1] = c;
 		}
 	}
-	fwrite(buffer,bi.biSizeImage,1,fout);
+	//write by row - and do byte alignment 4 (assume incoming is byte aligned 1)
+	for(i=0;i<height;i++)
+	{
+		int j=i*rowlength;
+		fwrite(&buffer[j],rowlength,1,fout);
+		if(extra)
+			fwrite(filler,extra,1,fout);
+	}
 	fclose(fout);
 }
 void Snapshot () 
