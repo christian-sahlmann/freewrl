@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.36 2011/07/09 16:07:43 dug9 Exp $
+  $Id: fwWindow32.c,v 1.37 2011/07/09 16:41:43 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -741,7 +741,7 @@ int create_main_window0(int argc, char *argv[])
     if (!wc.hIcon) {
 		wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
 	}
-    wc.hCursor = hArrow;
+    wc.hCursor = NULL; //hArrow;
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
     wc.lpszMenuName = 0; /* "GenericAppMenu"; */
     wc.cbClsExtra = 0;
@@ -776,6 +776,8 @@ int create_main_window0(int argc, char *argv[])
     UpdateWindow(ghWnd); 
     printf("updated window - leaving createwindow\n");
 	//setWindowTitle00();
+	//ShowCursor(0); //turns off hArrow, hHand cursors
+	setArrowCursor();
     return TRUE;
 }
 
