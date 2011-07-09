@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.211 2011/07/09 17:11:30 dug9 Exp $
+  $Id: MainLoop.c,v 1.212 2011/07/09 17:19:41 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1869,7 +1869,8 @@ void fwl_doQuit()
     void scanMallocTableOnQuit(void);
     scanMallocTableOnQuit();
 #endif
-
+	/* tested on win32 console program July9,2011 seems OK */
+	iglobal_destructor(gglobal());
     exit(EXIT_SUCCESS);
 }
 
