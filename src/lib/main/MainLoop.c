@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.209 2011/07/09 01:06:01 dug9 Exp $
+  $Id: MainLoop.c,v 1.210 2011/07/09 14:50:40 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2203,7 +2203,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
                                         case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_GeoTouchSensor: ns = ((struct X3D_GeoTouchSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
                                         case NODE_CylinderSensor: ns = ((struct X3D_CylinderSensor *)p->SensorEvents[tmp].datanode)->description->strptr; break;
-				default: {printf ("sendDesc; unknown node type %d\n",p->SensorEvents[tmp].datanode->_nodeType);}
+                                        default: {printf ("sendDesc; unknown node type %d\n",p->SensorEvents[tmp].datanode->_nodeType);}
                                 }
                                 /* if there is no description, put the node type on the screen */
                                 if (ns == NULL) {ns = "(over sensitive)";}
