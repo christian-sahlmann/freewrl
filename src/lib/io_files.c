@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.39 2011/06/09 21:07:12 crc_canada Exp $
+  $Id: io_files.c,v 1.40 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -202,7 +202,7 @@ bool do_dir_exists(const char *dir)
 {
 	struct stat ss;
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 	/* TODO: Remove any trailing backslash from *dir */
 #endif
 
@@ -468,7 +468,7 @@ openned_file_t* load_file(const char *filename)
 
 
 #if defined(FW_USE_MMAP)
-#if !defined(_WIN32)
+#if !defined(_MSC_VER)
 	/* UNIX mmap */
 	of = load_file_mmap(filename);
 #else
@@ -483,7 +483,7 @@ openned_file_t* load_file(const char *filename)
 	return of;
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #ifdef FRONTEND_GETS_FILES
 /* this is for win32 LoadTextures.c > texture_load_from_file */
 char* download_file(filename)
@@ -513,7 +513,7 @@ char* download_file(filename)
 	return strdup(localFile);
 }
 #endif /* FRONTEND_GETS_FILES */
-#endif /* _WIN32 */
+#endif /* _MSC_VER */
 
 
 /**
@@ -605,7 +605,7 @@ int determineFileType(const char *buffer)
 int freewrlSystem (const char *sysline)
 {
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 	return system(sysline);
 #else
 #define MAXEXECPARAMS 10

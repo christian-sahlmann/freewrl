@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.44 2011/06/09 03:48:26 dug9 Exp $
+$Id: Viewer.h,v 1.45 2011/07/09 01:06:01 dug9 Exp $
 
 Viewer ???
 
@@ -75,7 +75,7 @@ void fwl_set_viewer_type(const int type);
 
 #define STRING_SIZE 256
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #define IN_FILE "C:/tmp/inpdev.txt"
 #else
 #define IN_FILE "/tmp/inpdev"

@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.31 2011/06/10 19:10:05 couannette Exp $
+  $Id: statusbarHud.c,v 1.32 2011/07/09 01:06:01 dug9 Exp $
 
 */
 
@@ -862,6 +862,13 @@ void statusbar_init(struct tstatusbar *t){
 }
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
+//called from common.c:
+void setMessageBar0(char *messagebar)
+{
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	strncpy(p->messagebar,messagebar,min(sizeof(messagebar),199));
+	p->messagebar[199] = '\0';
+}
 void fwMakeRasterFonts()
 {
 	int ichar;

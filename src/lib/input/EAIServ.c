@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.25 2011/06/09 21:07:12 crc_canada Exp $
+$Id: EAIServ.c,v 1.26 2011/07/09 01:06:01 dug9 Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -210,7 +210,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	int len;
 	const int on=1;
 	int flags;
-#ifdef WIN32
+#ifdef _MSC_VER
 #define socklen_t int
 	int err;
 #endif
@@ -226,7 +226,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
     if ((*EAIsockfd) < 0) {
 		/* step 1  - create socket*/
-#ifdef WIN32
+#ifdef _MSC_VER
 		static int wsaStarted;
 		if(wsaStarted == 0)
 			{
@@ -243,7 +243,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 #endif
 	        if (((*EAIsockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			printf ("EAIServer: socket error\n");
-#ifdef WIN32
+#ifdef _MSC_VER
 			err = WSAGetLastError();
 			printf("WSAGetLastError =%d\n",err);
 			if(err == WSANOTINITIALISED) printf(" WSA Not Initialized - not a successful WSAStartup\n");
@@ -255,7 +255,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 
 		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, &on, (socklen_t) sizeof(on));
 
-#ifdef WIN32
+#ifdef _MSC_VER
 		/* int ioctlsocket(SOCKET s,long cmd, u_long* argp);  http://msdn.microsoft.com/en-us/library/ms738573(VS.85).aspx */
 		{
 		unsigned long iMode = 1; /* nonzero is blocking */
@@ -311,7 +311,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	if (((*EAIsockfd) >=0) && ((*EAIlistenfd)<0)) {
 		/* step 4 - accept*/
 		len = (int) sizeof(p->cliaddr);
-#ifdef WIN32
+#ifdef _MSC_VER
 	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &p->cliaddr, (int *)&len)) < 0) {
 #else
 	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &p->cliaddr, (socklen_t *)&len)) < 0) {
@@ -507,7 +507,7 @@ void EAI_send_string(char *str, int lfd){
 	}
 
 	/* printf ("EAI_send_string, sending :%s:\n",str); */
-#ifdef WIN32
+#ifdef _MSC_VER
 	n = send(lfd, str, (unsigned int) strlen(str),0);
 #else
 	n = write (lfd, (const void *)str, strlen(str));
@@ -563,7 +563,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 
 		if (retval) {
-#ifdef WIN32
+#ifdef _MSC_VER
 			retval = recv((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE,0);
 #else
 			retval = (int) read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
@@ -575,7 +575,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 				/*perror("READ_EAISOCKET");*/
 				/* client disappeared*/
-#ifdef WIN32
+#ifdef _MSC_VER
 				closesocket((*EAIlistenfd));
 				WSACleanup();
 #else

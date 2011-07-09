@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.38 2011/06/30 15:13:21 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.39 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -30,7 +30,7 @@
 
 
 /* for front ends that do not have these X-11-based defines */
-#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
+#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
         #define _MIMIC_X11_SCREEN_BUTTONS
                 #define KeyPress        2

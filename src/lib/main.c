@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.62 2011/06/10 19:10:05 couannette Exp $
+  $Id: main.c,v 1.63 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -330,8 +330,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	/* Initialize parser */
 	fwl_initialize_parser();
 
-	/* Initialize common UI variables */
-	myMenuStatus[0] = '\0';
+	///* Initialize common UI variables */ - done in common.c
+	//myMenuStatus[0] = '\0';
 
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 	/* OK the display is now initialized,

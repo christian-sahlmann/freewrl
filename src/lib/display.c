@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.88 2011/06/30 15:13:21 crc_canada Exp $
+  $Id: display.c,v 1.89 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -163,13 +163,13 @@ int fv_display_initialize()
 	if (0 != d->screenHeight) d->win_height = d->screenHeight;
 	fv_setScreenDim(d->win_width,d->win_height); /* recompute screenRatio */
 
-	snprintf(window_title, sizeof(window_title), "FreeWRL");
+	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 
 	if (!fv_create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
 
-	setWindowTitle();
+	setWindowTitle0();
 
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	fv_bind_GLcontext();

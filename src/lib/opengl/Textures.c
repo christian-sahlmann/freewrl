@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.102 2011/06/07 22:45:27 dug9 Exp $
+  $Id: Textures.c,v 1.103 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -138,7 +138,7 @@ void Textures_init(struct tTextures *t){
 
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
-#elif defined(WIN32)
+#elif defined(_MSC_VER)
 
 #else
 #if !defined(_ANDROID)

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.29 2011/07/07 20:51:27 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.30 2011/07/09 01:06:01 dug9 Exp $
 
 ???
 
@@ -1943,7 +1943,7 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	JSObject *_o;
 	JSString *_str;
 	const uintN _argc = 2;
-#ifdef WIN32
+#ifdef _MSC_VER
 	jsval newVal, initVal, _argv[2]; /* win32 complains cant allocate array of size 0 */
 #else
 	jsval newVal, initVal, _argv[_argc];

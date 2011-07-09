@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.44 2011/06/09 17:51:03 dug9 Exp $
+$Id: CParseLexer.c,v 1.45 2011/07/09 01:06:01 dug9 Exp $
 
 ???
 
@@ -843,7 +843,7 @@ void lexer_skip(struct VRMLLexer* me)
   } \
  }
 /* win 32 complains not enough parameters for _general but what should go for int? && true / && 1*/
-#ifdef WIN32
+#ifdef _MSC_VER
 #define NUMBER_PROCESS_SIGN_INT \
  NUMBER_PROCESS_SIGN_GENERAL(&& TRUE)
 #else

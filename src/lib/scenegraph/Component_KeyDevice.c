@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_KeyDevice.c,v 1.24 2011/06/04 13:40:50 dug9 Exp $
+$Id: Component_KeyDevice.c,v 1.25 2011/07/09 01:06:01 dug9 Exp $
 
 X3D Key Device Component
 
@@ -67,7 +67,7 @@ int ctrlPressed = 0;
 #endif
 
 /* mapped from my Apple OSX keyboard, canadian setup, so here goes... */
-#if defined (WIN32)
+#if defined (_MSC_VER)
 /* values from WinUser.h */
 #define PHOME_KEY 0x24
 #define PPGDN_KEY 0x22
@@ -351,7 +351,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
 		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,p->keySinkCurMax);
 		#endif
 
-#ifdef WIN32
+#ifdef _MSC_VER
 		if (p->keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
 #else
 		if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
@@ -471,7 +471,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
 	actionKey = platform2web3dActionKey(key);
-	#if !defined(AQUA) && !defined(WIN32)
+	#if !defined(AQUA) && !defined(_MSC_VER)
 	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
 	   by itself */
 	if (actionKey == SFT_KEY) {

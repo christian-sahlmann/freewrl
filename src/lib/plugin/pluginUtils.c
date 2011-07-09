@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.50 2011/06/09 11:38:54 daytonavid Exp $
+  $Id: pluginUtils.c,v 1.51 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -58,7 +58,7 @@ static int checkIfX3DVRMLFile(char *fn);
  * people (or, to try to stop) from typing malicious code. */
 
 /* keep a list of children; if one hangs, fwl_doQuit will hang, also. */
-#ifndef WIN32
+#ifndef _MSC_VER
 #define MAXPROCESSLIST 128
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
@@ -92,7 +92,7 @@ void pluginUtils_init(struct tpluginUtils *t){
 
 
 void killErrantChildren(void) {
-#ifndef WIN32
+#ifndef _MSC_VER
 	int count;
 	
 	for (count = 0; count < MAXPROCESSLIST; count++) {
@@ -498,7 +498,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#if !defined(AQUA) && !defined(WIN32) && !defined(_ANDROID)
+#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID)
 
 void sendXwinToPlugin()
 {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.27 2011/05/25 19:26:34 davejoubert Exp $
+$Id: system.h,v 1.28 2011/07/09 01:06:01 dug9 Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -134,11 +134,6 @@ size_t __fw_strnlen(const char *s, size_t maxlen);
 char *__fw_strndup(const char *s, size_t n);
 #endif
 
-#if !defined(HAVE_USLEEP) && defined(WIN32)
-#include <windows.h>
-#define usleep(us) Sleep((us)/1000)
-#define sleep(us) Sleep(us)
-#endif
 
 #if defined(HAVE_SYS_WAIT_H)
 # include <sys/wait.h>
@@ -184,10 +179,6 @@ char *__fw_strndup(const char *s, size_t n);
 # include <time.h>
 #endif
 
-#if !defined(HAVE_GETTIMEOFDAY) && defined(WIN32)
-#define gettimeofday __fw_gettimeofday
-int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
-#endif
 
 #if HAVE_FCNTL_H
 # include <fcntl.h>
@@ -200,7 +191,7 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
 /**
  * Misc
  */
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 
 /* FIXME: those calls to bzero & bcopy shall be remove from libeai ;)... */
 
@@ -250,7 +241,20 @@ int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
    and errno will be set to ENOENT. 
 */
 
+#if !defined(HAVE_USLEEP)
+#include <windows.h>
+#define usleep(us) Sleep((us)/1000)
+#define sleep(us) Sleep(us)
 #endif
+
+#if !defined(HAVE_GETTIMEOFDAY) 
+#define gettimeofday __fw_gettimeofday
+int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
+
+#define snprintf _snprintf
+
+#endif /* _MSC_VER */
 
 
 #endif /* __LIBFREEWRL_SYSTEM_H__ */

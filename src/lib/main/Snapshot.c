@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.21 2011/06/02 19:50:43 dug9 Exp $
+$Id: Snapshot.c,v 1.22 2011/07/09 01:06:01 dug9 Exp $
 
 CProto ???
 
@@ -232,7 +232,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 	return buffer;
 }
 
-#if defined( WIN32) || defined (IPHONE)
+#if defined( _MSC_VER) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
 void fwl_toggleSnapshot(){}

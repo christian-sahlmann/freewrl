@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.208 2011/06/18 13:17:10 crc_canada Exp $
+  $Id: MainLoop.c,v 1.209 2011/07/09 01:06:01 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -397,7 +397,7 @@ static void stopDisplayThread()
 
 //static double waitsec;
 
-#if !defined(_WIN32)
+#if !defined(_MSC_VER)
 
 //static struct timeval mytime;
 
@@ -542,7 +542,7 @@ void fwl_RenderSceneUpdateScene() {
                         /* dont do the null... */
                         if (*p->keypress_string) {
                                 /* printf ("handling key %c\n",*p->keypress_string); */
-#if !defined( AQUA ) && !defined( WIN32 )  /*win32 - don't know whats it is suppsoed to do yet */
+#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
 
 				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
                                 fwl_do_keyPress(*p->keypress_string,KeyPress);
@@ -711,7 +711,8 @@ void fwl_RenderSceneUpdateScene() {
                 /* do we need to re-define cursor style?        */
                 /* do we need to send an isOver event?          */
                 if (p->CursorOverSensitive!= NULL) {
-		    SENSOR_CURSOR;
+					//SENSOR_CURSOR;
+					setSensorCursor();
 
                         /* is this a new node that we are now over?
                            don't change the node pointer if we are clicked down */
@@ -725,9 +726,11 @@ void fwl_RenderSceneUpdateScene() {
                 } else {
                         /* hold off on cursor change if dragging a sensor */
                         if (p->lastPressedOver!=NULL) {
-			    SENSOR_CURSOR;
+							//SENSOR_CURSOR;
+							setSensorCursor();
                         } else {
-			    ARROW_CURSOR;
+							//ARROW_CURSOR;
+							setArrowCursor();
                         }
 
                         /* were we over a sensitive node? */
@@ -739,10 +742,10 @@ void fwl_RenderSceneUpdateScene() {
                         }
                 }
 
-                if (ccurse != ocurse) {
-                        ocurse = ccurse;
-                        setCursor();
-                }
+                //if (ccurse != ocurse) {
+                //        ocurse = ccurse;
+                //        setCursor();
+                //}
         } /* (!NavigationMode && HaveSensitive) */
 
 
@@ -775,7 +778,7 @@ void fwl_RenderSceneUpdateScene() {
 }
 
 
-#if !defined( AQUA ) && !defined( WIN32 ) && !defined(_ANDROID)
+#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(_ANDROID)
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -1276,7 +1279,7 @@ void dump_scenegraph()
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
-#ifdef WIN32
+#ifdef _MSC_VER
 #define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP 3
@@ -1292,7 +1295,7 @@ void fwl_do_keyPress(const char kp, int type) {
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
-#ifdef WIN32
+#ifdef _MSC_VER
 			if(type == KEYPRESS) 
 #else
 			if(type == KEYDOWN) 
@@ -1322,7 +1325,7 @@ void fwl_do_keyPress(const char kp, int type) {
                                 case 's': {fwl_toggleSnapshot(); break;}
 								case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
                                 default: 
-#ifdef WIN32
+#ifdef _MSC_VER
 									break;
 #else
 									{handle_key(kp);}
@@ -1330,7 +1333,7 @@ void fwl_do_keyPress(const char kp, int type) {
         
                         }
                 } else {
-#ifdef WIN32
+#ifdef _MSC_VER
 					if(type == KEYDOWN)
 							{handle_key(kp);}  //keydown for fly
 					if(type == KEYUP)
@@ -1888,7 +1891,7 @@ void freewrlDie (const char *format) {
 }
 
 
-#if defined(AQUA) || defined(WIN32)
+#if defined(AQUA) || defined(_MSC_VER)
 
 //int ntouch =0;
 //int currentTouch = -1;

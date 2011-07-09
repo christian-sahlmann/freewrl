@@ -26,7 +26,10 @@ Variable use:
 #include "opengl/OpenGL_Utils.h"  //for rdr_caps
 #include "list.h" //for resources.h which is for root_res
 #include "resources.h" //for root_res
-
+#include <threads.h> //for threads
+#include "vrml_parser/structs.h" //for SFColor
+#include "world_script/JScript.h" //for jsval
+#include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
@@ -358,7 +361,9 @@ iOLDCODE	}Component_Networking;
 	struct tX3DProtoScript{
 		void *prv;
 	}X3DProtoScript;
-
+	struct tcommon{
+		void *prv;
+	}common;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
