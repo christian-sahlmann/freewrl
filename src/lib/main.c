@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.63 2011/07/09 01:06:01 dug9 Exp $
+  $Id: main.c,v 1.64 2011/07/09 22:23:21 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -367,14 +367,15 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
  */
 void fwl_startFreeWRL(const char *url)
 {
+	ttglobal tg = gglobal();
 	/* Give the main argument to the resource handler */
+	tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(url);
 	fwl_resource_push_single_request(url);
 	DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
 
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
 }
-
 /**
  * Explicit exit routine
  */

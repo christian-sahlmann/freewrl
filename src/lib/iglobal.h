@@ -255,6 +255,7 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}Component_VRML1;
 	struct tRenderFuncs{
+		char *OSX_last_world_url_for_reload;
 		char *OSX_replace_world_from_console;
 		/* Any action for the Browser to do? */
 		int BrowserAction;// = FALSE;

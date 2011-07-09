@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.45 2011/07/07 18:25:34 dug9 Exp $
+  $Id: main.c,v 1.46 2011/07/09 22:23:21 dug9 Exp $
 
   FreeWRL main program.
 
@@ -168,50 +168,6 @@ int main (int argc, char **argv)
 #ifdef _MSC_VER
 	    start_url = strBackslash2fore(start_url);
 #endif
-#ifdef OLDCODE
-#ifdef _MSC_VER
-		//if( start_url )
-		if(1)
-		{
-			int jj;
-			//change to forward slashes
-			for(jj=0;jj<strlen(start_url);jj++)
-				if(start_url[jj] == '\\' ) start_url[jj] = '/';
-			printf("working start_url=%s\n",start_url);
-
-		}
-		if(0) //
-		{
-			/* goal - split the url into path and file, then set 
-				set current working directy = path
-				and set starturl = file
-			   motivation - doug can't comprehend resource.c path mangling otherwise 
-			   and it seems to make relative image urls into absolute relative to the .exe rather than scene .wrl
-			*/
-			int jj;
-			char *slash;
-			char *path;
-			for( jj=0;jj<strlen(start_url);jj++)
-				if(start_url[jj] == '\\' ) start_url[jj] = '/';
-			slash = strrchr(start_url, '/');
-			path = NULL;
-			if(slash)
-			{
-				path = start_url;
-				slash[0] = '\0';
-				start_url = &slash[1];
-				if(_chdir(path)==-1)
-				{
-					/* either directory doesn't exist or its ftp/http */
-					slash[0] = '/';
-					start_url = path;
-					path = NULL;
-				}
-			}
-			printf("working dir=%s start_url=%s\n",path,start_url);
-		}
-#endif
-#endif //OLDCODE
     }
 #endif
 
