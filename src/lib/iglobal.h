@@ -361,9 +361,6 @@ iOLDCODE	}Component_Networking;
 	struct tX3DProtoScript{
 		void *prv;
 	}X3DProtoScript;
-	//struct tcommon{
-	//	void *prv;
-	//}common;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

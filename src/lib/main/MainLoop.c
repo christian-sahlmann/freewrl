@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.210 2011/07/09 14:50:40 dug9 Exp $
+  $Id: MainLoop.c,v 1.211 2011/07/09 17:11:30 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -254,7 +254,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->ntouch =0;
 		p->currentTouch = -1;
 		//p->touchlist[20];
-		p->EMULATE_MULTITOUCH = 1; 
+		p->EMULATE_MULTITOUCH = 0; 
 
 	}
 }
@@ -1039,18 +1039,6 @@ void setup_projection(int pick, int x, int y)
 
 }
 void renderCursors();
-//typedef struct Touch
-//{
-//	int button; /*none down=0, LMB =1, MMB=2, RMB=3*/
-//	bool isDown; /* false = up, true = down */
-//	int mev; /* down/press=4, move/drag=6, up/release=5 */
-//	int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
-//	float angle; /*some multitouch -like smarttech- track the angle of the finger */
-//	int x;
-//	int y;
-//};
-//struct Touch touchlist[20];
-//int EMULATE_MULTITOUCH = 1; 
 
 /* Render the scene */
 static void render() 
