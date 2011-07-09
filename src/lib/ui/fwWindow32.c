@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.35 2011/07/09 14:50:40 dug9 Exp $
+  $Id: fwWindow32.c,v 1.36 2011/07/09 16:07:43 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -389,9 +389,9 @@ static int shiftState = 0;
 	fwl_doQuit();
 	break; 
 
-    case WM_SETCURSOR:
-	    setArrowCursor();
-	    break;
+    //case WM_SETCURSOR:
+	   // setArrowCursor();
+	   // break;
 
 /**************************************************************\
  *     WM_PAINT:                                                *

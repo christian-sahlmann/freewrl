@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.7 2011/07/09 15:47:31 dug9 Exp $
+  $Id: common.c,v 1.8 2011/07/09 16:07:43 dug9 Exp $
 
   FreeWRL support library.
 
@@ -64,14 +64,16 @@ char *getMessageBar()
 #ifndef _MSC_VER
 void setArrowCursor()
 {
-	ocurse = ccurse;
-	ccurse = ACURSE;
-	setCursor();
+	if (ocurse != ACURSE) {
+		ccurse = ocurse = ACURSE;
+		setCursor();
+	}
 }
 void setSensorCursor()
 {
-	ocurse = ccurse;
-	ccurse = SCURSE;
-	setCursor();
+	if (ocurse != SCURSE) {
+		ccurse = ocurse = SCURSE;
+		setCursor();
+	}
 }
 #endif
