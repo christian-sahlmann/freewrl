@@ -209,7 +209,14 @@ void CdllFreeWRL::onClose()
 }
 char* CdllFreeWRL::downloadFileName()
 {
+// you need to build the libreewrl with #ifdef FRONTEND_GETS_FILES  defined (otherwise you'll get stubs)
+// and	#ifdef COMPILING_ACTIVEX_FRONTEND  defined for this dllFreeWRL build (otherwise header commented out)
+
+#ifdef COMPILING_ACTIVEX_FRONTEND
 	return frontEndWantsFileName();
+#else
+	return NULL;
+#endif
 }
 void CdllFreeWRL::downloadComplete(char *localfile, int iret)
 {
