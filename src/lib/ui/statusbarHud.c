@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.35 2011/07/09 22:23:21 dug9 Exp $
+  $Id: statusbarHud.c,v 1.36 2011/07/10 02:07:49 dug9 Exp $
 
 */
 
@@ -824,7 +824,7 @@ char * butFnames[mbuts] = {"walk.png","fly.png","examine.png","level.png","headl
 typedef struct pstatusbar{
 	int loopcount;// = 0;
 	int hadString;// = 0;
-
+	int initDone;
 	int showButtons;// =0;
 	int nbuts;// = mbuts;
 	int butrect[4][mbuts];
@@ -886,6 +886,7 @@ void statusbar_init(struct tstatusbar *t){
 		//p->fwFontOffset[3];
 		//p->fwFontSize[3];
 		p->sb_hasString = FALSE;
+		p->initDone = FALSE;
 		//p->myline;
 		//p->buffer[200];
 		//p->messagebar[200];
@@ -1410,7 +1411,9 @@ void initButtons()
 {
 	/* first time renderButtons() is called, this is called to load the button icons */
 	int i;
-	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	ttglobal tg = gglobal();
+	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
+	tg->Mainloop.clipPlane = 16;
 
 	for(i=0;i<p->nbuts;i++)
 	{
@@ -1806,15 +1809,19 @@ M       void toggle_collision()                             //"
 		return;
 	}
 	if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
-		if(p->hadString)
+		if(p->hadString || !p->initDone || true)
 		{
 			/* clear the status bar because there's nothing to show */
+			if(tg->Mainloop.clipPlane == 0) tg->Mainloop.clipPlane = 16;
 			FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 			FW_GL_ENABLE(GL_SCISSOR_TEST);
+			FW_GL_CLEAR_COLOR(.922f,.91f,.844f,1.0f); //windowing gray
 			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 			FW_GL_DISABLE(GL_SCISSOR_TEST);
 			p->hadString = 0;
+			p->initDone = TRUE;
 		}
+		FW_GL_CLEAR_COLOR(0.0f,0.0f,0.0f,1.0f); 
 		FW_GL_DEPTHMASK(GL_TRUE);
 		return;
 	}
@@ -1835,13 +1842,14 @@ M       void toggle_collision()                             //"
 	/* unconditionally clear the statusbar area */
 	FW_GL_SCISSOR(0,0,tg->display.screenWidth,tg->Mainloop.clipPlane);
 	FW_GL_ENABLE(GL_SCISSOR_TEST);
+	FW_GL_CLEAR_COLOR(.922f,.91f,.844f,1.0f); //windowing gray
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
 	FW_GL_DISABLE(GL_SCISSOR_TEST);
 
 	// you must call drawStatusBar() from render() just before swapbuffers 
 	FW_GL_DEPTHMASK(FALSE);
 	FW_GL_DISABLE(GL_DEPTH_TEST);
-	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
+	FW_GL_COLOR3F(0.2f,0.2f,0.5f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	FW_GL_WINDOWPOS2I(5,0); 
 	if(p->sb_hasString)
@@ -1867,6 +1875,7 @@ M       void toggle_collision()                             //"
 	if(p->butStatus[9]) printConsoleText();
 	if(p->butStatus[10]) printOptions();
 
+	FW_GL_CLEAR_COLOR(0.0f,0.0f,0.0f,1.0f); 
 	FW_GL_DEPTHMASK(TRUE);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_FLUSH();

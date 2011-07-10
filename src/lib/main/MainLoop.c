@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.213 2011/07/09 22:23:21 dug9 Exp $
+  $Id: MainLoop.c,v 1.214 2011/07/10 02:07:49 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -959,8 +959,8 @@ static void render_pre() {
 			}
 #endif
 		}
-
-        PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
+		drawStatusBar();
+		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
 void setup_projection(int pick, int x, int y) 
 {
