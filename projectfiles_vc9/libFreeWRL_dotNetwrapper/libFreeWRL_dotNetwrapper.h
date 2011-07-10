@@ -31,11 +31,12 @@ public:
 		System::String ^message;
 		FreewrlLib()
 		{
+			dllfreewrl = new CdllFreeWRL();
 		}
 		void onInit(IntPtr handle,int width, int height)
 		{
 			// Show a console window    
-			dllfreewrl = new CdllFreeWRL();
+			//dllfreewrl = new CdllFreeWRL();
 			dllfreewrl->onInit((int)handle,width,height);
 			message = handle.ToString();
 			// Hide the console window    FreeConsole();

@@ -137,7 +137,8 @@ void CdllFreeWRL::onLoad(char* scene_url)
 	this->url = strBackslash2fore(this->url);
 	swDebugf("onLoad have url=[%s]\n",this->url);
 	//fwl_resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
-	fwl_resource_push_single_request_IE_main_scene(this->url);
+	//fwl_resource_push_single_request_IE_main_scene(this->url);
+	fwl_replaceWorldNeeded(this->url);
 	//fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
 	swDebugf("onLoad after push_single_request url=[%s]\n",this->url);
 
