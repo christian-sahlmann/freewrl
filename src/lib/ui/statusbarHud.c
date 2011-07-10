@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.38 2011/07/10 14:07:56 dug9 Exp $
+  $Id: statusbarHud.c,v 1.39 2011/07/10 20:19:42 dug9 Exp $
 
 */
 
@@ -1747,7 +1747,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 	}
 	return 0;
 }
-//char *getMessageBar();
+char *getMessageBar(); //in common.c
 
 void drawStatusBar() 
 {

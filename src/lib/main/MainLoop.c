@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.214 2011/07/10 02:07:49 dug9 Exp $
+  $Id: MainLoop.c,v 1.215 2011/07/10 20:19:42 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1082,13 +1082,21 @@ static void render()
 				if(count != shutterside) continue;
 			}
 			if(Viewer()->anaglyph) //haveAnaglyphShader)
-				Viewer_anaglyph_setSide(count);
+			{
+				//set the channels for backbuffer clearing
+				if(count == 0)
+					Viewer_anaglyph_clearSides(); //clear all channels 
+				else
+					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
 				//USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
+			}
 			setup_projection(0, 0, 0);
 			if(Viewer()->sidebyside && count >0)
 				BackEndClearBuffer(1);
 			else
 				BackEndClearBuffer(2);
+			if(Viewer()->anaglyph) //haveAnaglyphShader)
+				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
 			setup_viewpoint(); 
 		}
 		else 
@@ -1550,6 +1558,7 @@ void setStereoBufferStyle(int itype) /*setXEventStereo()*/
 		p->bufferarray[1]=GL_BACK;
 		p->maxbuffers=2;
 	}
+	printf("maxbuffers=%d\n",p->maxbuffers);
 }
 
 /* go to the first viewpoint */

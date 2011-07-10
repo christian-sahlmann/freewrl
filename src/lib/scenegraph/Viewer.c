@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.74 2011/06/10 22:28:33 dug9 Exp $
+$Id: Viewer.c,v 1.75 2011/07/10 20:19:42 dug9 Exp $
 
 CProto ???
 
@@ -118,7 +118,8 @@ void Viewer_init(struct tViewer *t){
 		#endif
 		p->StereoInitializedOnce = 0;
 		//p->acMask[2][3]; //anaglyphChannelMask
-
+		p->acMask[0][0] = (GLboolean)1;
+		p->acMask[1][1] = (GLboolean)1;
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -1478,6 +1479,10 @@ void Viewer_anaglyph_setSide(int iside)
 		/* use shaders. textures (images) don't render */
 		USE_SHADER(p->Viewer.programs[p->Viewer.iprog[iside]]);
 	}
+}
+void Viewer_anaglyph_clearSides()
+{
+	glColorMask(1,1,1,1);
 }
 //true static:
 static char * RGBACM = "RGBACM";
