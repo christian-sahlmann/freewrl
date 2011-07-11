@@ -27,7 +27,7 @@ Variable use:
 #include "list.h" //for resources.h which is for root_res
 #include "resources.h" //for root_res
 #include <threads.h> //for threads
-#include "vrml_parser/structs.h" //for SFColor
+#include "vrml_parser/Structs.h" //for SFColor
 #include "world_script/JScript.h" //for jsval
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 typedef struct iiglobal //InstanceGlobal
