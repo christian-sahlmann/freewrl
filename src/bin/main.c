@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.48 2011/07/11 16:12:55 dug9 Exp $
+  $Id: main.c,v 1.49 2011/07/11 16:27:32 dug9 Exp $
 
   FreeWRL main program.
 
@@ -156,7 +156,8 @@ int main (int argc, char **argv)
     fv_params->fullscreen = FALSE;
     fv_params->winToEmbedInto = -1;
     fv_params->verbose = FALSE;
-    fv_params->collision = 0; //1; if you set it, you need to update ui button with a call
+    fv_params->collision = 1; // if you set it, you need to update ui button with a call
+	setMenuButton_collision(fv_params->collision);
 
     fwl_init_StereoDefaults();
 
