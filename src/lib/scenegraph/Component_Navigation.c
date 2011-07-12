@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.49 2011/06/10 22:28:33 dug9 Exp $
+$Id: Component_Navigation.c,v 1.50 2011/07/12 17:50:41 dug9 Exp $
 
 X3D Navigation Component
 
@@ -78,21 +78,21 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	/* perform Viewpoint translations */
 	if (Viewer()->SLERPing) {
 
-                double tickFrac;
-                Quaternion slerpedDiff;
+		double tickFrac;
+		Quaternion slerpedDiff;
 
-                struct point_XYZ antipos;
+		struct point_XYZ antipos;
 
-                /* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-                tickFrac = (TickTime() - Viewer()->startSLERPtime)/Viewer()->transitionTime;
+		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
+		tickFrac = (TickTime() - Viewer()->startSLERPtime)/Viewer()->transitionTime;
 
-                quaternion_slerp (&slerpedDiff,&Viewer()->startSLERPprepVPQuat,&Viewer()->prepVPQuat,tickFrac);
+		quaternion_slerp (&slerpedDiff,&Viewer()->startSLERPprepVPQuat,&Viewer()->prepVPQuat,tickFrac);
 
-                quaternion_togl(&slerpedDiff);
+		quaternion_togl(&slerpedDiff);
 
-                antipos.x = Viewer()->AntiPos.x * tickFrac + (Viewer()->startSLERPAntiPos.x * (1.0 - tickFrac));
-                antipos.y = Viewer()->AntiPos.y * tickFrac + (Viewer()->startSLERPAntiPos.y * (1.0 - tickFrac));
-                antipos.z = Viewer()->AntiPos.z * tickFrac + (Viewer()->startSLERPAntiPos.z * (1.0 - tickFrac));
+		antipos.x = Viewer()->AntiPos.x * tickFrac + (Viewer()->startSLERPAntiPos.x * (1.0 - tickFrac));
+		antipos.y = Viewer()->AntiPos.y * tickFrac + (Viewer()->startSLERPAntiPos.y * (1.0 - tickFrac));
+		antipos.z = Viewer()->AntiPos.z * tickFrac + (Viewer()->startSLERPAntiPos.z * (1.0 - tickFrac));
 
 		FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
 

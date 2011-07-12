@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.76 2011/07/12 17:24:16 crc_canada Exp $
+$Id: Viewer.c,v 1.77 2011/07/12 17:50:41 dug9 Exp $
 
 CProto ???
 
@@ -519,6 +519,7 @@ printf ("\t	AntiPos           %lf %lf %lf\n",Viewer.AntiPos.x,Viewer.AntiPos.y,V
 		pos.x = p->Viewer.Pos.x * tickFrac + (p->Viewer.startSLERPPos.x * (1.0 - tickFrac));
 		pos.y = p->Viewer.Pos.y * tickFrac + (p->Viewer.startSLERPPos.y * (1.0 - tickFrac));
 		pos.z = p->Viewer.Pos.z * tickFrac + (p->Viewer.startSLERPPos.z * (1.0 - tickFrac));
+		/* printf("ticfrac= %lf pos.xyz= %lf %lf %lf\n",tickFrac,pos.x,pos.y,pos.z); */
 		antipos.x = p->Viewer.AntiPos.x * tickFrac + (p->Viewer.startSLERPAntiPos.x * (1.0 - tickFrac));
 		antipos.y = p->Viewer.AntiPos.y * tickFrac + (p->Viewer.startSLERPAntiPos.y * (1.0 - tickFrac));
 		antipos.z = p->Viewer.AntiPos.z * tickFrac + (p->Viewer.startSLERPAntiPos.z * (1.0 - tickFrac));
@@ -1887,7 +1888,110 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* SLERPing */
 	/* record position BEFORE calculating new Viewpoint position */
-	INITIATE_SLERP
+	/*
+		dug9 - viewpoint slerping: what I see as of July 12, 2011: 
+			in the scene file if there's non-zero position 
+			and orientation values in the fields of the first bindable viewpoint these values are 
+			modified by slerping, during the initial bind. After that, slerping code runs, 
+			but accomplishes no effective slerping. 
+			If the fields are zero when the viewpoint first binds, slerp code runs but
+			no effective slerping.
+
+		dug9 - my concept of how a viewpoint slerp should work, as of July 12, 2011:
+		1. during a viewpoint bind the 'pose_difference' between the old and new viewpoint poses
+		   is computed from their transform stacks
+		   pose_difference = new_viewpoint_world_pose - old_viewpoint_world_pose
+	    2. the new viewpoint is bound -as normally done without slerping- so it's at the new pose
+		3. the new viewpoint's pose is multiplied by inverse(pose_difference) effectively 
+			putting the camera part of the new viewpoint back to the old viewpoints camera pose. 
+			This could be done by multiplying the position and orientation fields 
+	    4. slerping is started to reduce pose_difference to zero at which point slerping stops
+		   and the camera is at it's viewpoint's final pose
+		there needs to be variables for the following:
+			a) pose_difference - a translation and rotation
+			b) original position and orientation fields
+			c) modified position and orientation fields which multiplied by 
+				inverse(pose_difference)
+		the easy part is getting the position and orientation fields, which are simple properties
+		of viewpoints. 
+		pose_difference:
+		The hard part: getting the pose_difference which is found by traversing
+		the scenegraph to both viewpoints, at some point in time in the frame cycle. But when? 
+		Options:
+		A. as needed during a viewpoint bind, and with slerping on, call a function to
+			traverse the scenegraph especially for getting the 2 viewpoint global transforms
+	    B. every time a viewpoint is visited on a scenegraph traversal, store its global transform
+			with it, so it's refreshed often, and becomes a property of the viewpoint which
+			can be accessed immediately when slerping begins. And hope that's good enough, which
+			during a very busy event cascade, it might not be.
+		C. stagger the start of slerping to cover 2 frames
+			- on the bind frame, we can call a function to invert the current modelview matrix, for 
+			  the old viewpoint.
+		    - on the next frame, ditto for the new viewpoint, then start slerping
+			- problem: there's one frame where the camera jitters to the new pose, then on the
+			  next frame back to the old pose where it starts slerping. 
+			  solution: to avoid this, on the second
+			  frame, before starting to draw, perhaps in prep_Viewpoint(), when we have the 
+			  current modelview matrix for the new viewpoint, this is the point when we would
+			  compute the pose_difference and the initial pose parameters.
+		Current process:
+			prep_Viewpoint() in Component_Navigation.c L.80 - does the per-frame slerp increment
+			bind_Viewpoint() in Viewer.c L.1925 (here) - sets up the slerping values and flags
+			viewer_togl() in Viewer.c L.515 - computes slerp increment, 
+			     and turns off slerping flag when done. 
+
+			Call stack:
+			mainloop L.503  (before render() geometry)
+				startOfLoopNodeUpdates() in OpenGL_Utils L.3406
+					bind_Viewpoint() (here)
+			mainloop L.630 (after render() geometry)
+				render_pre()
+					setup_viewpoint()
+						viewer_togl()
+							render_hier(rootnode,VF_Viewpoint)
+								prep_Viewpoint() - only called on the current bound viewpoint
+			mainloop L.647  (for render_hier(,VF_sensitive)
+				setup_viewpoint() 
+					ditto
+			mainloop L.764
+                SEND_BIND_IF_REQUIRED(tg->ProdCon.setViewpointBindInRender)
+					prodcon L.604 send_bind_to(X3D_NODE(t->viewpointnodes[i]), 0); 
+						send_bind_to() in Bindables.c L.267
+							bind_viewpoint()
+			generally setup_viewpoint() is called before any non-VF_Viewpoint render_hier() call 
+			to update the current pose -and modelview matrix- of the camera
+		Goal: get both the old and new modelview matrices together, so pose_difference can be
+			computed and applied to new viewpoint orientation/position before render() on the
+			2nd loop.
+		Proposed process:
+			in bind_viewpoint, store the modelview matrix for the old viewpoint in struct Viewer
+				- if it's a just-parsed bind event ie in send_bind_to() there may be 
+					no valid old modelview matrix - so rely on gglobal() or viewer_init
+					initialization functions to set a valid default early, or else skip
+					and don't slerp to the first bound viewpoint (flux doesnt)
+			in prep_viewpoint
+				a) the first time in on a newly bound viewpoint,
+			    - store the modelview matrix for the new viewpoint in struct Viewer
+				- compute pose_difference
+				- modify the position and orientation with inverse(pose_difference)
+				- setup the slerping numbers
+				b) subsequent visits on the bound viewpoint
+				- do slerping increment, apply to orientation/position fields
+				- shut off slerping when done
+	*/
+	//INITIATE_SLERP
+	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
+        p->Viewer.SLERPing = TRUE; 
+        p->Viewer.startSLERPtime = TickTime(); 
+        memcpy (&p->Viewer.startSLERPPos, &p->Viewer.Pos, sizeof (struct point_XYZ)); 
+        memcpy (&p->Viewer.startSLERPAntiPos, &p->Viewer.AntiPos, sizeof (struct point_XYZ)); 
+        memcpy (&p->Viewer.startSLERPQuat, &p->Viewer.Quat, sizeof (Quaternion)); 
+        memcpy (&p->Viewer.startSLERPAntiQuat, &p->Viewer.AntiQuat, sizeof (Quaternion));  
+        memcpy (&p->Viewer.startSLERPbindTimeQuat, &p->Viewer.bindTimeQuat, sizeof (Quaternion)); 
+        memcpy (&p->Viewer.startSLERPprepVPQuat, &p->Viewer.prepVPQuat, sizeof (Quaternion)); 
+	} else { 
+		p->Viewer.SLERPing = FALSE; 
+	}
 
 	/* calculate distance between the node position and defined centerOfRotation */
 	INITIATE_POSITION
