@@ -1,5 +1,5 @@
 /*
-  $Id: common.h,v 1.5 2011/07/09 15:47:31 dug9 Exp $
+  $Id: common.h,v 1.6 2011/07/12 16:52:45 dug9 Exp $
 
   FreeWRL support library.
 
@@ -47,7 +47,7 @@ void setMessageBar();
 
 /* Generic (virtual) update functions */
 
-//void setCursor();
+void setCursor();
 void setArrowCursor();
 void setSensorCursor();
 void setWindowTitle0();
