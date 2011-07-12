@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.216 2011/07/11 20:13:31 dug9 Exp $
+  $Id: MainLoop.c,v 1.217 2011/07/12 17:51:37 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2067,7 +2067,6 @@ void fwl_setCurXY(int cx, int cy) {
 	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
         tg->Mainloop.currentX[p->currentCursor] = cx;
         tg->Mainloop.currentY[p->currentCursor] = cy;
-    printf ("fwl_setCurXY, have %x %x\n",cx,cy);
 }
 
 void fwl_setButDown(int button, int value) {
