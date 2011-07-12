@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.217 2011/07/05 19:05:53 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.218 2011/07/12 01:49:49 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3401,13 +3401,18 @@ X3D_GROUP(node)->removeChildren.n);
 				//dug9 added July 24, 2009: when you bind, it should set the 
 				//avatar to the newly bound viewpoint pose and forget any 
 				// cumulative avatar navigation from the last viewpoint parent
-
 				if (node->_nodeType==NODE_Viewpoint) {
-					bind_Viewpoint((struct X3D_Viewpoint *)node); 
+					struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
+					bind_Viewpoint(vp); 
+					setMenuStatus (vp->description->strptr);
 				} else if (node->_nodeType==NODE_OrthoViewpoint) {
-					bind_OrthoViewpoint((struct X3D_OrthoViewpoint *) node);
+					struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
+					bind_OrthoViewpoint(ovp);
+					setMenuStatus (ovp->description->strptr);
 				} else {
-					bind_GeoViewpoint((struct X3D_GeoViewpoint *) node);
+					struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
+					bind_GeoViewpoint(gvp);
+					setMenuStatus (gvp->description->strptr);
 				}
 			}
 			setBindPtr = NULL;
