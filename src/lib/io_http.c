@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.17 2011/06/09 21:07:12 crc_canada Exp $
+  $Id: io_http.c,v 1.18 2011/07/12 19:41:46 istakenv Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -193,7 +193,7 @@ char* download_url_curl(resource_item_t *res)
     char *temp;
     FILE *file;
 
-    if (res->_temp_dir) {
+    if (res->temp_dir) {
 	    temp = STRDUP(res->temp_dir);
     } else {
 	    temp = tempnam("/tmp", "freewrl_download_curl_XXXXXXXX");
@@ -231,7 +231,7 @@ char* download_url_curl(resource_item_t *res)
 	fclose(file);
 	return temp;
     } else {
-	ERROR_MSG("Download failed for url %s (%d)\n", res->-parsed_request, (int) success);
+	ERROR_MSG("Download failed for url %s (%d)\n", res->parsed_request, (int) success);
 	fclose(file);
 	unlink(temp);
 	FREE(temp);
