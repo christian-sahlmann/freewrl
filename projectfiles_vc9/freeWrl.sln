@@ -7,16 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRL", "bin\bin.vcproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL", "lib\libFreeWRL.vcproj", "{D35384EF-4B8A-4256-9729-D6A94CCB88B8}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL_dotNetwrapper", "libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.vcproj", "{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_dotNetWrapper", "Test_dotNetWrapper\Test_dotNetWrapper.vcproj", "{19F0FAD6-44F5-4270-BC87-F886DBE17176}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllFreeWRL", "dllFreeWRL\dllFreeWRL.vcproj", "{8B124FE7-4284-46D4-B962-F1EE06911C95}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRLUC", "freeWRLUC\freeWRLUC.vcproj", "{257B9C10-F4BB-49AE-92A9-8D69FFF4D6AF}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRLx", "freeWRLx\freeWRLx.vcproj", "{D8A45A94-3CEB-437B-B6F7-4C98EC1772E9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,26 +21,6 @@ Global
 		{D35384EF-4B8A-4256-9729-D6A94CCB88B8}.Debug|Win32.Build.0 = Debug|Win32
 		{D35384EF-4B8A-4256-9729-D6A94CCB88B8}.Release|Win32.ActiveCfg = Release|Win32
 		{D35384EF-4B8A-4256-9729-D6A94CCB88B8}.Release|Win32.Build.0 = Release|Win32
-		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Debug|Win32.Build.0 = Debug|Win32
-		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Release|Win32.ActiveCfg = Release|Win32
-		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Release|Win32.Build.0 = Release|Win32
-		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Debug|Win32.ActiveCfg = Debug|Win32
-		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Debug|Win32.Build.0 = Debug|Win32
-		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Release|Win32.ActiveCfg = Release|Win32
-		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Release|Win32.Build.0 = Release|Win32
-		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Debug|Win32.ActiveCfg = Debug|Win32
-		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Debug|Win32.Build.0 = Debug|Win32
-		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.ActiveCfg = Release|Win32
-		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.Build.0 = Release|Win32
-		{257B9C10-F4BB-49AE-92A9-8D69FFF4D6AF}.Debug|Win32.ActiveCfg = Debug|Win32
-		{257B9C10-F4BB-49AE-92A9-8D69FFF4D6AF}.Debug|Win32.Build.0 = Debug|Win32
-		{257B9C10-F4BB-49AE-92A9-8D69FFF4D6AF}.Release|Win32.ActiveCfg = Release|Win32
-		{257B9C10-F4BB-49AE-92A9-8D69FFF4D6AF}.Release|Win32.Build.0 = Release|Win32
-		{D8A45A94-3CEB-437B-B6F7-4C98EC1772E9}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D8A45A94-3CEB-437B-B6F7-4C98EC1772E9}.Debug|Win32.Build.0 = Debug|Win32
-		{D8A45A94-3CEB-437B-B6F7-4C98EC1772E9}.Release|Win32.ActiveCfg = Release|Win32
-		{D8A45A94-3CEB-437B-B6F7-4C98EC1772E9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
