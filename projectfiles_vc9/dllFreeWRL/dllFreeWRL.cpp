@@ -214,7 +214,7 @@ char* CdllFreeWRL::downloadFileName()
 // and	#ifdef COMPILING_ACTIVEX_FRONTEND  defined for this dllFreeWRL build (otherwise header commented out)
 
 #ifdef COMPILING_ACTIVEX_FRONTEND
-	return frontEndWantsFileName();
+	return fwg_frontEndWantsFileName();
 #else
 	return NULL;
 #endif

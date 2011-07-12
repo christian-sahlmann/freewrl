@@ -254,7 +254,7 @@ void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 
 
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
@@ -283,9 +283,18 @@ ttglobal gglobal0()
 // on systems where there can only be 1 window running, and when the GUI
 // handles the window, simplify the calls so that we do not have to
 // register the ui window handling thread (and including associated .h files)
+//    AND
+// also gets rid of us having to register the OpenGL display thread from the
+// front end - when OpenGL calls are required in the FreeWRL library, we know
+// the global data area to use.
+//
+//  SHOULD 
+// add a call to register the OpenGL display thread to allow the front end to
+// register its thread.
 
 ttglobal gglobal0()
 {
+	// printf ("gglobal - assuming only 1 thread here\n");
 	if (nglobalthreads >=1) {
 		return thread2global[0].iglobal;
 	} 

@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.45 2011/06/02 19:50:43 dug9 Exp $
+  $Id: resources.c,v 1.46 2011/07/12 17:24:16 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -473,7 +473,7 @@ bool resource_load(resource_item_t *res)
 		} else {
 
 #ifdef FRONTEND_GETS_FILES
-			if (frontEndWantsFileName() != NULL) {
+			if (fwg_frontEndWantsFileName() != NULL) {
 				/* printf ("resource still loading, lets yield here\n"); */
 			} else {
 #endif 

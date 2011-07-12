@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.75 2011/07/10 20:19:42 dug9 Exp $
+$Id: Viewer.c,v 1.76 2011/07/12 17:24:16 crc_canada Exp $
 
 CProto ???
 
@@ -1665,17 +1665,23 @@ void viewer_postGLinit_init(void)
 {
 	GLboolean quadbuffer;
 	int type;
+
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	FW_GL_GETBOOLEANV(GL_STEREO,&quadbuffer);
+
 	p->Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
+
 	p->Viewer.haveAnaglyphShader = initAnaglyphShaders();
+
 	updateEyehalf();
+
 	type = 0;
 	if( p->Viewer.shutterGlasses ) type = 1;
 	if( p->Viewer.sidebyside ) type = 2;
 	if( p->Viewer.anaglyph ==1 ) type = 3;
-	
+
 	if(p->Viewer.anaglyph ==1) 
 	{
 		if(p->Viewer.anaglyphMethod == 1)
@@ -1692,7 +1698,13 @@ void viewer_postGLinit_init(void)
 			ConsoleMessage("Unable to get quadbuffer stereo visual, switching to flutter mode\n");
 		}
 	}
+
 	setStereo(type);
+
+#else
+setStereo(0);
+#endif
+
 }
 
 void fwl_set_StereoParameter (const char *optArg) {

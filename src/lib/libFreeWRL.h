@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.40 2011/07/12 17:02:35 istakenv Exp $
+  $Id: libFreeWRL.h,v 1.41 2011/07/12 17:24:16 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -51,14 +51,12 @@
 	   definitions to keep the front end as separate from the library as possible... */
 
 	void fwl_initializeRenderSceneUpdateScene(void);
-	char *frontEndWantsFileName(void);
 	
 
 #else /* COMPILING_IPHONE_FRONT_END */
 
 #ifdef COMPILING_ACTIVEX_FRONTEND
 	void fwl_initializeRenderSceneUpdateScene(void);
-	char *frontEndWantsFileName(void);
 #endif
 /**
  * Version embedded
@@ -289,6 +287,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
+char *fwg_frontEndWantsFileName(void);
+int fv_display_initialize(void);
+void fwl_initializeRenderSceneUpdateScene(void);
+void fwl_setButDown(int button, int value);
+
 
 /* IS - moving from main/headers.h to here for use in front-ends (bin/main.c calls some of these) */
 void setMenuButton_collision (int val);
