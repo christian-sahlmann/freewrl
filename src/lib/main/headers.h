@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.168 2011/07/09 01:06:01 dug9 Exp $
+$Id: headers.h,v 1.169 2011/07/12 17:02:35 istakenv Exp $
 
 Global includes.
 
@@ -597,11 +597,12 @@ void kill_status();
 
 /* menubar stuff */
 void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */
+/* IS -- moved these into libFreeWRL.h as front-ends call some of them directly
 void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
+void setMenuButton_texSize (int size); */
 void setConsoleMessage(char *stat) ;
-void setMenuButton_texSize (int size);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
