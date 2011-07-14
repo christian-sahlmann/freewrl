@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.46 2011/07/12 17:24:16 crc_canada Exp $
+  $Id: resources.c,v 1.47 2011/07/14 15:02:26 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -51,7 +51,6 @@
 
 
 #include "zlib.h"
-
 
 static void possiblyUnzip (openned_file_t *of);
 
@@ -241,10 +240,16 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		}
 	}
 
+#ifdef FRONTEND_GETS_FILES
+	DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network type\n");
+	network = TRUE;
+#else
 	network = FALSE;
 	if (defaults) {
 		network = defaults->network;
 	}
+#endif
+
 
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->request);
