@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.47 2011/07/14 15:02:26 crc_canada Exp $
+  $Id: resources.c,v 1.48 2011/07/14 18:54:46 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -386,6 +386,7 @@ bool resource_fetch(resource_item_t *res)
 		switch (res->status) {
 		case ress_none:
 		case ress_starts_good:
+			DEBUG_RES ("resource_fetch, calling download_url\n");
 			download_url(res);
 			break;
 		default:
@@ -462,6 +463,53 @@ bool resource_load(resource_item_t *res)
 		ERROR_MSG("resource_load: can't load not available resource: %s\n", res->request);
 		break;
 
+#ifdef FRONTEND_GETS_FILES
+	case ress_downloaded:
+		of = load_file(res->actual_file);
+
+		// of should never be null....
+
+		// printf ("XXXXX load_file, of filename %s, fd %d, dataSize %d, data %p\n",of->filename, of->fd, of->dataSize, of->data);
+
+		if (of) {
+			if (of->data) {
+
+			res->status = ress_loaded;
+			res->openned_files = ml_append( (s_list_t *) res->openned_files,
+							ml_new(of) );
+
+			/* If type is not specified by the caller try to identify it automatically */
+			if (res->media_type == resm_unknown) {
+				resource_identify_type(res);
+			}
+			} else {
+			res->status = ress_not_loaded;
+			ERROR_MSG("resource_load: can't load file: %s\n", res->actual_file);
+
+			// force this to return false
+			of = NULL;
+
+			}
+
+		} else {
+
+			// printf ("resource load, of failed, but fwg_frontEndWantsFilename is %s\n",fwg_frontEndWantsFileName());
+
+			if (fwg_frontEndWantsFileName() != NULL) {
+				/* printf ("resource still loading, lets yield here\n"); */
+			} else {
+
+
+			res->status = ress_not_loaded;
+			ERROR_MSG("resource_load: can't load file: %s\n", res->actual_file);
+		}
+		}
+
+		break;
+
+
+#else //FRONTEND_GETS_FILES
+
 	case ress_downloaded:
 		of = load_file(res->actual_file);
 
@@ -477,21 +525,13 @@ bool resource_load(resource_item_t *res)
 
 		} else {
 
-#ifdef FRONTEND_GETS_FILES
-			if (fwg_frontEndWantsFileName() != NULL) {
-				/* printf ("resource still loading, lets yield here\n"); */
-			} else {
-#endif 
-
-
 			res->status = ress_not_loaded;
 			ERROR_MSG("resource_load: can't load file: %s\n", res->actual_file);
 		}
-#ifdef FRONTEND_GETS_FILES
-			}
-#endif 
 
 		break;
+#endif //FRONTEND_GETS_FILES
+
 	
 	case ress_loaded:
 		ERROR_MSG("resource_load: MISTAKE: can't load already loaded resource: %s\n", res->request);

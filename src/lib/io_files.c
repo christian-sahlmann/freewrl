@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.41 2011/07/12 17:24:16 crc_canada Exp $
+  $Id: io_files.c,v 1.42 2011/07/14 18:54:46 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -389,22 +389,34 @@ char *fwg_frontEndWantsFileName() {
 void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
-    /* note the "+1" ....*/
-	fileText = MALLOC (char *, len+1);
-	memcpy (fileText, dataPointer, len);
-	fileSize = len;
-    
-    /* ok - we do not know if this is a binary or a text file,
-       but because we added 1 to it, we can put a null terminator
-       on the end - that will terminate a text string, but will
-       not affect a binary file, because we have the binary data
-       and binary length recorded. */
+	/* did we get data? is "len" not zero?? */
+	if (len == 0) {
+		// printf ("fwg_frontEndReturningData, returning error\n");
+		//frontend_return_status = -1;
+		fileText = NULL;
+		fileSize = 0;
 
-    fileText[len] = '\0';  /* the string terminator */
+	} else {
+		// printf ("fwg_frontEndReturningData, returning ok\n");
+    		/* note the "+1" ....*/
+		fileText = MALLOC (char *, len+1);
+		memcpy (fileText, dataPointer, len);
+		fileSize = len;
     
-	fileName = NULL; /* not freed as only passed by pointer */
+	    /* ok - we do not know if this is a binary or a text file,
+	       but because we added 1 to it, we can put a null terminator
+	       on the end - that will terminate a text string, but will
+	       not affect a binary file, because we have the binary data
+	       and binary length recorded. */
 
-	/* got the file, send along a message */
+	    fileText[len] = '\0';  /* the string terminator */
+    
+		fileName = NULL; /* not freed as only passed by pointer */
+
+		frontend_return_status = 0;
+		/* got the file, send along a message */
+	}
+
 	SEND_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
@@ -451,13 +463,16 @@ openned_file_t* load_file(const char *filename)
 	MUTEX_LOCK_FILE_RETRIEVAL
 
 	FREE_IF_NZ(fileText);
-	FREE_IF_NZ(fileName);
 
 	fileName = (char *)filename;
 
 	WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+
+	// printf ("load_file, frontend_return_status %d\n",frontend_return_status);
+	fileName = NULL;
+
 	if(frontend_return_status == 1)
 		return load_file_read(localFile);
 	else if(frontend_return_status == -1)
@@ -494,7 +509,7 @@ char* download_file(filename)
 	MUTEX_LOCK_FILE_RETRIEVAL
 
 	FREE_IF_NZ(fileText);
-	FREE_IF_NZ(fileName);
+	fileName = NULL; // do not free this - it is a copy of a pointer
 
 	sprintf(consoleBuffer ,"lf_need file from frontend=[%s]\n",filename);
 	fwl_StringConsoleMessage(consoleBuffer);

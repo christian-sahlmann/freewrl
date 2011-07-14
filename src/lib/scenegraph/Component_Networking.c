@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.40 2011/07/14 15:02:26 crc_canada Exp $
+$Id: Component_Networking.c,v 1.41 2011/07/14 18:54:46 crc_canada Exp $
 
 X3D Networking Component
 
@@ -1538,8 +1538,15 @@ void child_Anchor (struct X3D_Anchor *node) {
 }
 
 
-/* do we want the GUI to load Inlines? Probabally if it loads the other files.... */
 #ifdef FRONTEND_GETS_FILES
+
+/* do we want the GUI to load Inlines? Probabally if it loads the other files.... */
+
+/* XXXX - because of the async nature of this, only the first file will be tried; if it fails, nothing
+   else will be tried. We should store the resource locally, and, when scanning inline during rendering, check
+   the status... */
+
+
 static bool loadInline(struct X3D_Inline *me)  
 {
 	resource_item_t *res = NULL;
@@ -1565,6 +1572,8 @@ static bool loadInline(struct X3D_Inline *me)
 		head_of_list = res->m_request;
 		/* go through the urls until we have a success, or total failure */
 		do {
+			// printf ("top of do loop\n");
+
 			/* Setup parent */
 			resource_identify(parentPath, res);
 			/* Setup media type */
@@ -1572,8 +1581,8 @@ static bool loadInline(struct X3D_Inline *me)
 
 			/* printf ("going to resource fetch...\n"); */
 			if (resource_fetch(res)) {
-				/* printf ("have res->actualFile of :%s:\n",res->actual_file);
-				printf (" beforeparsing.... %s\n",resourceStatusToString(res->status)); */
+				//printf ("have res->actualFile of :%s:\n",res->actual_file);
+				//printf (" beforeparsing.... %s\n",resourceStatusToString(res->status)); 
 
                                res->media_type = resm_unknown;
                                 res->where = X3D_NODE(me);
@@ -1584,8 +1593,8 @@ static bool loadInline(struct X3D_Inline *me)
 
                                 send_resource_to_parser_async(res);
 
-                                /* printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
-                                printf ("res complete %d\n",res->complete); */
+                                //printf ("inline parsing.... %s\n",resourceStatusToString(res->status));
+                                //printf ("res complete %d\n",res->complete);
 
                                 if (res->status != ress_parsed) {
 					
@@ -1595,6 +1604,9 @@ static bool loadInline(struct X3D_Inline *me)
 				/* we had a problem with that URL, set this so we can try the next */
 				res->type=rest_multi;
 			}
+
+        	// printf ("inline parsing in while loop, status is .... %s\n",resourceStatusToString(res->status));
+
 		} while ((res->status != ress_downloaded) && (res->m_request != NULL));
 
 		/* destroy the m_request, if it exists */
@@ -1610,7 +1622,7 @@ static bool loadInline(struct X3D_Inline *me)
 	if (res== NULL) return FALSE;
 
 
-        /* printf ("inline parsing at end status is .... %s\n",resourceStatusToString(res->status)); */
+        // printf ("inline parsing at end status is .... %s\n",resourceStatusToString(res->status));
 	/* were we successful?? */
 	if (res->status != ress_downloaded) {
 		return FALSE;
@@ -1625,7 +1637,7 @@ static bool loadInline(struct X3D_Inline *me)
 void load_Inline (struct X3D_Inline *node) {
 	resource_item_t *res;
 
-	printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
+	// printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
 
 	if (node->load) {
 		/* printf ("loading Inline\n");  */

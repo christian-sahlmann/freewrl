@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.92 2011/06/29 19:09:02 dug9 Exp $
+  $Id: ProdCon.c,v 1.93 2011/07/14 18:54:46 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -703,7 +703,7 @@ static bool parser_process_res(s_list_t *item)
 
 	res = ml_elem(item);
 
-	//printf("processing resource: %d, %s\n", res->type, resourceStatusToString(res->status)); 
+	// printf("\nprocessing resource: type %s, status %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status)); 
 	switch (res->status) {
 
 	case ress_invalid:
@@ -724,6 +724,7 @@ static bool parser_process_res(s_list_t *item)
 		if (!resource_load(res)) {
 			ERROR_MSG("failure when trying to load resource: %s\n", res->request);
 			remove_it = TRUE;
+			retval = FALSE;
 		}
 		break;
 
@@ -733,7 +734,7 @@ static bool parser_process_res(s_list_t *item)
 		break;
 
 	case ress_loaded:
-		/* printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type)); */
+		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type)); 
 		switch (res->media_type) {
 		case resm_unknown:
 			ConsoleMessage ("deciphering loaded file, unknown file type encountered.");
@@ -798,6 +799,8 @@ static bool parser_process_res(s_list_t *item)
 
 	dump_parser_wait_queue();
     
+	// printf ("end of process resource\n");
+
     return retval;
 }
 
