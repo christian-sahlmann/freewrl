@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.45 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_Grouping.c,v 1.46 2011/07/15 18:56:21 dug9 Exp $
 
 X3D Grouping Component
 
@@ -365,7 +365,8 @@ void child_Transform (struct X3D_Transform *node) {
 	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
 	      // matmultiply(modelMatrix,upvecmat,modelMatrix);
 	       /* matinverse(upvecmat,upvecmat); */
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];

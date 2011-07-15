@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.61 2011/06/10 22:28:33 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.62 2011/07/15 18:56:20 dug9 Exp $
 
 X3D Geospatial Component
 
@@ -3039,7 +3039,8 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
 	     //  matmultiply(modelMatrix,upvecmat,modelMatrix);
 	       /* matinverse(upvecmat,upvecmat); */
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];

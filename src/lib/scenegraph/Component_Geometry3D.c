@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.73 2011/07/07 18:24:54 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.74 2011/07/15 18:56:20 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -1525,45 +1525,56 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 		   /* 
-			For examine and fly navigation modes, there's no gravity direction. Avatar collision volume is aligned
-			to avatar and is spherical and symmetrically directional. This is the simple case.
-			Specifications say for walk navigation mode gravity vector is down {0,-1,0} with respect to (wrt) the 
-			currently bound viewpoint, not including the viewpoint's orientation field and not including avatar 
-			navigation/tilt away from its parent bound-viewpoint pose. When you collide in walk mode, the avatar collision
+			For examine and fly navigation modes, there's no gravity direction. 
+			Avatar collision volume is aligned to avatar and is spherical and 
+			symmetrically directional. This is the simple case. Specifications say for 
+			walk navigation mode gravity vector is down {0,-1,0} with respect to (wrt) the 
+			currently bound viewpoint, not including the viewpoint's orientation 
+			field and not including avatar navigation/tilt away from its parent 
+			bound-viewpoint pose. When you collide in walk mode, the avatar collision
 			volume is aligned to bound-viewpoint. This is a slightly more complex case.
 			To generalize the 2 cases, some	Definitions:
 			Spaces:
 				Avatar space 
 					- gravity is avatar-down
-					- Avatar is at {0,0,0} and +Y up is as you see up in your current view, +Z aft and +X to the right
+					- Avatar is at {0,0,0} and +Y up is as you see up in your current view, 
+					  +Z aft and +X to the right
 				BoundViewpoint space - currently bound viewpoint (transform parent to avatar)
 				BVVA space - Bound-Viewpoint-Vertically-aligned Avatar-centric 
-					- same as Avatar space with avatar at {0,0,0} except tilted so that gravity is in the direction 
-						of down {0,-1,0} for the currently bound viewpoint (instead for avatar), as per specs
+					- same as Avatar space with avatar at {0,0,0} except tilted so that gravity 
+					  is in the direction of down {0,-1,0} for the currently bound viewpoint 
+					  (instead for avatar), as per specs
 					- gravity is bound-viewpoint down
 				Collision space - Fly/Examine mode: Avatar space. Walk mode: BVVA space
-					- the avatar collision volume - height, stepsize, width - are defined for collision space and axes aligned with it
+					- the avatar collision volume - height, stepsize, width - are defined for 
+					  collision space and axes aligned with it
 				Shape space - raw shape <Coordinate> space
 			Transforms:
-				Bound2Avatar     - transforms from BoundViewpoint space to Avatar space - computed from viewer.quat,viewer.pos
+				Bound2Avatar     - transforms from BoundViewpoint space to Avatar space 
+				                 - computed from viewer.quat,viewer.pos
 				Avatar2BVVA,BVVA2Avatar 
-								- computed from downvector in BoundViewpoint space transformed via Bound2Avatar into Avatar space
-								- constant for a frame, computable once navigation mode and avatar pose is know for the frame
+								- computed from downvector in BoundViewpoint space transformed
+								   via Bound2Avatar into Avatar space
+								- constant for a frame, computable once navigation mode and 
+								   avatar pose is know for the frame
 				Avatar2Collision - Fly/Examine: Identity,    Walk: Avatar2BVVA
 				Collision2Avatar - Fly/Examine: Identity,    Walk: BVVA2Avatar
 				Shape2Collision  - Fly/Examine: modelMatrix, Walk: Avatar2BVVA*modelMatrix
 
-			goal: transform shape geometry into Collision space. (The avatar collision volume is by definition in collision space.)
+			goal: transform shape geometry into Collision space. (The avatar collision 
+			         volume is by definition in collision space.)
 			      Do some collisions between shape and avatar.
-				  Transform collision correction deltas from collision space to avatar space, apply deltas to avatar position.
+				  Transform collision correction deltas from collision space to avatar space, 
+				      apply deltas to avatar position.
 		    implementation:
-				transform shape into collision space - Fly/Examine:modelMatrix or Walk:(Avatar2BVVA * modelMatrix)
+				transform shape into collision space - Fly/Examine:modelMatrix 
+				        or Walk:(Avatar2BVVA * modelMatrix)
 				transform collision correction deltas from collision space to avatar space: 
 					- done in Mainloop.c get_collisionoffset() with FallInfo.collision2avatar
 		   */
 
-
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 
 			#ifdef RENDERVERBOSE
@@ -1572,7 +1583,8 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
                            t_orig.z = modelMatrix[14];
 			#endif
 
-		   /* at this point, whichever method - modelMatrix is Shape2Collision and upvecmat is Collision2Avatar 
+		   /* at this point, whichever method - modelMatrix is Shape2Collision 
+		         and upvecmat is Collision2Avatar 
 		   - pr.actualCoord - these are Shape space coordinates
 			They will be transformed into CollisionSpace coordinates by the modelMatrix transform.
 		   */
@@ -1745,7 +1757,8 @@ void collide_Sphere (struct X3D_Sphere *node) {
 			double maxdisp = 0;
 			radscale.x = radscale.y = radscale.z = node->radius;
 			scale_to_matrix (modelMatrix, &radscale);
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			if(!collisionSphere.npts) collisionSphere_init(node);
 			if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionSphere.smin,collisionSphere.smax)) return;
@@ -1781,7 +1794,8 @@ void collide_Sphere (struct X3D_Sphere *node) {
 		else
 		{
 			/* easy analytical sphere-sphere stuff */
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			t_orig.x = modelMatrix[12];
 			t_orig.y = modelMatrix[13];
@@ -1941,8 +1955,8 @@ void collide_Box (struct X3D_Box *node) {
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			{
 				int i;
 				double shapeMBBmin[3],shapeMBBmax[3];
@@ -2196,7 +2210,8 @@ void collide_Cone (struct X3D_Cone *node) {
 				radscale.x = radscale.z = node->bottomRadius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCone.smin,collisionCone.smax)) return;
 
 
@@ -2229,7 +2244,8 @@ void collide_Cone (struct X3D_Cone *node) {
 			else
 			{
 			   /* values for rapid test */
-				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
@@ -2479,7 +2495,8 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 				radscale.x = radscale.z = node->radius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
-				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 				if( !avatarCollisionVolumeIntersectMBB(modelMatrix, collisionCylinder.smin,collisionCylinder.smax)) return;
 
 				for(i=0;i<collisionCylinder.npts;i++)
@@ -2528,7 +2545,8 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 			{
 
 			   /* values for rapid test */
-				matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+				matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+				//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 			   t_orig.x = modelMatrix[12];
 			   t_orig.y = modelMatrix[13];
 			   t_orig.z = modelMatrix[14];
@@ -2596,7 +2614,8 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+   			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 			#ifdef RENDERVERBOSE
                            t_orig.x = modelMatrix[12];

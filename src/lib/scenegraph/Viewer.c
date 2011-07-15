@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.77 2011/07/12 17:50:41 dug9 Exp $
+$Id: Viewer.c,v 1.78 2011/07/15 18:56:21 dug9 Exp $
 
 CProto ???
 
@@ -946,21 +946,9 @@ struct point_XYZ viewer_get_lastP()
 	return nv; 
 }
 
-/*
- * handle_tick_walk: called once per frame.
- *
- * Sets viewer to next expected position.
- * This should be called before position sensor calculations
- * (and event triggering) take place.
- * Position dictated by this routine is NOT final, and is likely to
- * change if the viewer is left in a state of collision. (ncoder)
- * walk.xd,zd are in a plane parallel to the scene/global horizon.
- * walk.yd is vertical in the global/scene
- * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
- */
 
 static void
-handle_tick_walk()
+handle_tick_walk_old()
 {
 	X3D_Viewer_Walk *walk; 
 	Quaternion q, nq;
@@ -986,6 +974,135 @@ handle_tick_walk()
 	quaternion_normalize(&nq);
 	viewer_lastQ_set(&nq);
 	quaternion_multiply(&(p->Viewer.Quat), &nq, &q);
+
+	/* make sure Viewer.Dist is configured properly for Examine mode */
+	CALCULATE_EXAMINE_DISTANCE
+}
+/*
+ * handle_tick_walk: called once per frame.
+ *
+ * Sets viewer to next expected position.
+ * This should be called before position sensor calculations
+ * (and event triggering) take place.
+ * Position dictated by this routine is NOT final, and is likely to
+ * change if the viewer is left in a state of collision. (ncoder)
+ * according to web3d specs, the gravity vector is determined by 
+ * the currently bound viewpoint vertical CBVV
+ * walk.xd,zd are in a plane parallel to the CBV horizon.
+ * walk.yd is vertical in the CBVV direction
+ * walk.rd is an angle in the CBVV horizontal plane (around vertical axis parallel to the CBVV)
+ */
+
+static void handle_tick_walk()
+{
+	X3D_Viewer_Walk *walk; 
+	Quaternion q, nq, nq2;
+	double ee[4],ff[4];
+	struct point_XYZ pp;
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	walk = &p->Viewer.walk;
+
+	//for normal walking with left button down, only walk->ZD and walk->RD are non-zero
+	pp.x = 0.15 * walk->XD;
+	pp.y = 0.15 * walk->YD;
+	pp.z = 0.15 * walk->ZD;
+	///  see below //increment_pos(&pp);
+
+	/* walk mode transforms: (dug9 July 15, 2011)
+	0.World Coordinates
+	-- transform stack
+	---- 1.viewpoint node - currently bound viewpoint (CBV) gravity direction vector determined here
+	------ .position/(.Pos during navigation)
+	-------- 2.#avatar body proposed - collisions, gravity and wall penetration can be computed here and += to .Pos
+	---------- .orientation/(.Quat during navigation) horizontal/pan part (this *= walk.RD)
+	------------ 3.(walk->ZD in these coords, and must be transformed by inverse(.Quat) into .Pos delta)
+	------------ 3.#avatar body current (BVVA) - collisions, gravity and wall penetration computed here and += to .Pos
+	-------------- .orientation/.Quat tilts part (up/down and camera z axis tilts)^
+	---------------- 4.avatar camera
+	^There's no way for the user to tilt in walk mode. To tilt:
+	a) switch to Fly, tilt with keyboard commands, then switch back to walk,
+	b) script against viewpoint.orientation, or
+	c) put non-zero viewpoint orientation in the scene file
+	# since 2009 the walk avatar collisions,gravity,wall-pen have been done in what has been 
+	  called avatar space or BVVA bound viewpoint vertical avatar - same as avatar camera
+	  with tilts removed, but pan applied, so same space as walk->ZD is applied above
+	  However because the avatar collision volume is symmetric around the vertical axis,
+	  it doesn't have to pan-rotate with the avatar to do its job, so it could be done 
+	  in .position space, with a few code touch ups. This would also still work in Fly mode 
+	  which has a spherically symmetric collision volume.
+
+	fly mode transforms:
+	- simpler - you point, and fly in the direction you pointed, spherical collision volume:
+	0.World
+		1. viewpoint
+			2. avatar position .Pos
+				3. avatar orientation .Quat
+					(collisions currently done here), input device XY mapped to XYZ motion here
+	Notice the order of transforms is the same for Fly mode:
+		.Pos += inverse(.Quat)*inputXYZ - see increment_pos()
+	*/
+
+	q.w = (p->Viewer.Quat).w;
+	q.x = (p->Viewer.Quat).x;
+	q.y = (p->Viewer.Quat).y;
+	q.z = (p->Viewer.Quat).z;
+	vrmlrot_to_quaternion (&nq,0.0,1.0,0.0,0.4*walk->RD);
+	//quaternion_to_vrmlrot(&nq,&ff[0],&ff[1],&ff[2],&ff[3]);
+	//if(walk->RD != 0.0)
+	//	printf("\n");
+	viewer_lastQ_set(&nq); //wall penetration - last avatar pose is stored before updating
+	//split .Quat into horizontal pan and 2 tilts, then:
+	// .Quat = .Quat * walk->RD (if I reverse the order, the tilts don't rotate with the avatar)
+	// .Pos += inverse(planar_part(.Quat)) * walk->ZD
+	//this should rotate the tilts with the avatar
+	quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
+	{
+		double angle;
+		struct point_XYZ tilted, rotaxis;
+		Quaternion qlevel,qplanar;
+		struct point_XYZ down = {0.0, -1.0, 0.0};
+		double aa[4];
+
+		//split .Quat into horizontal pan and 2 vertical tilts
+		quaternion_rotation(&tilted,&q,&down);
+		angle = vecangle2(&down,&tilted, &rotaxis);
+		vrmlrot_to_quaternion (&qlevel,rotaxis.x,rotaxis.y,rotaxis.z,-angle);
+
+ 		quaternion_multiply(&qplanar,&qlevel,&q);
+		//quaternion_to_vrmlrot(&qplanar,&aa[0],&aa[1],&aa[2],&aa[3]);
+
+		//use resulting horizontal pan quat to transform walk->Z
+		{
+			//from increment_pos()
+			struct point_XYZ nv;
+			struct point_XYZ vec;
+			Quaternion q_i;
+			//ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+			vec.x = pp.x;
+			vec.y = pp.y;
+			vec.z = pp.z;
+			viewer_lastP_add(&vec); //wall penetration - last avatar pose is stored before updating
+
+			/* bound-viewpoint-space > Viewer.Pos,Viewer.Quat > avatar-space */
+			//quaternion_inverse(&q_i, &(p->Viewer.Quat));  //<<increment_pos(vec)
+			quaternion_inverse(&q_i, &qplanar); //<< I need this in increment_pos
+			quaternion_rotation(&nv, &q_i, &vec);
+
+			/* save velocity calculations for this mode; used for EAI calls only */
+			p->Viewer.VPvelocity.x = nv.x; p->Viewer.VPvelocity.y = nv.y; p->Viewer.VPvelocity.z = nv.z;
+			/* and, act on this change of location. */
+			p->Viewer.Pos.x += nv.x;  /* Viewer.Pos must be in bound-viewpoint space */
+			p->Viewer.Pos.y += nv.y; 
+			p->Viewer.Pos.z += nv.z;
+			
+
+			/* printf ("increment_pos; oldpos %4.2f %4.2f %4.2f, anti %4.2f %4.2f %4.2f nv %4.2f %4.2f %4.2f \n",
+				Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z, 
+				Viewer.AntiPos.x, Viewer.AntiPos.y, Viewer.AntiPos.z, 
+				nv.x, nv.y, nv.z); */
+		}
+
+	}
 
 	/* make sure Viewer.Dist is configured properly for Examine mode */
 	CALCULATE_EXAMINE_DISTANCE
@@ -1062,6 +1179,7 @@ handle_tick_exfly()
 	if ((len = strlen(string)) > 0) {
 		if(p->exflyMethod == 0)
 		{
+			//MUFTI input data
 			len = sscanf (string, "%f %f %f %f %f %f %f",&px,&py,&pz,
 				&q1,&q2,&q3,&q4);
 
@@ -1077,6 +1195,7 @@ handle_tick_exfly()
 			(p->Viewer.Quat).y = q3;
 			(p->Viewer.Quat).z = q4;
 		}else if(p->exflyMethod == 1){
+			//dug9 WiiMote data written from a C# program
 			static int lastbut = 0;
 			int mev, but;
 			len = sscanf (string, "%d %f %f ",&but,&px,&py);
@@ -1934,7 +2053,7 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 			  frame, before starting to draw, perhaps in prep_Viewpoint(), when we have the 
 			  current modelview matrix for the new viewpoint, this is the point when we would
 			  compute the pose_difference and the initial pose parameters.
-		Current process:
+		Current process: ==============================================
 			prep_Viewpoint() in Component_Navigation.c L.80 - does the per-frame slerp increment
 			bind_Viewpoint() in Viewer.c L.1925 (here) - sets up the slerping values and flags
 			viewer_togl() in Viewer.c L.515 - computes slerp increment, 
@@ -1960,6 +2079,31 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 							bind_viewpoint()
 			generally setup_viewpoint() is called before any non-VF_Viewpoint render_hier() call 
 			to update the current pose -and modelview matrix- of the camera
+		Variables and what they mean:
+			Viewer.startSLERPPos and Viewer.
+			.position    -viewpoint field, only changes through scripting
+			.orientation -viewpoint field, only changes through scripting 
+				- when you re-bind to a viewpoint later, these will be the originals or script modified
+				- transform useage:
+					WorldCoordinates
+						Transform stack to CBV
+							.Pos (== .position after bind, then navigation changes it)
+								viewpoint avatar
+									.Quat (== .orientation after bind, then navigation changes it)
+										viewpoint camera
+			.Pos: on binding, it gets a fresh copy of the position field of the CBV
+				- and navigation changes it
+			.Quat: on binding, it gets a fresh copy of the orientation field of the CBV
+				- and navigation changes it
+				- LEVEL/viewer_level_to_bound() changes it
+			.bindTimeQuat: saves the on-binding orientation field of the CBV
+			.AntiPos
+			.AntiQuat
+			.prepVPQuat
+			No-slerping use of variables in prep_Viewpoint():
+					rotate(prepVPQuat)
+					translate(viewer.position)
+		New process: =======================================================
 		Goal: get both the old and new modelview matrices together, so pose_difference can be
 			computed and applied to new viewpoint orientation/position before render() on the
 			2nd loop.
@@ -1978,9 +2122,15 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 				b) subsequent visits on the bound viewpoint
 				- do slerping increment, apply to orientation/position fields
 				- shut off slerping when done
+		What's different between the old and new processes:
+			- old: storing orientation field and slerp increment in bind_viewpoint
+			- new: storing global pose in bind_viewpoint 
+			- old: and computing pose_difference and slerp increment in prep_viewpoint
+
 	*/
 	//INITIATE_SLERP
-	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
+	if(false){
+	//if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
         p->Viewer.SLERPing = TRUE; 
         p->Viewer.startSLERPtime = TickTime(); 
         memcpy (&p->Viewer.startSLERPPos, &p->Viewer.Pos, sizeof (struct point_XYZ)); 
@@ -2035,7 +2185,26 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 
 	*/
 
-	INITIATE_POSITION_ANTIPOSITION
+//	INITIATE_POSITION_ANTIPOSITION
+//#define INITIATE_POSITION_ANTIPOSITION 
+        p->Viewer.Pos.x = vp->position.c[0]; 
+        p->Viewer.Pos.y = vp->position.c[1]; 
+        p->Viewer.Pos.z = vp->position.c[2]; 
+        p->Viewer.AntiPos.x = vp->position.c[0]; 
+        p->Viewer.AntiPos.y = vp->position.c[1]; 
+        p->Viewer.AntiPos.z = vp->position.c[2]; 
+        p->Viewer.currentPosInModel.x = vp->position.c[0]; 
+        p->Viewer.currentPosInModel.y = vp->position.c[1]; 
+        p->Viewer.currentPosInModel.z = vp->position.c[2]; 
+        vrmlrot_to_quaternion (&p->Viewer.Quat,vp->orientation.c[0], 
+                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */ 
+        vrmlrot_to_quaternion (&p->Viewer.bindTimeQuat,vp->orientation.c[0], 
+                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ 
+        vrmlrot_to_quaternion (&q_i,vp->orientation.c[0], 
+                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ 
+        quaternion_inverse(&(p->Viewer.AntiQuat),&q_i);  
+	vrmlrot_to_quaternion(&p->Viewer.prepVPQuat,vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]);
+
 
 	viewer_lastP_clear();
 	resolve_pos();
