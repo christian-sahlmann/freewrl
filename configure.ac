@@ -546,6 +546,13 @@ else
                   # If Mozilla plugin is to be compiled we have to define MOZ_X11
                   MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
                   AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
+
+                  # XEmbed indicators use PRBool type from nspr, check for support here
+                  PKG_CHECK_MODULES([NSPR],[nspr],[
+                    AC_DEFINE([HAVE_NSPR], [1], [Define if you have nspr installed.])
+                    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS $NSPR_CFLAGS"
+                  ],[])
+		  
                   MAYBE_PLUGIN=plugin
                   AC_MSG_NOTICE([Installing plugin to $plugindir])
 
@@ -678,7 +685,7 @@ AC_SUBST([MAYBE_JAVA])
 
 ## Browser check
 AC_MY_HELPERAPP([browser],[BROWSER],[internet browser],[$DEFAULT_BROWSER],[
-        AC_MSG_WARN([No internet browser -- FreeWRL will not process anchors!])
+        AC_MSG_WARN([Internet browser $DEFAULT_BROWSER not found! FreeWRL will not process anchors unless the BROWSER environment variable is set!])
         ])
 
 ## Soundconv program check (sox)
