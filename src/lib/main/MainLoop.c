@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.218 2011/07/18 02:05:45 dug9 Exp $
+  $Id: MainLoop.c,v 1.219 2011/07/18 16:19:45 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1637,12 +1637,20 @@ void fwl_Last_ViewPoint() {
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
 			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
-
-                	/* whew, we have other vp nodes */
-                	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
-                	t->currboundvpno = vp_to_go_to;
-                	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
-                	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
+				if(0){
+					/* whew, we have other vp nodes */
+					send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
+					t->currboundvpno = vp_to_go_to;
+					if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
+					send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
+				}else{
+					/* dug9 - using the display-thread-synchronous gotoViewpoint style
+						to help order-senstive slerp_viewpoint() process */
+					/* set the initial viewpoint for this file */
+					t->setViewpointBindInRender = t->viewpointnodes[vp_to_go_to];
+					t->currboundvpno = vp_to_go_to;
+					if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
+				}
 			return;
 			}
 		}
@@ -1671,12 +1679,22 @@ void fwl_First_ViewPoint() {
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
 			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
-
+				if(0){
                 	/* whew, we have other vp nodes */
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
                 	t->currboundvpno = vp_to_go_to;
                 	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
+				}else{
+					/* dug9 - using the display-thread-synchronous gotoViewpoint style
+						to help order-senstive slerp_viewpoint() process */
+					/* set the initial viewpoint for this file */
+					t->setViewpointBindInRender = t->viewpointnodes[vp_to_go_to];
+                	t->currboundvpno = vp_to_go_to;
+                	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
+
+				}
+
 			return;
 			}
 		}
@@ -1706,11 +1724,22 @@ void fwl_Prev_ViewPoint() {
 
 			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 
+				if(0){
                 	/* whew, we have other vp nodes */
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
                 	t->currboundvpno = vp_to_go_to;
                 	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
+				}else{
+					/* dug9 - using the display-thread-synchronous gotoViewpoint style
+						to help order-senstive slerp_viewpoint() process */
+					/* set the initial viewpoint for this file */
+					t->setViewpointBindInRender = t->viewpointnodes[vp_to_go_to];
+                	t->currboundvpno = vp_to_go_to;
+                	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
+				}
+
+
 			return;
 			}
 		}
@@ -1742,10 +1771,21 @@ void fwl_Next_ViewPoint() {
 			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 
                 	/* whew, we have other vp nodes */
+				if(0){
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
                 	t->currboundvpno = vp_to_go_to;
                 	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
                 	send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
+				}else{
+					/* dug9 - using the display-thread-synchronous gotoViewpoint style
+						to help order-senstive slerp_viewpoint() process */
+					/* set the initial viewpoint for this file */
+					t->setViewpointBindInRender = t->viewpointnodes[vp_to_go_to];
+                	t->currboundvpno = vp_to_go_to;
+                	if (t->currboundvpno>=t->totviewpointnodes) t->currboundvpno=0;
+
+				}
+
 			return;
 			}
 		}
