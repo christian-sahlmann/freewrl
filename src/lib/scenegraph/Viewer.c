@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.78 2011/07/15 18:56:21 dug9 Exp $
+$Id: Viewer.c,v 1.79 2011/07/18 02:05:45 dug9 Exp $
 
 CProto ???
 
@@ -77,6 +77,15 @@ typedef struct pViewer{
 	GLboolean acMask[2][3]; //anaglyphChannelMask
 	X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
+	/* viewpoint slerping */
+	double viewpoint2rootnode[16];
+	int vp2rnSaved;
+	double old2new[16];
+	double identity[16];
+	double tickFrac;
+	Quaternion sq;
+	double sp[3];
+
 }* ppViewer;
 void *Viewer_constructor(){
 	void *v = malloc(sizeof(struct pViewer));
@@ -120,6 +129,14 @@ void Viewer_init(struct tViewer *t){
 		//p->acMask[2][3]; //anaglyphChannelMask
 		p->acMask[0][0] = (GLboolean)1;
 		p->acMask[1][1] = (GLboolean)1;
+
+		/* viewpoint slerping */
+		loadIdentityMatrix(p->viewpoint2rootnode);
+		p->vp2rnSaved = FALSE; //on startup it binds before saving
+		loadIdentityMatrix(p->old2new);
+		loadIdentityMatrix(p->identity);
+		p->tickFrac = 0.0; //for debugging slowly
+
 	}
 }
 //ppViewer p = (ppViewer)gglobal()->Viewer.prv;
@@ -1996,6 +2013,67 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	resolve_pos();
 }
 
+/* called from main, after the new viewpoint is setup */
+void slerp_viewpoint()
+{
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+
+	if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
+		if(p->Viewer.SLERPing2justStarted)
+		{
+			//rn rootnode space, vpo/vpn old and new viewpoint space
+			double vpo2rn[16], rn2vpo[16],vpn2rn[16],rn2vpn[16],rn2rn[16],diffrn[16];
+			memcpy(vpo2rn,p->viewpoint2rootnode,sizeof(double)*16);
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
+			memcpy(vpn2rn,p->viewpoint2rootnode,sizeof(double)*16);
+			//matinverse(rn2vpo,vpo2rn);
+			matinverse(rn2vpn,vpn2rn);
+			//this works a bit:
+			// diff_RN[rn x rn] = vpo2rn[rn x vpo] * rn2vpn[vpn x rn]
+			matmultiply(diffrn,vpo2rn,rn2vpn);
+
+			//slerping quat and point_XYZ
+			matrix_to_quaternion(&p->sq,diffrn);
+			quaternion_normalize(&p->sq);
+			p->sp[0] = diffrn[12];
+			p->sp[1] = diffrn[13];
+			p->sp[2] = diffrn[14];
+
+			p->Viewer.SLERPing2justStarted = FALSE;
+			//p->tickFrac = 0.0;
+			//printf("in slerping2juststarted ");
+		}
+		//back transform by slerped amount
+		{
+			double tickFrac;
+			Quaternion qdif,qzero;
+			double vzero[3], vshift[3];
+
+			tickFrac = (TickTime() - p->Viewer.startSLERPtime)/p->Viewer.transitionTime;
+			/*
+			if(0){ //debugging slowly
+				p->tickFrac += .1;
+				tickFrac = min(tickFrac,p->tickFrac);
+			}*/
+			tickFrac = min(tickFrac,1.0);
+			tickFrac = max(tickFrac,0.0);
+			//printf(" %4.1lf",tickFrac);
+			//slerping quat and point
+			vzero[0] = vzero[1] = vzero[2] = 0.0;
+			vrmlrot_to_quaternion(&qzero, 0.0,1.0,0.0,0.0); //zero it
+			quaternion_slerp(&qdif,&p->sq,&qzero,tickFrac);
+			general_slerp(vshift,p->sp,vzero,3,tickFrac);
+			FW_GL_TRANSLATE_D(vshift[0],vshift[1],vshift[2]);
+			quaternion_togl(&qdif);
+			if(tickFrac > .99)
+			{
+				p->Viewer.SLERPing2 = FALSE;
+				//printf(" done\n");
+			}
+		}
+	}
+
+}
 /* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
 void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
@@ -2011,12 +2089,22 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 		dug9 - viewpoint slerping: what I see as of July 12, 2011: 
 			in the scene file if there's non-zero position 
 			and orientation values in the fields of the first bindable viewpoint these values are 
-			modified by slerping, during the initial bind. After that, slerping code runs, 
+			modified by slerping, during the initial bind. After the initial slerp, slerping code runs, 
 			but accomplishes no effective slerping. 
-			If the fields are zero when the viewpoint first binds, slerp code runs but
-			no effective slerping.
+			If the fields (.position, .orientation) are zero when the viewpoint first binds, 
+			slerp code runs but no effective slerping.
 
 		dug9 - my concept of how a viewpoint slerp should work, as of July 12, 2011:
+			A smooth transition between current world pose and newly bound viewpoint world pose.
+			definition of 'pose': 6 parameters consisting of 3 translations and 3 rotations in 3D space
+				representing the position and direction of an assymetric object
+			viewpoint pose: transform stack + (.Pos, .Quat) 
+				- on initial binding without viewpoint slerping 
+					(.Pos,.Quat) = (.position,.orientation)
+				- on initial bind with viewpoint slerping 
+					(.Pos,.Quat) = (.position,.orientation) - pose_difference
+					pose_difference = (new viewpoint pose) - (last viewpoint pose)
+			more detail...
 		1. during a viewpoint bind the 'pose_difference' between the old and new viewpoint poses
 		   is computed from their transform stacks
 		   pose_difference = new_viewpoint_world_pose - old_viewpoint_world_pose
@@ -2029,8 +2117,8 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 		there needs to be variables for the following:
 			a) pose_difference - a translation and rotation
 			b) original position and orientation fields
-			c) modified position and orientation fields which multiplied by 
-				inverse(pose_difference)
+			c) modified position and orientation fields  
+				modified_viewpoint_pose = inverse(pose_difference) * bound_viewpoint_pose
 		the easy part is getting the position and orientation fields, which are simple properties
 		of viewpoints. 
 		pose_difference:
@@ -2054,22 +2142,28 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 			  current modelview matrix for the new viewpoint, this is the point when we would
 			  compute the pose_difference and the initial pose parameters.
 		Current process: ==============================================
-			prep_Viewpoint() in Component_Navigation.c L.80 - does the per-frame slerp increment
+			prep_Viewpoint() in Component_Navigation.c L.80 
+				- does the per-frame slerp increment
+				- does the viewpoint field values of .orientation,.position 
 			bind_Viewpoint() in Viewer.c L.1925 (here) - sets up the slerping values and flags
 			viewer_togl() in Viewer.c L.515 - computes slerp increment, 
-			     and turns off slerping flag when done. 
+				- does part not done by prep_Viewpoint 
+				- so net of that prep_Viewpoint + viewer_togl() combined 
+					pose_difference = (new_world_pose) - (old_world_pose)
+					pose_increment = slerpIncrement(pose_difference)
+			    - turns off slerping flag when done. 
 
 			Call stack:
-			mainloop L.503  (before render() geometry)
+			mainloop L.503  (before render geometry)
 				startOfLoopNodeUpdates() in OpenGL_Utils L.3406
 					bind_Viewpoint() (here)
-			mainloop L.630 (after render() geometry)
+			mainloop L.630 (before render geometry)
 				render_pre()
 					setup_viewpoint()
 						viewer_togl()
-							render_hier(rootnode,VF_Viewpoint)
-								prep_Viewpoint() - only called on the current bound viewpoint
-			mainloop L.647  (for render_hier(,VF_sensitive)
+						render_hier(rootnode,VF_Viewpoint)
+							prep_Viewpoint() - only called on the current bound viewpoint
+			mainloop L.647  (for render_hier(,VF_sensitive) after render geometry)
 				setup_viewpoint() 
 					ditto
 			mainloop L.764
@@ -2077,29 +2171,35 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 					prodcon L.604 send_bind_to(X3D_NODE(t->viewpointnodes[i]), 0); 
 						send_bind_to() in Bindables.c L.267
 							bind_viewpoint()
-			generally setup_viewpoint() is called before any non-VF_Viewpoint render_hier() call 
-			to update the current pose -and modelview matrix- of the camera
+			generally setup_viewpoint() is called when needed before any 
+			   non-VF_Viewpoint render_hier() call to update the current pose 
+			   -and modelview matrix- of the camera
 		Variables and what they mean:
-			Viewer.startSLERPPos and Viewer.
+			Viewer.
 			.position    -viewpoint field, only changes through scripting
 			.orientation -viewpoint field, only changes through scripting 
-				- when you re-bind to a viewpoint later, these will be the originals or script modified
-				- transform useage:
-					WorldCoordinates
-						Transform stack to CBV
-							.Pos (== .position after bind, then navigation changes it)
-								viewpoint avatar
-									.Quat (== .orientation after bind, then navigation changes it)
-										viewpoint camera
-			.Pos: on binding, it gets a fresh copy of the position field of the CBV
+			- when you re-bind to a viewpoint later, these will be the originals or script modified
+			- transform useage:
+				WorldCoordinates
+					Transform stack to CBV
+						.Pos (== .position after bind, then navigation changes it)
+							viewpoint avatar
+								.Quat (== .orientation after bind, then navigation changes it)
+									viewpoint camera
+			.Pos: on binding, it gets a fresh copy of the .position field of the CBV
 				- and navigation changes it
-			.Quat: on binding, it gets a fresh copy of the orientation field of the CBV
+			.Quat: on binding, it gets a fresh copy of the .orientation field of the CBV
 				- and navigation changes it
 				- LEVEL/viewer_level_to_bound() changes it
-			.bindTimeQuat: saves the on-binding orientation field of the CBV
+			.bindTimeQuat: == .orientation (of CBV) through lifecycle
+					- used to un-rotate modelviewmatrix (which includes .Pos,.Quat)
+					   to getcurrentPosInModel() (Q. should it be the whole .Quat?)
+
 			.AntiPos
-			.AntiQuat
-			.prepVPQuat
+			.AntiQuat:  == inverse(.orientation)
+			[.prepVPQuat == .orientation, used in prep_Viewpoint, which is wrong because it's not updated from scripting against .orientation]
+			.currentPosInModel - used to calculate examine distance, GeoLOD range, debugging
+								- starts as .position, updated in getCurrentPosInModel()
 			No-slerping use of variables in prep_Viewpoint():
 					rotate(prepVPQuat)
 					translate(viewer.position)
@@ -2108,30 +2208,27 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 			computed and applied to new viewpoint orientation/position before render() on the
 			2nd loop.
 		Proposed process:
-			in bind_viewpoint, store the modelview matrix for the old viewpoint in struct Viewer
-				- if it's a just-parsed bind event ie in send_bind_to() there may be 
-					no valid old modelview matrix - so rely on gglobal() or viewer_init
-					initialization functions to set a valid default early, or else skip
-					and don't slerp to the first bound viewpoint (flux doesnt)
-			in prep_viewpoint
-				a) the first time in on a newly bound viewpoint,
-			    - store the modelview matrix for the new viewpoint in struct Viewer
-				- compute pose_difference
-				- modify the position and orientation with inverse(pose_difference)
+			in bind_viewpoint, set a flag for prep_viewpoint saying its a newly bound viewpoint
+				- save the current modelview matrix
+			after prep_viewpoint in mainloop, call a new function:
+			slerp_viewpoint():
+				a) the first time in on a newly bound viewpoint
+				- retrieve the last modelview stored by bind_viewpoint
+			    - get the modelview matrix for the new viewpoint 
+				- compute pose_difference between the old and new viewpoints
+					pose_difference = last_modelviewmatrix*inverse(newModelViewMatrix)
+				- modify the position and orientation fields of the new one
+				  with pose_difference ie .Pos, .Orient += slerp(pose_difference)
 				- setup the slerping numbers
 				b) subsequent visits on the bound viewpoint
-				- do slerping increment, apply to orientation/position fields
+				- do slerping increment to reduce pose_difference gradually to zero
+				- apply to .Pos,.Quat 
 				- shut off slerping when done
-		What's different between the old and new processes:
-			- old: storing orientation field and slerp increment in bind_viewpoint
-			- new: storing global pose in bind_viewpoint 
-			- old: and computing pose_difference and slerp increment in prep_viewpoint
-
 	*/
 	//INITIATE_SLERP
-	if(false){
-	//if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
-        p->Viewer.SLERPing = TRUE; 
+	//if(false){
+	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
+        p->Viewer.SLERPing = FALSE; //TRUE; 
         p->Viewer.startSLERPtime = TickTime(); 
         memcpy (&p->Viewer.startSLERPPos, &p->Viewer.Pos, sizeof (struct point_XYZ)); 
         memcpy (&p->Viewer.startSLERPAntiPos, &p->Viewer.AntiPos, sizeof (struct point_XYZ)); 
@@ -2139,8 +2236,20 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
         memcpy (&p->Viewer.startSLERPAntiQuat, &p->Viewer.AntiQuat, sizeof (Quaternion));  
         memcpy (&p->Viewer.startSLERPbindTimeQuat, &p->Viewer.bindTimeQuat, sizeof (Quaternion)); 
         memcpy (&p->Viewer.startSLERPprepVPQuat, &p->Viewer.prepVPQuat, sizeof (Quaternion)); 
+
+		/* slerp Mark II */
+		p->Viewer.SLERPing2 = TRUE;
+		p->Viewer.SLERPing2justStarted = TRUE;
+		//printf("binding\n");
+		//save for future slerps
+		p->vp2rnSaved = TRUE; //I probably don't need this flag, I always bind before prep_viewpoint()
+		//printf("S");
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
+		//printf("S");
+
 	} else { 
 		p->Viewer.SLERPing = FALSE; 
+		p->Viewer.SLERPing2 = FALSE;
 	}
 
 	/* calculate distance between the node position and defined centerOfRotation */
@@ -2185,26 +2294,7 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 
 	*/
 
-//	INITIATE_POSITION_ANTIPOSITION
-//#define INITIATE_POSITION_ANTIPOSITION 
-        p->Viewer.Pos.x = vp->position.c[0]; 
-        p->Viewer.Pos.y = vp->position.c[1]; 
-        p->Viewer.Pos.z = vp->position.c[2]; 
-        p->Viewer.AntiPos.x = vp->position.c[0]; 
-        p->Viewer.AntiPos.y = vp->position.c[1]; 
-        p->Viewer.AntiPos.z = vp->position.c[2]; 
-        p->Viewer.currentPosInModel.x = vp->position.c[0]; 
-        p->Viewer.currentPosInModel.y = vp->position.c[1]; 
-        p->Viewer.currentPosInModel.z = vp->position.c[2]; 
-        vrmlrot_to_quaternion (&p->Viewer.Quat,vp->orientation.c[0], 
-                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* dug9 sign change on orientation Jan 18,2010 to accomodate level_to_bound() */ 
-        vrmlrot_to_quaternion (&p->Viewer.bindTimeQuat,vp->orientation.c[0], 
-                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ 
-        vrmlrot_to_quaternion (&q_i,vp->orientation.c[0], 
-                vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]); /* '' */ 
-        quaternion_inverse(&(p->Viewer.AntiQuat),&q_i);  
-	vrmlrot_to_quaternion(&p->Viewer.prepVPQuat,vp->orientation.c[0],vp->orientation.c[1],vp->orientation.c[2],-vp->orientation.c[3]);
-
+	INITIATE_POSITION_ANTIPOSITION
 
 	viewer_lastP_clear();
 	resolve_pos();

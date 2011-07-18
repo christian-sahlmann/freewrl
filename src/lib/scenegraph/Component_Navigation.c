@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.50 2011/07/12 17:50:41 dug9 Exp $
+$Id: Component_Navigation.c,v 1.51 2011/07/18 02:05:45 dug9 Exp $
 
 X3D Navigation Component
 
@@ -53,7 +53,9 @@ X3D Navigation Component
 void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
 	GLint viewPort[10];
+	X3D_Viewer *viewer;
 	if (!renderstate()->render_vp) return;
+	viewer = Viewer();
 
         /* printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
@@ -76,7 +78,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	if (Viewer()->SLERPing) {
+	if (viewer->SLERPing) {
 
 		double tickFrac;
 		Quaternion slerpedDiff;
@@ -84,21 +86,27 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 		struct point_XYZ antipos;
 
 		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-		tickFrac = (TickTime() - Viewer()->startSLERPtime)/Viewer()->transitionTime;
+		tickFrac = (TickTime() - viewer->startSLERPtime)/viewer->transitionTime;
 
-		quaternion_slerp (&slerpedDiff,&Viewer()->startSLERPprepVPQuat,&Viewer()->prepVPQuat,tickFrac);
+		quaternion_slerp (&slerpedDiff,&viewer->startSLERPprepVPQuat,&viewer->prepVPQuat,tickFrac);
 
 		quaternion_togl(&slerpedDiff);
 
-		antipos.x = Viewer()->AntiPos.x * tickFrac + (Viewer()->startSLERPAntiPos.x * (1.0 - tickFrac));
-		antipos.y = Viewer()->AntiPos.y * tickFrac + (Viewer()->startSLERPAntiPos.y * (1.0 - tickFrac));
-		antipos.z = Viewer()->AntiPos.z * tickFrac + (Viewer()->startSLERPAntiPos.z * (1.0 - tickFrac));
+		antipos.x = viewer->AntiPos.x * tickFrac + (viewer->startSLERPAntiPos.x * (1.0 - tickFrac));
+		antipos.y = viewer->AntiPos.y * tickFrac + (viewer->startSLERPAntiPos.y * (1.0 - tickFrac));
+		antipos.z = viewer->AntiPos.z * tickFrac + (viewer->startSLERPAntiPos.z * (1.0 - tickFrac));
 
 		FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
 
 	} else {
 
-		quaternion_togl(&Viewer()->prepVPQuat);
+		//quaternion_togl(&viewer->prepVPQuat);
+		{
+			//dug9slerp  this fix works with a test file VP_set_orientation.x3d
+			Quaternion q3;
+			vrmlrot_to_quaternion(&q3,node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],-node->orientation.c[3]);
+			quaternion_togl(&q3);
+		}
 		FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 	}
 
@@ -106,11 +114,11 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
-		Viewer()->fieldofview = node->fieldOfView/3.1415926536*180;
+		viewer->fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		Viewer()->fieldofview = a1/3.1415926536*180;
+		viewer->fieldofview = a1/3.1415926536*180;
 	}
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }

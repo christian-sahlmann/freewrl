@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.c,v 1.16 2011/05/09 23:51:12 dug9 Exp $
+$Id: LinearAlgebra.c,v 1.17 2011/07/18 02:05:45 dug9 Exp $
 
 ???
 
@@ -43,8 +43,27 @@ $Id: LinearAlgebra.c,v 1.16 2011/05/09 23:51:12 dug9 Exp $
 #define DJ_KEEP_COMPILER_WARNING 0
 
 /* Altenate implemetations available, should merge them eventually */
-
-
+double *vecaddd(double *c, double* a, double *b)
+{
+	c[0] = a[0] + b[0];
+	c[1] = a[1] + b[1];
+	c[2] = a[2] + b[2];
+	return c;
+}
+double *vecdifd(double *c, double* a, double *b)
+{
+	c[0] = a[0] - b[0];
+	c[1] = a[1] - b[1];
+	c[2] = a[2] - b[2];
+	return c;
+}
+double *veccopyd(double *c, double *a)
+{
+	c[0] = a[0];
+	c[1] = a[1];
+	c[2] = a[2];
+	return c;
+}
 double * veccrossd(double *c, double *a, double *b)
 {
     c[0] = a[1] * b[2] - a[2] * b[1];
@@ -479,7 +498,27 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* mm , GLDOUBLE* nn)
 
     return r;
 }
+void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result)
+{
+    double cvl;
+	double dv[3], iv[3], cv[3];
 
+	/* step 1 get sin of angle between 2 vectors using cross product rule: ||u x v|| = ||u||*||v||*sin(theta) */
+    vecnormald(dv,orig); /*normalizes vector to unit length U -> u^ (length 1) */
+    vecnormald(iv,result);
+
+    veccrossd(cv,dv,iv); /*the axis of rotation cv = dv X iv*/
+    cvl = vecnormald(cv,cv); /* cvl = ||u x v|| / ||u^||*||v^|| = ||u x v|| = sin(theta)*/
+	veccopyd(axis,cv);
+
+    /* if(cvl == 0) { */
+    if(APPROX(cvl, 0)) {
+		cv[2] = 1.0;
+	}
+	/* step 2 get cos of angle between 2 vectors using dot product rule: u dot v = ||u||*||v||*cos(theta) or cos(theta) = u dot v/( ||u|| ||v||) 
+	   or, since U,V already unit length from being normalized, cos(theta) = u dot v */
+    *angle = atan2(cvl,vecdotd(dv,iv)); /*the angle theta = arctan(rise/run) = atan2(sin_theta,cos_theta) in radians*/
+}
 /*puts dv back on iv - return the 4x4 rotation matrix that will rotate vector dv onto iv*/
 double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/) {
     struct point_XYZ cv;
@@ -581,4 +620,62 @@ static double identity[] = { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1
 
 void loadIdentityMatrix (double *mat) {
         memcpy((void *)mat, (void *)identity, sizeof(double)*16);
+}
+
+void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t)
+{
+	//not tested as of July16,2011
+	//goal start slow, speed up in the middle, and slow down when stopping 
+	// (like a sine or cosine wave)
+	//let omega = t*pi 
+	//then cos omega goes from 1 to -1 natively
+	//we want scale0 to go from 1 to 0
+	//scale0 = .5(1+cos(t*pi)) should be in the 1 to 0 range,
+	//and be 'fastest' in the middle ie at pi/2 
+	//then scale1 = 1 - scale0
+	double scale0, scale1, omega;
+
+	/* calculate coefficients */
+	if ( t > .05 || t < .95 ) {
+		/* standard case (SLERP) */
+		omega = t*PI;
+		scale0 = 0.5*(1.0 + cos(omega));
+		scale1 = 1.0 - scale0;
+	} else {
+		/* p1 & p2 are very close, so do linear interpolation */
+		scale0 = 1.0 - t;
+		scale1 = t;
+	}
+	ret->x = scale0 * p1->x + scale1 * p2->x;
+	ret->y = scale0 * p1->y + scale1 * p2->y;
+	ret->z = scale0 * p1->z + scale1 * p2->z;
+}
+
+void general_slerp(double *ret, double *p1, double *p2, int size, const double t)
+{
+	//not tested as of July16,2011
+	//goal start slow, speed up in the middle, and slow down when stopping 
+	// (like a sine or cosine wave)
+	//let omega = t*pi 
+	//then cos omega goes from 1 to -1 natively
+	//we want scale0 to go from 1 to 0
+	//scale0 = .5(1+cos(t*pi)) should be in the 1 to 0 range,
+	//and be 'fastest' in the middle ie at pi/2 
+	//then scale1 = 1 - scale0
+	double scale0, scale1, omega;
+	int i;
+	/* calculate coefficients */
+	if (0) {
+	//if ( t > .05 || t < .95 ) {
+		/* standard case (SLERP) */
+		omega = t*PI;
+		scale0 = 0.5*(1.0 + cos(omega));
+		scale1 = 1.0 - scale0;
+	} else {
+		/* p1 & p2 are very close, so do linear interpolation */
+		scale0 = 1.0 - t;
+		scale1 = t;
+	}
+	for(i=0;i<size;i++)
+		ret[i] = scale0 * p1[i] + scale1 * p2[i];
 }

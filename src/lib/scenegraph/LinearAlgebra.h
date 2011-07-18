@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LinearAlgebra.h,v 1.10 2011/06/07 20:00:59 dug9 Exp $
+$Id: LinearAlgebra.h,v 1.11 2011/07/18 02:05:45 dug9 Exp $
 
 Linear algebra.
 
@@ -207,6 +207,7 @@ GLDOUBLE* matrotate(GLDOUBLE* Result, double Theta, double x, double y, double z
 
 /*rotates dv back on iv*/
 double matrotate2v(GLDOUBLE* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/);
+void rotate_v2v_axisAngled(double* axis, double* angle, double *orig, double *result);
 
 GLDOUBLE* mattranslate(GLDOUBLE* r, double dx, double dy, double dz);
 
@@ -214,5 +215,6 @@ GLDOUBLE* matmultiply(GLDOUBLE* r, GLDOUBLE* m , GLDOUBLE* n);
 
 void scale_to_matrix (double *mat, struct point_XYZ *scale);
 void loadIdentityMatrix (double *mat);
+void general_slerp(double *ret, double *p1, double *p2, int size, const double t);
 
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */

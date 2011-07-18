@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.47 2011/07/12 16:16:54 istakenv Exp $
+$Id: Viewer.h,v 1.48 2011/07/18 02:05:45 dug9 Exp $
 
 Viewer ???
 
@@ -237,6 +237,9 @@ typedef struct viewer {
 	X3D_Viewer_YawPitchZoom ypz;
 
 	struct point_XYZ VPvelocity;
+
+	int SLERPing2;
+	int SLERPing2justStarted;
 
 	int SLERPing;
 	double startSLERPtime;
