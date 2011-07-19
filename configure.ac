@@ -668,9 +668,9 @@ else
   # Java classes install dir configuration
   AC_ARG_WITH([javadir],
               [AS_HELP_STRING([--with-javadir=DIR],
-              [font path @<:@DATADIR/$PACKAGE/lib@:>@])],
-              [fontsdir=$withval],
-              [fontsdir=$datadir/$PACKAGE/lib])
+              [java path @<:@DATADIR/$PACKAGE/lib@:>@])],
+              [javadir=$withval],
+              [javadir=$datadir/$PACKAGE/lib])
   AC_DEFINE_DIR([JAVA_DIR],[javadir],[Directory for java classes.])
   # java compiler check (javac)
   AC_MY_HELPERAPP([javac],[JAVAC],[java compiler],[$DEFAULT_JAVAC],[AC_MSG_ERROR([fail])])
