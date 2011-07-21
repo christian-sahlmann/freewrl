@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system_js.h,v 1.10 2011/05/17 13:58:29 crc_canada Exp $
+$Id: system_js.h,v 1.11 2011/07/21 16:20:14 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: Javascript engine dependencies.
@@ -46,6 +46,7 @@ typedef int JSContext;
 typedef int JSObject;
 typedef int JSScript;
 typedef int jsval;
+typedef int jsid;
 typedef int JSType;
 typedef int JSClass;
 typedef int JSFunctionSpec;
