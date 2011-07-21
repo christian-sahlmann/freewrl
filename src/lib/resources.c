@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.49 2011/07/19 20:51:16 crc_canada Exp $
+  $Id: resources.c,v 1.50 2011/07/21 12:11:02 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -258,21 +258,36 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		/* We will always have a network url */
 
 		if (res->network) {
-
 			/* We have an absolute url for this resource */
 			res->type = rest_url;
 			res->status = ress_starts_good;
 			url = STRDUP(res->request);
 
 		} else {
-
 			/* We have an absolute url for main world,
 			   and a relative url for this resource:
 			   Create an url with base+request */
 			if (defaults) {
+
+				/* note that, if FRONTEND_GETS_FILES is defined, we have to clean
+				   this, here. */
+
+				char *cleanedURL;
+				cleanedURL = stripLocalFileName(res->request);
+
+				/* Relative to base */
+				IF_cleanedURL_IS_ABSOLUTE {
+					/* this is an absolute url, which we can do, even if we have a base to
+					   base this from. eg, url='/Users/john/tests/2.wrl'  */
+					url = STRDUP(cleanedURL);
+				} else {
+					char *cwd;
+					cwd = STRDUP(defaults->base);
+					url = concat_path(cwd, cleanedURL);
+					FREE_IF_NZ(cwd);
+				}
 				res->type = rest_url;
 				res->status = ress_starts_good;
-				url = concat_path(defaults->base, res->request);
 			} else {
 				res->type = rest_invalid;
 				ERROR_MSG("resource_identify: can't handle relative url without base: %s\n", res->request);
@@ -328,7 +343,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					url = STRDUP(cleanedURL);
 
 				} else {
-
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
 
