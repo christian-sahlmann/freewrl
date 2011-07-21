@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.28 2011/07/07 20:51:27 istakenv Exp $
+$Id: jsVRML_MFClasses.c,v 1.29 2011/07/21 20:43:21 istakenv Exp $
 
 ???
 
@@ -2021,7 +2021,7 @@ JSBool
 MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 #else
 MFStringConstr(JSContext *cx, uintN argc, jsval *vp) {
-        JSObject *obj = JS_THIS_OBJECT(cx,vp);
+        JSObject *obj = JS_NewObject(cx,&MFStringClass,NULL,NULL);
         jsval *argv = JS_ARGV(cx,vp);
         jsval rval = OBJECT_TO_JSVAL(obj);
         if (!MFStringConstrInternals(cx,obj,argc,argv,&rval)) { return JS_FALSE; }

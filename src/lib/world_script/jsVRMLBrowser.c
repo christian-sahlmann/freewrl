@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.50 2011/07/07 20:51:27 istakenv Exp $
+$Id: jsVRMLBrowser.c,v 1.51 2011/07/21 20:43:21 istakenv Exp $
 
 Javascript C language binding.
 
@@ -412,7 +412,9 @@ VrmlBrowserReplaceWorld(JSContext *context, uintN argc, jsval *vp) {
 			tptr++;
 		}
 		EAI_RW(_costr);
-
+#if JS_VERSION >= 185
+		JS_free(context,_costr);
+#endif
 	} else {
 		printf( "\nIncorrect argument format for replaceWorld(%s).\n", _c_args);
 		return JS_FALSE;
@@ -483,7 +485,10 @@ VrmlBrowserLoadURL(JSContext *context, uintN argc, jsval *vp) {
 		}
 		gglobal()->RenderFuncs.BrowserAction = TRUE;
 
-
+#if JS_VERSION >= 185
+		JS_free(context,_costr[0]);
+		JS_free(context,_costr[1]);
+#endif
 	} else {
 		printf( "\nIncorrect argument format for loadURL(%s).\n", _c_args);
 		return JS_FALSE;
@@ -723,11 +728,19 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 	/* get a pointer to the SFNode structure, in order to properly place the new string */
 	if ((oldPtr = (SFNodeNative *)JS_GetPrivate(context, JSVAL_TO_OBJECT(argv[1]))) == NULL) {
 		printf( "JS_GetPrivate failed in VrmlBrowserLoadURL for SFNode parameter.\n");
+#if JS_VERSION >= 185
+		JS_free(context,_costr0);
+		JS_free(context,fieldStr);
+#endif
 		return JS_FALSE;
 	}
 	myptr = X3D_NODE(oldPtr->handle);
 	if (myptr == NULL) {
 		printf ("CreateVrmlFromURL, internal error - SFNodeNative memory pointer is NULL\n");
+#if JS_VERSION >= 185
+		JS_free(context,_costr0);
+		JS_free(context,fieldStr);
+#endif
 		return JS_FALSE;
 	}
 
@@ -741,7 +754,12 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 
 	/* bounds checks */
 	if (sizeof (_costr0) > (myFileSizeLimit-200)) {
-		printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return JS_FALSE;
+		printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n");
+#if JS_VERSION >= 185
+		JS_free(context,_costr0);
+		JS_free(context,fieldStr);
+#endif
+		return JS_FALSE;
 	}
 
 	/* ok - here we have:
@@ -768,6 +786,10 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 		findFieldInOFFSETS(myptr->_nodeType, fieldInt, &offs, &type, &accessType);
 	} else {
 		ConsoleMessage ("Can not find field :%s: in nodeType :%s:",fieldStr,stringNodeType(myptr->_nodeType));
+#if JS_VERSION >= 185
+		JS_free(context,_costr0);
+		JS_free(context,fieldStr);
+#endif
 		return JS_FALSE;
 	}
 
@@ -784,6 +806,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 	MARK_EVENT(myptr,offs);
 #if JS_VERSION >= 185
 	JS_SET_RVAL(context,vp,*rval);
+	JS_free(context,fieldStr);
+	JS_free(context,_costr0);
 #endif
 	return JS_TRUE;
 }
@@ -847,6 +871,9 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
 					gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 				#endif
 			#endif
+#if JS_VERSION >= 185
+			JS_free(context,_id_c);
+#endif
 		} else {
 	/*		printf ("unknown arg type %d\n",count); */
 		}
@@ -1303,6 +1330,11 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 		len = returnRoutingElementLength(totype);
 
 		jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
+
+#if JS_VERSION >= 185
+		JS_free(context,fromFieldString);
+		JS_free(context,toFieldString);
+#endif
 	} else {
 		printf( "\nIncorrect argument format for %s(%s).\n",
 				callingFunc, _c_args);

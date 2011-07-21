@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.81 2011/06/10 01:42:16 dug9 Exp $
+$Id: CRoutes.c,v 1.82 2011/07/21 20:43:21 istakenv Exp $
 
 ???
 
@@ -65,14 +65,24 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 
 /* defines for getting touched flags and exact Javascript pointers */
 
+/* ... make a #define to handle JS requests that can easily be substituted into these other #defines */
+#if defined(JS_THREADSAFE)
+# define JSBEGINREQUEST_SUBSTITUTION(mycx) JS_BeginRequest(mycx);
+# define JSENDREQUEST_SUBSTITUTION(mycx) JS_EndRequest(mycx);
+#else
+# define JSBEGINREQUEST_SUBSTITUTION(mycx) /* */
+# define JSENDREQUEST_SUBSTITUTION(mycx) /* */
+#endif
+
 /****************************** ECMA types ******************************************/
 /* where we have a Native structure to go along with it */
 #define GETJSPTR_TYPE_A(thistype) \
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
 				/* printf ("getting private data in GETJSPTR for %p \n",JSglobal_return_val); */ \
-        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)tg->CRoutes.JSglobal_return_val)) == NULL) { \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val))) == NULL) { \
                 			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
+					JSENDREQUEST_SUBSTITUTION(cx) \
                 			return JS_FALSE; \
 				} \
 				/* if (ptr->valueChanged > 0) printf ("private is %d valueChanged %d\n",ptr,ptr->valueChanged); */ \
@@ -93,19 +103,22 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 		jsval mainElement; \
 		int len; \
 		int i; \
-		if (!JS_GetProperty(cx, (JSObject *)tg->CRoutes.JSglobal_return_val, "length", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
+			JSENDREQUEST_SUBSTITUTION(cx) \
 			return FALSE; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, (JSObject *)tg->CRoutes.JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
+				JSENDREQUEST_SUBSTITUTION(cx) \
 				return FALSE; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
+				JSENDREQUEST_SUBSTITUTION(cx) \
 				return FALSE; \
 			} \
 			if (ptr->valueChanged > 0) touched = TRUE; /* did this element change? */ \
@@ -122,23 +135,28 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 		int i; \
 		JSContext *cx; \
 		cx = p->ScriptControl[actualscript].cx; \
-		if (!JS_GetProperty(cx, (JSObject *)tg->CRoutes.JSglobal_return_val, "length", &mainElement)) { \
+		JSBEGINREQUEST_SUBSTITUTION(cx) \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
+			JSENDREQUEST_SUBSTITUTION(cx) \
 			break; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, (JSObject *)tg->CRoutes.JSglobal_return_val, i, &mainElement)) { \
+			if (!JS_GetElement(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), i, &mainElement)) { \
 				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
+				JSENDREQUEST_SUBSTITUTION(cx) \
 				break; \
 			} \
-			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
+				JSENDREQUEST_SUBSTITUTION(cx) \
 				break; \
 			} \
 			ptr->valueChanged = 0; \
 		} \
+		JSENDREQUEST_SUBSTITUTION(cx) \
 		break; \
 	} 
 
@@ -150,6 +168,8 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 #undef Bool
 #endif
 
+/* NOTE - BeginRequest is already called prior to any GET_* defines */
+
 #define GET_ECMA_TOUCHED(thistype) \
 	case FIELDTYPE_SF##thistype: {	\
 				touched = findNameInECMATable( p->ScriptControl[actualscript].cx,fullname);\
@@ -160,7 +180,7 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
 		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);  */ \
-		if (!JS_GetProperty(cx, (JSObject *)tg->CRoutes.JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+		if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */  \
 		touched = JSVAL_TO_INT(mainElement);\
@@ -171,19 +191,23 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val); */ \
-        	if (!JS_SetProperty( p->ScriptControl[actualscript].cx, (JSObject *)tg->CRoutes.JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
+		JSBEGINREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
+        	if (!JS_SetProperty( p->ScriptControl[actualscript].cx, JSVAL_TO_OBJECT(tg->CRoutes.JSglobal_return_val), "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
-                /* if (!JS_GetProperty( p->ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+                /* if (!JS_GetProperty( p->ScriptControl[actualscript].cx, JSVAL_TO_OBJECT(JSglobal_return_val), "MF_ECMA_has_changed", &mainElement)) { \
                         printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
 		} \
                 printf ("and MF_ECMA_has_changed is %d\n",JSVAL_TO_INT(mainElement)); */\
+		JSENDREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
 	break; \
 	}
 
 #define RESET_TOUCHED_TYPE_ECMA(thistype) \
 			case FIELDTYPE_##thistype: { \
+				JSBEGINREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
 				resetNameInECMATable( p->ScriptControl[actualscript].cx,JSparamnames[fptr].name); \
+				JSENDREQUEST_SUBSTITUTION(p->ScriptControl[actualscript].cx) \
 				break; \
 			}
 /* in case Bool was defined above, restore the value */
@@ -522,6 +546,9 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 	cx =  p->ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(cx);
+#endif
 	#ifdef CRVERBOSE
 	printf ("\ngetting property for fullname %s, cx %p, interpobj %d script %d, fptr %d (%s:%s)\n",
 		fullname,cx,interpobj,actualscript, fptr,
@@ -530,6 +557,9 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 	if (!JS_GetProperty(cx,  interpobj ,fullname,&tg->CRoutes.JSglobal_return_val)) {
                	printf ("cant get property for %s\n",fullname);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(cx);
+#endif
 		return FALSE;
         } else {
 		#ifdef CRVERBOSE
@@ -577,6 +607,9 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 			default: {printf ("not handled yet in get_valueChanged_flag %s\n",FIELDTYPES[JSparamnames[fptr].type]);
 			}
 		}
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(cx);
+#endif
 	}
 
 #ifdef CHECKER
@@ -587,6 +620,9 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
 		unsigned CRCCheck = 0;
                 cx = p->ScriptControl[actualscript].cx; 
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(cx);
+#endif
                 if (!JS_GetProperty(cx, JSglobal_return_val, "length", &mainElement)) { 
                         printf ("JS_GetProperty failed for length_flag\n"); 
                 } 
@@ -609,6 +645,9 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 
                 } 
 		printf ("CRCcheck %u\n",CRCCheck);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(cx);
+#endif
 	}
 #endif
 
@@ -1453,6 +1492,8 @@ static void gatherScriptEventOuts(void) {
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 	p = (ppCRoutes)tg->CRoutes.prv;
 
+	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
+
 	/* go through all routes, looking for this script as an eventOut */
 
 	/* do we have any routes yet? - we can gather events before any routes are made */
@@ -1529,8 +1570,14 @@ static void gatherScriptEventOuts(void) {
 				#endif
 
 				/* eventOuts go to VRML data structures */
+#if defined(JS_THREADSAFE)
+				JS_BeginRequest(p->ScriptControl[actualscript].cx);
+#endif
 				setField_javascriptEventOut(tn,(unsigned int) tptr,JSparamnames[fptr].type, (int) len, 
 					p->CRoutes[route].extra, p->ScriptControl[actualscript].cx);
+#if defined(JS_THREADSAFE)
+				JS_EndRequest(p->ScriptControl[actualscript].cx);
+#endif
 
 				/* tell this node now needs to redraw */
 				markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
@@ -1545,7 +1592,15 @@ static void gatherScriptEventOuts(void) {
 		/* unset the touched flag */
 		resetScriptTouchedFlag ((int) actualscript, (int) fptr);
 
-		/* REMOVE_ROOT(p->ScriptControl[actualscript].cx,global_return_val); */
+		/* 
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(p->ScriptControl[actualscript].cx);
+#endif
+		REMOVE_ROOT(p->ScriptControl[actualscript].cx,global_return_val); 
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(p->ScriptControl[actualscript].cx);
+#endif
+		*/
 	}
 	route ++;
 	}
@@ -1781,14 +1836,27 @@ void process_eventsProcessed() {
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		if (p->ScriptControl[counter].eventsProcessed == NULL) {
+#if defined(JS_THREADSAFE)
+			JS_BeginRequest(p->ScriptControl[counter].cx);
+#endif
 			p->ScriptControl[counter].eventsProcessed = JS_CompileScript(
 				 p->ScriptControl[counter].cx,
 				 p->ScriptControl[counter].glob,
 				"eventsProcessed()", strlen ("eventsProcessed()"),
 				"compile eventsProcessed()", 1);
-
+#if JS_VERSION >= 185
+			if (!JS_AddObjectRoot(p->ScriptControl[counter].cx,&(p->ScriptControl[counter].eventsProcessed))) {
+				printf ("can not add object root for compiled eventsProcessed() for script %d\n",counter);
+			}
+#endif
+#if defined(JS_THREADSAFE)
+			JS_EndRequest(p->ScriptControl[counter].cx);
+#endif
 		}
 
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(p->ScriptControl[counter].cx);
+#endif
 		if (!JS_ExecuteScript( p->ScriptControl[counter].cx,
                                  p->ScriptControl[counter].glob,
 				p->ScriptControl[counter].eventsProcessed, &retval)) {
@@ -1798,6 +1866,9 @@ void process_eventsProcessed() {
 			printf ("can not run eventsProcessed() for script %d thread %p\n",counter,pthread_self());
 #endif
 		}
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(p->ScriptControl[counter].cx);
+#endif
 
 	}
 #endif /* HAVE_JAVASCRIPT */

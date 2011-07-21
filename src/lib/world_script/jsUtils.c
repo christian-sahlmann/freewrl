@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.39 2011/07/09 01:06:01 dug9 Exp $
+$Id: jsUtils.c,v 1.40 2011/07/21 20:43:21 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -116,6 +116,7 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 	jsval ele; 
 	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
 #if JS_VERSION >= 185
+	char *tmp;
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("setSF_in_MF: JS_IdToValue failed.\n");
@@ -185,7 +186,9 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 			#if JS_VERSION < 185
 			printf ("parentField is %u \"%s\"\n", pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
 			#else
-			printf ("parentField is %u \"%s\"\n", pf, JS_EncodeString(cx,JSVAL_TO_STRING(pf)));
+			tmp=JS_EncodeString(cx,JSVAL_TO_STRING(pf));
+			printf ("parentField is %u \"%s\"\n", pf, tmp);
+			JS_free(cx,tmp);
 			#endif
 			#endif
 
@@ -268,6 +271,9 @@ static void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int data
 
 			/* replace the C string if it needs to be replaced. */
 			verify_Uni_String (oldS,_id_c);
+#if JS_VERSION >= 185
+			JS_free(cx,_id_c);
+#endif
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE in JS_ECMA_TO_X3D! %d\n",dataType); }
@@ -358,6 +364,8 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 	double dl;
 	int il;
 
+	/* NOTE - caller of this function has already defined a BeginRequest */
+
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling X3D_ECMA_TO_JS on type %s\n",FIELDTYPES[dataType]);
 	#endif
@@ -409,6 +417,8 @@ static void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned data
 	void *VPtr;
 	jsval rval;
 	char *script = NULL;
+
+	/* NOTE - caller is (eventually) a class constructor, no need to BeginRequest */
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling X3D_SF_TO_JS on type %s, newval %u\n",FIELDTYPES[dataType],*newval);
@@ -500,6 +510,7 @@ static void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType,
 	struct Multi_Time *MTptr;
 	jsval fieldNameAsJSVAL;
 
+	/* NOTE - caller is (eventually) a JS class constructor, no need to BeginRequest */
 
 	/* so, obj should be an __SFNode_proto, and newval should be a __MFString_proto (or whatever) */
 
@@ -940,6 +951,8 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 	int *fieldOffsetsPtr;
 	struct X3D_Node *node;
 
+	/* NOTE - caller is (eventually) a JS class constructor, no need to BeginRequest */
+
 	_idStr = JS_ValueToString(context, id);
 #if JS_VERSION < 185
 	_id_c = JS_GetStringBytes(_idStr);
@@ -953,6 +966,9 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 
         if ((ptr = (SFNodeNative *)JS_GetPrivate(context, obj)) == NULL) {
                 printf( "JS_GetPrivate failed in getSFNodeField.\n");
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
                 return JS_FALSE;
         }
 	node = X3D_NODE(ptr->handle);
@@ -964,6 +980,9 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 
 	if (node == NULL) {
 		printf ("getSFNodeField, can not set field \"%s\", NODE is NULL!\n",_id_c);
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
 		return JS_FALSE;
 	}
 #if USE_OSC
@@ -1068,12 +1087,18 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 	/* get the table entry giving the type, offset, etc. of this field in this node */
 	fieldOffsetsPtr = getFOP(ptr->handle,_id_c);
 	if (fieldOffsetsPtr == NULL) {
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
 		return JS_FALSE;
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("ptr=%p _id_c=%s node=%p node->_nodeType=%d stringNodeType=%s\n",ptr,_id_c,node,node->_nodeType,stringNodeType(node->_nodeType)) ;
 	printf ("getSFNodeField, fieldOffsetsPtr is %d for node %u, field %s\n",fieldOffsetsPtr, ptr->handle, _id_c);
 	#endif
+#if JS_VERSION >= 185
+	JS_free(context,_id_c);  /* _id_c is not used beyond this point in this fn */
+#endif
 
 
 	/* now, we have an X3D node, offset, type, etc. Just get the value from memory, and move
@@ -1151,6 +1176,9 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict
 	/* get the private data. This will contain a pointer into the FreeWRL scenegraph */
         if ((ptr = (SFNodeNative *)JS_GetPrivate(context, obj)) == NULL) {
                 printf( "JS_GetPrivate failed in setSFNodeField.\n");
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
                 return JS_FALSE;
         }
 
@@ -1159,6 +1187,9 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict
 
 	if (node == NULL) {
 		printf ("setSFNodeField, can not set field \"%s\", NODE is NULL!\n",_id_c);
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
 		return JS_FALSE;
 	}
 
@@ -1182,6 +1213,9 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict
 
 	/* get the table entry giving the type, offset, etc. of this field in this node */
 	fieldOffsetsPtr = getFOP(ptr->handle,_id_c);
+#if JS_VERSION >= 185
+	JS_free(context,_id_c); /* _id_c is not used beyond this point in this fn */
+#endif
 	if (fieldOffsetsPtr == NULL) {
 		return JS_FALSE;
 	}
@@ -1258,6 +1292,9 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 	char *nodeName;
 	struct X3D_Node *confirmNode;
 	#endif
+
+	/* NOTE - caller of this function is a class constructor, no need to worry about Requests */
+
 
 	#ifdef JSVRMLCLASSESVERBOSE
         nodeName = parser_getNameFromNode(ptr) ; /* vi +/dump_scene src/lib/scenegraph/GeneratedCode.c */
@@ -1438,12 +1475,13 @@ JSBool js_SetPropertyCheck(JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 	char *_id_c = "(no value in string)";
 	/* get the id field... */
 	if (JSVAL_IS_STRING(id)) { 
+/*
 #if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
 #else
 		_id_c = JS_EncodeString(cx,JSVAL_TO_STRING(id)); 
 #endif
-        	/* printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp); */
+        	 printf ("hmmm...js_SetPropertyCheck called on string \"%s\" object %u, jsval %u\n",_id_c, obj, *vp); */
 	} else if (JSVAL_IS_DOUBLE(id)) {
 #if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id)); 
@@ -1451,6 +1489,9 @@ JSBool js_SetPropertyCheck(JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 		_id_c = JS_EncodeString(cx,JSVAL_TO_STRING(id)); 
 #endif
         	printf ("\n...js_SetPropertyCheck called on double %s object %u, jsval %u\n",_id_c, obj, *vp);
+#if JS_VERSION >= 185
+		JS_free(cx,_id_c);
+#endif
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
         	printf ("\n...js_SetPropertyCheck called on number %d object %u, jsval %u\n",num, obj, *vp); 
@@ -1523,6 +1564,9 @@ JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsid iid, jsval *
 		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
 #endif
         	printf ("\n...js_GetPropertyDebug called on string \"%s\" object %u, jsval %lu\n",_id_c, (unsigned int) obj, *vp);
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
         	printf ("\n...js_GetPropertyDebug called on number %d object %u, jsval %lu\n",num, (unsigned int) obj, *vp);
@@ -1556,6 +1600,9 @@ void js_SetPropertyDebugWrapped (JSContext *context, JSObject *obj, jsid iid, js
 		_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id)); 
 #endif
         	printf ("\n...js_SetPropertyDebug%s called on string \"%s\" object %p, jsval %lu\n",debugString,_id_c, obj, *vp);
+#if JS_VERSION >= 185
+		JS_free(context,_id_c);
+#endif
 	} else if (JSVAL_IS_INT(id)) {
 		num = JSVAL_TO_INT(id);
         	printf ("\n...js_SetPropertyDebug%s called on number %d object %p, jsval %lu\n",debugString,num, obj, *vp);

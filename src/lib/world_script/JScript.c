@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.41 2011/07/08 00:42:10 dug9 Exp $
+$Id: JScript.c,v 1.42 2011/07/21 20:43:21 istakenv Exp $
 
 Javascript C language binding.
 
@@ -384,11 +384,18 @@ void JSCreateScriptContext(int num) {
 	printf("\tJS context created,\n");
 	#endif
 
-	#if JS_VERSION < 181
-	_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
+	#if JS_VERSION >= 185
+	if (num == 0) {
+		_globalObj = JS_NewCompartmentAndGlobalObject(_context, &p->globalClass, NULL);
 	#else
-	_globalObj = JS_NewCompartmentAndGlobalObject(_context, &p->globalClass, NULL);
+	_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
 	#endif
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(_context);
+#endif
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
 	#ifdef JAVASCRIPTVERBOSE 
@@ -397,9 +404,30 @@ void JSCreateScriptContext(int num) {
 
 
 	/* gets JS standard classes */
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_InitStandardClasses(_context, _globalObj))
+#if defined(JS_THREADSAFE)
+	{	JS_EndRequest(_context);
+#endif
 		freewrlDie("JS_InitStandardClasses failed");
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+	}
+#endif
+#if JS_VERSION >= 185
+	} else {
+		_globalObj = ScriptControl[0].glob;
+		JS_SetGlobalObject(_context,_globalObj);
+		JS_EndRequest(_context);
 
+		#ifdef JAVASCRIPTVERBOSE 
+		printf("\tJS global object from ScriptControl 0 set in ScriptControl %d,\n",num);
+		#endif
+	}	
+#endif
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS standard classes initialized,\n");
 	#endif
@@ -421,20 +449,49 @@ void JSCreateScriptContext(int num) {
 	ScriptControl[num].glob =  _globalObj;
 
 
+#if JS_VERSION >= 185
+	if (num == 0) {
+#endif
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!loadVrmlClasses(_context, _globalObj))
+#if defined(JS_THREADSAFE)
+	{	JS_EndRequest(_context);
+#endif
 		freewrlDie("loadVrmlClasses failed");
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+	}
+#endif
 
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML classes loaded,\n");
 	#endif
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!VrmlBrowserInit(_context, _globalObj, br))
+#if defined(JS_THREADSAFE)
+	{	JS_EndRequest(_context);
+#endif
 		freewrlDie("VrmlBrowserInit failed");
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+	}
+#endif
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
+
+#if JS_VERSION >= 185
+	}
+#endif
 
 	if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
@@ -468,16 +525,32 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 		printf("ActualrunScript script called at %s:%d  num: %d cx %p \"%s\", \n", 
 			fn, line, num, _context, script);
 	#endif
+
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	CLEANUP_JAVASCRIPT(_context)
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(_context);
+#endif
 
 	len = (int) strlen(script);
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_EvaluateScript(_context, _globalObj, script, len, FNAME_STUB, LINENO_STUB, rval)) {
 		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
 		printf ("\n");
 		ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
-
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(_context);
+#endif
 		return JS_FALSE;
-	 }
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+#endif
+	}
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf ("runscript passed\n");
@@ -497,11 +570,21 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 	#endif
 
 	len = (int) strlen(script);
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
 		ConsoleMessage ("jsrunScript - JS_EvaluateScript failed for %s", script);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(_context);
+#endif
 		return JS_FALSE;
-	 }
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+#endif
+	}
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf ("runscript passed\n");
@@ -1137,7 +1220,13 @@ static void InitScriptField(int num, indexT kind, indexT type, const char* field
 		resetScriptTouchedFlag(num, fptr); 
 	}
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(ScriptControl[num].cx);
+#endif
 	CLEANUP_JAVASCRIPT(ScriptControl[num].cx)
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(ScriptControl[num].cx);
+#endif
 
 	FREE_IF_NZ (smallfield);
 	FREE_IF_NZ (sftype);
@@ -1161,9 +1250,19 @@ static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	#endif
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 0 | JSPROP_PERMANENT)) {
 		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n", name);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(_context);
+#endif
 		return JS_FALSE;
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+#endif
 	}
 
 	return JS_TRUE;
@@ -1184,13 +1283,33 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 			   _context, _globalObj, name, str);
 	#endif
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_EvaluateScript(_context, _globalObj, str, (int) strlen(str), FNAME_STUB, LINENO_STUB, &_rval)) {
 		ConsoleMessage ("JSaddGlobalAssignProperty - JS_EvaluateScript failed for %s", str);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(_context);
+#endif
 		return JS_FALSE;
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+#endif
 	}
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(_context);
+#endif
 	if (!JS_DefineProperty(_context, _globalObj, name, _rval, getAssignProperty, setAssignProperty, 0 | JSPROP_PERMANENT)) {
 		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n", name);
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(_context);
+#endif
 		return JS_FALSE;
+#if defined(JS_THREADSAFE)
+	} else {
+		JS_EndRequest(_context);
+#endif
 	}
 	return JS_TRUE;
 }

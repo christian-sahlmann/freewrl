@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.30 2011/07/09 01:06:01 dug9 Exp $
+$Id: jsVRMLClasses.c,v 1.31 2011/07/21 20:43:21 istakenv Exp $
 
 ???
 
@@ -1000,9 +1000,7 @@ JSBool _standardMFAssign(JSContext *cx,
 #if JS_VERSION < 185
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 #else
-	if (JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr)) {
-		_id_str = JS_EncodeString(cx,_id_jsstr);
-	} else {
+	if (!JS_ConvertArguments(cx, argc, argv, "oS", &_from_obj, &_id_jsstr)) {
 #endif
 		printf("JS_ConvertArguments failed in %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
@@ -1027,8 +1025,14 @@ JSBool _standardMFAssign(JSContext *cx,
 	len = JSVAL_TO_INT(val);
 
 	#ifdef JSVRMLCLASSESVERBOSE
+#if JS_VERSION >= 185
+		_id_str = JS_EncodeString(cx,_id_jsstr);
+#endif
 		printf("StandardMFAssign %s: obj = %p, id = \"%s\", from = %p, len = %d\n",stringFieldtypeType(type),
 		obj, _id_str, _from_obj, len);
+#if JS_VERSION >= 185
+		JS_free(cx,_id_jsstr);
+#endif
 	#endif
 
 	/* copyElements */
@@ -1155,6 +1159,9 @@ _standardMFGetProperty(JSContext *cx,
 		asciiStr = JS_EncodeString(cx,_str);
 #endif
 		printf ("we have as a parameter :%s:\n",asciiStr);
+#if JS_VERSION >= 185
+		JS_free(cx,asciiStr);
+#endif
 		#endif
 
 	}
@@ -1175,7 +1182,9 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	size_t buff_size = 0, tmp_valStr_len = 0, tmp_buff_len = 0, className_len = 0;
 	JSBool isString = JS_FALSE;
 	JSBool isImage = JS_FALSE;
-
+#if JS_VERSION >= 185
+	JSBool encodedTmpValstr = JS_FALSE;
+#endif
 
     if (!JS_GetProperty(cx, obj, MF_LENGTH_FIELD, &_v)) {
 		printf( "JS_GetProperty failed for \"%s\" in doMFToString for %s.\n",
@@ -1234,6 +1243,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 				_tmp_valStr = JS_GetStringBytes(_tmpStr);
 #else
 				_tmp_valStr = JS_EncodeString(cx,_tmpStr);
+				encodedTmpValstr = JS_TRUE;
 #endif
 			}
 		}
@@ -1252,6 +1262,9 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 				 JS_realloc(cx, _buff, buff_size * sizeof(char *)))
 				== NULL) {
 				printf( "JS_realloc failed for %d in doMFToString for %s.\n", i, className);
+#if JS_VERSION >= 185
+				if (encodedTmpValstr == JS_TRUE) JS_free(cx,_tmp_valStr);
+#endif
 				return JS_FALSE;
 			}
 		}
@@ -1262,6 +1275,12 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 			} else {
 				sprintf(_buff, "[ %.*s ]", (int) tmp_valStr_len, _tmp_valStr);
 			}
+#if JS_VERSION >= 185
+			if (encodedTmpValstr == JS_TRUE) {
+				JS_free(cx,_tmp_valStr);
+				encodedTmpValstr = JS_FALSE;
+			}
+#endif
 			break;
 		}
 
@@ -1296,6 +1315,12 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		}
 
 		FREE_IF_NZ (_tmp_buff);
+#if JS_VERSION >= 185
+		if (encodedTmpValstr == JS_TRUE) {
+			JS_free(cx,_tmp_valStr);
+			encodedTmpValstr = JS_FALSE;
+		}
+#endif
     }
 
 	/* PixelTextures are stored in Javascript as MFInt32s but in FreeWRL/Perl as an ascii string.
@@ -1370,6 +1395,9 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
 		#ifdef JSVRMLCLASSESVERBOSE
 			printf("property \"%s\" is one of the standard properties. Do nothing.\n", p);
 		#endif
+#if JS_VERSION >= 185
+		JS_free(cx,p);
+#endif
 		return JS_TRUE;
 	}
 
@@ -1378,6 +1406,9 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, char *name) {
 		printJSNodeType(cx,obj);
 		printf("\tdoMFAddProperty:%s id %d string %s ",name,(int)id,p);
 	#endif
+#if JS_VERSION >= 185
+	JS_free(cx,p);
+#endif
 
 	if (!JSVAL_IS_INT(id)){ 
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
@@ -1464,7 +1495,10 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 
 		printf ("parent is a "); printJSNodeType(cx,obj);
 		/* printf ("jsval is is a "); printJSNodeType(cx,*vp);  */
-		
+#if JS_VERSION >= 185
+		JS_free(cx,_c);
+		JS_free(cx,_cc);
+#endif
 	#endif
 
 	/* should this value be checked for possible conversions */
@@ -1486,6 +1520,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 				_cc = JS_EncodeString(cx,_sstr);
 #endif
 				printf ("can not convert %s to an integer in doMFAddProperty for type %d\n",_cc,type);
+#if JS_VERSION >= 185
+				JS_free(cx,_cc);
+#endif
 				return JS_FALSE;
 			}
 
@@ -1501,6 +1538,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 				_cc = JS_EncodeString(cx,_sstr);
 #endif
 				printf ("value is  %s \n",_cc);
+#if JS_VERSION >= 185
+				JS_free(cx,_cc);
+#endif
 		#endif
 
 		if (JSVAL_IS_INT(*vp)) {
@@ -1603,7 +1643,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 			#if JS_VERSION < 185
 			printf ("parentField is %u \"%s\"\n", (unsigned int)pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
 			#else
-			printf ("parentField is %u \"%s\"\n", (unsigned int)pf, JS_EncodeString(cx,JSVAL_TO_STRING(pf)));
+			_cc = JS_EncodeString(cx,JSVAL_TO_STRING(pf));
+			printf ("parentField is %u \"%s\"\n", (unsigned int)pf, _cc);
+			JS_free(cx,_cc);
 			#endif
 			#endif
 
@@ -1663,6 +1705,9 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 
 		FREE_IF_NZ (_tmp_vpStr);
 	}
+#if JS_VERSION >= 185
+	JS_free(cx,_buff);
+#endif
 
 	return JS_TRUE;
 }
@@ -1874,6 +1919,9 @@ setECMANative(JSContext *context, JSObject *obj, jsid iid, JSBool strict, jsval 
 				   obj, _id_c, _new_vp_c);
 		#endif
 		FREE_IF_NZ (_new_vp_c);
+#if JS_VERSION >= 185
+		JS_free(context,_vp_c);
+#endif
 	} else {
 		#ifdef JSVRMLCLASSESVERBOSE
 		_vpStr = JS_ValueToString(context, *vp);
@@ -1884,9 +1932,14 @@ setECMANative(JSContext *context, JSObject *obj, jsid iid, JSBool strict, jsval 
 #endif
 		printf("setECMANative: obj = %p, id = \"%s\", vp = %s\n",
 			   obj, _id_c, _vp_c);
+#if JS_VERSION >= 185
+		JS_free(context,_vp_c);
+#endif
 		#endif
 	}
-
+#if JS_VERSION >= 185
+	JS_free(context,_id_c);
+#endif
 	return ret;
 }
 
@@ -1926,7 +1979,10 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	if (JSVAL_IS_INT(*vp)) printf ("is INT\n");
 	if (JSVAL_IS_DOUBLE(*vp)) printf ("is DOUBLE\n");
 
-
+#if JS_VERSION >= 185
+		JS_free(cx,_id_c);
+		JS_free(cx,_vp_c);
+#endif
 	#endif
 	return JS_TRUE;
 }
@@ -1958,18 +2014,22 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 #endif
 
 	if (JSVAL_IS_STRING(id)) {
+		if (!JS_ConvertValue(cx, *vp, JSTYPE_OBJECT, &newVal)) {
+			printf( "JS_ConvertValue failed in setAssignProperty.\n");
+			return JS_FALSE;
+		}
+
 		_str = JSVAL_TO_STRING(id);
 #if JS_VERSION < 185
 		_id_c = JS_GetStringBytes(_str);
 #else
 		_id_c = JS_EncodeString(cx,_str);
 #endif
-		if (!JS_ConvertValue(cx, *vp, JSTYPE_OBJECT, &newVal)) {
-			printf( "JS_ConvertValue failed in setAssignProperty.\n");
-			return JS_FALSE;
-		}
 		if (!JS_GetProperty(cx, obj, _id_c, &initVal)) {
 			printf( "JS_GetProperty failed in setAssignProperty.\n");
+#if JS_VERSION >= 185
+			JS_free(cx,_id_c);
+#endif
 			return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
@@ -2004,6 +2064,9 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		printf ("newVal is %s\n",JS_EncodeString(cx,JS_ValueToString(cx,newVal)));
 #endif
 		#endif
+#if JS_VERSION >= 185
+		JS_free(cx,_id_c);
+#endif
 
 
 		_o = JSVAL_TO_OBJECT(initVal);
@@ -2031,6 +2094,9 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 #endif
 			printf("setAssignProperty: obj = %p, id = \"%s\"\n",
 				   obj, _id_c);
+#if JS_VERSION >= 185
+			JS_free(cx,_id_c);
+#endif
 		#endif
 	}
 

@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.65 2011/06/28 17:36:29 crc_canada Exp $
+  $Id: fieldSet.c,v 1.66 2011/07/21 20:43:21 istakenv Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -758,6 +758,8 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	char *strp;
 	ttglobal tg = gglobal();
 
+	/* NOTE - parent calls BeginRequest so we don't have to */
+
 	/* set up a pointer to where to put this stuff */
 	memptr = offsetPointer_deref(char *, tn, tptr);
 
@@ -769,6 +771,9 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	strp = JS_EncodeString(scriptContext,strval);
 #endif
 	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
+#if JS_VERSION >= 185
+	JS_free(scriptContext,strp);
+#endif
 	#endif
 
 #define GETJSVAL_TYPE_A(thistype,field) \
@@ -839,6 +844,9 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #endif
 
 			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp, FALSE);
+#if JS_VERSION >= 185
+			JS_free(scriptContext,strp);
+#endif
 			break;
 		}
 
@@ -859,6 +867,9 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			newptr = (uintptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
+#if JS_VERSION >= 185
+			JS_free(scriptContext,strp);
+#endif
 			break;
 		}
 
@@ -887,6 +898,9 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 				/* printf ("convertingthe following string to a pointer :%s:\n",strp); */
 
 				mynode = X3D_NODE(atol(strp));
+#if JS_VERSION >= 185
+				JS_free(scriptContext,strp);
+#endif
 
 				/* printf ("mynode is %p %d, \n",mynode,mynode);
 				printf ("mynode is %p %d, type %d\n",mynode,mynode,mynode->_nodeType);
@@ -1186,7 +1200,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	printJSNodeType (cx,myJSVal);
 	#endif
 
-	if (!JS_GetProperty(cx, (JSObject *)myJSVal,  MF_LENGTH_FIELD, &mainElement)) {
+	if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(myJSVal),  MF_LENGTH_FIELD, &mainElement)) {
 		printf ("JS_GetProperty failed for \"%s\" in getJSMultiNumType\n", MF_LENGTH_FIELD);
 		return;
 	}
@@ -1231,7 +1245,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, (JSObject *)myJSVal, i, &mainElement)) {
+		if (!JS_GetElement(cx, JSVAL_TO_OBJECT(myJSVal), i, &mainElement)) {
 			printf ("WARNING: JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			switch (eletype) {
 			case FIELDTYPE_SFNode:
@@ -1268,8 +1282,10 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 #else
 			strp = JS_EncodeString(cx,_tmpStr);
 #endif
-
 	                printf ("sub element %d is \"%s\" \n",i,strp);  
+#if JS_VERSION >= 185
+			JS_free(cx,strp);
+#endif
 
 			if (JSVAL_IS_OBJECT(mainElement)) printf ("sub element %d is an OBJECT\n",i);
 			if (JSVAL_IS_PRIMITIVE(mainElement)) printf ("sub element %d is an PRIMITIVE\n",i);
@@ -1279,11 +1295,11 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			switch (eletype) {
 			case FIELDTYPE_SFNode: {
 
-				if (JS_InstanceOf (cx, (JSObject *)mainElement, &SFNodeClass, NULL)) {
+				if (JS_InstanceOf (cx, JSVAL_TO_OBJECT(mainElement), &SFNodeClass, NULL)) {
 					SFNodeNative *_vec;
 
 					/* printf ("yep, this is an SFNode class\n");  */
-				       if ((_vec = (SFNodeNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+				       if ((_vec = (SFNodeNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) {
 						printf ("error getting native\n");
 						*nl = NULL;
 					} else {
@@ -1322,7 +1338,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			}
 			case FIELDTYPE_SFVec2f: {
 				if (JSVAL_IS_OBJECT(mainElement)) {
-	                        	if ((sfvec2f = (SFVec2fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+	                        	if ((sfvec2f = (SFVec2fNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) {
 	                                	printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
 	                                	return;
 	                        	}
@@ -1337,7 +1353,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			case FIELDTYPE_SFVec3f:
 	                case FIELDTYPE_SFColor: {       /* SFColor */
 				if (JSVAL_IS_OBJECT(mainElement)) {
-	                        	if ((sfvec3f = (SFVec3fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+	                        	if ((sfvec3f = (SFVec3fNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) {
 	                        	        printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
 	                        	        return;
 	                        	}
@@ -1353,7 +1369,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			}
 			case FIELDTYPE_SFRotation: {
 				if (JSVAL_IS_OBJECT(mainElement)) {
-	                        	if ((sfrotation = (SFRotationNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+	                        	if ((sfrotation = (SFRotationNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(mainElement))) == NULL) {
 	                        	        printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
 	                        	        return;
 	                        	}
@@ -1385,6 +1401,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	                        /* copy the string over, delete the old one, if need be */
 	                        verify_Uni_String (*ms,strp);
 				ms++;
+#if JS_VERSION >= 185
+				JS_free(cx,strp);
+#endif
 	                        break;
 			}
 	
@@ -1501,6 +1520,9 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			/* MALLOC a new string, of correct len for terminator */
 			svptr[i] =  newASCIIString(valStr);
 		}
+#if JS_VERSION >= 185
+		JS_free(cx,valStr);
+#endif
 	}
 	/*
 	printf ("\n new structure: %d %d\n",svptr,newlen);

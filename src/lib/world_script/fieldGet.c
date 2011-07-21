@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.48 2011/07/07 20:51:27 istakenv Exp $
+$Id: fieldGet.c,v 1.49 2011/07/21 20:43:21 istakenv Exp $
 
 Javascript C language binding.
 
@@ -136,6 +136,9 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 	cx =  ScriptControl[tonode].cx;
 	obj = ScriptControl[tonode].glob;
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(cx);
+#endif
 	/* set the time for this script */
 	SET_JS_TICKTIME()
 
@@ -150,6 +153,9 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
         if (!JS_DefineProperty(cx,obj, scriptline, newval, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
                 printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__); 
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(cx);
+#endif
                 return; 
         }
 
@@ -158,6 +164,10 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int dat
 
 	/* and run the function */
 	RUN_FUNCTION (toname)
+
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(cx);
+#endif
 }
 
 /*  setScriptECMAtype called by getField_ToJavascript for 
@@ -217,6 +227,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	cx =  ScriptControl[tonode].cx;
 	obj = ScriptControl[tonode].glob;
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(cx);
+#endif
 	/* set the TickTime (possibly again) for this context */
 	SET_JS_TICKTIME_RV(FALSE)
 
@@ -242,6 +255,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				newSFObject = JS_ConstructObject(cx,&SFRotationClass,NULL, newMFObject);
 				if ((SFRPptr = (SFRotationNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+#if defined(JS_THREADSAFE)
+					JS_EndRequest(cx);
+#endif
 					return FALSE;
 				}
 
@@ -290,6 +306,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				newSFObject = JS_ConstructObject(cx,&SFVec3fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec3fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+#if defined(JS_THREADSAFE)
+					JS_EndRequest(cx);
+#endif
 					return FALSE;
 				}
 
@@ -337,6 +356,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				newSFObject = JS_ConstructObject(cx,&SFColorClass,NULL, newMFObject);
 				if ((SFRPptr = (SFColorNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+#if defined(JS_THREADSAFE)
+					JS_EndRequest(cx);
+#endif
 					return FALSE;
 				}
 
@@ -384,6 +406,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				newSFObject = JS_ConstructObject(cx,&SFVec2fClass,NULL, newMFObject);
 				if ((SFRPptr = (SFVec2fNative *)JS_GetPrivate(cx, newSFObject)) == NULL) {
 					printf ("failure in getting SF class at %s:%d\n",__FILE__,__LINE__);
+#if defined(JS_THREADSAFE)
+					JS_EndRequest(cx);
+#endif
 					return FALSE;
 				}
 
@@ -674,6 +699,9 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 				strcat (scriptline,"(");
 			}
 	}
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(cx);
+#endif
 	return TRUE;
 }
 
@@ -783,6 +811,8 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 	jsval retval;
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
+	/* NOTE -- this is only called once, and the caller has already defined a JS_BeginRequest() */
+
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
 	#ifdef SETFIELDVERBOSE 
@@ -869,6 +899,9 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	cx =  ScriptControl[tonode].cx;
 	obj = ScriptControl[tonode].glob;
 
+#if defined(JS_THREADSAFE)
+	JS_BeginRequest(cx);
+#endif
 	/* set the time for this script */
 	SET_JS_TICKTIME()
 
@@ -890,6 +923,10 @@ void set_one_MultiElementType (int tonode, int tnfield, void *Data, int dataLen 
 	#endif
 
 	RUN_FUNCTION (tnfield)
+
+#if defined(JS_THREADSAFE)
+	JS_EndRequest(cx);
+#endif
 }
 
 

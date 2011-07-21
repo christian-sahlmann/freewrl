@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.h,v 1.23 2011/07/08 00:42:10 dug9 Exp $
+$Id: jsVRMLClasses.h,v 1.24 2011/07/21 20:43:21 istakenv Exp $
 
 Complex VRML nodes as Javascript classes.
 
@@ -39,7 +39,8 @@ Complex VRML nodes as Javascript classes.
 #define INIT_ARGC 0
 
 /* tie a node into the root. Currently not required, as we do a better job
-of garbage collection */
+of garbage collection 
+... NOTE! JS_AddRoot and JS_RemoveRoot is DEPRECATED as of JS_VERSION 185*/
 #define ADD_ROOT(a,b) \
 	/* printf ("adding root  cx %u pointer %u value %u\n",a,&b,b); \
         if (JS_AddRoot(a,&b) != JS_TRUE) { \
@@ -94,6 +95,7 @@ of garbage collection */
                 return; \
         }}
 
+#if JS_VERSION < 185
 #define COMPILE_FUNCTION_IF_NEEDED(tnfield) \
 	if (JSparamnames[tnfield].eventInFunction == NULL) { \
 		sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", JSparamnames[tnfield].name,JSparamnames[tnfield].name); \
@@ -101,6 +103,19 @@ of garbage collection */
 		JSparamnames[tnfield].eventInFunction = (void *) JS_CompileScript( \
 			cx, obj, scriptline, strlen(scriptline), "compile eventIn",1); \
 	}
+#else
+#define COMPILE_FUNCTION_IF_NEEDED(tnfield) \
+	if (JSparamnames[tnfield].eventInFunction == NULL) { \
+		sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", JSparamnames[tnfield].name,JSparamnames[tnfield].name); \
+		/* printf ("compiling function %s\n",scriptline); */ \
+		JSparamnames[tnfield].eventInFunction = JS_CompileScript( \
+			cx, obj, scriptline, strlen(scriptline), "compile eventIn",1); \
+		if (!JS_AddObjectRoot(cx,&(JSparamnames[tnfield].eventInFunction))) { \
+			printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__); \
+			return; \
+		} \
+	}
+#endif
 #define RUN_FUNCTION(tnfield) \
 	{jsval zimbo; \
 	if (!JS_ExecuteScript(cx, obj, JSparamnames[tnfield].eventInFunction, &zimbo)) { \
