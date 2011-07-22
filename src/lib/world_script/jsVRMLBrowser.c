@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.51 2011/07/21 20:43:21 istakenv Exp $
+$Id: jsVRMLBrowser.c,v 1.52 2011/07/22 19:18:44 istakenv Exp $
 
 Javascript C language binding.
 
@@ -506,14 +506,23 @@ VrmlBrowserLoadURL(JSContext *context, uintN argc, jsval *vp) {
 JSBool
 #if JS_VERSION < 185
 VrmlBrowserSetDescription(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	char *_c_format = "s";
 #else
 VrmlBrowserSetDescription(JSContext *context, uintN argc, jsval *vp) {
         jsval *argv = JS_ARGV(context,vp);
+	JSString *js_c
+	char *_c_format = "S";
 #endif
-	char *_c, *_c_args = "SFString description", *_c_format = "s";
+	char *_c, *_c_args = "SFString description";
 
 	if (argc == 1 &&
+#if JS_VERSION < 185
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
+#else
+		JS_ConvertArguments(context, argc, argv, _c_format, &js_c)) {
+			/* _c = JS_EncodeString(context,js_c);
+			...why encode the string when we just have to JS_free it later? */
+#endif
 
 		/* we do not do anything with the description. If we ever wanted to, it is in _c */
 #if JS_VERSION < 185
@@ -532,14 +541,17 @@ VrmlBrowserSetDescription(JSContext *context, uintN argc, jsval *vp) {
 JSBool
 #if JS_VERSION < 185
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	char *_c_format = "s";
 #else
 VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
         JSObject *obj = JS_THIS_OBJECT(context,vp);
         jsval *argv = JS_ARGV(context,vp);
 	jsval _my_rval;
 	jsval *rval = &_my_rval;
+	char *_c_format = "S";
+	JSString *js_c
 #endif
-	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
+	char *_c, *_c_args = "SFString vrmlSyntax";
 
 	/* for the return of the nodes */
 	struct X3D_Group *retGroup;
@@ -557,7 +569,12 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 	*rval = INT_TO_JSVAL(0);
 
 	if (argc == 1 &&
+#if JS_VERSION < 185
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
+#else
+		JS_ConvertArguments(context, argc, argv, _c_format, &js_c)) {
+			_c = JS_EncodeString(context,js_c);
+#endif
 		#ifdef JSVERBOSE
 			printf("VrmlBrowserCreateVrmlFromString: obj = %u, str = \"%s\"\n",
 				   obj, _c);
@@ -589,6 +606,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 		}
 		strcat (xstr,")");
 		markForDispose(X3D_NODE(retGroup),FALSE);
+
+#if JS_VERSION >= 185
+		JS_free(context,_c);
+#endif
 		
 		#ifdef JSVERBOSE
 		printf ("running runscript on :%s:\n",xstr);
