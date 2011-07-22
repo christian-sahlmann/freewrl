@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.52 2011/07/22 19:18:44 istakenv Exp $
+$Id: jsVRMLBrowser.c,v 1.53 2011/07/22 19:26:46 istakenv Exp $
 
 Javascript C language binding.
 
@@ -510,7 +510,7 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj, uintN argc, jsval *
 #else
 VrmlBrowserSetDescription(JSContext *context, uintN argc, jsval *vp) {
         jsval *argv = JS_ARGV(context,vp);
-	JSString *js_c
+	JSString *js_c;
 	char *_c_format = "S";
 #endif
 	char *_c, *_c_args = "SFString description";
@@ -549,7 +549,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 	jsval _my_rval;
 	jsval *rval = &_my_rval;
 	char *_c_format = "S";
-	JSString *js_c
+	JSString *js_c;
 #endif
 	char *_c, *_c_args = "SFString vrmlSyntax";
 
