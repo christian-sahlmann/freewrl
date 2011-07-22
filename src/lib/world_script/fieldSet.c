@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.66 2011/07/21 20:43:21 istakenv Exp $
+  $Id: fieldSet.c,v 1.67 2011/07/22 19:33:39 istakenv Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -756,6 +756,9 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	char *memptr;
         JSString *strval; /* strings */
 	char *strp;
+#if JS_VERSION >= 185
+	char *strpp;  /* strp is modified, so we cannot use it to free JS_EncodeString results */
+#endif
 	ttglobal tg = gglobal();
 
 	/* NOTE - parent calls BeginRequest so we don't have to */
@@ -768,11 +771,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #if JS_VERSION < 185
        	strp = JS_GetStringBytes(strval);
 #else
-	strp = JS_EncodeString(scriptContext,strval);
+	strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
 	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
 #if JS_VERSION >= 185
-	JS_free(scriptContext,strp);
+	JS_free(scriptContext,strpp);
 #endif
 	#endif
 
@@ -840,12 +843,12 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #if JS_VERSION < 185
 	        	strp = JS_GetStringBytes(strval);
 #else
-	        	strp = JS_EncodeString(scriptContext,strval);
+	        	strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
 
 			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp, FALSE);
 #if JS_VERSION >= 185
-			JS_free(scriptContext,strp);
+			JS_free(scriptContext,strpp);
 #endif
 			break;
 		}
@@ -858,7 +861,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #if JS_VERSION < 185
 			strp = JS_GetStringBytes(strval);
 #else
-			strp = JS_EncodeString(scriptContext,strval);
+			strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
 
 			/* copy the string over, delete the old one, if need be */
@@ -868,7 +871,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 #if JS_VERSION >= 185
-			JS_free(scriptContext,strp);
+			JS_free(scriptContext,strpp);
 #endif
 			break;
 		}
@@ -886,7 +889,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 #if JS_VERSION < 185
 				strp = JS_GetStringBytes(strval);
 #else
-				strp = JS_EncodeString(scriptContext,strval);
+				strp = strpp = JS_EncodeString(scriptContext,strval);
 #endif
 				
 				/* we will have at least one node here, in an ascii string */
@@ -899,7 +902,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 				mynode = X3D_NODE(atol(strp));
 #if JS_VERSION >= 185
-				JS_free(scriptContext,strp);
+				JS_free(scriptContext,strpp);
 #endif
 
 				/* printf ("mynode is %p %d, \n",mynode,mynode);
@@ -1155,6 +1158,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	int len;
 	int i;
 	char *strp;
+#if JS_VERSION >= 185
+	char *strpp; /* we need this to reliably free the results of JS_EncodeString() */
+#endif
 	int elesize;
 	SFVec2fNative *sfvec2f;
 	SFVec3fNative *sfvec3f;
@@ -1280,11 +1286,11 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 #if JS_VERSION < 185
 			strp = JS_GetStringBytes(_tmpStr);
 #else
-			strp = JS_EncodeString(cx,_tmpStr);
+			strp = strpp = JS_EncodeString(cx,_tmpStr);
 #endif
 	                printf ("sub element %d is \"%s\" \n",i,strp);  
 #if JS_VERSION >= 185
-			JS_free(cx,strp);
+			JS_free(cx,strpp);
 #endif
 
 			if (JSVAL_IS_OBJECT(mainElement)) printf ("sub element %d is an OBJECT\n",i);
@@ -1390,7 +1396,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 #if JS_VERSION < 185
 	                        strp = JS_GetStringBytes(strval);
 #else
-				strp = JS_EncodeString(cx,strval);
+				strp = strpp = JS_EncodeString(cx,strval);
 #endif
 
 	
@@ -1402,7 +1408,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	                        verify_Uni_String (*ms,strp);
 				ms++;
 #if JS_VERSION >= 185
-				JS_free(cx,strp);
+				JS_free(cx,strpp);
 #endif
 	                        break;
 			}
