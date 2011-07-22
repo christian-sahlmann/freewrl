@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.42 2011/07/21 20:43:21 istakenv Exp $
+$Id: JScript.c,v 1.43 2011/07/22 16:41:31 istakenv Exp $
 
 Javascript C language binding.
 
@@ -249,6 +249,9 @@ void kill_javascript(void) {
 			/* printf ("kill_javascript, looking at %d\n",i); */
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
+#if JS_VERSION >= 185
+				JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
+#endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
 			}
 		}
@@ -390,6 +393,11 @@ void JSCreateScriptContext(int num) {
 	#if JS_VERSION >= 185
 	if (num == 0) {
 		_globalObj = JS_NewCompartmentAndGlobalObject(_context, &p->globalClass, NULL);
+	} else {
+		JS_SetGlobalObject(_context,ScriptControl[0].glob);
+		_globalObj = JS_NewGlobalObject(_context,&p->globalClass);
+		JS_SetGlobalObject(_context,_globalObj);
+	}	
 	#else
 	_globalObj = JS_NewObject(_context, &p->globalClass, NULL, NULL);
 	#endif
@@ -417,17 +425,6 @@ void JSCreateScriptContext(int num) {
 		JS_EndRequest(_context);
 	}
 #endif
-#if JS_VERSION >= 185
-	} else {
-		_globalObj = ScriptControl[0].glob;
-		JS_SetGlobalObject(_context,_globalObj);
-		JS_EndRequest(_context);
-
-		#ifdef JAVASCRIPTVERBOSE 
-		printf("\tJS global object from ScriptControl 0 set in ScriptControl %d,\n",num);
-		#endif
-	}	
-#endif
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS standard classes initialized,\n");
 	#endif
@@ -449,9 +446,6 @@ void JSCreateScriptContext(int num) {
 	ScriptControl[num].glob =  _globalObj;
 
 
-#if JS_VERSION >= 185
-	if (num == 0) {
-#endif
 #if defined(JS_THREADSAFE)
 	JS_BeginRequest(_context);
 #endif
@@ -489,9 +483,6 @@ void JSCreateScriptContext(int num) {
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
 
-#if JS_VERSION >= 185
-	}
-#endif
 
 	if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
