@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.40 2011/07/21 20:43:21 istakenv Exp $
+$Id: jsUtils.c,v 1.41 2011/07/22 22:20:01 istakenv Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -827,7 +827,11 @@ printf ("*** errorReporter ***\n");
 		return;
 	}
 
-	len = (int) ((strlen(report->filename) + 1) + (strlen(message) + 1));
+	if (report->filename == NULL) {
+		len = (int) (strlen(message) + 1);
+	} else {
+		len = (int) ((strlen(report->filename) + 1) + (strlen(message) + 1));
+	}
 
 	errorReport = (char *) JS_malloc(context, (len + STRING) * charPtrSize);
 	if (!errorReport) {
