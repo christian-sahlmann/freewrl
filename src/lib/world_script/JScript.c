@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.43 2011/07/22 16:41:31 istakenv Exp $
+$Id: JScript.c,v 1.44 2011/07/22 19:41:48 istakenv Exp $
 
 Javascript C language binding.
 
@@ -250,7 +250,9 @@ void kill_javascript(void) {
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 #if JS_VERSION >= 185
+/* currently causes assertion failure (segfault), unsure why ...
 				JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
+*/
 #endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
 			}
