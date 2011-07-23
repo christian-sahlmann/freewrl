@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.44 2011/07/23 01:58:09 dug9 Exp $
+$Id: Component_Text.c,v 1.45 2011/07/23 12:41:20 dug9 Exp $
 
 X3D Text Component
 
@@ -686,7 +686,7 @@ const unsigned char UTF8TailLengths[256] = {
 	3,3,3,3,3,3,3,3,4,4,4,4,5,5,0,0
 };
 
-unsigned int utf8_to_utf32_char(unsigned char *s, const char *end, int *inc ) {
+unsigned int utf8_to_utf32_char(unsigned char *s, unsigned char *end, unsigned int *inc ) {
 	unsigned int tail, i, c;
 	c = (*s);
 	s++;
@@ -712,7 +712,7 @@ unsigned int utf8_to_utf32_char(unsigned char *s, const char *end, int *inc ) {
 	return c;
 }
 
-unsigned int *utf8_to_utf32(char *utf8string, int *len32)
+unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 {
 	//does the UTF-8 to UTF-32 conversion
 	//it allocates the unsigned int array it returns - please FREE() it
@@ -721,9 +721,9 @@ unsigned int *utf8_to_utf32(char *utf8string, int *len32)
 	unsigned int *to, *to0;
 	unsigned char *start, *end;
 	int lenchar, l32;
-	lenchar = strlen(utf8string);
+	lenchar = strlen((const char *)utf8string);
 	to0 = to = (unsigned int*)malloc((lenchar + 1)*sizeof(unsigned int));
-	start = (unsigned char *)utf8string;
+	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
 	while ( start < end ) {
@@ -732,7 +732,7 @@ unsigned int *utf8_to_utf32(char *utf8string, int *len32)
 			l32++;
 		}
 		if ( start < end ) {
-			int inc = 0;
+			unsigned int inc = 0;
 			*to++ = utf8_to_utf32_char(start,end,&inc);
 			start += inc;
 			//start++; //done in above function
@@ -743,9 +743,9 @@ unsigned int *utf8_to_utf32(char *utf8string, int *len32)
 	*len32 = l32;
 	return to0;
 }
-int utf8_to_utf32_bytes(unsigned char *s, const char *end)
+int utf8_to_utf32_bytes(unsigned char *s, unsigned char *end)
 {
-	unsigned int tail, i, c;
+	unsigned int tail, c;
 	int inc =0;
 	c = (*s);
 	s++;
@@ -753,15 +753,15 @@ int utf8_to_utf32_bytes(unsigned char *s, const char *end)
 	if( c < 0x80 )
 		return 1; //regular ASCII 1 byte
 	tail = UTF8TailLengths[c];
-	tail = s + tail > end ? end - s : tail; //min(tail,end-s)
+	tail = s + tail > end ? (unsigned int)end - (unsigned int)s : tail; //min(tail,end-s)
 	return tail + 1;
 }
-int len_utf8(char *utf8string)
+int len_utf8(unsigned char *utf8string)
 {
 	unsigned char *start, *end;
 	int lenchar, l32;
-	lenchar = strlen(utf8string);
-	start = (unsigned char *)utf8string;
+	lenchar = strlen((const char *)utf8string);
+	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
 	while ( start < end ) {
@@ -920,7 +920,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 			}
 		}else{
 			/* utf8_to_utf32 */
-			int len32;
+			unsigned int len32;
 			unsigned int *utf32;
 			utf32 = utf8_to_utf32(str,&len32);
 			for(i=0;i<len32;i++)
@@ -979,7 +979,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
 
     for(row = 0; row < numrows; row++) {
-		int lenchars;
+		unsigned int lenchars;
         double rowlen;
 
         if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
