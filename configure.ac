@@ -340,6 +340,9 @@ fi
 if test "$TARGET" = motif ; then
 # X11 Motif
 AC_FIND_MOTIF
+if test x$with_motif = xno ; then
+	AC_MSG_ERROR([Target motif specified but motif was not found])
+fi
 fi
 
 # ================================
