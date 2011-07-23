@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.43 2011/07/15 18:56:21 dug9 Exp $
+$Id: Component_Text.c,v 1.44 2011/07/23 01:58:09 dug9 Exp $
 
 X3D Text Component
 
@@ -645,6 +645,139 @@ static void FW_draw_character (FT_Glyph glyph)
     if (p->TextVerbose) printf ("done character\n");
 }
 
+/* UTF-8 to UTF-32 conversion - 
+// x3d and wrl strings are supposed to be in UTF-8
+// when drawing strings, FreeType will take a UTF-32"
+// http://en.wikipedia.org/wiki/UTF-32/UCS-4
+// conversion method options:
+// libicu
+//    - not used - looks big
+//    - http://site.icu-project.org/   LIBICU  - opensource, C/C++ and java.
+// mbstocws 
+//    - win32 version didn't seem to do any converting
+// iconv - gnu libiconv 
+//    - http://gnuwin32.sourceforge.net/packages/libiconv.htm 
+//    - the win32 version didn't run - bombs on open
+// guru code:
+//    - adopted - or at least the simplest parts
+//    - not rigourous checking though - should draw bad characters if 
+//      if you have it wrong in the file
+//    - http://floodyberry.wordpress.com/2007/04/14/utf-8-conversion-tricks/
+//    - not declared opensource, so we are using the general idea 
+//      in our own code
+*/
+const unsigned int Replacement = ( 0xfffd );
+const unsigned char UTF8TailLengths[256] = {
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+	2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+	3,3,3,3,3,3,3,3,4,4,4,4,5,5,0,0
+};
+
+unsigned int utf8_to_utf32_char(unsigned char *s, const char *end, int *inc ) {
+	unsigned int tail, i, c;
+	c = (*s);
+	s++;
+	(*inc)++;
+	if( c < 0x80 )
+		return c; //regular ASCII
+	tail = UTF8TailLengths[c];
+	if( !tail  || (s + tail > end))
+		return Replacement;
+
+	//decoding loop
+	c &= ( 0x3f >> tail );
+	for(i=0;i<tail;++i) {
+		if( (s[i] & 0xc0) != 0x80 )
+			break;
+		c = (c << 6) + (s[i] & 0x3f);
+	}
+
+	//s += i;
+	(*inc) += i;
+	if( i != tail )
+		return Replacement;
+	return c;
+}
+
+unsigned int *utf8_to_utf32(char *utf8string, int *len32)
+{
+	//does the UTF-8 to UTF-32 conversion
+	//it allocates the unsigned int array it returns - please FREE() it
+	//it adds an extra on the end and null-terminates
+	//len32 is the length, not including the null/0 termination.
+	unsigned int *to, *to0;
+	unsigned char *start, *end;
+	int lenchar, l32;
+	lenchar = strlen(utf8string);
+	to0 = to = (unsigned int*)malloc((lenchar + 1)*sizeof(unsigned int));
+	start = (unsigned char *)utf8string;
+	end = (unsigned char *)&utf8string[lenchar];
+	l32 = 0;
+	while ( start < end ) {
+		while ( ( *start < 0x80 ) && ( start < end ) ) {
+			*to++ = *start++;
+			l32++;
+		}
+		if ( start < end ) {
+			int inc = 0;
+			*to++ = utf8_to_utf32_char(start,end,&inc);
+			start += inc;
+			//start++; //done in above function
+			l32++;
+		}
+	}
+	to0[l32] = 0;
+	*len32 = l32;
+	return to0;
+}
+int utf8_to_utf32_bytes(unsigned char *s, const char *end)
+{
+	unsigned int tail, i, c;
+	int inc =0;
+	c = (*s);
+	s++;
+	inc++;
+	if( c < 0x80 )
+		return 1; //regular ASCII 1 byte
+	tail = UTF8TailLengths[c];
+	tail = s + tail > end ? end - s : tail; //min(tail,end-s)
+	return tail + 1;
+}
+int len_utf8(char *utf8string)
+{
+	unsigned char *start, *end;
+	int lenchar, l32;
+	lenchar = strlen(utf8string);
+	start = (unsigned char *)utf8string;
+	end = (unsigned char *)&utf8string[lenchar];
+	l32 = 0;
+	while ( start < end ) {
+		while ( ( *start < 0x80 ) && ( start < end ) ) {
+			start++;
+			l32++; //ASCII char
+		}
+		if ( start < end ) {
+			start += utf8_to_utf32_bytes(start,end);
+			l32++;
+		}
+	}
+	return l32;
+}
+
+
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
@@ -780,11 +913,22 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     for (row=0; row<numrows; row++) {
         if (directstring == 0) 
             str = (unsigned char *)ptr[row]->strptr;
+		if(0){
+			for(i=0; i<strlen((const char *)str); i++) {
+					FW_Load_Char(str[i]);
+				char_count++;
+			}
+		}else{
+			/* utf8_to_utf32 */
+			int len32;
+			unsigned int *utf32;
+			utf32 = utf8_to_utf32(str,&len32);
+			for(i=0;i<len32;i++)
+				FW_Load_Char(utf32[i]);
+			char_count += len32;
+			free(utf32);
 
-        for(i=0; i<strlen((const char *)str); i++) {
-            FW_Load_Char(str[i]);
-            char_count++;
-        }
+		}
     }
 
     if (p->TextVerbose) {
@@ -804,9 +948,16 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         int counter = 0;
 
         for(row = 0; row < numrows; row++) {
+			int lenchars = 0;
             if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
-            l = FW_extent(counter,(int) strlen((const char *)str));
-            counter += (int) strlen((const char *)str);
+			if(0){
+				lenchars = strlen((const char *)str);
+			}else{
+				/* utf8_to_utf32 */
+				lenchars = len_utf8(str);
+			}
+            l = FW_extent(counter,(int) lenchars);
+            counter += (int) lenchars;
             if(l > maxlen) {maxlen = l;}
         }
 
@@ -828,6 +979,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
 
     for(row = 0; row < numrows; row++) {
+		int lenchars;
         double rowlen;
 
         if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
@@ -835,7 +987,11 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
             printf ("text2 row %d :%s:\n",row, str);
         p->pen_x = 0.0;
         rshrink = 0.0;
-        rowlen = FW_extent(counter,(int) strlen((const char *)str));
+		if(0)
+			lenchars = strlen((const char *)str);
+		else
+			lenchars = len_utf8(str); 
+        rowlen = FW_extent(counter,lenchars);
         if((row < nl) && (APPROX(length[row],0.0))) {
             rshrink = length[row] / OUT2GL(rowlen);
         }
@@ -855,7 +1011,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
 
 
-        for(i=0; i<strlen((const char *)str); i++) {
+        for(i=0; i<lenchars; i++) {
             /* FT_UInt glyph_index; */
             /* int error; */
             int x;
@@ -904,7 +1060,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
                 p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
             }
         }
-        counter += (int) strlen((const char *)str);
+        counter += lenchars;
 
         p->pen_y += spacing * p->y_size;
     }
