@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.39 2011/07/07 20:51:27 istakenv Exp $
+  $Id: jsVRML_SFClasses.c,v 1.40 2011/07/23 02:49:52 istakenv Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -948,8 +948,13 @@ SFImageConstr(JSContext *cx, uintN argc, jsval *vp) {
 				MFInt32Constr(cx, obj, 0, NULL, &mv);
 #else
 				/* note - old default constructor call allocates a new obj and assigns to mv,
-				 * but calling fn directly may not actually do that, so as it is written this
-				 * does not occur.  May need debugging to see if this is required. */
+				 * but calling fn directly may not actually do that. It seems illegal to call
+				 * the constructor of another object directly on this object, and then feed it
+				 * as a proprety of itself, but since that's what the old code did (and it seems
+				 * to work), am keeping it as-is. 
+				 *
+				 * I would -expect- that 'JS_NewObject(cx,&MFInt32Class,NULL,NULL)' should be
+				 * used instead of 'obj' below.... */
 				MFInt32ConstrInternals(cx, obj, 0, NULL, &mv);
 #endif
 			}
@@ -959,7 +964,10 @@ SFImageConstr(JSContext *cx, uintN argc, jsval *vp) {
 			}
 		}
 		DEFINE_LENGTH(cx,obj,4)
-
+#if JS_VERSION >= 185
+		/* returning with success here, so must set rval to return the object we just finished creating */
+		JS_SET_RVAL(cx,vp,OBJECT_TO_JSVAL(obj));
+#endif
 		return JS_TRUE; 
 	}
 	
