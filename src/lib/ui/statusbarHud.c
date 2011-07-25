@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.39 2011/07/10 20:19:42 dug9 Exp $
+  $Id: statusbarHud.c,v 1.40 2011/07/25 19:30:11 dug9 Exp $
 
 */
 
@@ -869,7 +869,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->hadString = 0;
 
 		p->showButtons =0;
-		p->nbuts = mbuts;
+		p->nbuts = mbuts -1; // leave Reload out of pre2
 		//p->butrect[4][mbuts];
 		//p->butStatus[mbuts];
 		//p->butts[mbuts][2];
