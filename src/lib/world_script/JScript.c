@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.44 2011/07/22 19:41:48 istakenv Exp $
+$Id: JScript.c,v 1.45 2011/07/25 17:49:59 istakenv Exp $
 
 Javascript C language binding.
 
@@ -1246,7 +1246,18 @@ static int JSaddGlobalECMANativeProperty(int num, const char *name) {
 #if defined(JS_THREADSAFE)
 	JS_BeginRequest(_context);
 #endif
-	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 0 | JSPROP_PERMANENT)) {
+
+/* Note, for JS-185+, JSPROP_PERMANENT makes properties non-configurable, which can cause runtime 
+ * errors from the JS engine when said property gets redefined to a function by the script.  The
+ * example file tests/Javascript_tests/MFFloat.wrl had this issue. */
+
+	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 
+#if JS_VERSION < 185
+		0 | JSPROP_PERMANENT
+#else
+		0
+#endif
+	)) {
 		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n", name);
 #if defined(JS_THREADSAFE)
 		JS_EndRequest(_context);
