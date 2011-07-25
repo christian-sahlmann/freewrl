@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.92 2011/06/29 19:09:02 dug9 Exp $
+$Id: X3DParser.c,v 1.93 2011/07/25 16:30:30 istakenv Exp $
 
 ???
 
@@ -1639,7 +1639,9 @@ static void parseAttributes(void) {
 
 							/* get offsets for this field in this nodeType */
 							#ifdef SETFIELDVERBOSE
+/* ..does not compile right now...
 							printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+*/
 							#endif
 
 							findFieldInOFFSETS(thisNode->_nodeType, foffset, &coffset, &ctype, &ctmp);
