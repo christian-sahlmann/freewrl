@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.68 2011/07/25 16:35:56 istakenv Exp $
+  $Id: fieldSet.c,v 1.69 2011/07/25 16:38:37 istakenv Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -1177,7 +1177,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	/* where did this come from? Was it from a script execution, or from an assignment from within a script?? */
 	#ifdef SETFIELDVERBOSE
 	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",
-		(unsigned int) JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val)), 
+		(unsigned int) JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val), 
 		(unsigned int) JSVAL_TO_INT(tg->CRoutes.JSglobal_return_val));
 	#endif
 
