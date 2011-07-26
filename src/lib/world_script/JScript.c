@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.46 2011/07/26 15:07:07 dug9 Exp $
+$Id: JScript.c,v 1.47 2011/07/26 21:34:36 istakenv Exp $
 
 Javascript C language binding.
 
@@ -146,6 +146,15 @@ void SaveScriptText(int num, const char *text) {
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num].scriptText = STRDUP(text);
+/* NOTE - seems possible that a script could be overwritten; if so then fix eventsProcessed */
+	if (ScriptControl[num].eventsProcessed != NULL) {
+#if JS_VERSION >= 185
+		if (ScriptControl[num].cx != NULL) {
+			JS_RemoveObjectRoot(ScriptControl[num].cx,ScriptControl[num].eventsProcessed);
+		}
+#endif
+		ScriptControl[num].eventsProcessed = NULL;
+	}
 
 	if (((int)num) > tg->CRoutes.max_script_found) tg->CRoutes.max_script_found = num;
 	/* printf ("SaveScriptText, for script %d scriptText %s\n",text);
@@ -250,9 +259,10 @@ void kill_javascript(void) {
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 #if JS_VERSION >= 185
-/* currently causes assertion failure (segfault), unsure why ...
-				JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
-*/
+/* currently causes assertion failure (segfault), unsure why ... */
+				if (ScriptControl[i].eventsProcessed != NULL) {
+					JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
+				}
 #endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
 			}

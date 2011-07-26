@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.170 2011/07/25 16:11:25 istakenv Exp $
+$Id: headers.h,v 1.171 2011/07/26 21:34:36 istakenv Exp $
 
 Global includes.
 
@@ -603,6 +603,7 @@ void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
 void setMenuButton_texSize (int size); */
 void setConsoleMessage(char *stat) ;
+void fwl_reload(void);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
