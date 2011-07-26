@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.218 2011/07/12 01:49:49 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.219 2011/07/26 14:09:07 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2505,7 +2505,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
         char mystring[20];
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-
+	printf("start kill_oldWorld\n");
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
 #ifdef _MSC_VER
@@ -2587,13 +2587,15 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
-		globalParser = NULL;
+		//globalParser = NULL;
+		gglobal()->CParse.globalParser = NULL;
 	}
 
 
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
+	printf("end kill_oldWorld\n");
 }
 
 /* for verifying that a memory pointer exists */
