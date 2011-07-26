@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.45 2011/07/25 17:49:59 istakenv Exp $
+$Id: JScript.c,v 1.46 2011/07/26 15:07:07 dug9 Exp $
 
 Javascript C language binding.
 
@@ -265,6 +265,7 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found = -1;
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	FREE_IF_NZ (ScriptControl);
+	setScriptControl(NULL);
 	FREE_IF_NZ(tg->CRoutes.scr_act);
 
 	/* Script name/type table */
