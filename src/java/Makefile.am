@@ -10,7 +10,7 @@ jarfile = vrml.jar
 jardir = $(JAVA_DIR)
 
 $(jarfile): $(dist_noinst_JAVA) classdist_noinst.stamp
-	$(JAR) cf $@ -C $(JAVAROOT) $$(echo $(dist_noinst_JAVA:.java=.class))
+	$(JAR) cmf $(JAVAROOT)/manifest.extras $@ -C $(JAVAROOT) $$(echo $(dist_noinst_JAVA:.java=.class))
 
 jar_DATA = $(jarfile)	
 
