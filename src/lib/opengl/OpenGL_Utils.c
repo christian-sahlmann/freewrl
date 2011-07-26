@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.219 2011/07/26 14:09:07 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.220 2011/07/26 19:49:51 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2590,7 +2590,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		//globalParser = NULL;
 		gglobal()->CParse.globalParser = NULL;
 	}
-
+	kill_X3DDefs();
 
 	/* tell statusbar that we have none */
 	viewer_default();
