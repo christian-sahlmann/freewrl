@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.93 2011/07/25 16:30:30 istakenv Exp $
+$Id: X3DParser.c,v 1.94 2011/07/26 19:48:25 dug9 Exp $
 
 ???
 
@@ -408,6 +408,7 @@ void kill_X3DDefs(void) {
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 	FREE_IF_NZ(p->childAttributes);
+	p->childAttributes = NULL;
 
 	if (p->DEFedNodes != NULL) {
 		for (i=0; i<vector_size(p->DEFedNodes); i++) {
@@ -419,6 +420,7 @@ void kill_X3DDefs(void) {
 			deleteVector (struct Vector *,myele);
 		}
 		deleteVector(struct Vector*, p->DEFedNodes);
+		p->DEFedNodes = NULL;
 	}
 
 	/* now, for the lexer... */
