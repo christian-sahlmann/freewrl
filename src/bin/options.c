@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.38 2011/06/30 15:13:21 crc_canada Exp $
+  $Id: options.c,v 1.39 2011/07/26 14:34:56 istakenv Exp $
 
   FreeWRL command line arguments.
 
@@ -252,6 +252,7 @@ int fv_parseCommandLine (int argc, char **argv)
 #if !defined(TARGET_AQUA)
 #if defined(HAVE_XF86_VMODE)
 	    fwl_setp_fullscreen(TRUE);
+	    fv_params->fullscreen = TRUE;
 #else
 	    printf("\nFullscreen mode is only available when xf86vmode extension is\n"
 		  "supported by your X11 server: i.e. XFree86 version 4 or later,\n"
@@ -259,6 +260,7 @@ int fv_parseCommandLine (int argc, char **argv)
 		   "Configure should autodetect it for you. If not please report"
 		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
 	    fwl_setp_fullscreen(FALSE);
+	    fv_params->fullscreen = FALSE;
 #endif /* HAVE_XF86_VMODE */
 #endif /* TARGET_AQUA */
 	    break;
@@ -286,6 +288,7 @@ int fv_parseCommandLine (int argc, char **argv)
 		printf ("Parameter --display = %s\n", optarg);
 		sscanf(optarg,"%ld", &ldtmp);
 		fwl_setp_winToEmbedInto(ldtmp);
+		fv_params->winToEmbedInto = ldtmp;
 		break;
 
 
@@ -294,6 +297,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'e': /* --eai, no argument */
 	    fwl_setp_eai(TRUE);
+	    fv_params->eai = TRUE;
 	    break;
 
 	case 'f': /* --fast, no argument */
@@ -307,6 +311,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'Q': /* --nocollision, no argument */
 	    fwl_setp_collision(FALSE);
+	    fv_params->collision = FALSE;
 	    break;
 
 /* Snapshot options */
@@ -344,6 +349,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'V': /* --eaiverbose, no argument */
 	    fwl_init_EaiVerbose();
+	    fv_params->verbose = TRUE;
 	    break;
 
 	case 'r': /* --screendist, required argument: float */
