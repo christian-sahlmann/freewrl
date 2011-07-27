@@ -197,7 +197,7 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "INC = $MYINC\n";
 	#print MK "DEFINE = $noStackProtector -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
-	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector -DSTATUSBAR_HUD $MYDEFINE\n";
 
 	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";
@@ -241,8 +241,8 @@ sub writeMakefileFinalTargets() {
 }
 
 sub writeVariables () {	
-	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
-	#my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "options.c" | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbar.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
+	#my @CFuncsSourceFiles = split (' ',`find ../src  | grep -v OSCcallbacks | grep -v "src/plugin" | grep -v statusbarHud.c | grep -v statusbarConsole.c | grep -v statusbarStub.c | grep -v libeai | grep -v "npunix" | grep -v "/sound/" | grep -v fwWindow32 | grep -v fwBareWindow | grep -v display_x11 | grep -iv motif | grep -v fwCommonX11 | grep -v win32 | grep "\\.c\$" `);
 
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";
