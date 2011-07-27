@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.41 2011/07/26 19:51:16 dug9 Exp $
+  $Id: statusbarHud.c,v 1.42 2011/07/27 23:42:31 crc_canada Exp $
 
 */
 
@@ -905,7 +905,7 @@ void statusbar_init(struct tstatusbar *t){
 void fwMakeRasterFonts()
 {
 	int ichar;
-	GLuint i, j;
+	GLuint i;
 	GLuint fwFontOffset7x12;
 	GLuint fwFontOffset7x14;
 	GLuint fwFontOffset8x15;
@@ -981,7 +981,7 @@ void printString(char *s)
    FW_GL_LISTBASE(p->fwFontOffset[p->bmfontsize]);
    p->bmWH.x = p->fwFontSize[p->bmfontsize].x;
    p->bmWH.y = p->fwFontSize[p->bmfontsize].y;
-   FW_GL_CALLLISTS(strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
+   FW_GL_CALLLISTS((int) strlen(s), GL_UNSIGNED_BYTE, (GLubyte *) s);
    FW_GL_POP_ATTRIB();
 }
 
@@ -1166,7 +1166,7 @@ void handleOptionPress()
 	/* general idea: we don't update the hud/option state here - just the Viewer state - then 
 	  refresh the hud/options state from the Viewer on each statusbar draw iteration
 	*/
-	int i,opt;
+	int opt;
 	XY xys;
 	XY xyt;
 	X3D_Viewer *viewer;
@@ -1178,7 +1178,7 @@ void handleOptionPress()
 	opt = ' ';
 	if( 0 <= xyt.y && xyt.y < lenOptions )
 	{
-		int len = strlen(optionsCase[xyt.y]);
+		int len = (int) strlen(optionsCase[xyt.y]);
 		if( xyt.x < len )
 		{
 			/* we are on an options line */
@@ -1316,13 +1316,13 @@ void printKeyboardHelp()
 
 void hudSetConsoleMessage(char *buffer)
 {
-	s_list_t* item, *last;
+	s_list_t* last;
 	/*calling program keeps ownership of buffer and deletes or recycles buffer*/
 	char *buffer2, *line, *ln, *buf;
 	int linelen;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
-	int len = strlen(buffer)+1;
+	int len = (int) strlen(buffer)+1;
 	buffer2 = malloc(len);
 	strncpy(buffer2,buffer,len);
 	/* rule: if you have a \n at the end of your buffer, 
@@ -1338,7 +1338,7 @@ void hudSetConsoleMessage(char *buffer)
 	else
 		last = ml_last(p->conlist);
 	line = last->elem;
-	linelen = strlen(line);
+	linelen = (int) strlen(line);
 	buf = buffer2;
 	do
 	{
@@ -1347,7 +1347,7 @@ void hudSetConsoleMessage(char *buffer)
 		{ 
 			*ln = '\0';
 		}
-		len = strlen(buf);
+		len = (int) strlen(buf);
 		linelen += len + 1;
 		line = realloc(line,linelen);
 		line = strcat(line,buf); 
@@ -1358,13 +1358,13 @@ void hudSetConsoleMessage(char *buffer)
 			buf = &ln[1];
 			line = malloc(2);
 			line[0] = '\0';
-			linelen = strlen(line);
+			linelen = (int) strlen(line);
 			last = ml_new(line);
 			ml_append(p->conlist,last);
 			p->concount++;
 			if( p->concount > 50 ) // > MAXMESSAGES number of scrolling lines
 			{
-				s_list_t* temp;
+				//s_list_t* temp;
 				free((char*)p->conlist->elem);
 				p->conlist = ml_delete_self(p->conlist, p->conlist); /*delete from top*/
 				p->concount--;
@@ -1557,7 +1557,7 @@ void handleButtonOver()
 		if(x > p->butrect[0][i] && x < p->butrect[2][i] 
 		&& y > p->butrect[1][i] && y < p->butrect[3][i] ) 
 		{
-			/* printf("%d",i); /* is over */
+			/* printf("%d",i); */  /* is over */
 			p->isOver = i;
 			break;
 		}
@@ -1580,7 +1580,7 @@ void handleButtonPress()
 		if(x > p->butrect[0][i] && x < p->butrect[2][i] 
 		&& y > p->butrect[1][i] && y < p->butrect[3][i] )
 		{
-			/* printf("[%d=",i); /* button pressed */
+			/* printf("[%d=",i); */  /* button pressed */
 			if( i < 3 )
 			{
 				/* radio button - just one on at a time walk,fly,examine */
@@ -1641,11 +1641,16 @@ void handleButtonPress()
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
-	int i,loaded,iwidth;
+	int i,loaded;
 	float zoomfactor;
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
+
+
+	// get rid of compiler warning
+	loaded = 0;
+
 
 	if(!p->butsLoaded)
 		initButtons();
@@ -1722,11 +1727,13 @@ int handleStatusbarHud(int mev, int* clipplane)
 	{
 		int clipline;
 		(*clipplane) = 16;
+
 		/* >>> statusbar hud */
 		if((*clipplane) || p->showButtons)
 		{
 			clipline = *clipplane;
 			if(p->showButtons) clipline = 2*(*clipplane);
+
 			if( tg->display.screenHeight - tg->Mainloop.currentY[0] < clipline )
 			{
 				p->showButtons = 1;
@@ -1791,8 +1798,8 @@ M	viewer_level_to_bound();							//"
 M       void toggle_collision()                             //"
     */
 	char *pp; 
-	float c[4];
-	int ic[4];
+	//float c[4];
+	//int ic[4];
 	ppstatusbar p;
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;

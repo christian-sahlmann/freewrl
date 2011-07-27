@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.94 2011/06/29 20:19:00 crc_canada Exp $
+$Id: Component_Shape.c,v 1.95 2011/07/27 23:42:31 crc_canada Exp $
 
 X3D Shape Component
 
@@ -47,21 +47,6 @@ X3D Shape Component
 #include "RenderFuncs.h"
 
 
-//static int     linePropertySet;  /* line properties -width, etc                  */
-//
-//struct matpropstruct appearanceProperties;
-//
-///* this is for the FillProperties node */
-//static GLuint fillpropCurrentShader = 0;
-//
-///* pointer for a TextureTransform type of node */
-//struct X3D_Node *  this_textureTransform;  /* do we have some kind of textureTransform? */
-//
-///* for doing shader material properties */
-//static struct X3D_TwoSidedMaterial *material_twoSided;
-//static struct X3D_Material *material_oneSided;
-// 
-
 
 typedef struct pComponent_Shape{
 
@@ -84,6 +69,11 @@ typedef struct pComponent_Shape{
 	GLint filledBool;
 	GLint hatchedBool;
 	GLint algorithm;
+	GLint norm;
+	GLint vert;
+	GLint modView;
+	GLint projMat;
+	GLint normMat;
 
 }* ppComponent_Shape;
 void *Component_Shape_constructor(){
@@ -111,11 +101,16 @@ void Component_Shape_init(struct tComponent_Shape *t){
 		//p->material_twoSided;
 		//p->material_oneSided;
 		p->fpshaderloaded = FALSE; 
-		//p->fhatchColour;
-		//p->fhatchPercent;
-		//p->ffilledBool;
-		//p->fhatchedBool;
-		//p->falgorithm;
+		p->hatchColour = -1;
+		p->hatchPercent = -1;
+		p->filledBool= -1;
+		p->hatchedBool = -1;
+		p->algorithm = -1;
+		p->norm = -1;
+		p->vert = -1;
+		p->modView = -1;
+		p->projMat = -1;
+		p->normMat = -1;
 	}
 }
 //ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
@@ -175,19 +170,27 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 }
 
 
-//static int fpshaderloaded = FALSE; 
-//static GLint hatchColour;
-//static GLint hatchPercent;
-//static GLint filledBool;
-//static GLint hatchedBool;
-//static GLint algorithm;
+static void shaderErrorLog(GLuint myShader, char *which) {
+        #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
+#define MAX_INFO_LOG_SIZE 512
+                GLchar infoLog[MAX_INFO_LOG_SIZE];
+                glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
+                ConsoleMessage ("problem with %s shader: %s",which, infoLog);
+        #else
+                ConsoleMessage ("Problem compiling shader");
+        #endif
+}
 
+
+/* now works with our pushing matricies (norm, proj, modelview) but not for complete shader appearance replacement */
 void render_FillProperties (struct X3D_FillProperties *node) {
 	GLfloat hatchX;
 	GLfloat hatchY;
 	GLint algor;
 	GLint hatched;
 	GLint filled;
+	int success;
+
 	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 	if (!p->fpshaderloaded) {
@@ -198,6 +201,9 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			  presentation by Randi Rost, 3DLabs (GLSLOverview2005.pdf) \n\
 			*/ \n\
 			 \n\
+uniform                mat4 fw_ModelViewMatrix; \n\
+uniform                mat4 fw_ProjectionMatrix; \n\
+uniform mat3	fw_NormalMatrix; \n\
 			uniform vec3 LightPosition; \n\
 			uniform bool filled; \n\
 			const float SpecularContribution = 0.3; \n\
@@ -206,8 +212,9 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			varying vec2 MCposition; \n\
 			void main(void) \n\
 			{ \n\
-			    vec3 ecPosition = vec3(fw_ModelViewMatrix * fw_Vertex); \n\
-			    vec3 tnorm      = normalize(gl_NormalMatrix * fw_Normal); \n\
+               gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * gl_Vertex; \n\
+			    vec3 ecPosition = vec3(fw_ModelViewMatrix * gl_Vertex); \n\
+			    vec3 tnorm      = normalize(fw_NormalMatrix * gl_Normal); \n\
 			    vec3 lightVec   = normalize(LightPosition - ecPosition); \n\
 			    vec3 reflectVec = reflect(-lightVec, tnorm); \n\
 			    vec3 viewVec    = normalize(-ecPosition); \n\
@@ -221,7 +228,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			    LightIntensity = DiffuseContribution * diffuse + \n\
 			                       SpecularContribution * spec; \n\
 			    MCposition      = gl_Vertex.xy; \n\
-			    gl_Position     = ftransform(); \n\
+			    /* old - JAS gl_Position     = ftransform(); */ \n\
 			    // Get the vertex colour\n\
 			    if (filled) gl_FrontColor = gl_FrontMaterial.diffuse;\n\
 			    else gl_FrontColor = vec4(0.0, 0.0, 0.0, 0.0); // make transparent \n\
@@ -319,8 +326,18 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 
 
 		COMPILE_SHADER(v);
-		COMPILE_SHADER(f);
 	
+                COMPILE_SHADER(v);
+                GET_SHADER_INFO(v, COMPILE_STATUS, &success);
+                if (!success) {
+                        shaderErrorLog(v,"GEOMETRY");
+                }
+
+		COMPILE_SHADER(f);
+                GET_SHADER_INFO(f, COMPILE_STATUS, &success);
+                if (!success) {
+                        shaderErrorLog(f,"GEOMETRY");
+                }
 
 		#ifdef FILLVERBOSE
 			printf ("creating program and attaching\n");
@@ -347,8 +364,13 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 		p->filledBool = GET_UNIFORM(p->fillpropCurrentShader,"filled");
 		p->hatchedBool = GET_UNIFORM(p->fillpropCurrentShader,"hatched");
 		p->algorithm = GET_UNIFORM(p->fillpropCurrentShader,"algorithm");
+		p->modView = GET_UNIFORM(p->fillpropCurrentShader, "fw_ModelViewMatrix");
+		p->projMat = GET_UNIFORM(p->fillpropCurrentShader, "fw_ProjectionMatrix");
+		p->normMat = GET_UNIFORM(p->fillpropCurrentShader, "fw_NormalMatrix");
+
 		#ifdef FILLVERBOSE
-			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",p->hatchColour,p->hatchPercent,p->filledBool,p->hatchedBool,p->algor);
+			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",p->hatchColour,p->hatchPercent,p->filledBool,p->hatchedBool,p->algorithm);
+			printf ("norm %d vert %d mod %d, proj %d norm %d\n",p->norm, p->vert, p->modView, p->projMat, p->normMat);
 		#endif
 
 
@@ -376,6 +398,11 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLUNIFORM1I(p->hatchedBool,hatched);
 	GLUNIFORM1I(p->algorithm,algor);
 	GLUNIFORM4F(p->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
+
+	/* now for the transform, normal and modelview matricies */
+	sendExplicitMatriciesToShader (p->modView, p->projMat, p->normMat);
+
+
 }
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.20 2011/06/11 19:26:36 dug9 Exp $
+$Id: ColladaParser.c,v 1.21 2011/07/27 23:42:31 crc_canada Exp $
 
 ???
 
@@ -124,7 +124,7 @@ void ColladaParser_init(struct tColladaParser *t){
 	t->prv = ColladaParser_constructor();
 	{
 		ppColladaParser p = (ppColladaParser)t->prv;
-		p->colladaParser[PROTOINSTANCE_MAX_LEVELS];
+		//p->colladaParser[PROTOINSTANCE_MAX_LEVELS];
 		p->currentColladaParser = NULL;
 		//static int parentIndex = 0;
 		p->ColladaParserRecurseLevel = 0;

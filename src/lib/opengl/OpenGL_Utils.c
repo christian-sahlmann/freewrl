@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.221 2011/07/26 22:02:02 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.222 2011/07/27 23:42:31 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3784,7 +3784,10 @@ static void killNode (int index) {
 	#endif
 }
 
-void sendMatriciesToShader(s_shader_capabilities_t *me) {
+void sendExplicitMatriciesToShader (GLuint ModelViewMatrix, GLuint ProjectionMatrix, GLuint NormalMatrix) 
+
+{
+
 	float spval[16];
 	int i;
 	float *sp; 
@@ -3800,7 +3803,7 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-	GLUNIFORMMATRIX4FV(me->ModelViewMatrix,1,GL_FALSE,spval);
+	GLUNIFORMMATRIX4FV(ModelViewMatrix,1,GL_FALSE,spval);
 
 	/* ProjectionMatrix */
 	sp = spval;
@@ -3811,12 +3814,12 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 		*sp = (float) *dp; 	
 		sp ++; dp ++;
 	}
-	GLUNIFORMMATRIX4FV(me->ProjectionMatrix,1,GL_FALSE,spval);
+	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
                                		  leftmost 3x3 of gl_ModelViewMatrix */
-	if (me->NormalMatrix != -1) {
+	if (NormalMatrix != -1) {
 		GLDOUBLE inverseMV[16];
 		GLDOUBLE transInverseMV[16];
 		GLDOUBLE MV[16];
@@ -3846,10 +3849,88 @@ normMat[3],normMat[4],normMat[5],
 normMat[6],normMat[7],normMat[8]);
 */
 
-		GLUNIFORMMATRIX3FV(me->NormalMatrix,1,GL_FALSE,normMat);
+		GLUNIFORMMATRIX3FV(NormalMatrix,1,GL_FALSE,normMat);
 	}
 
 }
+
+
+/* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
+
+void sendMatriciesToShader(s_shader_capabilities_t *me) {
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix) ;
+}
+
+#ifdef OLDCODE
+OLDCODEvoid sendMatriciesToShader(s_shader_capabilities_t *me) {
+OLDCODE	float spval[16];
+OLDCODE	int i;
+OLDCODE	float *sp; 
+OLDCODE	GLDOUBLE *dp;
+OLDCODE	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+OLDCODE
+OLDCODE	/* ModelView first */
+OLDCODE	dp = p->FW_ModelView[p->modelviewTOS];
+OLDCODE	sp = spval;
+OLDCODE
+OLDCODE	/* convert GLDOUBLE to float */
+OLDCODE	for (i=0; i<16; i++) {
+OLDCODE		*sp = (float) *dp; 	
+OLDCODE		sp ++; dp ++;
+OLDCODE	}
+OLDCODE	GLUNIFORMMATRIX4FV(me->ModelViewMatrix,1,GL_FALSE,spval);
+OLDCODE
+OLDCODE	/* ProjectionMatrix */
+OLDCODE	sp = spval;
+OLDCODE	dp = p->FW_ProjectionView[p->projectionviewTOS];
+OLDCODE
+OLDCODE	/* convert GLDOUBLE to float */
+OLDCODE	for (i=0; i<16; i++) {
+OLDCODE		*sp = (float) *dp; 	
+OLDCODE		sp ++; dp ++;
+OLDCODE	}
+OLDCODE	GLUNIFORMMATRIX4FV(me->ProjectionMatrix,1,GL_FALSE,spval);
+OLDCODE
+OLDCODE	/* send in the NormalMatrix */
+OLDCODE	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
+OLDCODE                               		  leftmost 3x3 of gl_ModelViewMatrix */
+OLDCODE	if (me->NormalMatrix != -1) {
+OLDCODE		GLDOUBLE inverseMV[16];
+OLDCODE		GLDOUBLE transInverseMV[16];
+OLDCODE		GLDOUBLE MV[16];
+OLDCODE		float normMat[9];
+OLDCODE		dp = p->FW_ModelView[p->modelviewTOS];
+OLDCODE		memcpy(MV,dp,sizeof(GLDOUBLE)*16);
+OLDCODE
+OLDCODE		matinverse (inverseMV,MV);
+OLDCODE		mattranspose(transInverseMV,inverseMV);
+OLDCODE		/* get the 3x3 normal matrix from this guy */
+OLDCODE		normMat[0] = (float) transInverseMV[0];
+OLDCODE		normMat[1] = (float) transInverseMV[1];
+OLDCODE		normMat[2] = (float) transInverseMV[2];
+OLDCODE		
+OLDCODE		normMat[3] = (float) transInverseMV[4];
+OLDCODE		normMat[4] = (float) transInverseMV[5];
+OLDCODE		normMat[5] = (float) transInverseMV[6];
+OLDCODE		
+OLDCODE		normMat[6] = (float) transInverseMV[8];
+OLDCODE		normMat[7] = (float) transInverseMV[9];
+OLDCODE		normMat[8] = (float) transInverseMV[10];
+OLDCODE
+OLDCODE/* 
+OLDCODEprintf ("NormalMatrix: \n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n \t%4.3f %4.3f %4.3f\n",
+OLDCODEnormMat[0],normMat[1],normMat[2],
+OLDCODEnormMat[3],normMat[4],normMat[5],
+OLDCODEnormMat[6],normMat[7],normMat[8]);
+OLDCODE*/
+OLDCODE
+OLDCODE		GLUNIFORMMATRIX3FV(me->NormalMatrix,1,GL_FALSE,normMat);
+OLDCODE	}
+OLDCODE
+OLDCODE}
+#endif /* OLDCODE */
+
+
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	/* go through all of the Uniforms for this shader */
 

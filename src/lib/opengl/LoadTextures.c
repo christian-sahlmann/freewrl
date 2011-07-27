@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.72 2011/06/09 21:07:12 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.73 2011/07/27 23:42:31 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -354,7 +354,6 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 #else
 	fname = strdup(filename);
 #endif
-
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
@@ -408,15 +407,6 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
     
 	CGContextRef 	cgctx;
 
-	/* Quicktime params */
-#ifdef OSX_USE_QUICKTIME
-	OSErr 		err;
-	GraphicsImportComponent gi;
-	Handle 		dataRef;
-	OSType 		dataRefType;
-	/* end of Quicktime params */
-#endif
-
 	unsigned char *	data;
 	int		hasAlpha;
 
@@ -428,15 +418,25 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 
 #ifdef FRONTEND_GETS_FILES
 	openned_file_t *myFile = load_file (filename);
+	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->data, myFile->dataSize); */
 
-	CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->data,myFile->dataSize);
-	sourceRef = CGImageSourceCreateWithData(localData,NULL);
+
+	/* if we got null for data, lets assume that there was not a file there */
+	if (myFile->data == NULL) {
+		sourceRef = NULL;
+		image = NULL;
+	} else {
+		CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->data,myFile->dataSize);
+		sourceRef = CGImageSourceCreateWithData(localData,NULL);
+		CFRelease(localData);
+	}
+
+	/* step 2, if the data exists, was it a file for us? */
 	if (sourceRef != NULL) {
 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
 		CFRelease (sourceRef);
 	}
 
-	CFRelease(localData);
 
 #else /* FRONTEND_GETS_FILES */
 
@@ -448,24 +448,12 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	/* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
 		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
 	*/
-#ifdef OSX_USE_QUICKTIME
 
-	/* lets let quicktime decide on what to do with this image */
-	err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
-
-	if (dataRef != NULL) {
-		err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
-		err = GraphicsImportCreateCGImage (gi, &image, 0);
-		DisposeHandle (dataRef);
-		CloseComponent(gi);
-	}
-#else /* OSX_USE_QUICKTIME */
 	sourceRef = CGImageSourceCreateWithURL(url,NULL);
 	if (sourceRef != NULL) {
 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
 		CFRelease (sourceRef);
 	}
-#endif /* OSX_USE_QUICKTIME */
 
 	CFRelease(url);
 	CFRelease(path);
