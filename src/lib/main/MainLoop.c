@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.221 2011/07/19 16:27:47 istakenv Exp $
+  $Id: MainLoop.c,v 1.222 2011/07/27 15:19:33 istakenv Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -802,6 +802,7 @@ void handle_Xevents(XEvent event) {
         #ifdef VERBOSE
         switch (event.type) {
                 case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
+                case ClientMessage: printf ("Event: ClientMessage\n"); break;
                 case KeyPress: printf ("Event: KeyPress\n"); break;
                 case KeyRelease: printf ("Event: KeyRelease\n"); break;
                 case ButtonPress: printf ("Event: ButtonPress\n"); break;
@@ -821,6 +822,14 @@ void handle_Xevents(XEvent event) {
                         fwl_setScreenDim (event.xconfigure.width,event.xconfigure.height);
                         break;
 //#endif
+                case ClientMessage:
+			if (event.xclient.data.l[0] == WM_DELETE_WINDOW && !RUNNINGASPLUGIN) {
+				#ifdef VERBOSE
+				printf("---XClient sent wmDeleteMessage, quitting freewrl\n");
+				#endif
+				fwl_doQuit();
+			}
+			break;
                 case KeyPress:
                 case KeyRelease:
                         XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
