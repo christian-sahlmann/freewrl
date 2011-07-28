@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.43 2011/06/09 11:38:54 daytonavid Exp $
+$Id: Frustum.c,v 1.44 2011/07/28 17:38:30 dug9 Exp $
 
 ???
 
@@ -1137,7 +1137,8 @@ void zeroOcclusion(void) {
 #endif
 
 	p->QueryCount = 0;
-	FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
+	if(p->OccQueries)
+		FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
 	FW_GL_FLUSH();
 	
 	p->OccQuerySize=0;
