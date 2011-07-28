@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.222 2011/07/27 15:19:33 istakenv Exp $
+  $Id: MainLoop.c,v 1.223 2011/07/28 19:06:05 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2218,13 +2218,16 @@ void fwl_replaceWorldNeeded(char* str)
 	FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
 	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
 	tg->RenderFuncs.BrowserAction = TRUE;
+	FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
+	tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
 }
 void fwl_reload()
 {
 	char *oldworld;
 	ttglobal tg = gglobal();
-	oldworld = tg->RenderFuncs.OSX_last_world_url_for_reload;
+	oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
 	fwl_replaceWorldNeeded(oldworld);
+	FREE_IF_NZ(oldworld);
 }
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
