@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.65 2011/07/27 15:23:05 istakenv Exp $
+  $Id: main.c,v 1.66 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -296,18 +296,33 @@ int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 ttglobal fwl;
 void* fwl_init_instance()
 {
-	//tglobal *fwl;
+	//ttglobal fwl;
 	fwl = iglobal_constructor();
 	return (void *)fwl;
 }
 bool fwl_initFreeWRL(freewrl_params_t *params)
 //bool fwl_initFreeWRL(freewrl_params_t *params)
 {
+	ttglobal tg = (ttglobal)fwl;
+	if(tg == NULL) tg = fwl_init_instance();
+	fwl = NULL;
 	TRACE_MSG("FreeWRL: initializing...\n");
 
-	gglobal()->threads.mainThread = pthread_self();
+	tg->threads.mainThread = pthread_self();
 
-	set_thread2global((ttglobal)fwl, gglobal()->threads.mainThread ,"main thread");
+	/* dug9 July30,2011 UI thread == main Thread, and I need a 
+	   dipthong key [threadID,windowHandle] in iglobal for UI thread
+	   because multi-window processes -2 ActiveX on a web page, or
+	   my testDLL.cpp console program that creates 2 popup windows - 
+	   have the same UI/main thread for all windows in the process 
+	   (one event loop / window message pump for all windows) so we
+	   can't use threadID to lookup the freewrl instance (it would be 
+	   more appropriate to pass the window handle around, and use it
+	   to lookup the freewrl instance). Because UI Thread is dipthonged
+	   and already in iglobal, I can't/shouldn't register the following
+	   line which isn't dipthonged yet identical thread:
+	   set_thread2global(tg, tg->threads.mainThread ,"main thread"); 
+	*/
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
@@ -340,19 +355,19 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	fwl_initializeDisplayThread();
 
 	usleep(50);
-	set_thread2global(fwl,gglobal()->threads.DispThrd ,"display thread");
+	set_thread2global(tg,tg->threads.DispThrd ,"display thread");
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
-	set_thread2global(fwl, gglobal()->threads.PCthread ,"parse thread");
+	set_thread2global(tg, tg->threads.PCthread ,"parse thread");
 
 	while (!fwl_isInputThreadInitialized()) {
 		usleep(50);
 	}
 
 	fwl_initializeTextureThread();
-	set_thread2global(fwl, gglobal()->threads.loadThread ,"texture loading thread");
+	set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
 	while (!fwl_isTextureinitialized()) {
 		usleep(50);
 	}

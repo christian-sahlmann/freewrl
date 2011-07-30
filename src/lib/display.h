@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.135 2011/07/05 19:05:53 crc_canada Exp $
+  $Id: display.h,v 1.136 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
 
@@ -65,6 +65,9 @@ Functions:
 
 /* Nothing special :P ... */
 #include <GL/glew.h>
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
 #define ERROR 0
 #endif
 #endif /* TARGET_WIN32 */
@@ -73,6 +76,9 @@ Functions:
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
 #ifdef HAVE_GLEW_H
 #include <GL/glew.h>
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
 #else
 #ifndef AQUA
 #if !defined(_ANDROID)
@@ -514,9 +520,10 @@ extern int PaneClipChanged;
 # include <X11/keysym.h>
 
 # ifdef HAVE_LIBGLEW
-
 # include <GL/glew.h> /* will include GL/gl.h, GL/glu.h and GL/glext.h */
-
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
 # else
 
 # include <GL/gl.h>

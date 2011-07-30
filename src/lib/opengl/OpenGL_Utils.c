@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.222 2011/07/27 23:42:31 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.223 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -144,6 +144,9 @@ typedef struct pOpenGL_Utils{
 
 	int whichMode;// = GL_MODELVIEW;
 	GLDOUBLE *currentMatrix;// = FW_ModelView[0];
+#ifdef GLEW_MX
+	GLEWContext glewC;
+#endif
 
 }* ppOpenGL_Utils;
 void *OpenGL_Utils_constructor(){
@@ -188,6 +191,13 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 
 	}
 }
+#ifdef GLEW_MX
+GLEWContext * glewGetContext()
+{
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	return &(p->glewC);
+}
+#endif
 
 
 #define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);

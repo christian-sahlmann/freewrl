@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.41 2011/07/12 17:24:16 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.42 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -272,6 +272,9 @@ void fwl_Last_ViewPoint(void);
 void fwl_gotoViewpoint (char *findThisOne);
 
 void fwl_startFreeWRL(const char *url);
+/* distinguish instances from window event handler using the window handle */
+void fwl_setCurrentHandle(void *handle);
+void fwl_clearCurrentHandle();
 
 void fwl_resource_push_single_request(const char *request);
 void fwl_OSX_initializeParameters(const char* initialURL);

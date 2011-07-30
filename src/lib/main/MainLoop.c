@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.223 2011/07/28 19:06:05 dug9 Exp $
+  $Id: MainLoop.c,v 1.224 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2112,7 +2112,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH)
 		emulate_multitouch(mev,button,x, y);
 	else
+	{
 		fwl_handle_aqua_multi(mev,button,x,y,0);
+
+		updateCursorStyle(); 
+	}
 }
 
 #endif

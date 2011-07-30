@@ -362,6 +362,9 @@ iOLDCODE	}Component_Networking;
 	struct tX3DProtoScript{
 		void *prv;
 	}X3DProtoScript;
+	struct tcommon{
+		void *prv;
+	}common;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif
@@ -370,3 +373,4 @@ void iglobal_destructor(ttglobal);
 void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
 ttglobal gglobal(); //gets based on threadID, errors out if no threadID
 ttglobal gglobal0(); //will return null if thread not yet initialized
+ttglobal gglobalH(void *handle); //use window handle

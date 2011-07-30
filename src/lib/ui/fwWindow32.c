@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.38 2011/07/11 20:13:31 dug9 Exp $
+  $Id: fwWindow32.c,v 1.39 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -30,6 +30,7 @@
 HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
 HDC   ghDC; 
 HGLRC ghRC; 
+
 
 void fwl_do_keyPress(const char kp, int type);
 
@@ -291,7 +292,7 @@ BOOL bSetupPixelFormat(HDC hdc)
 bool fv_create_GLcontext()
 {	
 	fwl_thread_dump();
-	printf("starting createcontext32\n");
+	printf("starting createcontext32a\n");
 	ghDC = GetDC(ghWnd); 
 	printf("got hdc\n");
 	if (!bSetupPixelFormat(ghDC))
@@ -319,10 +320,50 @@ bool fv_bind_GLcontext()
 
 	return FALSE;
 }
+bool fv_create_and_bind_GLcontext(HWND hWnd)
+{
+	RECT rect;
+	HDC hDC;
+	HGLRC hRC;
+	/* create GL context */
+	fwl_thread_dump();
+	printf("starting createcontext32b\n");
+	hDC = GetDC(hWnd); 
+	printf("got hdc\n");
+	if (!bSetupPixelFormat(hDC))
+		printf("ouch - bSetupPixelFormat failed\n");
+	hRC = wglCreateContext(hDC); 
+	printf("created context\n");
+	/* bind GL context */
 
+	fwl_thread_dump();
+
+	if (wglMakeCurrent(hDC, hRC)) {
+		GetClientRect(hWnd, &rect); 
+		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+		gglobal()->display.screenHeight = rect.bottom;
+		return TRUE;
+	}
+
+	return FALSE;
+
+}
 
 static HCURSOR hSensor, hArrow;
 static HCURSOR cursor;
+void loadCursors()
+{
+	hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
+	hArrow = LoadCursor( NULL, IDC_ARROW );
+}
+void updateCursorStyle0(int cstyle)
+{
+	if(cstyle == SCURSE)
+		SetCursor(hSensor);
+	if(cstyle == ACURSE)
+		SetCursor(hArrow);
+}
+
 //void setArrowCursor0();
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
@@ -348,8 +389,9 @@ static int shiftState = 0;
 
     case WM_CREATE: 
 	printf("wm_create\n");
-	fv_create_GLcontext();
-	fv_bind_GLcontext();
+	//fv_create_GLcontext();
+	//fv_bind_GLcontext();
+	fv_create_and_bind_GLcontext(hWnd);
 	break; 
  
     case WM_SIZE: 
@@ -578,6 +620,11 @@ static int shiftState = 0;
     {
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
+	//int cstyle = getCursorStyle(hWnd);
+	//if(cstyle == SCURSE)
+	//	SetCursor(hSensor);
+	//if(cstyle == ACURSE)
+	//	SetCursor(hArrow);
 	fwl_handle_aqua(mev,butnum,mouseX,mouseY); /* ,gcWheelDelta); */
     }
     return 0;
@@ -605,19 +652,21 @@ int doEventsWin32A()
     eventcount = 0;
     return FALSE;
 }
+/*
 //bool lastCursorArrow = true;
 void setSensorCursor()
 {
 	//lastCursorArrow = false;
 	SetCursor(hSensor);
-	//printf("S");
+	printf("S");
 }
 void setArrowCursor()
 {
 	//lastCursorArrow = true;
 	SetCursor(hArrow);
-	//printf("^");
+	printf("^");
 }
+*/
 //void setLastCursor()
 //{
 //	printf("_");
@@ -670,7 +719,7 @@ void setWindowTitle() //char *window_title)
 	 // __in_opt  LPCTSTR lpString);
 	
 	//SetWindowText(ghWnd,fwl_getWindowTitle());
-	SetWindowText(ghWnd,window_title);
+	SetWindowText(ghWnd,getWindowTitle()); //window_title);
 }
 
 /**
@@ -721,6 +770,7 @@ int create_main_window0(int argc, char *argv[])
     RECT rect; 
 
     int nCmdShow = SW_SHOW;
+
     printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
@@ -748,8 +798,9 @@ int create_main_window0(int argc, char *argv[])
     success = GHOST_kFailure;
     }
 */
-	hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
-	hArrow = LoadCursor( NULL, IDC_ARROW );
+	//hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
+	//hArrow = LoadCursor( NULL, IDC_ARROW );
+	//loadCursors();
     wc.lpszClassName = "FreeWrlAppClass";
     wc.lpfnWndProc = PopupWndProc; //MainWndProc;
     wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
@@ -779,6 +830,7 @@ int create_main_window0(int argc, char *argv[])
 			    hInstance, 
 			    NULL); 
     /* make sure window was created */ 
+
     if (!ghWnd) 
         return FALSE; 
 
@@ -800,12 +852,15 @@ int create_main_window0(int argc, char *argv[])
 
 int fv_create_main_window(int argc, char *argv[])
 {
+	loadCursors();
 	if( fwl_params.winToEmbedInto > 0 )
 	{
+		HWND hWnd;
 		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
-		ghWnd = (HWND)fwl_params.winToEmbedInto;
-		fv_create_GLcontext();
-		fv_bind_GLcontext();
+		hWnd = (HWND)fwl_params.winToEmbedInto;
+		//fv_create_GLcontext();
+		//fv_bind_GLcontext();
+		fv_create_and_bind_GLcontext(hWnd);
 		return TRUE;
 	}
 	else

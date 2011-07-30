@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.42 2011/07/27 23:42:31 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.43 2011/07/30 19:50:38 dug9 Exp $
 
 */
 
@@ -1700,6 +1700,8 @@ void renderButtons()
 	FW_GL_PIXELZOOM(1.0f,1.0f);
 	p->hadString = 1;
 }
+void setArrowCursor(); //from ui/common.h
+void updateCursorStyle();
 int handleStatusbarHud(int mev, int* clipplane)
 {
 	ppstatusbar p;
@@ -1737,6 +1739,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 			if( tg->display.screenHeight - tg->Mainloop.currentY[0] < clipline )
 			{
 				p->showButtons = 1;
+				setArrowCursor();
 				handleButtonOver();
 				return 1; /* don't process for navigation */
 			}

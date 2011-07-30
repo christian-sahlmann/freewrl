@@ -84,6 +84,7 @@ void jsVRMLClasses_init(struct tjsVRMLClasses *t);
 void Bindable_init(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
 void X3DProtoScript_init(struct tX3DProtoScript *t);
+void common_init(struct tcommon *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -164,7 +165,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Bindable_init(&iglobal->Bindable);
 	X3DParser_init(&iglobal->X3DParser);
 	X3DProtoScript_init(&iglobal->X3DProtoScript);
-
+	common_init(&iglobal->common);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread ,"UI thread");
@@ -173,6 +174,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void iglobal_destructor(ttglobal tg)
 {
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
 	FREE_IF_NZ(tg->X3DParser.prv);
 	FREE_IF_NZ(tg->Bindable.prv);
@@ -239,14 +241,42 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #define MAXINSTANCES 25 //max # freewrl windows on a web page / InternetExplorer session
 struct t2g {
 	pthread_t thread;
+	void *handle;
 	ttglobal iglobal;
 };
 static struct t2g thread2global[MAXINSTANCES*5];
 static int nglobalthreads = 0;
+static void *currentHandle = NULL; /* leave null if single-window application */
+/* for multi-window process -such as 2 freewrl widgets on a web page, or
+   a console program that creates 2+ popup windows -each with their
+   own freewrl instance - then in your window event handler, before
+   calling into the freewrl library call fwl_setCurrentHandle(windowHandle)
+   and after handling the event call fwl_clearCurrentHandle()
+   This allows each window to get/talk to the right freewrl instance
+   ASSUMPTION: 1 window per 1 freewrl instance  (window 1:1 iglobal)
+	
+   */
+void fwl_setCurrentHandle(void *handle)
+{
+	currentHandle = handle;
+}
+void fwl_clearCurrentHandle()
+{
+	currentHandle = NULL;
+}
 void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
+	thread2global[nglobalthreads].handle = NULL;
+	if(!strcmp(type,"UI thread"))
+	{
+		/*for the primary thread, we use a 'dipthong' key (threadID,windowHandle)
+		because multiple popupWindows or ActiveX controls in the same
+		process share the same message loop / event handling thread
+		so only the window handle can distinguish the frewrl instances */
+		thread2global[nglobalthreads].handle = currentHandle;
+	}
 	nglobalthreads++;
         //printf ("set_thread2global, thread %p desc: %s\n",any, type);
 
@@ -272,12 +302,34 @@ ttglobal gglobal0()
 #else
 		if(tt == thread2global[i].thread){
 #endif
+			/* for primary thread, test to see which window handle is set */
+			if(thread2global[i].handle != NULL)
+				if(thread2global[i].handle != currentHandle) continue;
+			/* for worker threads the threadID is sufficient */
 			iglobal = thread2global[i].iglobal;
 			ifound = 1;
 			break;
 		}
 	return iglobal;
 }
+ttglobal gglobalH0(void *handle)
+{
+	/* same as gglobal0 except use window handle instead of thread */
+	ttglobal iglobal;
+	int i,ifound;
+	iglobal = NULL;
+	ifound = 0;
+	for(i=0;i<nglobalthreads;i++)
+	{
+		/* for primary thread, test to see which window handle is set */
+		if(thread2global[i].handle != currentHandle) continue;
+		iglobal = thread2global[i].iglobal;
+		ifound = 1;
+		break;
+	}
+	return iglobal;
+}
+
 #else
 
 // on systems where there can only be 1 window running, and when the GUI
@@ -300,7 +352,10 @@ ttglobal gglobal0()
 	} 
 	return NULL;
 }
-
+ttglobal gglobalH0(void *handle)
+{
+	return gglobal0();
+}
 #endif // ANDROID AND IPHONE
 
 
@@ -308,6 +363,17 @@ ttglobal gglobal0()
 ttglobal gglobal()
 {
 	ttglobal iglobal = gglobal0();
+	if(iglobal == NULL)
+	{
+		printf("ouch - no state for this thread - hit a key to exit\n");
+		getchar();
+		//let it bomb exit(-1);
+	}
+	return iglobal;
+}
+ttglobal gglobalH(void *handle)
+{
+	ttglobal iglobal = gglobalH0(handle);
 	if(iglobal == NULL)
 	{
 		printf("ouch - no state for this thread - hit a key to exit\n");

@@ -1,5 +1,5 @@
 /*
-  $Id: common.h,v 1.6 2011/07/12 16:52:45 dug9 Exp $
+  $Id: common.h,v 1.7 2011/07/30 19:50:38 dug9 Exp $
 
   FreeWRL support library.
 
@@ -32,12 +32,12 @@ Functions:
 extern int ccurse;
 extern int ocurse;
 
-extern float myFps;
+//extern float myFps;
 #define MAXSTAT 200
-extern char myMenuStatus[MAXSTAT];
-extern char messagebar[MAXSTAT];
+//extern char myMenuStatus[MAXSTAT];
+//extern char messagebar[MAXSTAT];
 #define MAXTITLE 200
-extern char window_title[MAXTITLE];
+//extern char window_title[MAXTITLE];
 
 /* Status update functions */
 
@@ -53,6 +53,8 @@ void setSensorCursor();
 void setWindowTitle0();
 void setWindowTitle();
 char *getMessageBar();
+char *getWindowTitle();
+void updateCursorStyle();
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
