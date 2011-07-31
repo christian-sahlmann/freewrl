@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.42 2011/07/30 19:50:38 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.43 2011/07/31 15:54:03 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -232,6 +232,7 @@ void fwl_set_MaxImages(int max);
 void fwl_setCurXY(int x, int y);
 void fwl_do_keyPress(char kp, int type);
 void fwl_doQuit();
+void fwl_doQuitInstance();
 void fwl_set_viewer_type(const int type);
 
 void fwl_init_EaiVerbose();
@@ -273,7 +274,7 @@ void fwl_gotoViewpoint (char *findThisOne);
 
 void fwl_startFreeWRL(const char *url);
 /* distinguish instances from window event handler using the window handle */
-void fwl_setCurrentHandle(void *handle);
+int fwl_setCurrentHandle(void *handle);
 void fwl_clearCurrentHandle();
 
 void fwl_resource_push_single_request(const char *request);

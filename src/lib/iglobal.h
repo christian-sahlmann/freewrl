@@ -374,3 +374,4 @@ void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
 ttglobal gglobal(); //gets based on threadID, errors out if no threadID
 ttglobal gglobal0(); //will return null if thread not yet initialized
 ttglobal gglobalH(void *handle); //use window handle
+ttglobal gglobalH0(void *handle); //test if window handle is in the table yet

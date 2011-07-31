@@ -171,8 +171,11 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	set_thread2global(iglobal, uiThread ,"UI thread");
 	return iglobal;
 }
+
+void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
 {
+	/* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
 	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
@@ -237,6 +240,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 
 	//destroy iglobal
 	free(tg);
+	remove_iglobal_from_table(tg);
 }
 #define MAXINSTANCES 25 //max # freewrl windows on a web page / InternetExplorer session
 struct t2g {
@@ -256,9 +260,11 @@ static void *currentHandle = NULL; /* leave null if single-window application */
    ASSUMPTION: 1 window per 1 freewrl instance  (window 1:1 iglobal)
 	
    */
-void fwl_setCurrentHandle(void *handle)
+int fwl_setCurrentHandle(void *handle)
 {
 	currentHandle = handle;
+	if(gglobalH0(handle)) return 1; /* let caller know it's in the table */
+	return 0; /* let caller know its not in the table yet */
 }
 void fwl_clearCurrentHandle()
 {
@@ -281,6 +287,22 @@ void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
         //printf ("set_thread2global, thread %p desc: %s\n",any, type);
 
 }
+void remove_iglobal_from_table(ttglobal tg)
+{
+	/*  called from iglobal_destructor. tg should be zombie pointer.
+		Perhaps I should lock this table because other threads -in active instances-
+		can be doing gglobal(), however they should still be able to find their 
+		iglobal.
+	*/
+	int i,j;
+	for(i=0,j=0;i<nglobalthreads;i++)
+	{
+		memcpy(&thread2global[j],&thread2global[i],sizeof(struct t2g));
+		if(thread2global[i].iglobal != tg) j++;
+	}
+	nglobalthreads = j;
+}
+
 
 
 

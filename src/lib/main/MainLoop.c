@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.224 2011/07/30 19:50:38 dug9 Exp $
+  $Id: MainLoop.c,v 1.225 2011/07/31 15:54:03 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -393,6 +393,31 @@ static void stopDisplayThread()
 		((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
 		pthread_join(tg->threads.DispThrd,NULL);
 		ZERO_THREAD(tg->threads.DispThrd);
+	}
+}
+#ifndef SIGTERM
+#define SIGTERM SIG_TERM
+#endif
+static void stopLoadThread()
+{
+	ttglobal tg = gglobal();
+	if (!TEST_NULL_THREAD(tg->threads.loadThread)) {
+		//should there be a signal and wait for cleanup?
+		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
+		pthread_join(tg->threads.loadThread,NULL);
+		pthread_kill(tg->threads.loadThread, SIGTERM);
+		ZERO_THREAD(tg->threads.loadThread);
+	}
+}
+static void stopPCThread()
+{
+	ttglobal tg = gglobal();
+	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
+		//should there be a signal and wait for cleanup?
+		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
+		//pthread_join(tg->threads.PCthread,NULL);
+		pthread_kill(tg->threads.loadThread, SIGTERM);
+		ZERO_THREAD(tg->threads.PCthread);
 	}
 }
 
@@ -1916,13 +1941,35 @@ void outOfMemory(const char *msg) {
         usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }
-
-/* quit key pressed, or Plugin sends SIGQUIT */
-void fwl_doQuit()
+///* quit key pressed, or Plugin sends SIGQUIT */
+//void fwl_doQuit()
+//{
+//    stopDisplayThread();
+//
+//    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+//
+//    /* set geometry to normal size from fullscreen */
+//#ifndef AQUA
+//    if (newResetGeometry != NULL) newResetGeometry();
+//#endif
+//
+//    /* kill any remaining children */
+//    killErrantChildren();
+//    
+//#ifdef DEBUG_MALLOC
+//    void scanMallocTableOnQuit(void);
+//    scanMallocTableOnQuit();
+//#endif
+//	/* tested on win32 console program July9,2011 seems OK */
+//	iglobal_destructor(gglobal());
+//   exit(EXIT_SUCCESS);
+//}
+void fwl_doQuitInstance()
 {
     stopDisplayThread();
-
-    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+	//stopLoadThread();
+	//stopPCThread();
+    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
@@ -1938,6 +1985,12 @@ void fwl_doQuit()
 #endif
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
+    //exit(EXIT_SUCCESS);
+}
+/* quit key pressed, or Plugin sends SIGQUIT */
+void fwl_doQuit()
+{
+	fwl_doQuitInstance();
     exit(EXIT_SUCCESS);
 }
 

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.223 2011/07/30 19:50:38 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.224 2011/07/31 15:54:03 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -64,7 +64,6 @@
 #include "OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_Shape.h"
-
 #include <float.h>
 
 #include "../x3d_parser/Bindable.h"
