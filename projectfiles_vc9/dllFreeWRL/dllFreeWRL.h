@@ -15,30 +15,30 @@ class DLLFREEWRL_API CdllFreeWRL {
 public:
 	CdllFreeWRL(void);
 	// TODO: add your methods here.
-	enum KeyAction {KEYDOWN=2,KEYUP=3,KEYPRESS=1};
+	static enum KeyAction {KEYDOWN=2,KEYUP=3,KEYPRESS=1};
 	//#define KeyChar         1  //KeyPress
 	//#define KeyPress        2  //KeyDown
 	//#define KeyRelease      3  //KeyUp
 
-	enum MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
+	static enum MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
 	//	mev = ButtonPress; //4 down
 	//	mev = ButtonRelease; //3 up
 	//	mev = MotionNotify; //6 move
-	enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
+	static enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
-	void onInit(unsigned long handle,int width, int height);
-	void onLoad(char* scene_url);
-    void onResize(int height,int width);
-    void onMouse(int mouseAction,int mouseButton,int x, int y);
-    void onKey(int keyAction,int keyValue);
-    void onTick(int interval);
-	void onClose();
-	char* downloadFileName();
-	void downloadComplete(char *localfile, int iret);
-	void print(char *str);
+	static void onInit(void* handle,int width, int height);
+	static void onLoad(void *handle, char* scene_url);
+    static void onResize(void *handle, int height,int width);
+    static void onMouse(void *handle, int mouseAction,int mouseButton,int x, int y);
+    static void onKey(void *handle, int keyAction,int keyValue);
+    static void onTick(void *handle, int interval);
+	static void onClose(void *handle);
+	static char* downloadFileName(void *handle);
+	static void downloadComplete(void *handle, char *localfile, int iret);
+	static void print(void *handle, char *str);
 private:
-	char *url;
+	static char *url;
 };
 
 extern DLLFREEWRL_API int ndllFreeWRL;
