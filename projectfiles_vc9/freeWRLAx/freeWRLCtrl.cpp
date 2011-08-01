@@ -34,7 +34,7 @@ BEGIN_MESSAGE_MAP(CfreeWRLCtrl, COleControl)
 	ON_WM_KEYDOWN() 
 	ON_WM_KEYUP() 
 	ON_WM_CHAR() 
-	ON_WM_TIMER()
+	//ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -134,9 +134,6 @@ CfreeWRLCtrl::CfreeWRLCtrl()
 	// TODO: Initialize your control's instance data here.
     m_cstrFileName = "";
 	m_initialized = 0;
-	m_frontEndGettingFile = false;
-	//this->m_timerID = this->SetTimer(14, 50, NULL);
-	//TRACE("timer %d is set\n", m_pCtrl->m_timerID);
 }
 
 
@@ -147,16 +144,14 @@ CfreeWRLCtrl::~CfreeWRLCtrl()
 {
 	// TODO: Cleanup your control's instance data here.
 	m_initialized = 0;
-	this->KillTimer(m_timerID);
-	m_dllfreewrl.onClose();
+	m_dllfreewrl.onClose(m_Hwnd); //this is null on exit: (void*)this->GetHwnd() so use last known handle
 }
 
 
 
 // CfreeWRLCtrl::OnDraw - Drawing function
 
-void CfreeWRLCtrl::OnDraw(
-			CDC* pdc, const CRect& rcBounds, const CRect& rcInvalid)
+void CfreeWRLCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvalid)
 {
 	if (!pdc)
 		return;
@@ -164,14 +159,12 @@ void CfreeWRLCtrl::OnDraw(
 	if(m_initialized ==10)
 	{
 		m_initialized = 1;
-		m_dllfreewrl.onInit((unsigned long)this->m_hWnd,rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
-		m_dllfreewrl.onLoad(m_cstrFileName.GetBuffer()); 
-		//m_dllfreewrl.onLoad("C:/source2/tests/2.wrl"); 
-		//AfxMessageBox("Initialized freewrl");
-		this->m_timerID = this->SetTimer(14, 100, NULL);
-
+		m_Hwnd = (void*)this->GetHwnd(); //we just need the real hWnd for onInit -gl / DC stuff
+		// after that it's just an instance ID
+		m_dllfreewrl.onInit(m_Hwnd,rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
+		m_dllfreewrl.onLoad(m_Hwnd,m_cstrFileName.GetBuffer()); 
 	}
-	m_dllfreewrl.onResize(rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
+	m_dllfreewrl.onResize(m_Hwnd,rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
 }
 
 void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
@@ -180,11 +173,54 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 	COleControl::DoPropExchange(pPX);
 
 	// TODO: Call PX_ functions for each persistent custom property.
-	// MimeType sample program says SRC property is where Mime handler 
-	//   passes in URL
-	PX_String(pPX, "SRC", m_cstrFileName); 
-	//AfxMessageBox("DoPropExchange");
-	m_initialized = 10;
+	//HTML <OBJECT> tends to generate two DoPropExchanges, HREF and EMBED just one, 
+	// so we'll fetch SRC on the first
+	if(m_initialized == 0) 
+	{
+
+		// MimeType sample program says SRC property is where Mime handler 
+		//   passes in URL
+		PX_String(pPX, "SRC", m_cstrFileName); 
+		// http://support.microsoft.com/kb/181678 How to Retrieve the URL of a Web Page from an ActiveX Control
+		//m_cstrContainerURL = NULL; //C++ initializes these I think.
+		LPOLECLIENTSITE pClientSite = this->GetClientSite();
+		if (pClientSite != NULL)
+		{
+			// Obtain URL from container moniker.
+			CComPtr<IMoniker> spmk;
+			LPOLESTR pszDisplayName;
+
+			if (SUCCEEDED(pClientSite->GetMoniker(
+											OLEGETMONIKER_TEMPFORUSER,
+											OLEWHICHMK_CONTAINER,
+											&spmk)))
+			{
+				if (SUCCEEDED(spmk->GetDisplayName(
+										NULL, NULL, &pszDisplayName)))
+				{
+					USES_CONVERSION;
+
+					CComBSTR bstrURL;
+					bstrURL = pszDisplayName;
+					//AfxMessageBox(OLE2T(bstrURL));
+					m_cstrContainerURL = OLE2T(bstrURL);
+					ATLTRACE("The current URL is %s\n", OLE2T(bstrURL));
+					CoTaskMemFree((LPVOID)pszDisplayName);
+				}
+			}
+		}
+		//AfxMessageBox("containerURL="+m_cstrContainerURL);
+		//AfxMessageBox("fileName="+m_cstrFileName); //"DoPropExchange");
+		if(m_cstrContainerURL != m_cstrFileName)
+		{
+			//they are different, so concatonate
+			int lastSlash = m_cstrContainerURL.ReverseFind('/');
+			m_cstrContainerURL = m_cstrContainerURL.Left(lastSlash);
+			m_cstrFileName = m_cstrContainerURL + "/" + m_cstrFileName;
+		}
+		//AfxMessageBox("fullURL="+m_cstrFileName); //"DoPropExchange");
+		m_initialized = 10;
+	}
 }
 
 
@@ -199,32 +235,32 @@ void CfreeWRLCtrl::OnResetState()
 }
 void CfreeWRLCtrl::OnLButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 4, 1,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 4, 1,point.x,point.y);
 	COleControl::OnLButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnLButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 5, 1,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 5, 1,point.x,point.y);
 	COleControl::OnLButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 4, 2,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 4, 2,point.x,point.y);
 	COleControl::OnMButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 5, 2,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 5, 2,point.x,point.y);
 	COleControl::OnMButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 4, 3,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 4, 3,point.x,point.y);
 	COleControl::OnRButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse( 5, 3,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 5, 3,point.x,point.y);
 	COleControl::OnRButtonUp(nFlags,point);
 }
 
@@ -241,63 +277,24 @@ void CfreeWRLCtrl::OnMouseMove(UINT nFlags,CPoint point)
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
 	//m_dllfreewrl.onMouse(int mouseAction,int mouseButton,int x, int y);
-	m_dllfreewrl.onMouse( 6, 0,point.x,point.y);
+	m_dllfreewrl.onMouse(m_Hwnd, 6, 0,point.x,point.y);
 	COleControl::OnMouseMove(nFlags,point);
 }
 
 void CfreeWRLCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_dllfreewrl.KEYDOWN,nChar);
+	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYDOWN,nChar);
 	COleControl::OnKeyDown(nChar,nRepCnt,nFlags);
 }
 void CfreeWRLCtrl::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_dllfreewrl.KEYUP,nChar);
+	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYUP,nChar);
 	COleControl::OnKeyUp(nChar,nRepCnt,nFlags);
 }
 void CfreeWRLCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_dllfreewrl.KEYPRESS,nChar);
+	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYPRESS,nChar);
 	COleControl::OnChar(nChar,nRepCnt,nFlags);
-}
-void CfreeWRLCtrl::OnTimer(UINT_PTR nIDEvent)
-{
-	//m_dllfreewrl.print("t");
-	if(nIDEvent == this->m_timerID && (m_initialized ==1))
-	{
-		//m_dllfreewrl.print(".");
-		char *url = m_dllfreewrl.downloadFileName();
-		if(url != NULL)
-		{
-			char stemp[1000];
-			sprintf(stemp,"ontick FE got [%s] m_fegf=%s\n",url,m_frontEndGettingFile ? "true" : "false");
-			m_dllfreewrl.print(stemp);
-			if(!m_frontEndGettingFile) 
-			{
-				m_dllfreewrl.print("UrlDownloading...\n");
-				m_frontEndGettingFile = true;
-				int iret;
-				int ii = 0;
-				if(url[0] == '/') ii = 1;
-				char localfile[1024];
-				HRESULT hr;
-				hr = URLDownloadToCacheFileA(
-					(LPUNKNOWN)this->GetControllingUnknown(), //target,   // control's IUnknown
-					&url[ii],                         // URL to download
-					localfile, 
-					1023,                               // buffer length
-					0,                                      // reserved
-					NULL );
-				iret = (hr == 0? 1 : -1);
-				sprintf(stemp,"localf [%s] hr=%d\n",localfile,(int)hr);
-				m_dllfreewrl.print(stemp);
-				m_dllfreewrl.downloadComplete(localfile,iret);
-				m_frontEndGettingFile = false;
-			}
-		}
-	}
-	COleControl::OnTimer(nIDEvent); 
-	m_dllfreewrl.onTick(m_initialized);
 }
 
 // CfreeWRLCtrl message handlers

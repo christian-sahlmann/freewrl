@@ -8,6 +8,9 @@ extern "C"
 {
 #include "gdiPlusImageLoader.h"
 #include <GL/glew.h>
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
 #include "opengl/textures.h"
 /*
 struct textureTableIndexStruct {

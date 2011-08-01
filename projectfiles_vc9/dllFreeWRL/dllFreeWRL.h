@@ -32,10 +32,7 @@ public:
     static void onResize(void *handle, int height,int width);
     static void onMouse(void *handle, int mouseAction,int mouseButton,int x, int y);
     static void onKey(void *handle, int keyAction,int keyValue);
-    static void onTick(void *handle, int interval);
 	static void onClose(void *handle);
-	static char* downloadFileName(void *handle);
-	static void downloadComplete(void *handle, char *localfile, int iret);
 	static void print(void *handle, char *str);
 private:
 	static char *url;

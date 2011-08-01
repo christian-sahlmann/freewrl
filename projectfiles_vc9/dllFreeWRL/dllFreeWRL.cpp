@@ -38,22 +38,15 @@ void swDebugf(LPCSTR formatstring, ...)
 extern "C"
 {
 #include "libFreeWRL.h"
-//#include <main/headers.h>
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
-//void do_keyPress(const char kp, int type);
-//void initializeRenderSceneUpdateScene();
 void fwl_initializeRenderSceneUpdateScene();
-//void fwl_RenderSceneUpdateScene();
 void finalizeRenderSceneUpdateScene();
-void resize_GL(int width, int height);
 void fwl_setScreenDim(int wi, int he);
 void closeFreeWRL(void);
 void fwl_resource_push_single_request(const char *request);
 void initConsoleH(DWORD pid);
 extern int Console_writePrimitive;
 char *strBackslash2fore(char *str);
-//extern int screenWidth; /*used in mainloop render_pre setup_projection*/
-//extern int screenHeight;
 void fwl_setConsole_writePrimitive(int ibool);
 
 }
@@ -82,27 +75,19 @@ CdllFreeWRL::CdllFreeWRL()
 	//enum class MouseButton {LEFT,MIDDLE,RIGHT,NONE};
 extern "C"{
 int fv_display_initialize(void);
-//static freewrl_params_t *fv_params;
 }
 void CdllFreeWRL::onInit(void *handle,int width, int height){
 	struct freewrl_params *params;
-	//_putenv("FREEWRL_NO_VBOS=1"); 
-
 	if( !fwl_setCurrentHandle(handle) ){
 		/* Before we parse the command line, setup the FreeWRL default parameters */
 		params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
-
-		//params = (struct freewrl_params*) malloc( sizeof(struct freewrl_params));
 		/* Default values */
 		params->width = width; //600;
 		params->height = height; //400;
 		params->eai = 0;
 		params->fullscreen = 0;
 		params->winToEmbedInto = (int)handle;
-		swDebugf("Hi just before fwl_initFreeWRL\n");
-		//fwl_init_instanceh(); //before setting any structs we need a struct allocated
-		swDebugf("onInit: do consoleMessages come out\n");
-		swDebugf("onInit sure");
+		swDebugf("just before fwl_initFreeWRL\n");
 		void *fwl = fwl_init_instance(); //before setting any structs we need a struct allocated
 		fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
 
@@ -113,60 +98,29 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 		fwl_setConsole_writePrimitive( 1 );
 		DWORD pid = GetCurrentProcessId() ;
 		initConsoleH(pid);
-
-		swDebugf("after fwl_initFreeWRL\n");
-		//initStereoDefaults();
-		//fwl_startFreeWRL("C:\\source2\\tests\\1.wrl");
-		//swDebugf("after fwl_startFreeWRL\n");
-		//fwl_initializeRenderSceneUpdateScene()
-		swDebugf("onInit: before fv_display_initialize\n");
-#ifdef FRONTEND_HANDLES_DISPLAY_THREAD
-		fv_display_initialize();
-		swDebugf("onInit: before initializeRenderSceneUpdateScene\n");
-		fwl_initializeRenderSceneUpdateScene();
-		swDebugf("onInit: after initializeRenderSceneUpdateScene\n");
-#endif
-
-		//fwl_resource_push_single_request("C:\\source2\\tests\\1.wrl");
+		//swDebugf("after fwl_initFreeWRL\n");
 	}
 	fwl_clearCurrentHandle();
 
 }
 void CdllFreeWRL::onLoad(void *handle, char* scene_url)
 {
-	//swDebugf("onLoad before finalizeRenderSceneUpdateScene\n");
-	//finalizeRenderSceneUpdateScene();
-	//swDebugf("onLoad after finalizeRenderSceneUpdateScene\n");
 	char * url;
-/*
-	swDebugf("onLoad: before fv_display_initialize\n");
-	fv_display_initialize();
-	swDebugf("onLoad before initializeRenderSceneUpdateScene\n");
-	fwl_initializeRenderSceneUpdateScene();
-	swDebugf("onLoad after initializeRenderSceneUpdateScene\n");
-*/
 	if(fwl_setCurrentHandle(handle)){
 		url = strdup(scene_url);
 		url = strBackslash2fore(url);
-		swDebugf("onLoad have url=[%s]\n",url);
-		//fwl_resource_push_single_request(this->url); //"C:\\source2\\tests\\1.wrl");
-		//fwl_resource_push_single_request_IE_main_scene(this->url);
+		//swDebugf("onLoad have url=[%s]\n",url);
 		fwl_replaceWorldNeeded(url);
-		//fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
-		swDebugf("onLoad after push_single_request url=[%s]\n",url);
+		//swDebugf("onLoad after push_single_request url=[%s]\n",url);
 	}
 	fwl_clearCurrentHandle();
 
 }
 
 void CdllFreeWRL::onResize(void *handle, int width,int height){
-	//screenWidth = width; /*used in mainloop render_pre setup_projection*/
-	//screenHeight = height;
-	//resize_GL(width, height); 
 	if(fwl_setCurrentHandle(handle)){
 
 		fwl_setScreenDim(width,height);
-		//ConsoleMessage("dll_onResize w=%d h=%d\n",width,height);
 	}
 	fwl_clearCurrentHandle();
 }
@@ -189,7 +143,6 @@ void CdllFreeWRL::onMouse(void *handle, int mouseAction,int mouseButton,int x, i
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
 	}
 	fwl_clearCurrentHandle();
-	//ConsoleMessage("%d %d %d %d\r",mouseAction,mouseButton,x,y);
 }
 void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
 
@@ -220,46 +173,15 @@ void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
 	}
 	fwl_clearCurrentHandle();
 }
-void CdllFreeWRL::onTick(void *handle, int interval){
-	//fwl_setCurrentHandle(handle);
-	//fwl_RenderSceneUpdateScene();
-	//fwl_clearCurrentHandle();
-
-}
 void CdllFreeWRL::onClose(void *handle)
 {
     
 	/* when finished: */
 	if(fwl_setCurrentHandle(handle)){
-		//finalizeRenderSceneUpdateScene(); //doesn't like killoldworld
-
-		//closeFreeWRL();
+		swDebugf("fwl_doQuitInstance being called\n");
 		fwl_doQuitInstance();
-		//terminateFreeWRL();
 	}
 	fwl_clearCurrentHandle();
-}
-char* CdllFreeWRL::downloadFileName(void *handle)
-{
-// you need to build the libreewrl with #ifdef FRONTEND_GETS_FILES  defined (otherwise you'll get stubs)
-// and	#ifdef COMPILING_ACTIVEX_FRONTEND  defined for this dllFreeWRL build (otherwise header commented out)
-
-#ifdef COMPILING_ACTIVEX_FRONTEND
-	if(fwl_setCurrentHandle(handle)){
-		return fwg_frontEndWantsFileName();
-	}
-	fwl_clearCurrentHandle();
-#else
-	return NULL;
-#endif
-}
-void CdllFreeWRL::downloadComplete(void *handle, char *localfile, int iret)
-{
-	if(fwl_setCurrentHandle(handle)){
-		fwg_frontEndReturningLocalFile(localfile, iret);
-	}
-	fwl_clearCurrentHandle();
-
 }
 void CdllFreeWRL::print(void *handle, char *str)
 {

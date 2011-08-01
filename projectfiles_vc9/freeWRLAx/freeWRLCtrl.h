@@ -29,7 +29,7 @@ public:
 
 	virtual void DoPropExchange(CPropExchange* pPX);
 	virtual void OnResetState();
-	virtual void OnTimer(UINT_PTR nIDEvent);
+	//virtual void OnTimer(UINT_PTR nIDEvent);
 // Implementation
 protected:
 	~CfreeWRLCtrl();
@@ -51,15 +51,17 @@ protected:
 // member data
     CString     m_cstrFileName;  // current file name
     CString     m_cstrCacheFileName;    // file name of local cache file
+	CString     m_cstrContainerURL; //IE/container document URL
 	CdllFreeWRL m_dllfreewrl;
+	void* m_Hwnd;
 	int m_initialized;
-	bool m_frontEndGettingFile;
+	//bool m_frontEndGettingFile;
 	//int m_filerequested;
 	//void* m_res;
 	//char * m_localfile;
 	//char * m_url;
 	//int m_lfsize;
-	UINT_PTR m_timerID;
+	//UINT_PTR m_timerID;
 
 // Dispatch and event IDs
 public:
