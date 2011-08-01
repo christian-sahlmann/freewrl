@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.225 2011/07/31 15:54:03 dug9 Exp $
+  $Id: MainLoop.c,v 1.226 2011/08/01 17:06:47 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1967,6 +1967,7 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
     stopDisplayThread();
+	//these stop threads arent working july 31, 2011, 10am.
 	//stopLoadThread();
 	//stopPCThread();
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread

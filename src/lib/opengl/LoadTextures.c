@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.73 2011/07/27 23:42:31 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.74 2011/08/01 17:06:47 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -344,16 +344,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	char *fname;
 	int ret;
 
-#ifdef FRONTEND_GETS_FILES
-	fname = download_file(filename);
-	if(!fname) 
-	{
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
-		return FALSE;
-	}
-#else
 	fname = strdup(filename);
-#endif
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);

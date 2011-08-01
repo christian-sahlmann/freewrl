@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.43 2011/07/31 15:54:03 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.44 2011/08/01 17:06:47 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -55,9 +55,6 @@
 
 #else /* COMPILING_IPHONE_FRONT_END */
 
-#ifdef COMPILING_ACTIVEX_FRONTEND
-	void fwl_initializeRenderSceneUpdateScene(void);
-#endif
 /**
  * Version embedded
  */

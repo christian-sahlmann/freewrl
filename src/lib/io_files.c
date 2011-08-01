@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.42 2011/07/14 18:54:46 crc_canada Exp $
+  $Id: io_files.c,v 1.43 2011/08/01 17:06:47 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -497,38 +497,6 @@ openned_file_t* load_file(const char *filename)
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
 }
-
-#ifdef _MSC_VER
-#ifdef FRONTEND_GETS_FILES
-/* this is for win32 LoadTextures.c > texture_load_from_file */
-char* download_file(filename)
-{
-	char *consoleBuffer;
-	consoleBuffer = MALLOC(char *, 200+strlen(filename));
-	/* the frontend or plugin is going to get this resource */
-	MUTEX_LOCK_FILE_RETRIEVAL
-
-	FREE_IF_NZ(fileText);
-	fileName = NULL; // do not free this - it is a copy of a pointer
-
-	sprintf(consoleBuffer ,"lf_need file from frontend=[%s]\n",filename);
-	fwl_StringConsoleMessage(consoleBuffer);
-	sprintf(consoleBuffer ,"load_file thread ID = %d\n",(int)pthread_self().p);
-	fwl_StringConsoleMessage(consoleBuffer);
-
-	fileName = filename;
-	WAIT_FOR_FILE_SIGNAL
-	sprintf(consoleBuffer ,"lf_got file from frontend retstat=%d\n",frontend_return_status);
-	fwl_StringConsoleMessage(consoleBuffer);
-	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-	if(frontend_return_status == -1)
-	{
-		return NULL;
-	}
-	return strdup(localFile);
-}
-#endif /* FRONTEND_GETS_FILES */
-#endif /* _MSC_VER */
 
 
 /**

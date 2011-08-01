@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.50 2011/07/21 12:11:02 crc_canada Exp $
+  $Id: resources.c,v 1.51 2011/08/01 17:06:47 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -346,7 +346,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
 
-                                        cwd = get_current_dir();
+					cwd = get_current_dir();
 					removeFilenameFromPath(cwd);
 
 					/* Make full path from current dir and relative filename */
@@ -365,7 +365,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	res->parsed_request = url;
 	res->base = STRDUP(url);
 	removeFilenameFromPath(res->base);
-
 
 #ifdef FRONTEND_GETS_FILES
         DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");

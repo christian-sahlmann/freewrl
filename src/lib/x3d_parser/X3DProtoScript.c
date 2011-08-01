@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.76 2011/07/27 23:42:31 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.77 2011/08/01 17:06:47 dug9 Exp $
 
 ???
 
@@ -1713,6 +1713,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	myObj = NULL;
 	sdecl = NULL;
 	name = ID_UNDEFINED;
+	bzero(&defaultVal, sizeof (union anyVrml));
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField, parentStack is of type %s\n",stringNodeType(parentStack[parentIndex]->_nodeType));
