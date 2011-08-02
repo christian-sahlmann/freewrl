@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
+#ifdef _DEBUGx
 static HANDLE hStdErr = NULL;
 static void
 swInitConsole(void)
@@ -34,19 +35,15 @@ void swDebugf(LPCSTR formatstring, ...)
     /* not C console - more low level windows SDK API */
     WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
 }
+#else
+void swDebugf(LPCSTR formatstring, ...) {}
+#endif
 
 extern "C"
 {
 #include "libFreeWRL.h"
-void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
-void fwl_initializeRenderSceneUpdateScene();
-void finalizeRenderSceneUpdateScene();
-void fwl_setScreenDim(int wi, int he);
-void closeFreeWRL(void);
-void fwl_resource_push_single_request(const char *request);
 void initConsoleH(DWORD pid);
-extern int Console_writePrimitive;
-char *strBackslash2fore(char *str);
+//char *strBackslash2fore(char *str);
 void fwl_setConsole_writePrimitive(int ibool);
 
 }
@@ -95,9 +92,9 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 			//ERROR_MSG("main: aborting during initialization.\n");
 			//exit(1);
 		}
-		fwl_setConsole_writePrimitive( 1 );
-		DWORD pid = GetCurrentProcessId() ;
-		initConsoleH(pid);
+		//fwl_setConsole_writePrimitive( 1 );
+		//DWORD pid = GetCurrentProcessId() ;
+		//initConsoleH(pid);
 		//swDebugf("after fwl_initFreeWRL\n");
 	}
 	fwl_clearCurrentHandle();
@@ -107,8 +104,8 @@ void CdllFreeWRL::onLoad(void *handle, char* scene_url)
 {
 	char * url;
 	if(fwl_setCurrentHandle(handle)){
-		url = strdup(scene_url);
-		url = strBackslash2fore(url);
+		url = _strdup(scene_url);
+		//url = strBackslash2fore(url);
 		//swDebugf("onLoad have url=[%s]\n",url);
 		fwl_replaceWorldNeeded(url);
 		//swDebugf("onLoad after push_single_request url=[%s]\n",url);

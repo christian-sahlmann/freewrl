@@ -93,8 +93,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="mfcs71.lib MSVCRT.lib dllFreeWRL.lib"
 				OutputFile="$(OutDir)/freeWRLAx.ocx"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\Release"
+				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
@@ -144,6 +147,12 @@
 				RelativePath=".\cathelp.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"/>
