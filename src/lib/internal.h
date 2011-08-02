@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.54 2011/06/30 15:13:21 crc_canada Exp $
+$Id: internal.h,v 1.55 2011/08/02 21:30:12 dug9 Exp $
 
 ???
 
@@ -126,6 +126,10 @@ $Id: internal.h,v 1.54 2011/06/30 15:13:21 crc_canada Exp $
 #ifndef __LIBFREEWRL_DECL_H__
 #define __LIBFREEWRL_DECL_H__
 
+#if defined(_MSC_VER)  /* other configs welcome to join */
+/* redirect printfs to ConsoleMessage, and from there to statusbarHud.c ! panel */
+#define printf ConsoleMessage
+#endif
 
 #ifdef FREEWRL_THREAD_COLORIZED
 
