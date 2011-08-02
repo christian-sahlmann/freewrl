@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.226 2011/08/01 17:06:47 dug9 Exp $
+  $Id: MainLoop.c,v 1.227 2011/08/02 14:39:08 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -402,10 +402,8 @@ static void stopLoadThread()
 {
 	ttglobal tg = gglobal();
 	if (!TEST_NULL_THREAD(tg->threads.loadThread)) {
-		//should there be a signal and wait for cleanup?
-		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
+		pthread_cancel(tg->threads.loadThread);
 		pthread_join(tg->threads.loadThread,NULL);
-		pthread_kill(tg->threads.loadThread, SIGTERM);
 		ZERO_THREAD(tg->threads.loadThread);
 	}
 }
@@ -413,10 +411,8 @@ static void stopPCThread()
 {
 	ttglobal tg = gglobal();
 	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
-		//should there be a signal and wait for cleanup?
-		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
-		//pthread_join(tg->threads.PCthread,NULL);
-		pthread_kill(tg->threads.loadThread, SIGTERM);
+		pthread_cancel(tg->threads.PCthread);
+		pthread_join(tg->threads.PCthread,NULL);
 		ZERO_THREAD(tg->threads.PCthread);
 	}
 }
@@ -1967,10 +1963,9 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
     stopDisplayThread();
-	//these stop threads arent working july 31, 2011, 10am.
-	//stopLoadThread();
-	//stopPCThread();
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
+	stopLoadThread();
+	stopPCThread();
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
