@@ -260,8 +260,10 @@ static void *currentHandle = NULL; /* leave null if single-window application */
    ASSUMPTION: 1 window per 1 freewrl instance  (window 1:1 iglobal)
 	
    */
+int iglobal_instance_count();
 int fwl_setCurrentHandle(void *handle)
 {
+	//ConsoleMessage("number of instances = %d\n",iglobal_instance_count());
 	currentHandle = handle;
 	if(gglobalH0(handle)) return 1; /* let caller know it's in the table */
 	return 0; /* let caller know its not in the table yet */
@@ -351,8 +353,27 @@ ttglobal gglobalH0(void *handle)
 	}
 	return iglobal;
 }
+int iglobal_instance_count()
+{
+	int i,count;
+	void *lastig;
+	if(nglobalthreads == 0) return 0;
+	count = 0;
+	lastig = NULL;
+	for(i=0;i<nglobalthreads;i++)
+	{
+		if(thread2global[i].iglobal != lastig)
+		{
+			lastig = thread2global[i].iglobal;
+			count++;
+		}
+	}
+	return count;
+}
 
 #else
+int iglobal_instance_count()
+{ return 1; }
 
 // on systems where there can only be 1 window running, and when the GUI
 // handles the window, simplify the calls so that we do not have to

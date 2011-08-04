@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.25 2011/08/02 21:30:12 dug9 Exp $
+$Id: ConsoleMessage.c,v 1.26 2011/08/04 16:15:53 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -163,6 +163,7 @@ int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consol
 	//char ConsoleLogName[200];
 #endif
 
+static int Console_writePrimitive = 0; //for msc_ver, but will test in shared code
 #ifdef _MSC_VER
 #if _MSC_VER < 1500
 #define HAVE_VSCPRINTF
@@ -172,22 +173,26 @@ int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consol
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
-//static HANDLE hStdErr = NULL;
+//a console window should be a single shared process resource
+static HANDLE hStdErr = NULL;
 void fwl_setConsole_writePrimitive(int ibool)
 {
 	//this function used by the dll wrapper in win32 for 
 	//some types of applications (not the console program as of Jun1/2011)
-	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
-	if(ibool) p->Console_writePrimitive = 1;
-	else  p->Console_writePrimitive = 0;
+	//ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	//if(ibool) p->Console_writePrimitive = 1;
+	//else  p->Console_writePrimitive = 0;
+	Console_writePrimitive = ibool;
 }
 void initConsoleH(DWORD pid)
 {
-	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	//ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
 #if _MSC_VER >= 1500
 
-	p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
-	if(!p->hStdErr)
+	//p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	//if(!p->hStdErr)
+	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	if(!hStdErr)
 	if( !AttachConsole(pid))
 	{
 		DWORD dw = GetLastError();
@@ -199,18 +204,20 @@ void initConsoleH(DWORD pid)
 			printf("attachconsole gen failure\n");
 		AllocConsole();
 	}
-	p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
-	if(!p->hStdErr) p->hStdErr = -1;
+	hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	//p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	//if(!p->hStdErr) p->hStdErr = -1;
 #endif
 }
 
 static void initConsole(void)
 {
     BOOL ac;
-	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	//ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
 
 	//hStdErr = GetStdHandle(STD_ERROR_HANDLE);
-	if(p->hStdErr == NULL)
+	//if(p->hStdErr == NULL)
+	if(hStdErr == NULL)
 	{
 #ifndef ATTACH_PARENT_PROCESS
 #define ATTACH_PARENT_PROCESS ((DWORD)-1)
@@ -228,18 +235,21 @@ static void initConsole(void)
 			ac = AllocConsole();
 		}
 #endif
-		p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+		//p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+		hStdErr = GetStdHandle(STD_ERROR_HANDLE);
 	}
 }
 void writeToWin32Console(char *buff)
 {
-	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	//ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
 
     DWORD cWritten;
-    if (p->hStdErr == NULL)
+    //if (p->hStdErr == NULL)
+    if (hStdErr == NULL)
         initConsole(); 
     /* not C console - more low level windows SDK API */
-    WriteConsoleA(p->hStdErr, buff, strlen(buff),&cWritten, NULL);
+    //WriteConsoleA(p->hStdErr, buff, strlen(buff),&cWritten, NULL);
+    WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
 }
 //stub for vc7
 int DEBUG_FPRINTF(const char *fmt, ...)
@@ -424,6 +434,14 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		/* JohnS - we need a carrage return here */
 		printf ("\n");
 #endif
+#ifdef _MSC_VER
+		if(Console_writePrimitive)
+		{
+			char pbuffer[1024];
+			vsnprintf(pbuffer,1023,fmt,args);
+			writeToWin32Console(pbuffer);
+		}
+#endif
 		return retval; 
 	}
 	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
@@ -447,7 +465,7 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		}
 		retval = vfprintf(p->consolefile,fmt,args); //fprintf(consolefile,buffer);
 	}
-	if(p->Console_writeToLog || tg->ConsoleMessage.Console_writeToHud || p->Console_writePrimitive)
+	if(p->Console_writeToLog || tg->ConsoleMessage.Console_writeToHud || Console_writePrimitive)
 	{
 		char * buffer;
 		int doFree = 0;
@@ -482,7 +500,7 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		if(tg->ConsoleMessage.Console_writeToHud)
 			hudSetConsoleMessage(buffer);
 #ifdef _MSC_VER
-		if(p->Console_writePrimitive)
+		if(Console_writePrimitive)
 			writeToWin32Console(buffer);
 #endif
 

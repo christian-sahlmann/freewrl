@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.18 2011/07/12 19:41:46 istakenv Exp $
+  $Id: io_http.c,v 1.19 2011/08/04 16:15:53 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -251,7 +251,7 @@ http://msdn.microsoft.com/en-us/library/sb35xf67.aspx sample browser in C++
 */
 #include <WinInet.h>
 
-//static HINTERNET hWinInet = NULL;
+static HINTERNET hWinInet = NULL; //static for an application, although multiple inits OK
 HINTERNET winInetInit()
 {
 //winInet_h = InternetOpen(
@@ -263,9 +263,15 @@ HINTERNET winInetInit()
 //);
 
 
-	
-   return InternetOpen("freewrl",INTERNET_OPEN_TYPE_DIRECT,NULL,NULL,0); //INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY/*/INTERNET_OPEN_TYPE_PRECONFIG*/,NULL,NULL,0);//INTERNET_FLAG_ASYNC - for callback);
+	if(hWinInet == NULL)
+		hWinInet = InternetOpen("freewrl",INTERNET_OPEN_TYPE_DIRECT,NULL,NULL,0); //INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY/*/INTERNET_OPEN_TYPE_PRECONFIG*/,NULL,NULL,0);//INTERNET_FLAG_ASYNC - for callback);
+	return hWinInet;
 }
+void closeWinInetHandle()
+{
+	InternetCloseHandle(hWinInet);
+}
+
 //#define ERROR_MSG ConsoleMessage
 //#define PERROR_MSG ConsoleMessage
    /* return the temp file where we got the contents of the URL requested */
@@ -404,7 +410,12 @@ char* download_url_wget(resource_item_t *res)
 
    So, if the FRONTEND_GETS_FILES is set, we simply pass the http:// filename along....
 */
-
+void close_internetHandles()
+{
+#ifdef _MSC_VER
+	closeWinInetHandle();
+#endif
+}
 void download_url(resource_item_t *res)
 {
 

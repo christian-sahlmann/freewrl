@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.227 2011/08/02 14:39:08 dug9 Exp $
+  $Id: MainLoop.c,v 1.228 2011/08/04 16:15:53 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1989,7 +1989,29 @@ void fwl_doQuit()
 	fwl_doQuitInstance();
     exit(EXIT_SUCCESS);
 }
-
+void close_internetHandles();
+int iglobal_instance_count();
+void fwl_closeGlobals()
+{
+	//"last one out shut off the lights"
+	//when there are no freewrl iglobal instances left, then call this to shut
+	//down anything that's of per-process / per-application / static-global-shared
+	//dug9 - not used yet as of Aug 3, 2011
+	//if you call from the application main thread / message pump ie on_key > doQuit
+	//then in theory there should be a way to iterate through all 
+	//instances, quitting each one in a nice way, say on freewrlDie or 
+	//(non-existant yet) doQuitAll or doQuitInstanceOrAllIfNoneLeft
+	//for i = 1 to iglobal_instance_count
+	//  set instance through window handle or index (no function yet to
+	//       get window handle by index, or set instance by index )
+	//  fwl_doQuitInstance
+	//then call fwl_closeGlobals
+	if(iglobal_instance_count() == 0)
+	{
+		close_internetHandles();
+		//console window?
+	}
+}
 void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
         fwl_doQuit();
