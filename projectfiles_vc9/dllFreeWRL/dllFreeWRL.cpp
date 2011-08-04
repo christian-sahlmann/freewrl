@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
-#ifdef _DEBUGx
+#ifdef _DEBUG
 static HANDLE hStdErr = NULL;
 static void
 swInitConsole(void)
@@ -36,7 +36,9 @@ void swDebugf(LPCSTR formatstring, ...)
     WriteConsoleA(hStdErr, buff, strlen(buff),&cWritten, NULL);
 }
 #else
-void swDebugf(LPCSTR formatstring, ...) {}
+//int ConsoleMesage(char *_Format,...);
+//#define swDebugf ConsoleMessage
+int swDebugf(LPCSTR formatstring, ...) {return 0;}
 #endif
 
 extern "C"
@@ -87,15 +89,16 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 		swDebugf("just before fwl_initFreeWRL\n");
 		void *fwl = fwl_init_instance(); //before setting any structs we need a struct allocated
 		fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
-
+#ifdef _DEBUG
+		fwl_setConsole_writePrimitive( 1 );
+		DWORD pid = GetCurrentProcessId() ;
+		initConsoleH(pid);
+		swDebugf("after fwl_initFreeWRL\n");
+#endif
 		if (!fwl_initFreeWRL(params)) {
 			//ERROR_MSG("main: aborting during initialization.\n");
 			//exit(1);
 		}
-		//fwl_setConsole_writePrimitive( 1 );
-		//DWORD pid = GetCurrentProcessId() ;
-		//initConsoleH(pid);
-		//swDebugf("after fwl_initFreeWRL\n");
 	}
 	fwl_clearCurrentHandle();
 

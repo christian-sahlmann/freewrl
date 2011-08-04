@@ -145,6 +145,7 @@ CfreeWRLCtrl::~CfreeWRLCtrl()
 	// TODO: Cleanup your control's instance data here.
 	m_initialized = 0;
 	m_dllfreewrl.onClose(m_Hwnd); //this is null on exit: (void*)this->GetHwnd() so use last known handle
+	//AfxMessageBox("Destructor"); 
 }
 
 
@@ -218,7 +219,9 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 			m_cstrContainerURL = m_cstrContainerURL.Left(lastSlash);
 			m_cstrFileName = m_cstrContainerURL + "/" + m_cstrFileName;
 		}
-		//AfxMessageBox("fullURL="+m_cstrFileName); //"DoPropExchange");
+#ifdef _DEBUG
+		AfxMessageBox("AxVer=12d fullURL="+m_cstrFileName); //"DoPropExchange");
+#endif
 		m_initialized = 10;
 	}
 }
@@ -229,6 +232,7 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 
 void CfreeWRLCtrl::OnResetState()
 {
+	//AfxMessageBox("onResetState"); 
 	COleControl::OnResetState();  // Resets defaults found in DoPropExchange
 
 	// TODO: Reset any other control state here.

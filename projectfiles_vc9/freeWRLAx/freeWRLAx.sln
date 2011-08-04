@@ -3,18 +3,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRLAx", "freeWRLAx.vcpr
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TstCon", "..\..\..\..\TSTCON\Samples\Visual C++ .NET 2003\mfc\ole\tstcon\TstCon.vcproj", "{D39E1ADA-E236-48E3-B0AF-410FD34793C0}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllFreeWRL_vc7", "..\dllFreeWRL_vc7\dllFreeWRL_vc7.vcproj", "{E8EC407A-F1CD-4D1D-A608-6D62F87872BC}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfreeWRL_vc7", "..\libfreeWRL_vc7\libfreeWRL_vc7.vcproj", "{EB760E60-A4A5-4026-8976-2AEC358A3A82}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -25,18 +13,6 @@ Global
 		{342993E5-5A18-4CFD-939B-27A05517E371}.Debug.Build.0 = Debug|Win32
 		{342993E5-5A18-4CFD-939B-27A05517E371}.Release.ActiveCfg = Release|Win32
 		{342993E5-5A18-4CFD-939B-27A05517E371}.Release.Build.0 = Release|Win32
-		{D39E1ADA-E236-48E3-B0AF-410FD34793C0}.Debug.ActiveCfg = Debug|Win32
-		{D39E1ADA-E236-48E3-B0AF-410FD34793C0}.Debug.Build.0 = Debug|Win32
-		{D39E1ADA-E236-48E3-B0AF-410FD34793C0}.Release.ActiveCfg = Release|Win32
-		{D39E1ADA-E236-48E3-B0AF-410FD34793C0}.Release.Build.0 = Release|Win32
-		{E8EC407A-F1CD-4D1D-A608-6D62F87872BC}.Debug.ActiveCfg = Debug|Win32
-		{E8EC407A-F1CD-4D1D-A608-6D62F87872BC}.Debug.Build.0 = Debug|Win32
-		{E8EC407A-F1CD-4D1D-A608-6D62F87872BC}.Release.ActiveCfg = Release|Win32
-		{E8EC407A-F1CD-4D1D-A608-6D62F87872BC}.Release.Build.0 = Release|Win32
-		{EB760E60-A4A5-4026-8976-2AEC358A3A82}.Debug.ActiveCfg = Debug|Win32
-		{EB760E60-A4A5-4026-8976-2AEC358A3A82}.Debug.Build.0 = Debug|Win32
-		{EB760E60-A4A5-4026-8976-2AEC358A3A82}.Release.ActiveCfg = Release|Win32
-		{EB760E60-A4A5-4026-8976-2AEC358A3A82}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
