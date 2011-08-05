@@ -134,6 +134,10 @@ CfreeWRLCtrl::CfreeWRLCtrl()
 	// TODO: Initialize your control's instance data here.
     m_cstrFileName = "";
 	m_initialized = 0;
+	m_Hwnd = (void *)1; //initialize to unlikely void* value, 
+	// so if onMouse is called before onDraw > onInit, then setHandle will return 0
+	// and onMouse will be skipped (versus setHandle seeing a 0 handle, and finding
+	// a non-main thread
 }
 
 
@@ -219,9 +223,12 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 			m_cstrContainerURL = m_cstrContainerURL.Left(lastSlash);
 			m_cstrFileName = m_cstrContainerURL + "/" + m_cstrFileName;
 		}
-#ifdef _DEBUG
+#define MESSBOX 1
+#undef MESSBOX
+#ifdef MESSBOX //_DEBUGn
 		AfxMessageBox("AxVer=12d fullURL="+m_cstrFileName); //"DoPropExchange");
 #endif
+		m_Hwnd = (void *)1; //an unlikely real handle value, and not null either 
 		m_initialized = 10;
 	}
 }

@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wtypes.h>
-#ifdef _DEBUG
+//#define CONSOLE _DEBUG
+#ifdef CONSOLE
+#undef CONSOLE
 static HANDLE hStdErr = NULL;
 static void
 swInitConsole(void)
@@ -89,7 +91,7 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 		swDebugf("just before fwl_initFreeWRL\n");
 		void *fwl = fwl_init_instance(); //before setting any structs we need a struct allocated
 		fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
-#ifdef _DEBUG
+#ifdef CONSOLE
 		fwl_setConsole_writePrimitive( 1 );
 		DWORD pid = GetCurrentProcessId() ;
 		initConsoleH(pid);
@@ -99,6 +101,8 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 			//ERROR_MSG("main: aborting during initialization.\n");
 			//exit(1);
 		}
+	}else{
+		swDebugf("this window is already in the table\n");
 	}
 	fwl_clearCurrentHandle();
 
@@ -109,9 +113,9 @@ void CdllFreeWRL::onLoad(void *handle, char* scene_url)
 	if(fwl_setCurrentHandle(handle)){
 		url = _strdup(scene_url);
 		//url = strBackslash2fore(url);
-		//swDebugf("onLoad have url=[%s]\n",url);
+		swDebugf("onLoad have url=[%s]\n",url);
 		fwl_replaceWorldNeeded(url);
-		//swDebugf("onLoad after push_single_request url=[%s]\n",url);
+		swDebugf("onLoad after push_single_request url=[%s]\n",url);
 	}
 	fwl_clearCurrentHandle();
 
@@ -119,8 +123,9 @@ void CdllFreeWRL::onLoad(void *handle, char* scene_url)
 
 void CdllFreeWRL::onResize(void *handle, int width,int height){
 	if(fwl_setCurrentHandle(handle)){
-
+		swDebugf("onResize before\n");
 		fwl_setScreenDim(width,height);
+		swDebugf("onResize after\n");
 	}
 	fwl_clearCurrentHandle();
 }
@@ -140,7 +145,9 @@ void CdllFreeWRL::onMouse(void *handle, int mouseAction,int mouseButton,int x, i
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 	//fwl_handle_aqua(mev,butnum,mouseX,mouseY); 
 	if(fwl_setCurrentHandle(handle)){
+		swDebugf("onMouse before\n");
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
+		swDebugf("onMouse after\n");
 	}
 	fwl_clearCurrentHandle();
 }
@@ -149,6 +156,7 @@ void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
 	int kp = keyValue;
 	int ka = keyAction;
 	if(fwl_setCurrentHandle(handle)){
+		swDebugf("onKey before\n");
 		switch(keyAction)
 		{
 		case KEYDOWN:
@@ -170,6 +178,7 @@ void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
 			fwl_do_keyPress(kp,ka);
 			break;
 		}
+		swDebugf("onKey after\n");
 	}
 	fwl_clearCurrentHandle();
 }
@@ -178,8 +187,9 @@ void CdllFreeWRL::onClose(void *handle)
     
 	/* when finished: */
 	if(fwl_setCurrentHandle(handle)){
-		swDebugf("fwl_doQuitInstance being called\n");
+		swDebugf("onClose before -fwl_doQuitInstance being called\n");
 		fwl_doQuitInstance();
+		swDebugf("onClose after\n");
 	}
 	fwl_clearCurrentHandle();
 }
