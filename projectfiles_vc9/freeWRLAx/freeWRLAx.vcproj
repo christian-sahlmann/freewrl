@@ -36,12 +36,12 @@
 				AdditionalDependencies="mfcs71d.lib MSVCRTD.lib dllFreeWRLd.lib"
 				OutputFile="../Debug/freeWRLAx.ocx"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="../Debug;..\dllFreeWRL_vc7\Debug"
+				AdditionalLibraryDirectories="../Debug"
 				IgnoreDefaultLibraryNames="mfcs71d.lib;MSVCRTD.lib"
 				ModuleDefinitionFile=".\freeWRLAx.def"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/freeWRLAx.lib"
+				ImportLibrary="../Debug/freeWRLAx.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -94,7 +94,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="mfcs71.lib MSVCRT.lib dllFreeWRL.lib"
-				OutputFile="$(OutDir)/freeWRLAx.ocx"
+				OutputFile="../Release/freeWRLAx.ocx"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\Release"
 				IgnoreDefaultLibraryNames="mfcs71.lib;MSVCRT.lib"
@@ -103,7 +103,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/freeWRLAx.lib"
+				ImportLibrary="../Release/freeWRLAx.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"

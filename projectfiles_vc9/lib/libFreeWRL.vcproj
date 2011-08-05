@@ -106,7 +106,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\..\..\..\lib_windows\JS\js1.5\src;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\expat\source\lib_hide;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include;..\..\..\..\lib_windows\libxml2\include"
-				PreprocessorDefinitions="WIN32;GLEW;_CRT_SECURE_NO_WARNINGS;XP_WIN;COMPILING_ACTIVEX_FRONTEND_no;FRONTEND_HANDLES_DISPLAY_THREAD_no;FRONTEND_GETS_FILES_no;STATUSBAR_HUD"
+				PreprocessorDefinitions="WIN32;GLEW;GLEW_MX;_CRT_SECURE_NO_WARNINGS;XP_WIN;COMPILING_ACTIVEX_FRONTEND_no;FRONTEND_HANDLES_DISPLAY_THREAD_no;FRONTEND_GETS_FILES_no;STATUSBAR_HUD"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="1"
