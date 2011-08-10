@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.24 2011/08/08 04:16:05 crc_canada Exp $
+$Id: Collision.c,v 1.25 2011/08/10 23:03:50 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -42,6 +42,9 @@ Render the children of nodes.
 
 #include "LinearAlgebra.h"
 #include "Collision.h"
+
+static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
+static struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n);
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
@@ -154,8 +157,9 @@ int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBL
 	   rule: must overlap in all 3 dimensions in order to intersect
 	   dimension your MBB: double MBBmin[3], MBBmax[3];
 	*/
+
 	int i, overlap;
-	overlap = 1;
+	overlap = TRUE;
 	for(i=0;i<3;i++)
 	{
 		overlap = overlap && !(MBBmin1[i] > MBBmax2[i] || MBBmax1[i] < MBBmin2[i]);
@@ -218,9 +222,7 @@ double closest_point_of_segment_to_origin(struct point_XYZ p1, struct point_XYZ 
 struct point_XYZ closest_point_of_plane_to_origin(struct point_XYZ b, struct point_XYZ n) {
     /*the equation*/
     double k = b.x*n.x + b.y*n.y + b.z*n.z;
-
     vecscale(&n,&n,k);
-
     return n;
 }
 
@@ -382,6 +384,9 @@ int perpendicular_line_passing_inside_poly(struct point_XYZ a,struct point_XYZ* 
     struct point_XYZ j;  /*  j is half-plane normal */
     int f,sectcount = 0;
     struct point_XYZ epsilon; /* computationnal trick to handle points directly on plane. displace them. */
+
+printf ("\t\t\tperpendicular_line_passing_inside_poly, num %d\n",num);
+
     /* if(vecnormal(&n,&a) == 0) */
     if(APPROX(vecnormal(&n,&a), 0)) {
 	/* happens when polygon plane passes through origin */
@@ -418,6 +423,7 @@ int perpendicular_line_passing_inside_poly(struct point_XYZ a,struct point_XYZ* 
 	}
     }
 
+printf ("\t\t\tend perpendicular_line_passing_inside_poly, ret %d\n",sectcount % 2);
     return sectcount % 2;
 
 }
@@ -551,7 +557,7 @@ int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, cons
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) 
+static struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) 
 {
     int i;
     double polydisp;
@@ -942,7 +948,7 @@ int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct poi
 }
 
 //struct point_XYZ get_poly_disp_2(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
-struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n) {
+struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n, char *file, int line) {
 
 	/* 
 		generalized logic for all planar facet geometry and avatar collision volumes 
@@ -984,6 +990,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	pp->get_poly_mindisp = 0.0;
 	fi = FallInfo();
 
+printf ("\tstart get_poly_disp_2 from %s:%d\n",file,line);
 	if(fi->walking)
 	{
 		tmin[0] = tmax[0] = p[0].x;
@@ -1046,6 +1053,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		result = get_poly_min_disp_with_sphere(awidth, p, num, n);
 	}
 	pp->get_poly_mindisp = vecdot(&result,&result);
+	printf ("\tend get_poly_disp_2, result %lf %lf %lf\n",result.x,result.y,result.z);
 	return result;
 }
 
@@ -1059,6 +1067,8 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
     //double get_poly_mindisp;
     int clippedPoly3num = 0;
+
+printf ("get_poly_normal_disp_with_sphere called\n");
 
     pp->get_poly_mindisp = 1E90;
 
@@ -1124,7 +1134,7 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
 /*feed a poly, and radius of a sphere, it returns the minimum displacement and
   the direction  that is needed for them not to intersect any more.
 */
-struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     int i,j;
     /* double polydisp; */
     struct point_XYZ result;
@@ -1133,6 +1143,9 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     int clippedPoly4num = 0;
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
     get_poly_mindisp = 1E90;
+
+
+printf ("\t\tget_poly_min_disp_with_sphere\n");
 
 	/* cheap MBB test */
 	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
@@ -1156,8 +1169,9 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 		rmax[i] = r;
 	}
 
-	/* printf ("min,max %lf %lf %lf, %lf %lf %lf in get_poly_min_disp_with_sphere\n",
-		tmin[0],tmin[1],tmin[2], tmax[0],tmax[1],tmax[2]); */
+	/* printf ("radius is %lf\n",r);
+	printf ("min,max %lf %lf %lf, %lf %lf %lf in get_poly_min_disp_with_sphere\n", tmin[0],tmin[1],tmin[2], tmax[0],tmax[1],tmax[2]);  */
+
 
 	if( !overlapMBBs(rmin,rmax,tmin,tmax) )
 	{
@@ -1188,13 +1202,21 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 
     /*find closest point of polygon plane*/
     pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
+{
+printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4 array\n");
+int m;
+for (m=0; m<=clippedPoly4num; m++) 
+printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clippedPoly4[m].y, pp->clippedPoly4[m].z);
+}
+
+
+
 
     /*keep if inside*/
     if(perpendicular_line_passing_inside_poly(pp->clippedPoly4[clippedPoly4num],p, num)) {
 		DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
 		clippedPoly4num++;
 	}
-
 
 #ifdef DEBUGPTS
     for(i=0; i < clippedPoly4num; i++) {
@@ -1205,9 +1227,10 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     /*here we find mimimum displacement possible */
 
     /*calculate the closest point to origin */
+printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4num %d\n",clippedPoly4num);
     for(i = 0; i < clippedPoly4num; i++) 
 	{
-		/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
+		/* printf ("\t\tget_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
 		pp->clippedPoly4[i].y,pp->clippedPoly4[i].z); */
 
 		double disp = vecdot(&pp->clippedPoly4[i],&pp->clippedPoly4[i]);
@@ -1222,6 +1245,8 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     }
     if(get_poly_mindisp <= r*r) 
 	{
+printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
+
 		/*  scale result to length of missing distance. */
 		double rl;
 		rl = veclength(result);
@@ -1242,6 +1267,7 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 	{
 		result = zero;
 	}
+printf ("\t\tend get_poly_min_disp_with_sphere result %lf %lf %lf\n",result.x, result.y, result.z);
     return result;
 }
 
@@ -1573,7 +1599,7 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
 	    pts[3] = p[faces[ci][3]];
 	    pts[4] = p[faces[ci][0]]; /* dug9 - for test split into 2 triangles for sphere test - no help with sphere*/
 	    //dispv = get_poly_disp(y1,y2,ystep,r,pts,4,n[ci]);
-		dispv = get_poly_disp_2(pts,4,n[ci]);
+		dispv = get_poly_disp_2(pts,4,n[ci],__FILE__,__LINE__);
 	    disp = vecdot(&dispv,&dispv);
 
 		/*keep result only if:
@@ -2093,6 +2119,9 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
     int ccw;
 
     ccw = pr->ccw;
+
+printf ("start polyrep_disp_rec2\n");
+
     for(i = 0; i < pr->ntri; i++) 
 	{
 		p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
@@ -2170,7 +2199,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 				if not climb
 					do fall
 		   */
-			dispv = get_poly_disp_2(p, 3, nused); //get_poly_disp_2(y1,y2,ystep,r, p, 3, nused);
+			dispv = get_poly_disp_2(p, 3, nused,__FILE__,__LINE__); //get_poly_disp_2(y1,y2,ystep,r, p, 3, nused);
 			disp = vecdot(&dispv,&dispv);
 
 	#ifdef DEBUGPTS
@@ -2193,7 +2222,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
     }
 
 	VECADD(dispsum,maxdispv);
-	/* printf ("polyrep_disp_rec2, dispsum %lf %lf %lf at end\n",dispsum.x,dispsum.y,dispsum.z); */
+	printf ("end polyrep_disp_rec2, dispsum %lf %lf %lf at end\n",dispsum.x,dispsum.y,dispsum.z); 
 	return dispsum;
 }
 
@@ -2278,16 +2307,6 @@ if (!meprinted) {
     for(i = 0; i < pr.ntri; i++) {
 	polynormalf(&pp->prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
 
-#ifdef SHADERS_2011
-extern int meprinted;
-if (!meprinted) {
-printf ("normal for triangle %d is %f %f %f\n",i,
-pp->prd_normals[i].x,
-pp->prd_normals[i].y,
-pp->prd_normals[i].z);
-}
-#endif
-
     }
 
 #ifdef SHADERS_2011
@@ -2341,7 +2360,7 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 	p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 
 	//dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
-	dispv = get_poly_disp_2(p, 3, n);
+	dispv = get_poly_disp_2(p, 3, n,__FILE__,__LINE__);
 	disp = -pp->get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
@@ -2495,7 +2514,7 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
 		    if(!frontfacing) vecscale(&normal,&normal,-1.0);
 
 		    /* pd = get_poly_disp(y1,y2,ystep,r, tris+(i*3), 3, normal); */
-		    pd = get_poly_disp_2(tris+(i*3), 3, normal);
+		    pd = get_poly_disp_2(tris+(i*3), 3, normal,__FILE__,__LINE__);
 		    /* if(pd.x != 0. || pd.y != 0. || pd.z != 0.) */
 		    if(! APPROX(pd.x, 0) || ! APPROX(pd.y, 0) || ! APPROX(pd.z, 0)) {
 			double l2;

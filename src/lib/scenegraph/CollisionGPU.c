@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.1 2011/08/08 04:16:05 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.2 2011/08/10 23:03:50 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -56,6 +56,7 @@ int meprinted=FALSE;
 
 /********************************************************************************/
 /*										*/
+/* 	Collide kernel, generic structures, etc					*/
 /*										*/
 /********************************************************************************/
 
@@ -66,6 +67,7 @@ struct OpenCLTransform
 
 /********************************************************************************/
 /*										*/
+/*	Collide kernel. Step 1 - transform vertices and calculate normal	*/
 /*										*/
 /********************************************************************************/
 
@@ -79,107 +81,13 @@ TODO: 	ccw flag should be passed in.
 TODO:	flags for ccw tri, cw tri or two facing tris should be passed in
 TODO:	pre-compile kernels.
 TODO:	make kernel invocation dependent (using dougs' global structures)
+TODO:	get and drop OpenGL vertices every call, in case they change?
 
 */
 
-const char *collideKernel_start = " \
-#define PR_DOUBLESIDED 0x01 \n\
-#define PR_FRONTFACING 0x02 /* overrides effect of doublesided. */ \n\
-#define PR_BACKFACING 0x04 /* overrides effect of doublesided, all normals are reversed. */ \n\
-\
-\
-\
-float4 transformf (float4 vertex, float16 mat) { \
-	float4 r; \
-        r = (float4) (mat.s0*vertex.x +mat.s4*vertex.y +mat.s8*vertex.z +mat.sc, \
-            mat.s1*vertex.x +mat.s5*vertex.y +mat.s9*vertex.z +mat.sd, \
-            mat.s2*vertex.x +mat.s6*vertex.y +mat.sa*vertex.z +mat.se, \
-	0.0);  \
-return r; \
-}  \
-float4 vecdistance (float4 v1, float4 v2) { \
-	float4 r; \
-	r = (float4)(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z,0.0); \
-	return r; \
-} \
-\
-\
-	__kernel void compute_collide ( \
-	__global float *output,  	/* 0 */ \
-        const unsigned int count,	/* 1 */ \
-	__global float *mymat,   	/* 2 */ \
-	__global float *my_vertex,	/* 3 */ \
-	__global int *my_cindex 	/* 4 */ \
-	) {  \
-	int i = get_global_id(0); \
-\
-	/* matrix - floats into matrix */ \
-	float16 mat = {mymat[0],mymat[1],mymat[2],mymat[3],mymat[4],mymat[5],mymat[6],mymat[7],mymat[8],mymat[9],mymat[10],mymat[11],mymat[12],mymat[13],mymat[14],mymat[15]}; \
-\
-\
-	/* vertices for this triangle */ \
-	float4 iv1; \
-	float4 iv2; \
-	float4 iv3; \
-\
-	/* transformed by matrix */ \
-	float4 tv1; \
-	float4 tv2; \
-	float4 tv3; \
-\
-	/* starting index in my_vertex of this vertex */ \
-	/* we work in triangles; each triangle has 3 vertices */ \
-	int c1, c2, c3; \
-	c1 = my_cindex[i*3+0]; c2=my_cindex[i*3+1]; c3=my_cindex[i*3+2]; \
-\
-	/* now, to index into the vertices, the index specifies starting vertex */ \
-	/* but, as we have floats, not SFVec3fs, we multiply the index by 3 to */ \
-	/* get the absolute starting index of the vertices */ \
-	c1 = c1*3; c2 = c2 * 3; c3 = c3 * 3; \
-	iv1 = (float4) (my_vertex[c1+0], my_vertex[c1+1], my_vertex[c1+2],0.0); \
-	iv2 = (float4) (my_vertex[c2+0], my_vertex[c2+1], my_vertex[c2+2],0.0); \
-	iv3 = (float4) (my_vertex[c3+0], my_vertex[c3+1], my_vertex[c3+2],0.0); \
-\
-	/* calculate normal for face */ \
-	float4 v1 = vecdistance(iv2,iv1); \
-	float4 v2 = vecdistance(iv3,iv1);  \
-	/* float4 v1 = iv2-iv1; \
-	float4 v2 = iv3-iv1; */ \
-	float4 norm = normalize(cross(v1,v2)); \
-\	
-\
-	/* transform each vertex */ \
-	tv1 = transformf(iv1, mat); \
-	tv2 = transformf(iv2, mat); \
-	tv3 = transformf(iv3, mat); \
- \
-	/* from polyrep_disp_rec2, see that function for full comments */ \
-	bool ccw = true; /* assume for now will eventually pass in */ \
-	bool frontfacing; \
-\
-	/* how we view it from the avatar */ \
-	if (ccw) frontfacing = (dot(norm,tv1) < 0);  \
-	else frontfacing = (dot(norm,tv1) >= 0); \
-\
-	/* now, is solid false, or ccw or ccw winded triangle? */ \
-	/* if we should do this triangle, the if statement is true */ \
-	int flags = 0; \
-	if((frontfacing && !(flags & PR_DOUBLESIDED) ) \
-		|| ( (flags & PR_DOUBLESIDED)  && !(flags & (PR_FRONTFACING | PR_BACKFACING) )  ) \
-		|| (frontfacing && (flags & PR_FRONTFACING)) \
-		|| (!frontfacing && (flags & PR_BACKFACING))  ) { \
-\
-                if(!frontfacing) { /*can only be here in DoubleSided mode*/ \
-                        /*reverse polygon orientation, and do calculations*/ \
-                        norm.x = norm.x * -1.0;\
-                        norm.y = norm.y * -1.0;\
-                        norm.z = norm.z * -1.0;\
-                }\
-";
-
-
 /********************************************************************************/
 /*										*/
+/* Collide Kernel Step 2: do hit calculations					*/
 /*										*/
 /********************************************************************************/
 
@@ -220,47 +128,13 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     get_poly_mindisp = 1E90;
 
 	/* cheap MBB test */
-	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
-	memcpy(tmin,&p[0],3*sizeof(double));
-	memcpy(tmax,&p[3],3*sizeof(double));
-	for(i=0;i<num;i++)
-	{
-		memcpy(q,&p[i],3*sizeof(double));
-		for(j=0;j<3;j++)
-		{
-			tmin[j] = DOUBLE_MIN(tmin[j],q[j]);
-			tmax[j] = DOUBLE_MAX(tmax[j],q[j]);
-		}
-	}
-	for(i=0;i<3;i++)
-	{
-		rmin[i] = -r;
-		rmax[i] = r;
-	}
-	if( !overlapMBBs(rmin,rmax,tmin,tmax) )
-	{
-		return zero;
-	}
+...
 	/* end cheap MBB test */
 
 #ifdef DEBUGFACEMASK
     if(facemask != debugsurface++)
 	return zero;
 #endif
-    /*allocate data */
-    if ((num+1)> pp->clippedPoly4Size) {
-    	pp->clippedPoly4 = (struct point_XYZ*) REALLOC(pp->clippedPoly4,sizeof(struct point_XYZ) * (num + 1));
-		pp->clippedPoly4Size = num+1;
-    }
-
-    for(i = 0; i < num; i++) {
-		DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly4num);
-		pp->clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
-    }
-
-    /*find closest point of polygon plane*/
-    pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
-
     /*keep if inside*/
     if(perpendicular_line_passing_inside_poly(pp->clippedPoly4[clippedPoly4num],p, num)) {
 		DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
@@ -279,12 +153,12 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
     /*calculate the closest point to origin */
     for(i = 0; i < clippedPoly4num; i++) 
 	{
-		/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
-		pp->clippedPoly4[i].y,pp->clippedPoly4[i].z); */
+		printf ("\t\tget_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
+		pp->clippedPoly4[i].y,pp->clippedPoly4[i].z);
 
 		double disp = vecdot(&pp->clippedPoly4[i],&pp->clippedPoly4[i]);
 
-		/* printf (" disp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); */
+		printf ("\t\tdisp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); 
 
 		if(disp < get_poly_mindisp) 
 		{
@@ -318,63 +192,16 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 }
 
 #endif //DougsCode
-const char *collideKernel_poly_disp_not_walking = " \
-/* float4 dispv = get_poly_disp_2(tv1, tv2, tv3, 3, norm); */ \
-";
 
 
 /********************************************************************************/
 /*										*/
+/*	Collide kernel step 3 - return vector for this triangle			*/
 /*										*/
 /********************************************************************************/
 
 /* finish and return results */
 /* TODO - return displacement */
-
-const char *collideKernel_fin = " \
-	} \
-\
-	/* show us the transformed vertices */ \
-	/* if (i==2) { \
-		int oc = 0; \
-\
-		output[oc] = iv1.x; oc++;\
-		output[oc] = iv1.y; oc++;\
-		output[oc] = iv1.z; oc++;\
-		output[oc] = tv1.x; oc++;\
-		output[oc] = tv1.y; oc++;\
-		output[oc] = tv1.z;  oc++;\
-\
-		output[oc] = iv2.x; oc++;\
-		output[oc] = iv2.y; oc++;\
-		output[oc] = iv2.z; oc++;\
-		output[oc] = tv2.x; oc++;\
-		output[oc] = tv2.y; oc++;\
-		output[oc] = tv2.z; oc++; \
-\
-		output[oc] = iv3.x; oc++;\
-		output[oc] = iv3.y; oc++;\
-		output[oc] = iv3.z; oc++;\
-		output[oc] = tv3.x; oc++;\
-		output[oc] = tv3.y; oc++;\
-		output[oc] = tv3.z;  oc++;\
-\
-\
-		output[oc] = v2.x;  oc++;\
-		output[oc] = v2.y;  oc++;\
-		output[oc] = v2.z;  oc++;\
-		output[oc] = v1.x;  oc++;\
-		output[oc] = v1.y;  oc++;\
-		output[oc] = v1.z;  oc++;\
-		output[oc] = norm.x; oc++;\
-		output[oc] = norm.y; oc++;\
-		output[oc] = norm.z;  oc++;\
-\
-	} */ \
-	output[i*3+0] = norm.x; output[i*3+1]=norm.y;output[i*3+2]=norm.z;  \
-	/* output[i*3+0] = (float)frontfacing; output[i*3+1]=(float)frontfacing;output[i*3+2]=(float)frontfacing; */  \
-  }" ;
-
 
 /********************************************************************************/
 /*										*/
@@ -418,13 +245,46 @@ void init_collide(struct X3D_PolyRep pr) {
 	err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
 
 #if defined (TARGET_AQUA)
-   CGLContextObj kCGLContext = CGLGetCurrentContext();
-   CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
-   cl_context_properties properties[] = {
-      CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
+	CGLContextObj kCGLContext = CGLGetCurrentContext();
+	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
+	cl_context_properties properties[] = {
+		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
 
-   context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
+	context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
 
+#endif /* AQUA */
+
+#if defined (WIN32)
+	/* from OpenCL Programming Guide, pg 338 */
+	cl_context_properties properties[] = {
+		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+		CL_WGL_KHC_HDR, (cl_context_properties)wglGetCurrentDC(),
+		CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
+		0};
+
+	context = clCreateContext(properties, 1, &cdDevices[uiDeviceUsed], NULL, NULL, &err);
+#endif /* WIN32 */
+
+
+
+#if defined (LINUX)
+	cl_platform_id platform;
+
+	printf ("linux, have to check clGetPlatformIDs for error \n");
+
+	cl_context_properties properties[] = {
+		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
+		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
+		CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
+		0 };
+   
+	err = clGetPlatformIDs(1, &platform, NULL);
+	context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+#endif
+
+
+
+ 
 	if (err != CL_SUCCESS) {
 		switch (err) {
 			case CL_INVALID_PLATFORM: printf ("clCreateContext, error CL_INVALID_PLATFORM\n"); break;
@@ -439,22 +299,6 @@ void init_collide(struct X3D_PolyRep pr) {
 		printf ("CL context created\n");
 	}
 
-#endif
-#if defined (LINUX)
-   cl_platform_id platform;
-   err = clGetPlatformIDs(1, &platform, NULL);
-   reportaError("error en el platform",err);
-   cl_context_properties props[] =
-   {
-      CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
-      CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
-      CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
-      0
-   };
-   
-   context=clCreateContextFromType(props, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
-#endif
- 
 	// create a command queue
 	queue = clCreateCommandQueue(context, device_id, 0, &err);
 	if (!queue || (err != CL_SUCCESS)) {
@@ -471,10 +315,18 @@ void init_collide(struct X3D_PolyRep pr) {
 	printf ("queue created\n");
  
 	// create the compute program
-	const char *progs[] = {collideKernel_start, collideKernel_fin, NULL, NULL};
+	{
+	size_t readSize;
+#define RS 16384
+	char *kp;
+	FILE *kf;
+	kf = fopen ("/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt","r");
+	kp = malloc(RS);
+	readSize = fread(kp,1,RS,kf);
+	kp[readSize] = '\0'; /* ensure null termination */
+	printf ("read in %d bytes max %d\n",readSize,RS);
 
-	//program = clCreateProgramWithSource(context, 2, &collideKernel, NULL, &err);
-	program = clCreateProgramWithSource(context, 2, progs, NULL, &err);
+	program = clCreateProgramWithSource(context, 1, &kp, NULL, &err);
 	if (!program || (err != CL_SUCCESS)) {
 		switch (err) {
 			case CL_INVALID_CONTEXT: printf ("clCreateContext, error CL_INVALID_CONTEXT\n"); break;
@@ -486,17 +338,20 @@ void init_collide(struct X3D_PolyRep pr) {
 	}
 	printf ("program created\n");
 
+	}
+
 
  
 	// build the compute program executable
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
-        	char buffer[2048];
+        	char buffer[16384];
  
         	printf("Error: Failed to build program executable\n");           
         	clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
                                           sizeof(buffer), buffer, &len);
+printf ("error string len %d\n",len);
         	printf("%s\n", buffer);
         	exit(1);
     	}
@@ -641,12 +496,12 @@ void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,in
 #ifdef SHADERS_2011
 if (!printed) {
 int i;
-printf ("ntri is %d\n",ntri);
+printf ("shader output: ntri is %d\n",ntri);
 for (i=0; i<ntri; i++) printf ("i %d val %f %f %f\n",i,
 	collide_rvs.p[i].c[0],
 	collide_rvs.p[i].c[1],
 	collide_rvs.p[i].c[2]);
-printed = TRUE;
+//printed = TRUE;
 }
 #endif
 

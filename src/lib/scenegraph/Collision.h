@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.11 2010/03/10 21:29:52 sdumoulin Exp $
+$Id: Collision.h,v 1.12 2011/08/10 23:03:50 crc_canada Exp $
 
 Collision ???
 
@@ -162,7 +162,7 @@ struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, double k
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n);
+/* struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n); */
 
 /*feed a poly, and stats of a cylinder, it returns the vertical displacement that is needed for them not to intersect any more,
   if this displacement is less than the height of the cylinder (y2-y1).*/
@@ -177,7 +177,7 @@ struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, str
 struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
 /*feed a poly, and radius of a sphere, it returns the minimum displacement and
   the direction that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
+/* struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n); */
 
 /*feed a line and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal that is needed for them not to intersect any more.*/
