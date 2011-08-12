@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.25 2011/08/10 23:03:50 crc_canada Exp $
+$Id: Collision.c,v 1.26 2011/08/12 19:48:07 dug9 Exp $
 
 Render the children of nodes.
 
@@ -990,7 +990,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 	pp->get_poly_mindisp = 0.0;
 	fi = FallInfo();
 
-printf ("\tstart get_poly_disp_2 from %s:%d\n",file,line);
+//printf ("\tstart get_poly_disp_2 from %s:%d\n",file,line);
 	if(fi->walking)
 	{
 		tmin[0] = tmax[0] = p[0].x;
@@ -1053,7 +1053,7 @@ printf ("\tstart get_poly_disp_2 from %s:%d\n",file,line);
 		result = get_poly_min_disp_with_sphere(awidth, p, num, n);
 	}
 	pp->get_poly_mindisp = vecdot(&result,&result);
-	printf ("\tend get_poly_disp_2, result %lf %lf %lf\n",result.x,result.y,result.z);
+	//printf ("\tend get_poly_disp_2, result %lf %lf %lf\n",result.x,result.y,result.z);
 	return result;
 }
 
@@ -1203,8 +1203,8 @@ printf ("\t\tget_poly_min_disp_with_sphere\n");
     /*find closest point of polygon plane*/
     pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
 {
-printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4 array\n");
 int m;
+printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4 array\n");
 for (m=0; m<=clippedPoly4num; m++) 
 printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clippedPoly4[m].y, pp->clippedPoly4[m].z);
 }
@@ -1245,10 +1245,10 @@ printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4num %d\n",clippedPoly4nu
     }
     if(get_poly_mindisp <= r*r) 
 	{
+		double rl;
 printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
 
 		/*  scale result to length of missing distance. */
-		double rl;
 		rl = veclength(result);
 		/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
 		/* if(rl != 0.) */
@@ -2120,7 +2120,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 
     ccw = pr->ccw;
 
-printf ("start polyrep_disp_rec2\n");
+//printf ("start polyrep_disp_rec2\n");
 
     for(i = 0; i < pr->ntri; i++) 
 	{
@@ -2222,7 +2222,7 @@ printf ("start polyrep_disp_rec2\n");
     }
 
 	VECADD(dispsum,maxdispv);
-	printf ("end polyrep_disp_rec2, dispsum %lf %lf %lf at end\n",dispsum.x,dispsum.y,dispsum.z); 
+	//printf ("end polyrep_disp_rec2, dispsum %lf %lf %lf at end\n",dispsum.x,dispsum.y,dispsum.z); 
 	return dispsum;
 }
 
