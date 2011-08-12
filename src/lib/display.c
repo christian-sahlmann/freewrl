@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.90 2011/07/30 19:50:38 dug9 Exp $
+  $Id: display.c,v 1.91 2011/08/12 22:11:14 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -296,18 +296,6 @@ bool initialize_rdr_caps()
 
 #ifdef HAVE_LIBGLEW
 
-	/* Initialize GLEW */
-	if(0){
-	GLenum err;
-	err = glewInit();
-    printf("opengl version=%s\n",rdr_caps.version);
-	if (GLEW_OK != err) {
-		/* Problem: glewInit failed, something is seriously wrong. */
-		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-		return FALSE;
-	}
-	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-	}
 	{
     printf("opengl version=%s\n",rdr_caps.version);
 

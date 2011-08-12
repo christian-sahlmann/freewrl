@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.228 2011/08/04 16:15:53 dug9 Exp $
+  $Id: MainLoop.c,v 1.229 2011/08/12 22:11:14 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -998,7 +998,7 @@ static void render_pre() {
 			}
 #endif
 		}
-		drawStatusBar();
+		//drawStatusBar();
 		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
 void setup_projection(int pick, int x, int y) 
@@ -1856,6 +1856,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
+	drawStatusBar(); //just to get it initialized
 }
 
 void finalizeRenderSceneUpdateScene() {

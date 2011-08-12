@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.26 2011/08/12 19:48:07 dug9 Exp $
+$Id: Collision.c,v 1.27 2011/08/12 22:11:14 dug9 Exp $
 
 Render the children of nodes.
 
@@ -385,7 +385,7 @@ int perpendicular_line_passing_inside_poly(struct point_XYZ a,struct point_XYZ* 
     int f,sectcount = 0;
     struct point_XYZ epsilon; /* computationnal trick to handle points directly on plane. displace them. */
 
-printf ("\t\t\tperpendicular_line_passing_inside_poly, num %d\n",num);
+//printf ("\t\t\tperpendicular_line_passing_inside_poly, num %d\n",num);
 
     /* if(vecnormal(&n,&a) == 0) */
     if(APPROX(vecnormal(&n,&a), 0)) {
@@ -423,7 +423,7 @@ printf ("\t\t\tperpendicular_line_passing_inside_poly, num %d\n",num);
 	}
     }
 
-printf ("\t\t\tend perpendicular_line_passing_inside_poly, ret %d\n",sectcount % 2);
+//printf ("\t\t\tend perpendicular_line_passing_inside_poly, ret %d\n",sectcount % 2);
     return sectcount % 2;
 
 }
@@ -1145,7 +1145,7 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
     get_poly_mindisp = 1E90;
 
 
-printf ("\t\tget_poly_min_disp_with_sphere\n");
+//printf ("\t\tget_poly_min_disp_with_sphere\n");
 
 	/* cheap MBB test */
 	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
@@ -1202,7 +1202,7 @@ printf ("\t\tget_poly_min_disp_with_sphere\n");
 
     /*find closest point of polygon plane*/
     pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
-{
+if(0){
 int m;
 printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4 array\n");
 for (m=0; m<=clippedPoly4num; m++) 
@@ -1227,7 +1227,7 @@ printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clipp
     /*here we find mimimum displacement possible */
 
     /*calculate the closest point to origin */
-printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4num %d\n",clippedPoly4num);
+//printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4num %d\n",clippedPoly4num);
     for(i = 0; i < clippedPoly4num; i++) 
 	{
 		/* printf ("\t\tget_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
@@ -1246,7 +1246,7 @@ printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4num %d\n",clippedPoly4nu
     if(get_poly_mindisp <= r*r) 
 	{
 		double rl;
-printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
+//printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
 
 		/*  scale result to length of missing distance. */
 		rl = veclength(result);
@@ -1267,7 +1267,7 @@ printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
 	{
 		result = zero;
 	}
-printf ("\t\tend get_poly_min_disp_with_sphere result %lf %lf %lf\n",result.x, result.y, result.z);
+//printf ("\t\tend get_poly_min_disp_with_sphere result %lf %lf %lf\n",result.x, result.y, result.z);
     return result;
 }
 

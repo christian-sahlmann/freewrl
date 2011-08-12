@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.43 2011/07/30 19:50:38 dug9 Exp $
+  $Id: statusbarHud.c,v 1.44 2011/08/12 22:11:14 dug9 Exp $
 
 */
 
@@ -852,7 +852,7 @@ typedef struct pstatusbar{
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	int showOptions;// =0;
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
-
+	int posType; //1 == glRasterPos (opengl < 1.4), 0= glWindowPos (opengl 1.4+)
 }* ppstatusbar;
 void *statusbar_constructor(){
 	void *v = malloc(sizeof(struct pstatusbar));
@@ -897,7 +897,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->showOptions =0;
 		p->bmWH.x = 10;
 		p->bmWH.y = 15; //{10,15}; /* simple bitmap font from redbook above, width and height in pixels */
-
+		p->posType = 0; //assume ogl 1.4+, and correct if not
 	}
 }
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
@@ -1133,7 +1133,10 @@ void printTextCursor()
 	txy = screen2text(sxy.x,sxy.y);
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
-	FW_GL_WINDOWPOS2I(cxy.x,cxy.y);
+	if(p->posType==1)
+		FW_GL_RASTERPOS2I(cxy.x,cxy.y-0)
+	else
+		FW_GL_WINDOWPOS2I(cxy.x,cxy.y)
 	FW_GL_PIXELZOOM(p->bmWH.x,p->bmWH.y); 
 	FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 	//restore
@@ -1152,9 +1155,15 @@ void printOptions()
 	for(j=0;j<lenOptions;j++)
 	{
 		XY xy = text2screen(0,j);
-		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
+		if(p->posType==1)
+			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+		else
+			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(p->optionsVal[j]);  /* "  0.050  " */
-		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
+		if(p->posType==1)
+			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+		else
+			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(optionsText[j]); /* "<       >" */
 	}
 }
@@ -1303,13 +1312,16 @@ char * keyboardShortcutHelp[27] = {
 "  x Snapshot",
 "  q Quit browser"
 };
-void printKeyboardHelp()
+void printKeyboardHelp(ppstatusbar p)
 {
 	int j; 
 	for(j=0;j<lenhelp;j++)
 	{
 		XY xy = text2screen(0,j);
-		FW_GL_WINDOWPOS2I(xy.x,xy.y); 
+		if(p->posType==1)
+			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+		else
+			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(keyboardShortcutHelp[j]); 
 	}
 }
@@ -1397,7 +1409,10 @@ void printConsoleText()
 			if(j >= jstart) /* no need to print off-screen text */
 			{
 				XY xy = text2screen(0,j-jstart);
-				FW_GL_WINDOWPOS2I(xy.x,xy.y); 
+				if(p->posType==1)
+					FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+				else
+					FW_GL_WINDOWPOS2I(xy.x,xy.y)
 				buf = __l->elem;
 				printString(__l->elem); 
 			}
@@ -1675,7 +1690,10 @@ void renderButtons()
 				float rgba[4];
 				//rgba[0] = .754f; rgba[1] = .82f; rgba[2] = .93f, rgba[3] = 1.0f;
 				rgba[0] = .8f; rgba[1] = .87f; rgba[2] = .97f, rgba[3] = 1.0f;
-				FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i]);
+				if(p->posType==1)
+					FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i]-0)
+				else
+					FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i])
 				FW_GL_PIXELZOOM((float)(p->butrect[2][i]-p->butrect[0][i]),(float)(p->butrect[3][i]-p->butrect[1][i]));
 				FW_GL_DRAWPIXELS(1,1,GL_RGBA,GL_FLOAT,rgba);
 				//restore
@@ -1689,7 +1707,10 @@ void renderButtons()
 					FW_GL_COLOR3F(.8f,.8f,.8f); /*light gray*/
 				}
 			}
-			FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i]);
+			if(p->posType==1)
+				FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i]-0)
+			else
+				FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i])
 			if(p->buttonType==0)
 				FW_GL_DRAWPIXELS(p->butts[i][0].x,p->butts[i][0].y,GL_BGRA,GL_UNSIGNED_BYTE,p->butts[i][p->butStatus[i]].texdata);
 			else if(p->buttonType==1)
@@ -1811,6 +1832,19 @@ M       void toggle_collision()                             //"
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	FW_GL_DEPTHMASK(GL_FALSE);
+	//if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
+	if(!tg->display.rdr_caps.have_GL_VERSION_1_4)
+	{
+		//p.306 redbook - glwindowpos2i is ogl 1.4, older is glrasterpos2i, and for that
+		//you must set up orthomatrix
+		FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluOrtho2D(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		p->posType = 1; // use RasterPos2i instead of WindowPos2i
+	}
 
 	if(p->showButtons)
 	{
@@ -1861,7 +1895,10 @@ M       void toggle_collision()                             //"
 	FW_GL_DISABLE(GL_DEPTH_TEST);
 	FW_GL_COLOR3F(0.2f,0.2f,0.5f);
 	//glWindowPos seems to set the bitmap color correctly in windows
-	FW_GL_WINDOWPOS2I(5,0); 
+	if(p->posType==1)
+		FW_GL_RASTERPOS2I(5,0-0)
+	else
+		FW_GL_WINDOWPOS2I(5,0)
 	if(p->sb_hasString)
 	{
 		pp = p->buffer;
@@ -1875,14 +1912,20 @@ M       void toggle_collision()                             //"
 		//printString(p->messagebar);
 		strfps = getMessageBar();
 		strstatus = &strfps[15];
-		FW_GL_WINDOWPOS2I(150,0); //300,0);
+		if(p->posType==1)
+			FW_GL_RASTERPOS2I(150,0-0)
+		else
+			FW_GL_WINDOWPOS2I(150,0) //300,0);
 		printString(strfps);
-		FW_GL_WINDOWPOS2I(300,0);
+		if(p->posType==1)
+			FW_GL_RASTERPOS2I(300,0-0)
+		else
+			FW_GL_WINDOWPOS2I(300,0)
 		printString(strstatus);
 	}
 	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	FW_GL_SHADEMODEL(GL_FLAT);
-	if(p->butStatus[8]) printKeyboardHelp();
+	if(p->butStatus[8]) printKeyboardHelp(p);
 	if(p->butStatus[9]) printConsoleText();
 	if(p->butStatus[10]) printOptions();
 
