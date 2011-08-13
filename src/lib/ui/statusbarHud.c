@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.44 2011/08/12 22:11:14 dug9 Exp $
+  $Id: statusbarHud.c,v 1.45 2011/08/13 01:17:58 dug9 Exp $
 
 */
 
@@ -1134,7 +1134,7 @@ void printTextCursor()
 	cxy = text2screen(txy.x,txy.y);
 	rgba[0] = .5f; rgba[1] = .5f; rgba[2] = .5f, rgba[3] = .75f;
 	if(p->posType==1)
-		FW_GL_RASTERPOS2I(cxy.x,cxy.y-0)
+		FW_GL_RASTERPOS2I(cxy.x,cxy.y)
 	else
 		FW_GL_WINDOWPOS2I(cxy.x,cxy.y)
 	FW_GL_PIXELZOOM(p->bmWH.x,p->bmWH.y); 
@@ -1156,12 +1156,12 @@ void printOptions()
 	{
 		XY xy = text2screen(0,j);
 		if(p->posType==1)
-			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+			FW_GL_RASTERPOS2I(xy.x,xy.y)
 		else
 			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(p->optionsVal[j]);  /* "  0.050  " */
 		if(p->posType==1)
-			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+			FW_GL_RASTERPOS2I(xy.x,xy.y)
 		else
 			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(optionsText[j]); /* "<       >" */
@@ -1319,7 +1319,7 @@ void printKeyboardHelp(ppstatusbar p)
 	{
 		XY xy = text2screen(0,j);
 		if(p->posType==1)
-			FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+			FW_GL_RASTERPOS2I(xy.x,xy.y)
 		else
 			FW_GL_WINDOWPOS2I(xy.x,xy.y)
 		printString(keyboardShortcutHelp[j]); 
@@ -1410,7 +1410,7 @@ void printConsoleText()
 			{
 				XY xy = text2screen(0,j-jstart);
 				if(p->posType==1)
-					FW_GL_RASTERPOS2I(xy.x,xy.y-0)
+					FW_GL_RASTERPOS2I(xy.x,xy.y)
 				else
 					FW_GL_WINDOWPOS2I(xy.x,xy.y)
 				buf = __l->elem;
@@ -1691,7 +1691,7 @@ void renderButtons()
 				//rgba[0] = .754f; rgba[1] = .82f; rgba[2] = .93f, rgba[3] = 1.0f;
 				rgba[0] = .8f; rgba[1] = .87f; rgba[2] = .97f, rgba[3] = 1.0f;
 				if(p->posType==1)
-					FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i]-0)
+					FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i])
 				else
 					FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i])
 				FW_GL_PIXELZOOM((float)(p->butrect[2][i]-p->butrect[0][i]),(float)(p->butrect[3][i]-p->butrect[1][i]));
@@ -1708,7 +1708,7 @@ void renderButtons()
 				}
 			}
 			if(p->posType==1)
-				FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i]-0)
+				FW_GL_RASTERPOS2I(p->butrect[0][i],p->butrect[1][i])
 			else
 				FW_GL_WINDOWPOS2I(p->butrect[0][i],p->butrect[1][i])
 			if(p->buttonType==0)
@@ -1832,8 +1832,8 @@ M       void toggle_collision()                             //"
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	FW_GL_DEPTHMASK(GL_FALSE);
-	//if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
-	if(!tg->display.rdr_caps.have_GL_VERSION_1_4)
+	if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
+	//if(!tg->display.rdr_caps.have_GL_VERSION_1_4)
 	{
 		//p.306 redbook - glwindowpos2i is ogl 1.4, older is glrasterpos2i, and for that
 		//you must set up orthomatrix
@@ -1843,6 +1843,8 @@ M       void toggle_collision()                             //"
 		gluOrtho2D(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
+		glDisable(GL_LIGHTING); // http://www.opengl.org/wiki/Coloring_a_bitmap 
+		glDisable(GL_DEPTH_TEST);
 		p->posType = 1; // use RasterPos2i instead of WindowPos2i
 	}
 
@@ -1850,6 +1852,7 @@ M       void toggle_collision()                             //"
 	{
 		renderButtons();
 		FW_GL_DEPTHMASK(GL_TRUE);
+		if(p->posType==1) glEnable(GL_LIGHTING);
 		return;
 	}
 	if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
@@ -1867,6 +1870,7 @@ M       void toggle_collision()                             //"
 		}
 		FW_GL_CLEAR_COLOR(0.0f,0.0f,0.0f,1.0f); 
 		FW_GL_DEPTHMASK(GL_TRUE);
+		if(p->posType==1) glEnable(GL_LIGHTING);
 		return;
 	}
 	/* to improve frame rates we don't need to update the status bar every loop,
@@ -1877,6 +1881,7 @@ M       void toggle_collision()                             //"
 	if(p->loopcount < 15 && !p->hadString)
 	{
 		FW_GL_DEPTHMASK(GL_TRUE);
+		if(p->posType==1) glEnable(GL_LIGHTING);
 		return;
 	}
 	p->loopcount = 0;
@@ -1896,7 +1901,7 @@ M       void toggle_collision()                             //"
 	FW_GL_COLOR3F(0.2f,0.2f,0.5f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	if(p->posType==1)
-		FW_GL_RASTERPOS2I(5,0-0)
+		FW_GL_RASTERPOS2I(5,0)
 	else
 		FW_GL_WINDOWPOS2I(5,0)
 	if(p->sb_hasString)
@@ -1913,12 +1918,12 @@ M       void toggle_collision()                             //"
 		strfps = getMessageBar();
 		strstatus = &strfps[15];
 		if(p->posType==1)
-			FW_GL_RASTERPOS2I(150,0-0)
+			FW_GL_RASTERPOS2I(150,0)
 		else
 			FW_GL_WINDOWPOS2I(150,0) //300,0);
 		printString(strfps);
 		if(p->posType==1)
-			FW_GL_RASTERPOS2I(300,0-0)
+			FW_GL_RASTERPOS2I(300,0)
 		else
 			FW_GL_WINDOWPOS2I(300,0)
 		printString(strstatus);
@@ -1934,6 +1939,6 @@ M       void toggle_collision()                             //"
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_FLUSH();
 	FW_GL_SHADEMODEL(GL_SMOOTH);
-
+	if(p->posType==1) glEnable(GL_LIGHTING);
 }
 #endif
