@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.45 2011/08/13 01:17:58 dug9 Exp $
+  $Id: statusbarHud.c,v 1.46 2011/08/14 19:14:40 dug9 Exp $
 
 */
 
@@ -1832,8 +1832,8 @@ M       void toggle_collision()                             //"
 	//Console_writeToCRT = 1;
 	//Console_writeToFile = 0;
 	FW_GL_DEPTHMASK(GL_FALSE);
-	if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
-	//if(!tg->display.rdr_caps.have_GL_VERSION_1_4)
+	//if(true) //for testing ogl 1.1 and rasterpos (vs 1.4 and windowpos)
+	if(!tg->display.rdr_caps.have_GL_VERSION_1_4)
 	{
 		//p.306 redbook - glwindowpos2i is ogl 1.4, older is glrasterpos2i, and for that
 		//you must set up orthomatrix
@@ -1852,7 +1852,7 @@ M       void toggle_collision()                             //"
 	{
 		renderButtons();
 		FW_GL_DEPTHMASK(GL_TRUE);
-		if(p->posType==1) glEnable(GL_LIGHTING);
+		if(p->posType==1) { glEnable(GL_LIGHTING); glEnable(GL_DEPTH_TEST); }
 		return;
 	}
 	if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
@@ -1870,7 +1870,7 @@ M       void toggle_collision()                             //"
 		}
 		FW_GL_CLEAR_COLOR(0.0f,0.0f,0.0f,1.0f); 
 		FW_GL_DEPTHMASK(GL_TRUE);
-		if(p->posType==1) glEnable(GL_LIGHTING);
+		if(p->posType==1) { glEnable(GL_LIGHTING); glEnable(GL_DEPTH_TEST); }
 		return;
 	}
 	/* to improve frame rates we don't need to update the status bar every loop,
@@ -1881,7 +1881,7 @@ M       void toggle_collision()                             //"
 	if(p->loopcount < 15 && !p->hadString)
 	{
 		FW_GL_DEPTHMASK(GL_TRUE);
-		if(p->posType==1) glEnable(GL_LIGHTING);
+		if(p->posType==1) { glEnable(GL_LIGHTING); glEnable(GL_DEPTH_TEST); }
 		return;
 	}
 	p->loopcount = 0;
@@ -1939,6 +1939,6 @@ M       void toggle_collision()                             //"
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_FLUSH();
 	FW_GL_SHADEMODEL(GL_SMOOTH);
-	if(p->posType==1) glEnable(GL_LIGHTING);
+	if(p->posType==1) { glEnable(GL_LIGHTING); glEnable(GL_DEPTH_TEST); }
 }
 #endif
