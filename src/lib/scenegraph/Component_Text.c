@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.46 2011/07/24 13:35:41 dug9 Exp $
+$Id: Component_Text.c,v 1.47 2011/08/17 14:50:43 dug9 Exp $
 
 X3D Text Component
 
@@ -1124,7 +1124,7 @@ int open_font()
 #ifndef HAVE_FONTCONFIG
     /* where are the fonts stored? */
     p->font_directory = makeFontDirectory();
-
+	ConsoleMessage("font directory=%s\n",p->font_directory);
     /* were fonts not found? */
     if (p->font_directory == NULL) {
 #ifdef AQUA
