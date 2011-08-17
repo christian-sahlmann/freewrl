@@ -54,7 +54,29 @@ void fwl_setConsole_writePrimitive(int ibool);
 
 #include <malloc.h>
 #include <WinUser.h>
-
+#include <stdlib.h>
+static char *fontPath = NULL; //once per process for the DLL should do it
+void setFontPath()
+{
+	/* deployed system (with intalled fonts) - use system fonts  
+	we plan to use a professional installer to install the fonts to %windir%\Fonts directory 
+	where all the system fonts already are.
+	Then in this program we will get the %windir%\Fonts directory, and set it as temporary
+	environment variable for InputFunctions.C > makeFontsDirectory() to fetch.
+	*/
+	static char *fdir;
+	char *syspath;
+	if(fontPath == NULL){
+		syspath = getenv("windir");
+		printf("windir path=[%s]\n",syspath);
+		fdir = (char *)malloc(1024); 
+		strcpy(fdir,"FREEWRL_FONTS_DIR=");
+		strcat(fdir,syspath);
+		strcat(fdir,"\\Fonts");
+		_putenv( fdir );
+		fontPath = fdir;
+	}
+}
 
 // This is an example of an exported variable
 DLLFREEWRL_API int ndllFreeWRL=0;
@@ -101,6 +123,7 @@ void CdllFreeWRL::onInit(void *handle,int width, int height){
 			//ERROR_MSG("main: aborting during initialization.\n");
 			//exit(1);
 		}
+		setFontPath();
 	}else{
 		swDebugf("this window is already in the table\n");
 	}

@@ -498,10 +498,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\lib\scenegraph\readpng.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\scenegraph\RenderFuncs.c"
 				>
 			</File>

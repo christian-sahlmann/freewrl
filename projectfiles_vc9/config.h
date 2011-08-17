@@ -10,7 +10,7 @@
 
 /* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
-#define FONTS_DIR "../fonts"
+#define FONTS_DIR "./fonts"
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
@@ -68,7 +68,7 @@
 
 /* Define to 1 if you have the <jpeglib.h> header file. */
 #undef HAVE_JPEGLIB_H
-#define HAVE_JPEGLIB_H 1
+//#define HAVE_JPEGLIB_H 1
 
 /* Define to 1 if you have the <X11/extensions/Print.h> header file. */
 #undef HAVE_LIB_XP
