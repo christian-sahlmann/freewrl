@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.3 2011/08/12 19:48:07 dug9 Exp $
+$Id: CollisionGPU.c,v 1.4 2011/08/22 15:34:27 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -34,9 +34,9 @@ Render the children of nodes.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h"
 #include "Viewer.h"
 #include "RenderFuncs.h"
+#include "../vrml_parser/Structs.h"
 
 #include "../main/headers.h"
 
@@ -49,10 +49,12 @@ Render the children of nodes.
 #include <OpenGL/CGLDevice.h>
 #include <OpenCL/opencl.h>
 
+#define DOUGS_FLOAT_TOLERANCE 0.00000001
+#define FLOAT_TOLERANCE 0.000001
+
 
 int printed=FALSE;
 int meprinted=FALSE;
-
 
 /********************************************************************************/
 /*										*/
@@ -317,7 +319,7 @@ void init_collide(struct X3D_PolyRep pr) {
 	// create the compute program
 	{
 	size_t readSize;
-#define RS 16384
+#define RS 32768
 	char *kp;
 	FILE *kf;
 	kf = fopen ("/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt","r");
@@ -343,6 +345,8 @@ void init_collide(struct X3D_PolyRep pr) {
 
  
 	// build the compute program executable
+char *opts = "-cl-opt-disable -cl-strict-aliasing";
+	//err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
@@ -370,13 +374,21 @@ printf ("error string len %d\n",len);
 /*										*/
 /********************************************************************************/
 
+#define GET_SFVEC3F_COUNT ntri
+
 //struct point_XYZ run_collide_program(GLuint vertex_vbo, GLDOUBLE *modelMat,int ntri) { 
-void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) { 
+struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) { 
  
 	int err;
 	size_t global;
 	unsigned int count;
+
+	bool face_ccw;	
+	int face_flags; /* ccw, double sided, etc */
 	struct OpenCLTransform transform;
+
+	double maxdisp = 0.0;
+	struct point_XYZ dispv, maxdispv = {0,0,0};
 
 	// enough space for rv?
 	if (collide_rvs.n < ntri) {
@@ -384,20 +396,22 @@ void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,in
 		if (collide_rvs.n != 0) {
 			clReleaseMemObject(output_buffer);	
 		}
-		output_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(struct SFVec3f) *ntri,
+
+		output_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(struct SFVec3f) * GET_SFVEC3F_COUNT,
                                                                   NULL, NULL);
 
 		if (matrix_buffer == NULL) {
 		matrix_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof (struct OpenCLTransform), NULL, NULL);
 		}
 
-		output_size = ntri;
-		collide_rvs.p = REALLOC(collide_rvs.p, sizeof(struct SFVec3f) *ntri);
-		collide_rvs.n = ntri;
+		output_size = GET_SFVEC3F_COUNT;
+		collide_rvs.p = REALLOC(collide_rvs.p, sizeof(struct SFVec3f) *GET_SFVEC3F_COUNT);
+		collide_rvs.n = GET_SFVEC3F_COUNT;
 	}
 
 	// update the current matrix transform
         memcpy(transform.matrix, modelMat, sizeof(cl_float16));
+
         clEnqueueWriteBuffer(queue, matrix_buffer, CL_TRUE, 0, sizeof(struct OpenCLTransform), &transform, 0, NULL, NULL);
 
 	// lets get the openGL vertex buffer here
@@ -429,13 +443,21 @@ void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,in
 	
 	// set the args values
 	count = (unsigned int) ntri;
+	face_ccw = TRUE;
+#define PR_DOUBLESIDED 0x01
+#define PR_FRONTFACING 0x02 /* overrides effect of doublesided. */
+#define PR_BACKFACING 0x04 /* overrides effect of doublesided, all normals are reversed. */
+
+	face_flags = PR_FRONTFACING; /* ccw, double sided, etc */
+
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &output_buffer);
 	clSetKernelArg(kernel, 1, sizeof(unsigned int), &count);
 	clSetKernelArg(kernel, 2, sizeof (cl_mem), &matrix_buffer);
 	clSetKernelArg(kernel, 3, sizeof (cl_mem), &vertex_buffer);
 	clSetKernelArg(kernel, 4, sizeof (cl_mem), &index_buffer);
-
- 
+	clSetKernelArg(kernel, 5, sizeof(int), &face_ccw);
+	clSetKernelArg(kernel, 6, sizeof(int), &face_flags);
+	
 	// global work group size
 	global = (size_t) ntri;
 
@@ -476,7 +498,8 @@ void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,in
 	clFinish(queue);
 
 	// get the data
-	err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * ntri, collide_rvs.p, 0, NULL, NULL);
+	//err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * ntri, collide_rvs.p, 0, NULL, NULL);
+	err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * GET_SFVEC3F_COUNT, collide_rvs.p, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		switch (err) {
 			case CL_INVALID_COMMAND_QUEUE: printf ("clGetKernelWorkGroupInfo, CL_INVALID_COMMAND_QUEUE\n"); break;
@@ -496,16 +519,72 @@ void run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,in
 #ifdef SHADERS_2011
 if (!printed) {
 int i;
-printf ("shader output: ntri is %d\n",ntri);
-for (i=0; i<ntri; i++) printf ("i %d val %f %f %f\n",i,
+printf ("\n**********\nshader output: ntri is %d but doing 19\n",ntri);
+for (i=0; i<GET_SFVEC3F_COUNT; i++) {
+#ifdef DEBUG
+	switch (i) {
+		case 0: printf ("cp1\t"); break;
+		case 1: printf ("cp2\t"); break;
+		case 2: printf ("cp3\t"); break;
+		case 3: printf ("cp4\t"); break;
+		case 4: printf ("i\t"); break;
+		case 5: printf ("j\t"); break;
+		case 6: printf ("epsil\t"); break;
+		case 7: printf ("cpts\t"); break;
+		case 8: printf ("norm\t"); break;
+		case 9: printf ("unused\t"); break;
+		case 10: printf ("unused\t"); break;
+		case 11: printf ("cppto\t"); break;
+		case 12: printf ("tv1\t"); break;
+		case 13: printf ("tv2\t"); break;
+		case 14: printf ("tv3\t"); break;
+		case 15: printf ("iv1\t"); break;
+		case 16: printf ("iv2\t"); break;
+		case 17: printf ("iv3\t"); break;
+		case 18: printf ("n\t"); break;
+
+	}
+#endif
+	printf ("i %d val %f %f %f\n",i,
 	collide_rvs.p[i].c[0],
 	collide_rvs.p[i].c[1],
 	collide_rvs.p[i].c[2]);
+}
 //printed = TRUE;
+printf ("**********\n\n");
+
 }
 #endif
 
 
+{ int i;
+
+
+	for (i=0; i < GET_SFVEC3F_COUNT; i++) {
+		/* XXX float to double conversion; make a vecdotf for speed */
+		dispv.x = collide_rvs.p[i].c[0];
+		dispv.y = collide_rvs.p[i].c[1];
+		dispv.z = collide_rvs.p[i].c[2];
+		double disp;
+
+                        /*keep result only if:
+                          displacement is positive
+                          displacement is smaller than minimum displacement up to date
+                         */
+
+		disp = vecdot (&dispv,&dispv);
+		if ((disp > FLOAT_TOLERANCE) && (disp>maxdisp)) {
+			maxdisp = disp;
+			maxdispv = dispv;
+			printf ("OpenCL - polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z);
+		}
+
+	} 
+
+	printf ("OpenCL - at end of opencl, maxmaxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z);
+}
+
+	return maxdispv;
 }
 
 #endif //DO_COLLISION_GPU
