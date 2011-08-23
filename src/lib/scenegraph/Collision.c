@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.29 2011/08/23 15:24:40 crc_canada Exp $
+$Id: Collision.c,v 1.30 2011/08/23 20:13:11 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -2233,6 +2233,20 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 	return dispsum;
 }
 
+#undef POLYREP_DISP2_PERFORMANCE
+#ifdef POLYREP_DISP2_PERFORMANCE
+static double Time1970sec(void) {
+                struct timeval mytime;
+        gettimeofday(&mytime, NULL);
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+}
+static bool timing = FALSE;
+static double startTime = 0.0;
+static double stopTime = 0.0;
+static double accumTime = 0.0;
+static int counter = 0;
+
+#endif
 
 /*uses sphere displacement, and a cylinder for stepping 
  y1, y2, ystep, r -  (usually abottom, atop, astep, awidth) are from naviiinfo avatar height, step, width 
@@ -2246,6 +2260,16 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
     int maxc;
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
+#ifdef POLYREP_DISP2_PERFORMANCE
+	if (!timing) {
+		printf ("start timing polyrep_disp2\n");
+		timing = TRUE;
+		
+	}
+	startTime = Time1970sec();
+#endif
+
+
 #ifdef DO_COLLISION_GPU
 	if ((pr.VBO_buffers[VERTEX_VBO] != 0) && pp->openCL_initializedOK) {
 		float mymat[16];
@@ -2254,7 +2278,24 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 		} 
 
 		pp->res = run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
+	pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
+		/*
 		printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+		*/
+
+#ifdef POLYREP_DISP2_PERFORMANCE
+	stopTime = Time1970sec();
+	accumTime += stopTime - startTime;
+
+	if (counter == 10) {
+		printf ("polyrep_disp2, averaged over 10 runs: %f\n",
+			accumTime/10.0);
+		counter = 0;
+		accumTime = 0.0;
+	}
+
+	counter ++;
+#endif
 
 		return pp->res;
 	}
@@ -2300,6 +2341,21 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 	/* printf ("polyrep_disp_rec2 returned %f %f %f\n",pp->res.x, pp->res.y, pp->res.z); */
 
 	pr.actualCoord = 0;
+
+#ifdef POLYREP_DISP2_PERFORMANCE
+	stopTime = Time1970sec();
+	accumTime += stopTime - startTime;
+
+	if (counter == 100) {
+		printf ("polyrep_disp2, averaged over 100 runs: %f\n",
+			accumTime/100.0);
+		counter = 0;
+		accumTime = 0.0;
+	}
+
+	counter ++;
+#endif
+
 	return pp->res;
 }
 

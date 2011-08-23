@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.36 2011/06/30 15:13:21 crc_canada Exp $
+$Id: StreamPoly.c,v 1.37 2011/08/23 20:13:11 crc_canada Exp $
 
 ???
 
@@ -191,6 +191,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 
 	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord);  */
 
+printf ("stream_poly, ntri %d\n",r->ntri);
 	/* does this one have any triangles here? (eg, an IFS without coordIndex) */
 	if (r->ntri==0) {
 		printf ("stream IFS, at start, this guy is empty, just returning \n");

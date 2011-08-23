@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.5 2011/08/23 15:24:40 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.6 2011/08/23 20:13:11 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -321,7 +321,11 @@ bool init_GPU_collide(void) {
 	char *kp;
 	FILE *kf;
 	kf = fopen ("/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt","r");
-	printf ("fopen for collisionKernel returns %p\n",kf);
+	if (!kf) {
+		ConsoleMessage("can not find collisionKernel.txt, reverting to SW collision method");
+		return FALSE;
+	}
+
 
 	kp = malloc(RS);
 	readSize = fread(kp,1,RS,kf);
@@ -346,8 +350,8 @@ bool init_GPU_collide(void) {
  
 	// build the compute program executable
 char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
-	err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
-	//err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	//err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
+	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
         	char buffer[16384];
@@ -518,11 +522,11 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	}
 
 #ifdef SHADERS_2011
+#ifdef DEBUG
 if (!printed) {
 int i;
 printf ("\n**********\nshader output: ntri is %d but doing 19\n",ntri);
 for (i=0; i<GET_SFVEC3F_COUNT; i++) {
-#ifdef DEBUG
 	switch (i) {
 		case 0: printf ("cp1\t"); break;
 		case 1: printf ("cp2\t"); break;
@@ -545,7 +549,6 @@ for (i=0; i<GET_SFVEC3F_COUNT; i++) {
 		case 18: printf ("n\t"); break;
 
 	}
-#endif
 	printf ("i %d val %f %f %f\n",i,
 	collide_rvs.p[i].c[0],
 	collide_rvs.p[i].c[1],
@@ -555,6 +558,7 @@ for (i=0; i<GET_SFVEC3F_COUNT; i++) {
 printf ("**********\n\n");
 
 }
+#endif
 #endif
 
 
@@ -577,12 +581,16 @@ printf ("**********\n\n");
 		if ((disp > FLOAT_TOLERANCE) && (disp>maxdisp)) {
 			maxdisp = disp;
 			maxdispv = dispv;
+			/*
 			printf ("OpenCL - polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z);
+			*/
 		}
 
 	} 
 
+	/*
 	printf ("OpenCL - at end of opencl, maxmaxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z);
+	*/
 }
 
 	return maxdispv;
