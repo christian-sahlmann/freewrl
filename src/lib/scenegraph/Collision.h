@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.13 2011/08/22 15:34:27 crc_canada Exp $
+$Id: Collision.h,v 1.14 2011/08/23 15:24:40 crc_canada Exp $
 
 Collision ???
 
@@ -293,7 +293,7 @@ int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct po
 
 #ifdef DO_COLLISION_GPU
 struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri);
-void init_collide(struct X3D_PolyRep pr);
+bool init_GPU_collide(void);
 #endif
 
 

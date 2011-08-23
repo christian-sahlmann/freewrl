@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.28 2011/08/22 15:34:27 crc_canada Exp $
+$Id: Collision.c,v 1.29 2011/08/23 15:24:40 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -94,6 +94,9 @@ typedef struct pcollision{
 	struct sCollisionInfo CollisionInfo;// = { {0,0,0} , 0, 0. };
 	struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
+	/* did the OpenCL GPU Collision compile ok? */
+	bool openCL_initializedOK;
+
 }* ppcollision;
 void *collision_constructor(){
 	void *v = malloc(sizeof(struct pcollision));
@@ -122,9 +125,6 @@ void collision_init(struct tcollision *t){
 		p->clippedPoly5Size = 0; /* number of struct point_XYZ* 's in the clippedPoly data area */
 
 
-		/* JAS - make return val global, not local for polyrep-disp */
-		// null ok p->res ={0,0,0};
-		//p->get_poly_mindisp;
 		/* Collision detection results */
 		p->CollisionInfo.Count = 0;
 		p->CollisionInfo.Maximum2 = 0.0;
@@ -132,6 +132,13 @@ void collision_init(struct tcollision *t){
 		p->CollisionInfo.Offset.y = 0.0;
 		p->CollisionInfo.Offset.z = 0.0;
 		//p->FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
+
+		#ifdef DO_COLLISION_GPU
+		p->openCL_initializedOK = init_GPU_collide();
+		#else
+		p->openCL_initializedOK = FALSE;
+		#endif
+
 
 	}
 }
@@ -2234,102 +2241,69 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 	  Walk: Bound-Viewpoint-Vertical-aligned Avatar-centric BVVA space.
  flags - 
 */
-//struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
 struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags) {
     int i;
     int maxc;
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
 
 #ifdef DO_COLLISION_GPU
-if (pr.VBO_buffers[VERTEX_VBO] != 0) {
-	float mymat[16];
-	//printf ("matrix: ");
-	for (i=0; i<16; i++) {
-		mymat[i] = (float) mat[i]; 
-	//	printf ("%d: %4.3f ",i,mymat[i]);
-	} 
-	//printf("\n");
+	if ((pr.VBO_buffers[VERTEX_VBO] != 0) && pp->openCL_initializedOK) {
+		float mymat[16];
+		for (i=0; i<16; i++) {
+			mymat[i] = (float) mat[i]; 
+		} 
 
-        /* any initialization yet? */
-        init_collide(pr);
+		pp->res = run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
+		printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
 
+		return pp->res;
+	}
 
-	pp->res = run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
-printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
-} else {
-	pp->res.x = 0.0; pp->res.y = 0.0; pp->res.z = 0.0;
-	printf ("error in polyrep_disp2, no VBO\n");
-}
-
-#else
-
-
-    pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
-    maxc = 0; /*  highest cindex, used to point into prd_newc_floats structure.*/
-
-    for(i = 0; i < pr.ntri*3; i++) {
-	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
-    }
-
-    /*transform all points from raw shape to viewer(fly) or BVAAC(walk) space */
-    if (maxc> pp->prd_newc_floats_size) {
-		pp->prd_newc_floats = REALLOC(pp->prd_newc_floats,maxc*9*sizeof(float));
-		pp->prd_newc_floats_size = maxc;
-    }
-
-
-    for(i = 0; i < pr.ntri*3; i++) {
-	transformf(&pp->prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
-
-/*
-if (!meprinted) {
-		printf ("after old transformf, vert %d cindex %d \n orig: %f %f %f\n xformed: %f %f %f\n",i, pr.cindex[i],
-			pr.actualCoord[pr.cindex[i]*3+0],
-			pr.actualCoord[pr.cindex[i]*3+1],
-			pr.actualCoord[pr.cindex[i]*3+2],
-			pp->prd_newc_floats[pr.cindex[i]*3+0],
-			pp->prd_newc_floats[pr.cindex[i]*3+1],
-			pp->prd_newc_floats[pr.cindex[i]*3+2]);
-}
-*/
-
-
-
-   }
-
-
-
-
-
-   pr.actualCoord = pp->prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
-
- 
-    /*pre-calculate face normals */
-    if (pr.ntri> pp->prd_normals_size) {
-		pp->prd_normals = REALLOC(pp->prd_normals,pr.ntri*sizeof(struct point_XYZ));
-		pp->prd_normals_size = pr.ntri;
-    }
-
-    for(i = 0; i < pr.ntri; i++) {
-	polynormalf(&pp->prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
-
-    }
-
-#ifdef SHADERS_2011
-extern int meprinted;
-meprinted = TRUE;
+	/* if we are here, there was an OpenCL issue */
 #endif
 
+
+	pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
+	maxc = 0; /*  highest cindex, used to point into prd_newc_floats structure.*/
+
+	for(i = 0; i < pr.ntri*3; i++) {
+		if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
+	}
+
+	/*transform all points from raw shape to viewer(fly) or BVAAC(walk) space */
+	if (maxc> pp->prd_newc_floats_size) {
+		pp->prd_newc_floats = REALLOC(pp->prd_newc_floats,maxc*9*sizeof(float));
+		pp->prd_newc_floats_size = maxc;
+	}
+
+
+	for(i = 0; i < pr.ntri*3; i++) {
+		transformf(&pp->prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
+	}
+
+	pr.actualCoord = pp->prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
+
+ 
+	/*pre-calculate face normals */
+	if (pr.ntri> pp->prd_normals_size) {
+		pp->prd_normals = REALLOC(pp->prd_normals,pr.ntri*sizeof(struct point_XYZ));
+		pp->prd_normals_size = pr.ntri;
+	}
+
+	for(i = 0; i < pr.ntri; i++) {
+		polynormalf(&pp->prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],
+			&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
+	}
 
 	pp->res = polyrep_disp_rec2(&pr,pp->prd_normals,pp->res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
 
 	/* printf ("polyrep_disp_rec2 returned %f %f %f\n",pp->res.x, pp->res.y, pp->res.z); */
 
-#endif
-
-    pr.actualCoord = 0;
-    return pp->res;
+	pr.actualCoord = 0;
+	return pp->res;
 }
+
+
 
 
 /*Optimized polyrep_disp for planar polyreps.

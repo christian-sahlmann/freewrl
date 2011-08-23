@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.4 2011/08/22 15:34:27 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.5 2011/08/23 15:24:40 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -231,7 +231,7 @@ struct Multi_Int32 cindicies = {0,NULL};
 /*										*/
 /********************************************************************************/
 
-void init_collide(struct X3D_PolyRep pr) {
+bool init_GPU_collide(void) {
 	int err;
 
 // get the current context.
@@ -284,8 +284,6 @@ void init_collide(struct X3D_PolyRep pr) {
 	context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
 #endif
 
-
-
  
 	if (err != CL_SUCCESS) {
 		switch (err) {
@@ -296,7 +294,7 @@ void init_collide(struct X3D_PolyRep pr) {
 			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
 			default: printf ("unknown error in clCreateContext\n");
 		}
-		exit(1);
+		return FALSE;
 	} else {
 		printf ("CL context created\n");
 	}
@@ -312,7 +310,7 @@ void init_collide(struct X3D_PolyRep pr) {
 			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
 			default: printf ("unknown error in clCreateCommandQueue\n");
 		}
-		exit (1);
+		return FALSE;
 	}
 	printf ("queue created\n");
  
@@ -323,6 +321,8 @@ void init_collide(struct X3D_PolyRep pr) {
 	char *kp;
 	FILE *kf;
 	kf = fopen ("/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt","r");
+	printf ("fopen for collisionKernel returns %p\n",kf);
+
 	kp = malloc(RS);
 	readSize = fread(kp,1,RS,kf);
 	kp[readSize] = '\0'; /* ensure null termination */
@@ -336,7 +336,7 @@ void init_collide(struct X3D_PolyRep pr) {
 			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
 			default: printf ("unknown error in clCreateProgramWithSource\n");
 		}
-		exit(1);
+		return FALSE;
 	}
 	printf ("program created\n");
 
@@ -345,9 +345,9 @@ void init_collide(struct X3D_PolyRep pr) {
 
  
 	// build the compute program executable
-char *opts = "-cl-opt-disable -cl-strict-aliasing";
-	//err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
-	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
+	err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
+	//err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
         	char buffer[16384];
@@ -357,7 +357,7 @@ char *opts = "-cl-opt-disable -cl-strict-aliasing";
                                           sizeof(buffer), buffer, &len);
 printf ("error string len %d\n",len);
         	printf("%s\n", buffer);
-        	exit(1);
+        	return FALSE;
     	}
 	printf ("program built\n");
  
@@ -367,6 +367,7 @@ printf ("error string len %d\n",len);
 		printf ("cl create kernel problem\n"); exit(1);
 	}
 	printf ("kernel built\n");
+	return TRUE;
 }
 
 /********************************************************************************/
