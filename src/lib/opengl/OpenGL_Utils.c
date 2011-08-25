@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.224 2011/07/31 15:54:03 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.225 2011/08/25 20:40:47 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1080,7 +1080,7 @@ mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */  \
 \n#ifdef USE_FOG\n \
 	v_fog_factor = compute_fog();   \
 \n#endif \n \
-    \   
+    \
 	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
 }";
 
