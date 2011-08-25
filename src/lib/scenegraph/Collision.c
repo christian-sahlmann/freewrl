@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.30 2011/08/23 20:13:11 crc_canada Exp $
+$Id: Collision.c,v 1.31 2011/08/25 18:02:46 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -954,7 +954,6 @@ int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct poi
 	return hit; 
 }
 
-//struct point_XYZ get_poly_disp_2(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
 struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n, char *file, int line) {
 
 	/* 
@@ -1075,8 +1074,6 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     //double get_poly_mindisp;
     int clippedPoly3num = 0;
 
-printf ("get_poly_normal_disp_with_sphere called\n");
-
     pp->get_poly_mindisp = 1E90;
 
     /*allocate data */
@@ -1176,10 +1173,6 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 		rmax[i] = r;
 	}
 
-	/* printf ("radius is %lf\n",r);
-	printf ("min,max %lf %lf %lf, %lf %lf %lf in get_poly_min_disp_with_sphere\n", tmin[0],tmin[1],tmin[2], tmax[0],tmax[1],tmax[2]);  */
-
-
 	if( !overlapMBBs(rmin,rmax,tmin,tmax) )
 	{
 		return zero;
@@ -1202,6 +1195,7 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 		polynormal(&n,&p[0],&p[1],&p[2]);
     }
 
+
     for(i = 0; i < num; i++) {
 		DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedPoly4num);
 		pp->clippedPoly4[clippedPoly4num++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
@@ -1209,12 +1203,13 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 
     /*find closest point of polygon plane*/
     pp->clippedPoly4[clippedPoly4num] = closest_point_of_plane_to_origin(p[0],n);
-if(0){
+
+/* {
 int m;
 printf ("\t\tget_poly_min_disp_with_sphere, clippedPoly4 array\n");
 for (m=0; m<=clippedPoly4num; m++) 
 printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clippedPoly4[m].y, pp->clippedPoly4[m].z);
-}
+} */
 
 
 
@@ -2209,6 +2204,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 			dispv = get_poly_disp_2(p, 3, nused,__FILE__,__LINE__); //get_poly_disp_2(y1,y2,ystep,r, p, 3, nused);
 			disp = vecdot(&dispv,&dispv);
 
+
 	#ifdef DEBUGPTS
 			if(dispv.x != 0 || dispv.y != 0 || dispv.z != 0)
 			printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
@@ -2223,7 +2219,6 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 			{
 				maxdisp = disp;
 				maxdispv = dispv;
-				/* printf ("polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z); */
 			}
 		}
     }
@@ -2278,10 +2273,9 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 		} 
 
 		pp->res = run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
-	pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
-		/*
-		printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
-		*/
+		
+		// printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+		
 
 #ifdef POLYREP_DISP2_PERFORMANCE
 	stopTime = Time1970sec();
@@ -2346,9 +2340,9 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 	stopTime = Time1970sec();
 	accumTime += stopTime - startTime;
 
-	if (counter == 100) {
-		printf ("polyrep_disp2, averaged over 100 runs: %f\n",
-			accumTime/100.0);
+	if (counter == 10) {
+		printf ("polyrep_disp2, averaged over 10 runs: %f\n",
+			accumTime/10.0);
 		counter = 0;
 		accumTime = 0.0;
 	}

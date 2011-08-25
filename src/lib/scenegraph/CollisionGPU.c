@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.6 2011/08/23 20:13:11 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.7 2011/08/25 18:02:46 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -51,10 +51,6 @@ Render the children of nodes.
 
 #define DOUGS_FLOAT_TOLERANCE 0.00000001
 #define FLOAT_TOLERANCE 0.000001
-
-
-int printed=FALSE;
-int meprinted=FALSE;
 
 /********************************************************************************/
 /*										*/
@@ -381,7 +377,6 @@ printf ("error string len %d\n",len);
 
 #define GET_SFVEC3F_COUNT ntri
 
-//struct point_XYZ run_collide_program(GLuint vertex_vbo, GLDOUBLE *modelMat,int ntri) { 
 struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) { 
  
 	int err;
@@ -522,9 +517,9 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	}
 
 #ifdef SHADERS_2011
-#ifdef DEBUG
-if (!printed) {
+{
 int i;
+#ifdef DEBUG
 printf ("\n**********\nshader output: ntri is %d but doing 19\n",ntri);
 for (i=0; i<GET_SFVEC3F_COUNT; i++) {
 	switch (i) {
@@ -554,11 +549,10 @@ for (i=0; i<GET_SFVEC3F_COUNT; i++) {
 	collide_rvs.p[i].c[1],
 	collide_rvs.p[i].c[2]);
 }
-//printed = TRUE;
 printf ("**********\n\n");
 
-}
 #endif
+}
 #endif
 
 
@@ -581,16 +575,13 @@ printf ("**********\n\n");
 		if ((disp > FLOAT_TOLERANCE) && (disp>maxdisp)) {
 			maxdisp = disp;
 			maxdispv = dispv;
-			/*
-			printf ("OpenCL - polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z);
-			*/
 		}
 
 	} 
 
-	/*
-	printf ("OpenCL - at end of opencl, maxmaxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z);
-	*/
+	
+	/* printf ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); */
+	
 }
 
 	return maxdispv;
