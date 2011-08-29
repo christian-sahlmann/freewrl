@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.31 2011/08/25 18:02:46 crc_canada Exp $
+$Id: Collision.c,v 1.32 2011/08/29 15:35:17 dug9 Exp $
 
 Render the children of nodes.
 
@@ -134,7 +134,7 @@ void collision_init(struct tcollision *t){
 		//p->FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 		#ifdef DO_COLLISION_GPU
-		p->openCL_initializedOK = init_GPU_collide();
+		p->openCL_initializedOK = FALSE; // lets start the opengl window and get a context init_GPU_collide();
 		#else
 		p->openCL_initializedOK = FALSE;
 		#endif
@@ -2266,6 +2266,8 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 
 
 #ifdef DO_COLLISION_GPU
+	if(!pp->openCL_initializedOK)
+		pp->openCL_initializedOK = init_GPU_collide();
 	if ((pr.VBO_buffers[VERTEX_VBO] != 0) && pp->openCL_initializedOK) {
 		float mymat[16];
 		for (i=0; i<16; i++) {

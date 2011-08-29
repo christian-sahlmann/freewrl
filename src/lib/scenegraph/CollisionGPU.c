@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.8 2011/08/29 13:15:01 dug9 Exp $
+$Id: CollisionGPU.c,v 1.9 2011/08/29 15:35:17 dug9 Exp $
 
 Render the children of nodes.
 
@@ -349,7 +349,7 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 
     return CL_SUCCESS;
 }
-void extraInitFromNvidiaSamples()
+int extraInitFromNvidiaSamples()
 {
     cl_uint uiNumDevices = 0;           // Number of devices available
     cl_uint uiTargetDevice = 0;	        // Default Device to compute on
@@ -376,6 +376,7 @@ void extraInitFromNvidiaSamples()
     //}
     shrLog("  Using Device %u: ", uiTargetDevice); 
     //oclPrintDevName(LOGBOTH, cdDevices[uiTargetDevice]);
+	device_id = cdDevices[uiTargetDevice];
     ciErrNum = clGetDeviceInfo(cdDevices[uiTargetDevice], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uiNumComputeUnits), &uiNumComputeUnits, NULL);
     //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
     shrLog("\n  # of Compute Units = %u\n", uiNumComputeUnits); 
@@ -426,6 +427,7 @@ void extraInitFromNvidiaSamples()
                     0
                 };
                 context = clCreateContext(props, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+				printf("ciErrNum=%d\n",ciErrNum);
             #endif
         #endif
         shrLog("clCreateContext, GL Interop supported...\n"); 
@@ -437,13 +439,16 @@ void extraInitFromNvidiaSamples()
         shrLog("clCreateContext, GL Interop %s...\n", bQATest ? "N/A" : "not supported"); 
     }
    // oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+	return ciErrNum;
 }
 #endif  //_MSC_VER
 
-
+static int triedAlready = 0;
 bool init_GPU_collide(void) {
 	int err;
 	int gpu;
+	if(triedAlready) return false;
+	triedAlready = 1;
 // get the current context.
 // windows - IntPtr curDC = wglGetCurrentDC();
 // then in the new compute context, we pass in the context
@@ -453,9 +458,13 @@ bool init_GPU_collide(void) {
 
 
 	// get the device id
-	gpu=1;
-	err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-
+	err = 0;
+	if(0)
+	{
+		gpu=1;
+		err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
+		printf("clGetDeviceIDs err=%d\n");
+	}
 #if defined (TARGET_AQUA)
 	CGLContextObj kCGLContext = CGLGetCurrentContext();
 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
@@ -469,7 +478,7 @@ bool init_GPU_collide(void) {
 #if defined (WIN32)
 
 	if(1)
-		extraInitFromNvidiaSamples();
+		err = extraInitFromNvidiaSamples();
 	else
 	{
 		/* from OpenCL Programming Guide, pg 338 */
@@ -508,6 +517,7 @@ bool init_GPU_collide(void) {
 			case CL_INVALID_DEVICE: printf ("clCreateContext, error CL_INVALID_DEVICE\n"); break;
 			case CL_DEVICE_NOT_AVAILABLE: printf ("clCreateContext, error CL_DEVICE_NOT_AVAILABLE\n"); break;
 			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
+			case CL_OUT_OF_RESOURCES: printf("clCreateContext, error CL_OUT_OF_RESOURCES\n");break;
 			default: printf ("unknown error in clCreateContext\n");
 		}
 		return FALSE;
@@ -536,7 +546,12 @@ bool init_GPU_collide(void) {
 #define RS 32768
 	char *kp;
 	FILE *kf;
-	kf = fopen ("/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt","r");
+#ifdef _MSC_VER
+	char * kernelpath = "C:/source2/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt";
+#else
+	char * kernelpath = "/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt";
+#endif
+	kf = fopen (kernelpath,"r");
 	if (!kf) {
 		ConsoleMessage("can not find collisionKernel.txt, reverting to SW collision method");
 		return FALSE;
