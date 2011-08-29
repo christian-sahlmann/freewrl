@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.7 2011/08/25 18:02:46 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.8 2011/08/29 13:15:01 dug9 Exp $
 
 Render the children of nodes.
 
@@ -46,8 +46,20 @@ Render the children of nodes.
 #ifdef DO_COLLISION_GPU
 
 
-#include <OpenGL/CGLDevice.h>
-#include <OpenCL/opencl.h>
+//#include <OpenGL/CGLDevice.h>
+//#include <OpenCL/opencl.h>
+// All OpenCL headers
+#if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
+	#include <OpenCL/opencl.h>
+	#include <OpenGL/CGLDevice.h>
+#elif defined(_MSC_VER)
+    #include <windows.h>  //WGL prototyped in wingdi.h
+    #include <CL/opencl.h>
+	#define DEBUG
+#else  //LINUX
+    #include <CL/opencl.h>
+#endif 
+
 
 #define DOUGS_FLOAT_TOLERANCE 0.00000001
 #define FLOAT_TOLERANCE 0.000001
@@ -205,7 +217,6 @@ struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, in
 /*										*/
 /*										*/
 /********************************************************************************/
-
 cl_program program = NULL;
 cl_kernel kernel = NULL;
 cl_context context = NULL;
@@ -216,8 +227,6 @@ cl_mem output_buffer = NULL;
 cl_mem matrix_buffer = NULL;
 cl_mem vertex_buffer = NULL;
 cl_mem index_buffer = NULL;
-
-
 struct Multi_Vec3f collide_rvs = {0,NULL};
 struct Multi_Int32 cindicies = {0,NULL};
 
@@ -226,20 +235,225 @@ struct Multi_Int32 cindicies = {0,NULL};
 /*										*/
 /*										*/
 /********************************************************************************/
+#ifdef _MSC_VER
+cl_platform_id cpPlatform = NULL;          // OpenCL platform
+cl_device_id* cdDevices = NULL;     // device list
+cl_uint uiTargetDevice = 0;	        // Default Device to compute on
+
+
+
+cl_int ciErrNum;			        // Error code var
+enum LOGMODES 
+{
+    LOGCONSOLE = 1, // bit to signal "log to console" 
+    LOGFILE    = 2, // bit to signal "log to file" 
+    LOGBOTH    = 3, // convenience union of first 2 bits to signal "log to both"
+    APPENDMODE = 4, // bit to set "file append" mode instead of "replace mode" on open
+    MASTER     = 8, // bit to signal master .csv log output
+    ERRORMSG   = 16, // bit to signal "pre-pend Error" 
+    CLOSELOG   = 32  // bit to close log file, if open, after any requested file write
+};
+int bQATest = 0;			// false = normal GL loop, true = run No-GL test sequence
+bool bGLinteropSupported = false;	// state var for GL interop supported or not
+cl_uint uiNumDevsUsed = 1;          // Number of devices used in this sample 
+bool bGLinterop = false;			// state var for GL interop or not
+
+void Cleanup(int iExitCode)
+{
+    // Cleanup allocated objects
+    //shrLog("\nStarting Cleanup...\n\n");
+    if(program)clReleaseProgram(program);
+    if(context)clReleaseContext(context);
+    if(cdDevices)free(cdDevices);
+
+    // Cleanup GL objects if used
+    if (!bQATest)
+    {
+        //DeInitGL();
+    }
+
+    // finalize logs and leave
+    //shrLog("%s\n\n", iExitCode == 0 ? "PASSED" : "FAILED"); 
+    if ((bQATest))
+    {
+       // shrLogEx(LOGBOTH | CLOSELOG, 0, "oclBoxFilter.exe Exiting...\n");
+    }
+    else 
+    {
+        //shrLogEx(LOGBOTH | CLOSELOG, 0, "oclBoxFilter.exe Exiting...\nPress <Enter> to Quit\n");
+        #ifdef WIN32
+            getchar();
+        #endif
+    }
+    exit (iExitCode);
+}
+void (*pCleanup)(int) = &Cleanup;
+#define shrLog printf
+cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
+{
+    char chBuffer[1024];
+    cl_uint num_platforms; 
+    cl_platform_id* clPlatformIDs;
+    cl_int ciErrNum;
+    *clSelectedPlatformID = NULL;
+
+    // Get OpenCL platform count
+    ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
+    if (ciErrNum != CL_SUCCESS)
+    {
+        shrLog(" Error %i in clGetPlatformIDs Call !!!\n\n", ciErrNum);
+        return -1000;
+    }
+    else 
+    {
+        if(num_platforms == 0)
+        {
+            shrLog("No OpenCL platform found!\n\n");
+            return -2000;
+        }
+        else 
+        {
+			cl_uint i;
+            // if there's a platform or more, make space for ID's
+            if ((clPlatformIDs = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id))) == NULL)
+            {
+                shrLog("Failed to allocate memory for cl_platform ID's!\n\n");
+                return -3000;
+            }
+
+            // get platform info for each platform and trap the NVIDIA platform if found
+            ciErrNum = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
+            for(i = 0; i < num_platforms; ++i)
+            {
+                ciErrNum = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
+                if(ciErrNum == CL_SUCCESS)
+                {
+                    if(strstr(chBuffer, "NVIDIA") != NULL)
+                    {
+                        *clSelectedPlatformID = clPlatformIDs[i];
+                        break;
+                    }
+                }
+            }
+
+            // default to zeroeth platform if NVIDIA not found
+            if(*clSelectedPlatformID == NULL)
+            {
+                shrLog("WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
+                *clSelectedPlatformID = clPlatformIDs[0];
+            }
+
+            free(clPlatformIDs);
+        }
+    }
+
+    return CL_SUCCESS;
+}
+void extraInitFromNvidiaSamples()
+{
+    cl_uint uiNumDevices = 0;           // Number of devices available
+    cl_uint uiTargetDevice = 0;	        // Default Device to compute on
+    cl_uint uiNumComputeUnits;          // Number of compute units (SM's on NV GPU)
+
+	// Get the NVIDIA platform
+    ciErrNum = oclGetPlatformID(&cpPlatform);
+    //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+    shrLog("clGetPlatformID...\n"); 
+
+    //Get all the devices
+    //shrLog("Get the Device info and select Device...\n");
+    ciErrNum = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, 0, NULL, &uiNumDevices);
+    //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+    cdDevices = (cl_device_id *)malloc(uiNumDevices * sizeof(cl_device_id) );
+    ciErrNum = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, uiNumDevices, cdDevices, NULL);
+    //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+
+    // Set target device and Query number of compute units on uiTargetDevice
+    shrLog("  # of Devices Available = %u\n", uiNumDevices); 
+    //if(shrGetCmdLineArgumentu(argc, (const char**)argv, "device", &uiTargetDevice)== shrTRUE) 
+    //{
+    //    uiTargetDevice = CLAMP(uiTargetDevice, 0, (uiNumDevices - 1));
+    //}
+    shrLog("  Using Device %u: ", uiTargetDevice); 
+    //oclPrintDevName(LOGBOTH, cdDevices[uiTargetDevice]);
+    ciErrNum = clGetDeviceInfo(cdDevices[uiTargetDevice], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uiNumComputeUnits), &uiNumComputeUnits, NULL);
+    //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+    shrLog("\n  # of Compute Units = %u\n", uiNumComputeUnits); 
+
+    // Check for GL interop capability (if using GL)
+    if(!bQATest)
+    {
+        char extensions[1024];
+        ciErrNum = clGetDeviceInfo(cdDevices[uiTargetDevice], CL_DEVICE_EXTENSIONS, 1024, extensions, 0);
+        //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+        
+        #if defined (__APPLE__) || defined(MACOSX)
+            bGLinteropSupported = strstr(extensions,"cl_APPLE_gl_sharing") != NULL;
+        #else
+            bGLinteropSupported = strstr(extensions,"cl_khr_gl_sharing") != NULL;
+        #endif
+    }
+
+    //Create the context
+    if(bGLinteropSupported) 
+    {
+        // Define OS-specific context properties and create the OpenCL context
+        #if defined (__APPLE__)
+            CGLContextObj kCGLContext = CGLGetCurrentContext();
+            CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
+            cl_context_properties props[] = 
+            {
+                CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 
+                0 
+            };
+            cxGPUContext = clCreateContext(props, 0,0, NULL, NULL, &ciErrNum);
+        #else
+            #ifdef UNIX
+                cl_context_properties props[] = 
+                {
+                    CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(), 
+                    CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(), 
+                    CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform, 
+                    0
+                };
+                cxGPUContext = clCreateContext(props, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+            #else // Win32
+                cl_context_properties props[] = 
+                {
+                    CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(), 
+                    CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(), 
+                    CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform, 
+                    0
+                };
+                context = clCreateContext(props, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+            #endif
+        #endif
+        shrLog("clCreateContext, GL Interop supported...\n"); 
+    } 
+    else 
+    {
+        bGLinterop = false;
+        context = clCreateContext(0, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+        shrLog("clCreateContext, GL Interop %s...\n", bQATest ? "N/A" : "not supported"); 
+    }
+   // oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
+}
+#endif  //_MSC_VER
+
 
 bool init_GPU_collide(void) {
 	int err;
-
+	int gpu;
 // get the current context.
 // windows - IntPtr curDC = wglGetCurrentDC();
 // then in the new compute context, we pass in the context
 
 	/* initialized yet? */
-	if (kernel != NULL) return;
+	if (kernel != NULL) return false;
 
 
 	// get the device id
-	int gpu=1;
+	gpu=1;
 	err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
 
 #if defined (TARGET_AQUA)
@@ -253,14 +467,20 @@ bool init_GPU_collide(void) {
 #endif /* AQUA */
 
 #if defined (WIN32)
-	/* from OpenCL Programming Guide, pg 338 */
-	cl_context_properties properties[] = {
-		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-		CL_WGL_KHC_HDR, (cl_context_properties)wglGetCurrentDC(),
-		CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
-		0};
 
-	context = clCreateContext(properties, 1, &cdDevices[uiDeviceUsed], NULL, NULL, &err);
+	if(1)
+		extraInitFromNvidiaSamples();
+	else
+	{
+		/* from OpenCL Programming Guide, pg 338 */
+		cl_context_properties properties[] = {
+			CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+			CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
+			CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
+			0};
+
+		context = clCreateContext(properties, 1, &cdDevices[uiTargetDevice], NULL, NULL, &err);
+	}
 #endif /* WIN32 */
 
 
@@ -345,7 +565,7 @@ bool init_GPU_collide(void) {
 
  
 	// build the compute program executable
-char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
+	//char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
 	//err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
 	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
@@ -410,8 +630,11 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	}
 
 	// update the current matrix transform
+#ifdef _MSC_VER
+        memcpy(transform.matrix.s, modelMat, sizeof(cl_float16));
+#else
         memcpy(transform.matrix, modelMat, sizeof(cl_float16));
-
+#endif
         clEnqueueWriteBuffer(queue, matrix_buffer, CL_TRUE, 0, sizeof(struct OpenCLTransform), &transform, 0, NULL, NULL);
 
 	// lets get the openGL vertex buffer here
@@ -561,10 +784,10 @@ printf ("**********\n\n");
 
 	for (i=0; i < GET_SFVEC3F_COUNT; i++) {
 		/* XXX float to double conversion; make a vecdotf for speed */
+		double disp;
 		dispv.x = collide_rvs.p[i].c[0];
 		dispv.y = collide_rvs.p[i].c[1];
 		dispv.z = collide_rvs.p[i].c[2];
-		double disp;
 
                         /*keep result only if:
                           displacement is positive
