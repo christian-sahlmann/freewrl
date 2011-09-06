@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.9 2011/08/29 15:35:17 dug9 Exp $
+$Id: CollisionGPU.c,v 1.10 2011/09/06 15:53:13 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -74,6 +74,36 @@ struct OpenCLTransform
 {
         cl_float16      matrix;
 };
+
+static void printCLError(const char *where, int err) {
+	switch (err) {
+
+		case CL_INVALID_MEM_OBJECT: ConsoleMessage ("%s, error CL_INVALID_MEM_OBJECT",where); break;
+		case CL_MEM_OBJECT_ALLOCATION_FAILURE: ConsoleMessage ("%s, error CL_MEM_OBJECT_ALLOCATION_FAILURE",where); break;
+		case CL_INVALID_PROGRAM_EXECUTABLE: ConsoleMessage ("%s, error CL_INVALID_PROGRAM_EXECUTABLE",where); break;
+		case CL_INVALID_COMMAND_QUEUE: ConsoleMessage ("%s, error CL_INVALID_COMMAND_QUEUE",where); break;
+		case CL_INVALID_KERNEL_ARGS: ConsoleMessage ("%s, error CL_INVALID_KERNEL_ARGS",where); break;
+		case CL_INVALID_KERNEL: ConsoleMessage ("%s, error CL_INVALID_KERNEL",where); break;
+		case CL_INVALID_WORK_ITEM_SIZE: ConsoleMessage ("%s, error CL_INVALID_WORK_ITEM_SIZE",where); break;
+		case CL_INVALID_WORK_GROUP_SIZE: ConsoleMessage ("%s, error CL_INVALID_WORK_GROUP_SIZE",where); break;
+		case CL_INVALID_WORK_DIMENSION: ConsoleMessage ("%s, error CL_INVALID_WORK_DIMENSION",where); break;
+		case CL_INVALID_GLOBAL_OFFSET: ConsoleMessage ("%s, error CL_INVALID_GLOBAL_OFFSET",where); break;
+		case CL_INVALID_EVENT_WAIT_LIST: ConsoleMessage ("%s, error CL_INVALID_EVENT_WAIT_LIST",where); break;
+		case CL_INVALID_GL_OBJECT: ConsoleMessage ("%s, error CL_INVALID_GL_OBJECT",where); break;
+		case CL_INVALID_QUEUE_PROPERTIES: ConsoleMessage ("%s, error CL_INVALID_QUEUE_PROPERTIES",where); break;
+		case CL_INVALID_CONTEXT: ConsoleMessage ("%s, error CL_INVALID_CONTEXT",where); break;
+		case CL_INVALID_PLATFORM: ConsoleMessage ("%s, error CL_INVALID_PLATFORM",where); break;
+		case CL_INVALID_VALUE: ConsoleMessage ("%s, error CL_INVALID_VALUE",where); break;
+		case CL_INVALID_DEVICE: ConsoleMessage ("%s, error CL_INVALID_DEVICE",where); break;
+		case CL_DEVICE_NOT_AVAILABLE: ConsoleMessage ("%s, error CL_DEVICE_NOT_AVAILABLE",where); break;
+		case CL_OUT_OF_HOST_MEMORY: ConsoleMessage ("%s, error CL_OUT_OF_HOST_MEMORY",where); break;
+		case CL_OUT_OF_RESOURCES: ConsoleMessage("%s, error CL_OUT_OF_RESOURCES",where);break;
+		default: ConsoleMessage ("unknown OpenCL error in %s",where);
+	}
+}
+
+
+
 
 /********************************************************************************/
 /*										*/
@@ -463,13 +493,19 @@ bool init_GPU_collide(void) {
 	{
 		gpu=1;
 		err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-		printf("clGetDeviceIDs err=%d\n");
+		printf("clGetDeviceIDs err=%d\n",err);
 	}
 #if defined (TARGET_AQUA)
 	CGLContextObj kCGLContext = CGLGetCurrentContext();
 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
 	cl_context_properties properties[] = {
 		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
+
+	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+	if (err != CL_SUCCESS) {
+		printCLError("clGetDeviceIDs",err);
+		return FALSE;
+	}
 
 	context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
 
@@ -511,15 +547,7 @@ bool init_GPU_collide(void) {
 
  
 	if (err != CL_SUCCESS) {
-		switch (err) {
-			case CL_INVALID_PLATFORM: printf ("clCreateContext, error CL_INVALID_PLATFORM\n"); break;
-			case CL_INVALID_VALUE: printf ("clCreateContext, error CL_INVALID_VALUE\n"); break;
-			case CL_INVALID_DEVICE: printf ("clCreateContext, error CL_INVALID_DEVICE\n"); break;
-			case CL_DEVICE_NOT_AVAILABLE: printf ("clCreateContext, error CL_DEVICE_NOT_AVAILABLE\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
-			case CL_OUT_OF_RESOURCES: printf("clCreateContext, error CL_OUT_OF_RESOURCES\n");break;
-			default: printf ("unknown error in clCreateContext\n");
-		}
+		printCLError("clCreateContext",err);
 		return FALSE;
 	} else {
 		printf ("CL context created\n");
@@ -528,14 +556,7 @@ bool init_GPU_collide(void) {
 	// create a command queue
 	queue = clCreateCommandQueue(context, device_id, 0, &err);
 	if (!queue || (err != CL_SUCCESS)) {
-		switch (err) {
-			case CL_INVALID_CONTEXT: printf ("clCreateContext, error CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_DEVICE: printf ("clCreateContext, error CL_INVALID_DEVICE\n"); break;
-			case CL_INVALID_VALUE: printf ("clCreateContext, error CL_INVALID_VALUE\n"); break;
-			case CL_INVALID_QUEUE_PROPERTIES: printf ("clCreateContext, error CL_INVALID_QUEUE_PROPERTIES\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
-			default: printf ("unknown error in clCreateCommandQueue\n");
-		}
+		printCLError("clCreateCommandQueue",err);
 		return FALSE;
 	}
 	printf ("queue created\n");
@@ -565,12 +586,7 @@ bool init_GPU_collide(void) {
 
 	program = clCreateProgramWithSource(context, 1, &kp, NULL, &err);
 	if (!program || (err != CL_SUCCESS)) {
-		switch (err) {
-			case CL_INVALID_CONTEXT: printf ("clCreateContext, error CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_VALUE: printf ("clCreateContext, error CL_INVALID_VALUE\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clCreateContext, error CL_OUT_OF_HOST_MEMORY\n"); break;
-			default: printf ("unknown error in clCreateProgramWithSource\n");
-		}
+		printCLError("clCreateProgramWithSource",err);
 		return FALSE;
 	}
 	printf ("program created\n");
@@ -655,27 +671,15 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	// lets get the openGL vertex buffer here
 	vertex_buffer=clCreateFromGLBuffer(context, CL_MEM_READ_ONLY, vertex_vbo, &err);
 	if (err != CL_SUCCESS) {
-		switch (err) {
-			case CL_INVALID_CONTEXT: printf ("clEnqueueNDRangeKernel, CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_VALUE: printf ("clEnqueueNDRangeKernel, CL_INVALID_VALUE\n"); break;
-			case CL_INVALID_GL_OBJECT: printf ("clEnqueueNDRangeKernel, CL_INVALID_GL_OBJECT\n"); break;
-			case CL_OUT_OF_RESOURCES: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_RESOURCES\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_HOST_MEMORY\n"); break;
-			default: printf ("clCreateFromGLBuffer, failure\n");
-		}
+		printCLError("clCreateFromGLBuffer",err);
+		return maxdispv;
 	}
 
 	// and the coordinate index buffer
 	index_buffer = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY, index_vbo, &err);
 	if (err != CL_SUCCESS) {
-		switch (err) {
-			case CL_INVALID_CONTEXT: printf ("clEnqueueNDRangeKernel, CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_VALUE: printf ("clEnqueueNDRangeKernel, CL_INVALID_VALUE\n"); break;
-			case CL_INVALID_GL_OBJECT: printf ("clEnqueueNDRangeKernel, CL_INVALID_GL_OBJECT\n"); break;
-			case CL_OUT_OF_RESOURCES: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_RESOURCES\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_HOST_MEMORY\n"); break;
-			default: printf ("clCreateFromGLBuffer, failure\n");
-		}
+		printCLError("clCreateFromGLBuffer",err);
+		return maxdispv;
 	}
 
 	
@@ -708,27 +712,8 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 
   	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
-		switch (err) {
-			case CL_INVALID_PROGRAM_EXECUTABLE: printf ("clEnqueueNDRangeKernel, CL_INVALID_PROGRAM_EXECUTABLE\n"); break;
-			case CL_INVALID_COMMAND_QUEUE: printf ("clEnqueueNDRangeKernel, CL_INVALID_COMMAND_QUEUE\n"); break;
-			case CL_INVALID_KERNEL: printf ("clEnqueueNDRangeKernel, CL_INVALID_KERNEL\n"); break;
-			case CL_INVALID_CONTEXT: printf ("clEnqueueNDRangeKernel, CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_KERNEL_ARGS: printf ("clEnqueueNDRangeKernel, CL_INVALID_KERNEL_ARGS\n"); break;
-			case CL_INVALID_WORK_DIMENSION: printf ("clEnqueueNDRangeKernel, CL_INVALID_WORK_DIMENSION\n"); break;
-			case CL_INVALID_WORK_GROUP_SIZE: printf ("clEnqueueNDRangeKernel, CL_INVALID_WORK_WORK_GROUP_SIZE\n"); break;
-			case CL_INVALID_WORK_ITEM_SIZE: printf ("clEnqueueNDRangeKernel, CL_INVALID_WORK_WORK_ITEM_SIZE\n"); break;
-			case CL_INVALID_GLOBAL_OFFSET: printf ("clEnqueueNDRangeKernel, CL_INVALID_GLOBAL_OFFSET\n"); break;
-			case CL_OUT_OF_RESOURCES: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_RESOURCES\n"); break;
-
-			case CL_MEM_OBJECT_ALLOCATION_FAILURE: printf ("clEnqueueNDRangeKernel, CL_MEM_OBJECT_ALLOCATION_FAILURE\n"); break;
-			case CL_INVALID_EVENT_WAIT_LIST: printf ("clEnqueueNDRangeKernel, CL_INVALID_EVENT_WAIT_LIST\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clEnqueueNDRangeKernel, CL_OUT_OF_HOST_MEMORY\n"); break;
-
-			default: printf ("enqueueNDRange, failure\n");
-
-
-		}
-		exit(1);
+		printCLError("clEnqueueNDRangeKernel",err);
+		return maxdispv;
 	}
 	
 
@@ -739,19 +724,8 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	//err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * ntri, collide_rvs.p, 0, NULL, NULL);
 	err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * GET_SFVEC3F_COUNT, collide_rvs.p, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
-		switch (err) {
-			case CL_INVALID_COMMAND_QUEUE: printf ("clGetKernelWorkGroupInfo, CL_INVALID_COMMAND_QUEUE\n"); break;
-			case CL_INVALID_CONTEXT: printf ("clGetKernelWorkGroupInfo, CL_INVALID_CONTEXT\n"); break;
-			case CL_INVALID_MEM_OBJECT: printf ("clGetKernelWorkGroupInfo, CL_INVALID_MEM_OBJECT\n"); break;
-			case CL_INVALID_VALUE: printf ("clGetKernelWorkGroupInfo, CL_INVALID_VALUE\n"); break;
-			case CL_INVALID_EVENT_WAIT_LIST: printf ("clGetKernelWorkGroupInfo, CL_INVALID_EVENT_WAIT_LIST\n"); break;
-			case CL_MEM_OBJECT_ALLOCATION_FAILURE: printf ("clGetKernelWorkGroupInfo, CL_MEM_OBJECT_ALLOCATION_FAILURE\n"); break;
-			case CL_OUT_OF_HOST_MEMORY: printf ("clGetKernelWorkGroupInfo, CL_OUT_OF_HOST_MEMORY\n"); break;
-			default: printf ("glGetKernetWorkGroupInfo, failure\n");
-
-
-		}
-		exit(1);
+		printCLError("clEnqueueNDRangeKernel",err);
+		return maxdispv;
 	}
 
 #ifdef SHADERS_2011
@@ -760,28 +734,6 @@ int i;
 #ifdef DEBUG
 printf ("\n**********\nshader output: ntri is %d but doing 19\n",ntri);
 for (i=0; i<GET_SFVEC3F_COUNT; i++) {
-	switch (i) {
-		case 0: printf ("cp1\t"); break;
-		case 1: printf ("cp2\t"); break;
-		case 2: printf ("cp3\t"); break;
-		case 3: printf ("cp4\t"); break;
-		case 4: printf ("i\t"); break;
-		case 5: printf ("j\t"); break;
-		case 6: printf ("epsil\t"); break;
-		case 7: printf ("cpts\t"); break;
-		case 8: printf ("norm\t"); break;
-		case 9: printf ("unused\t"); break;
-		case 10: printf ("unused\t"); break;
-		case 11: printf ("cppto\t"); break;
-		case 12: printf ("tv1\t"); break;
-		case 13: printf ("tv2\t"); break;
-		case 14: printf ("tv3\t"); break;
-		case 15: printf ("iv1\t"); break;
-		case 16: printf ("iv2\t"); break;
-		case 17: printf ("iv3\t"); break;
-		case 18: printf ("n\t"); break;
-
-	}
 	printf ("i %d val %f %f %f\n",i,
 	collide_rvs.p[i].c[0],
 	collide_rvs.p[i].c[1],
