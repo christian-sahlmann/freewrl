@@ -2,6 +2,12 @@
 Instructions are posted at:
 http://freewrl.sourceforge.net/windowsBuild.html 
 
+Updated Sept 7, 2011
+To build the ActiveX project with a MS Visual C (MSVC) newer than 2003/vc7, 
+edit the project parameters > linker and change any references to mfcs71.lib to 
+mfcs??.lib where ?? is 90 for 2008/VC9 ie mfsc90.lib
+
+
 Updated May 21, 2011
 ACTIVEX CONTROL/PLUGIN NOTES:
 The freewrlAx project is for the ActiveX control, which is the InternetExplorer plugin for freewrl. 
