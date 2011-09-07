@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.75 2011/08/10 23:03:50 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.76 2011/09/07 18:40:36 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -1717,7 +1717,7 @@ DEBUGGING_CODE	return 0;
 DEBUGGING_CODE}
 #endif
 
-struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n, char *, int);
+struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n);
 #define FLOAT_TOLERANCE 0.00000001
 void collide_Sphere (struct X3D_Sphere *node) {
 	       struct point_XYZ t_orig = {0,0,0}; /*transformed origin*/
@@ -1780,7 +1780,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
 					veccross(&n,a,b); /* 6 multiplies */
 					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,3,n,__FILE__,__LINE__);
+					dispv = get_poly_disp_2(pts,3,n);
 					disp = vecdot(&dispv,&dispv);
 					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
 						maxdisp = disp;
@@ -2231,7 +2231,7 @@ void collide_Cone (struct X3D_Cone *node) {
 						VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
 						veccross(&n,a,b); /* 6 multiplies */
 						vecnormal(&n,&n); 
-						dispv = get_poly_disp_2(pts,3,n,__FILE__,__LINE__);
+						dispv = get_poly_disp_2(pts,3,n);
 					    disp = vecdot(&dispv,&dispv);
 						if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
 							maxdisp = disp;
@@ -2513,7 +2513,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
 					veccross(&n,a,b); /* 6 multiplies */
 					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,3,n,__FILE__,__LINE__);
+					dispv = get_poly_disp_2(pts,3,n);
 				    disp = vecdot(&dispv,&dispv);
 					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
 						maxdisp = disp;
@@ -2532,7 +2532,7 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 					VECDIFF(pts[2],pts[1],b); /* or [2] [0] direction not sensitive for some functions */
 					veccross(&n,a,b); /* 6 multiplies */
 					vecnormal(&n,&n); 
-					dispv = get_poly_disp_2(pts,4,n,__FILE__,__LINE__);
+					dispv = get_poly_disp_2(pts,4,n);
 				    disp = vecdot(&dispv,&dispv);
 					if( (disp > FLOAT_TOLERANCE) && (disp > maxdisp) ){
 						maxdisp = disp;

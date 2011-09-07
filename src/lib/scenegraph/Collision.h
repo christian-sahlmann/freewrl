@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.14 2011/08/23 15:24:40 crc_canada Exp $
+$Id: Collision.h,v 1.15 2011/09/07 18:40:36 crc_canada Exp $
 
 Collision ???
 
@@ -48,81 +48,30 @@ typedef int prflags;
 /*uncomment this to enable the scene exporting functions */
 /*#define DEBUG_SCENE_EXPORT*/
 
-double
-closest_point_of_segment_to_y_axis(struct point_XYZ p1,
-								   struct point_XYZ p2);
-double
-closest_point_of_segment_to_origin(struct point_XYZ p1,
-								   struct point_XYZ p2);
+// double closest_point_of_segment_to_y_axis(struct point_XYZ p1, struct point_XYZ p2);
+// double closest_point_of_segment_to_origin(struct point_XYZ p1, struct point_XYZ p2);
 
-struct point_XYZ
-closest_point_of_plane_to_origin(struct point_XYZ b,
-								 struct point_XYZ n);
+//struct point_XYZ closest_point_of_plane_to_origin(struct point_XYZ b, struct point_XYZ n);
 
-int
-intersect_segment_with_line_on_yplane(struct point_XYZ* pk,
-									  struct point_XYZ p1,
-									  struct point_XYZ p2,
-									  struct point_XYZ q1,
-									  struct point_XYZ q2);
+// int intersect_segment_with_line_on_yplane(struct point_XYZ* pk, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ q1, struct point_XYZ q2);
 
-int
-getk_intersect_line_with_ycylinder(double* k1,
-								   double* k2,
-								   double r,
-								   struct point_XYZ pp1,
-								   struct point_XYZ n);
+// int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct point_XYZ pp1, struct point_XYZ n);
 
-int
-project_on_cylindersurface(struct point_XYZ* res,
-						   struct point_XYZ p,
-						   struct point_XYZ n,
-						   double r);
+// int project_on_cylindersurface(struct point_XYZ* res, struct point_XYZ p, struct point_XYZ n, double r);
 
-int
-getk_intersect_line_with_sphere(double* k1,
-								double* k2,
-								double r,
-								struct point_XYZ pp1,
-								struct point_XYZ n);
+// int getk_intersect_line_with_sphere(double* k1, double* k2, double r, struct point_XYZ pp1, struct point_XYZ n);
 
-int
-project_on_spheresurface(struct point_XYZ* res,
-						 struct point_XYZ p,
-						 struct point_XYZ n,
-						 double r);
+// int project_on_spheresurface(struct point_XYZ* res, struct point_XYZ p, struct point_XYZ n, double r);
 
-struct point_XYZ
-project_on_yplane(struct point_XYZ p1,
-				  struct point_XYZ n,
-				  double y);
+// struct point_XYZ project_on_yplane(struct point_XYZ p1, struct point_XYZ n, double y);
 
-struct point_XYZ
-project_on_cylindersurface_plane(struct point_XYZ p,
-								 struct point_XYZ n,
-								 double r);
+// struct point_XYZ project_on_cylindersurface_plane(struct point_XYZ p, struct point_XYZ n, double r);
 
-int
-perpendicular_line_passing_inside_poly(struct point_XYZ a,
-									   struct point_XYZ* p,
-									   int num);
+// int perpendicular_line_passing_inside_poly(struct point_XYZ a, struct point_XYZ* p, int num); 
 
-int
-getk_intersect_segment_with_ycylinder(double* k1,
-									  double* k2,
-									  double r,
-									  struct point_XYZ pp1,
-									  struct point_XYZ pp2);
+// int getk_intersect_segment_with_ycylinder(double* k1, double* k2, double r, struct point_XYZ pp1, struct point_XYZ pp2);
 
-int
-helper_poly_clip_cap(struct point_XYZ* clippedpoly,
-					 int clippedpolynum,
-					 const struct point_XYZ* p,
-					 int num,
-					 double r,
-					 struct point_XYZ n,
-					 double y,
-					 int stepping);
+// int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, const struct point_XYZ* p, int num, double r, struct point_XYZ n, double y, int stepping);
 
 struct point_XYZ
 polyrep_disp_rec(double y1,
@@ -158,7 +107,7 @@ helper_line_clip_cap(struct point_XYZ* clippedpoly,
 void accumulate_disp(struct sCollisionInfo* ci, struct point_XYZ add);
 
 /*returns (1-k)p1 + k p2 */
-struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, double k);
+// struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, double k);
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
