@@ -196,8 +196,8 @@ sub writeMakefileInitialize() {
 	print MK "#Make file for FreeWRL\n";
 	print MK "CC = gcc\n";
 	print MK "INC = $MYINC\n";
-	print MK "DEFINE = $noStackProtector -DSTATUSBAR_HUD -DDO_COLLISION_GPU -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
-	#print MK "DEFINE = $noStackProtector -DSTATUSBAR_HUD $MYDEFINE\n";
+	#print MK "DEFINE = $noStackProtector -DSTATUSBAR_HUD -DDO_COLLISION_GPU -DSHADERS_2011 -DHAVE_GEOMETRY_SHADERS $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector -DSTATUSBAR_HUD $MYDEFINE\n";
 
 	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	print MK "MYLIBS = $MYLIBS\n";
