@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.11 2011/09/08 17:31:12 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.12 2011/09/08 18:36:11 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -256,7 +256,7 @@ cl_mem output_buffer = NULL;
 cl_mem matrix_buffer = NULL;
 cl_mem vertex_buffer = NULL;
 cl_mem index_buffer = NULL;
-struct Multi_Vec3f collide_rvs = {0,NULL};
+struct Multi_ColorRGBA collide_rvs = {0,NULL};
 struct Multi_Int32 cindicies = {0,NULL};
 
 
@@ -629,6 +629,7 @@ bool init_GPU_collide(void) {
 
 struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) {
  
+	int i;
 	int err;
 	size_t global;
 	unsigned int count;
@@ -647,7 +648,7 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 			clReleaseMemObject(output_buffer);	
 		}
 
-		output_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(struct SFVec3f) * GET_SFVEC3F_COUNT,
+		output_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT,
                                                                   NULL, NULL);
 
 		if (matrix_buffer == NULL) {
@@ -655,7 +656,7 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 		}
 
 		output_size = GET_SFVEC3F_COUNT;
-		collide_rvs.p = REALLOC(collide_rvs.p, sizeof(struct SFVec3f) *GET_SFVEC3F_COUNT);
+		collide_rvs.p = REALLOC(collide_rvs.p, sizeof(struct SFColorRGBA) *GET_SFVEC3F_COUNT);
 		collide_rvs.n = GET_SFVEC3F_COUNT;
 	}
 
@@ -717,62 +718,49 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	
 
 	// wait for things to finish
-	clFinish(queue);
-
 	// get the data
-	//err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * ntri, collide_rvs.p, 0, NULL, NULL);
-	err = clEnqueueReadBuffer (queue, output_buffer, CL_TRUE, 0, sizeof(struct SFVec3f) * GET_SFVEC3F_COUNT, collide_rvs.p, 0, NULL, NULL);
+	err = clEnqueueReadBuffer (queue, output_buffer, 
+		CL_TRUE, 0, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT, 
+		collide_rvs.p, 0, NULL, NULL);
+
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
 		return maxdispv;
 	}
 
-#ifdef SHADERS_2011
-{
-int i;
-#ifdef DEBUG
-printf ("\n**********\nshader output: ntri is %d but doing 19\n",ntri);
-for (i=0; i<GET_SFVEC3F_COUNT; i++) {
-	printf ("i %d val %f %f %f\n",i,
-	collide_rvs.p[i].c[0],
-	collide_rvs.p[i].c[1],
-	collide_rvs.p[i].c[2]);
-}
-printf ("**********\n\n");
-
-#endif
-}
-#endif
-
-
-{ int i;
-
 
 	for (i=0; i < GET_SFVEC3F_COUNT; i++) {
 		/* XXX float to double conversion; make a vecdotf for speed */
 		double disp;
-		dispv.x = collide_rvs.p[i].c[0];
-		dispv.y = collide_rvs.p[i].c[1];
-		dispv.z = collide_rvs.p[i].c[2];
-		// printf ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
+
+		// we use the last float to indicate whether to bother here; saves us
+		// doing unneeded calculations here
+
+		if (collide_rvs.p[i].c[3] > 1.0) {
+			// printf ("possibly triangle %d has some stuff for us\n",i);
+
+
+			dispv.x = collide_rvs.p[i].c[0];
+			dispv.y = collide_rvs.p[i].c[1];
+			dispv.z = collide_rvs.p[i].c[2];
+			 //printf ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
 
                         /*keep result only if:
                           displacement is positive
                           displacement is smaller than minimum displacement up to date
                          */
 
-		disp = vecdot (&dispv,&dispv);
-		if ((disp > FLOAT_TOLERANCE) && (disp>maxdisp)) {
-			maxdisp = disp;
-			maxdispv = dispv;
+			disp = vecdot (&dispv,&dispv);
+			if ((disp > FLOAT_TOLERANCE) && (disp>maxdisp)) {
+				maxdisp = disp;
+				maxdispv = dispv;
+			}
 		}
 
-	} 
+	}
 
 	
 	// printf ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); 
-	
-}
 
 	return maxdispv;
 }

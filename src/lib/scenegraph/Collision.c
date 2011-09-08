@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.35 2011/09/08 17:31:12 crc_canada Exp $
+$Id: Collision.c,v 1.36 2011/09/08 18:36:11 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -2455,7 +2455,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 	return dispsum;
 }
 
-#define POLYREP_DISP2_PERFORMANCE
+#undef POLYREP_DISP2_PERFORMANCE
 #ifdef POLYREP_DISP2_PERFORMANCE
 static double Time1970sec(void) {
                 struct timeval mytime;
