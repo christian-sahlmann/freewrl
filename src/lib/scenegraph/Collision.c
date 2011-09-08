@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.34 2011/09/07 18:40:36 crc_canada Exp $
+$Id: Collision.c,v 1.35 2011/09/08 17:31:12 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -1061,7 +1061,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		result = get_poly_min_disp_with_sphere(awidth, p, num, n);
 	}
 	pp->get_poly_mindisp = vecdot(&result,&result);
-	//printf ("\tend get_poly_disp_2, result %lf %lf %lf\n",result.x,result.y,result.z);
+	// printf ("\tend get_poly_disp_2, result %lf %lf %lf\n",result.x,result.y,result.z);
 	return result;
 }
 
@@ -1136,10 +1136,12 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
     return result;
 }
 
-
 #ifdef JOHNS
 
 /* JOHNS debugging */
+/* this code is the collision code for the OpenCL kernel, but written in C. It is here
+because we can debug this here; debugging on the GPU is not so easy. */
+
 #define initVector(res,zz,yy) \
 	res.x = points[zz].x-points[yy].x;  \
 	res.y = points[zz].y-points[yy].y;  \
@@ -1187,7 +1189,7 @@ static void closest_point_on_plane(struct point_XYZ *retval, struct point_XYZ* p
 	double tnom = vecdot(&vector_ap, &vector_ac); // (p - a, ac);
 	double tdenom = vecdot(&vector_cp, &vector_ca); //  (p - c, a - c);
 
-	// printf ("snom %f sdenom %f\ntnom %f tdenom %f\n",snom, sdenom, tnom, tdenom);
+	// printf ("SW closest_point; snom %f sdenom %f\ntnom %f tdenom %f\n",snom, sdenom, tnom, tdenom);
 
 	// Step 4.
 	if (snom <= 0.0f && tnom <= 0.0f) {
@@ -1299,7 +1301,7 @@ static void closest_point_on_plane(struct point_XYZ *retval, struct point_XYZ* p
 		u*points[0].z + v*points[1].z + w*points[2].z};
 
 	//return u * a + v * b + w * c;
-	// printf ("returning point %f %f %f\n",rv.x,rv.y,rv.z);
+	// printf ("SW closest_point, returning point %f %f %f\n",rv.x,rv.y,rv.z);
 	memcpy (retval, &rv, sizeof (struct point_XYZ));
 
 }
@@ -1323,7 +1325,7 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 	ppcollision pp = (ppcollision)gglobal()->collision.prv;
     get_poly_mindisp = 1E90;
 
-
+	/* printf ("\nstart of get_poly_min_disp_with_sphere\n"); */
 
 #ifdef JOHNS
 /* JOHNS Debugging */
@@ -1343,7 +1345,7 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 	if (get_poly_mindisp <= r*r) {
 		double rl;
 
-		//printf ("have to move; closest point %f %f %f dot product %f r2 %f \n",closest_point.x, closest_point.y, closest_point.z, get_poly_mindisp, 0.25*0.25);
+		printf ("SW closest_point, have to move; closest point %f %f %f dot product %f r2 %f \n",closest_point.x, closest_point.y, closest_point.z, get_poly_mindisp, 0.25*0.25);
 		/*  scale result to length of missing distance. */
 		rl = veclength(closest_point);
 		/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
@@ -1353,8 +1355,8 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
 			/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
 				r, sqrt(get_poly_mindisp), rl); */
 			vecscale(&closest_point,&closest_point,(r-sqrt(get_poly_mindisp)) / rl);
+			printf ("SW closest_point - now, return vector is %f %f %f\n",closest_point.x, closest_point.y, closest_point.z);
 			return closest_point;
-			printf ("now, return vector is %f %f %f\n",closest_point.x, closest_point.y, closest_point.z);
 		} 
 	}
 	return zero;
@@ -1460,11 +1462,15 @@ printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clipp
 			result = pp->clippedPoly4[i];
 		}
     }
+    /* printf ("SW, get_poly_min_disp_with_sphere way, get_poly_mindisp %f\n",get_poly_mindisp); */
+
     if(get_poly_mindisp <= r*r) 
 	{
 		double rl;
-//printf ("\t\tget_poly_min_disp_with_sphere, less than r*r\n");
-// printf ("have to move, have poly_mindisp %f, r*r %f, point %f %f %f\n",get_poly_mindisp, r*r, result.x,result.y,result.z);
+
+		/* printf ("\t\tWOW!!! WOW!!! get_poly_min_disp_with_sphere, less than r*r\n");
+		printf ("have to move, have poly_mindisp %f, r*r %f, point %f %f %f\n",get_poly_mindisp, r*r, result.x,result.y,result.z);
+		*/
 
 
 		/*  scale result to length of missing distance. */
@@ -1476,7 +1482,8 @@ printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clipp
 			/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
 				r, sqrt(get_poly_mindisp), rl); */
 			vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);
-// printf ("old way, result %f %f %f\n",result.x, result.y, result.z);
+
+			/* printf ("by the non-OpenCL software way, result %f %f %f\n",result.x, result.y, result.z); */
 		} 
 		else
 		{
@@ -1487,7 +1494,7 @@ printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clipp
 	{
 		result = zero;
 	}
-//printf ("\t\tend get_poly_min_disp_with_sphere result %lf %lf %lf\n",result.x, result.y, result.z);
+    // printf ("\t\tend get_poly_min_disp_with_sphere result %lf %lf %lf\n",result.x, result.y, result.z);
     return result;
 }
 
@@ -2448,7 +2455,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 	return dispsum;
 }
 
-#undef POLYREP_DISP2_PERFORMANCE
+#define POLYREP_DISP2_PERFORMANCE
 #ifdef POLYREP_DISP2_PERFORMANCE
 static double Time1970sec(void) {
                 struct timeval mytime;
@@ -2501,9 +2508,9 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 	stopTime = Time1970sec();
 	accumTime += stopTime - startTime;
 
-	if (counter == 10) {
-		printf ("polyrep_disp2, averaged over 10 runs: %f\n",
-			accumTime/10.0);
+	if (counter == 25) {
+		printf ("polyrep_disp2, averaged over 25 runs: %f\n",
+			accumTime/25.0);
 		counter = 0;
 		accumTime = 0.0;
 	}
@@ -2514,7 +2521,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 		return pp->res;
 	}
 
-	/* if we are here, there was an OpenCL issue */
+	/* if we are here, there was an OpenCL issue and we have to do this by software */
 #endif
 
 
@@ -2552,7 +2559,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 
 	pp->res = polyrep_disp_rec2(&pr,pp->prd_normals,pp->res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
 
-	/* printf ("polyrep_disp_rec2 returned %f %f %f\n",pp->res.x, pp->res.y, pp->res.z); */
+	/* printf ("polyrep_disp_rec2 tells us to move: %f %f %f\n",pp->res.x, pp->res.y, pp->res.z); */
 
 	pr.actualCoord = 0;
 
@@ -2560,9 +2567,9 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 	stopTime = Time1970sec();
 	accumTime += stopTime - startTime;
 
-	if (counter == 10) {
-		printf ("polyrep_disp2, averaged over 10 runs: %f\n",
-			accumTime/10.0);
+	if (counter == 25) {
+		printf ("polyrep_disp2, averaged over 25 runs: %f\n",
+			accumTime/25.0);
 		counter = 0;
 		accumTime = 0.0;
 	}

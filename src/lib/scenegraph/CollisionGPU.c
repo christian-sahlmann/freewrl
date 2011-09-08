@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.10 2011/09/06 15:53:13 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.11 2011/09/08 17:31:12 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -61,8 +61,7 @@ Render the children of nodes.
 #endif 
 
 
-#define DOUGS_FLOAT_TOLERANCE 0.00000001
-#define FLOAT_TOLERANCE 0.000001
+#define FLOAT_TOLERANCE 0.00000001
 
 /********************************************************************************/
 /*										*/
@@ -606,7 +605,7 @@ bool init_GPU_collide(void) {
         	printf("Error: Failed to build program executable\n");           
         	clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
                                           sizeof(buffer), buffer, &len);
-printf ("error string len %d\n",len);
+		printf ("error string len %d\n",len);
         	printf("%s\n", buffer);
         	return FALSE;
     	}
@@ -628,7 +627,7 @@ printf ("error string len %d\n",len);
 
 #define GET_SFVEC3F_COUNT ntri
 
-struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) { 
+struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) {
  
 	int err;
 	size_t global;
@@ -755,6 +754,7 @@ printf ("**********\n\n");
 		dispv.x = collide_rvs.p[i].c[0];
 		dispv.y = collide_rvs.p[i].c[1];
 		dispv.z = collide_rvs.p[i].c[2];
+		// printf ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
 
                         /*keep result only if:
                           displacement is positive
@@ -770,7 +770,7 @@ printf ("**********\n\n");
 	} 
 
 	
-	/* printf ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); */
+	// printf ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); 
 	
 }
 

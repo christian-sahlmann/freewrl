@@ -59,8 +59,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-isysroot /Developer/SDKs/MacOSX10.5.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework Cocoa '.
-		'-lAquaIntLib ',
+		'-framework Cocoa ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
@@ -69,6 +68,5 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework Cocoa '.
-		'-lAquaIntLib ',
+		'-framework Cocoa ',
 );
