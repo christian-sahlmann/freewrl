@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.12 2011/09/08 18:36:11 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.13 2011/09/09 20:30:07 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -552,6 +552,25 @@ bool init_GPU_collide(void) {
 		printf ("CL context created\n");
 	}
 
+	// debugging information
+	{
+		cl_int rv;
+		char rvstring[1000];
+		size_t rvlen;
+		rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
+		printf ("PROFILE :%s:\n",rvstring);
+		rv = clGetPlatformInfo(NULL,CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
+		printf ("VERSION :%s:\n",rvstring);
+		rv = clGetPlatformInfo(NULL,CL_PLATFORM_NAME,1000,rvstring,&rvlen);
+		printf ("NAME :%s:\n",rvstring);
+		rv = clGetPlatformInfo(NULL,CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
+		printf ("VENDOR :%s:\n",rvstring);
+		rv = clGetPlatformInfo(NULL,CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
+		printf ("EXTENSIONS :%s:\n",rvstring);
+
+}
+
+
 	// create a command queue
 	queue = clCreateCommandQueue(context, device_id, 0, &err);
 	if (!queue || (err != CL_SUCCESS)) {
@@ -596,8 +615,9 @@ bool init_GPU_collide(void) {
  
 	// build the compute program executable
 	//char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
-	//err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
-	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	char *opts = "-Werror -cl-single-precision-constant -cl-opt-disable -cl-strict-aliasing";
+	err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
+	//err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
         	char buffer[16384];
