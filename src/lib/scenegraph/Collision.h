@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.15 2011/09/07 18:40:36 crc_canada Exp $
+$Id: Collision.h,v 1.16 2011/09/12 20:58:29 crc_canada Exp $
 
 Collision ???
 
@@ -83,25 +83,25 @@ polyrep_disp_rec(double y1,
 				 struct point_XYZ dispsum,
 				 prflags flags);
 
-struct point_XYZ
-planar_polyrep_disp_rec(double y1,
-						double y2,
-						double ystep,
-						double r,
-						struct X3D_PolyRep* pr,
-						struct point_XYZ n,
-						struct point_XYZ dispsum,
-						prflags flags);
+//struct point_XYZ
+//planar_polyrep_disp_rec(double y1,
+//						double y2,
+//						double ystep,
+//						double r,
+//						struct X3D_PolyRep* pr,
+//						struct point_XYZ n,
+//						struct point_XYZ dispsum,
+//						prflags flags);
 
-int
-helper_line_clip_cap(struct point_XYZ* clippedpoly,
-					 int clippedpolynum,
-					 struct point_XYZ p1,
-					 struct point_XYZ p2,
-					 double r,
-					 struct point_XYZ n,
-					 double y,
-					 int stepping);
+// int
+// helper_line_clip_cap(struct point_XYZ* clippedpoly,
+// 					 int clippedpolynum,
+// 					 struct point_XYZ p1,
+// 					 struct point_XYZ p2,
+// 					 double r,
+// 					 struct point_XYZ n,
+// 					 double y,
+// 					 int stepping);
 
 /*accumulator function, for displacements. */
 void accumulate_disp(struct sCollisionInfo* ci, struct point_XYZ add);
@@ -115,38 +115,38 @@ void accumulate_disp(struct sCollisionInfo* ci, struct point_XYZ add);
 
 /*feed a poly, and stats of a cylinder, it returns the vertical displacement that is needed for them not to intersect any more,
   if this displacement is less than the height of the cylinder (y2-y1).*/
-struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n);
+// struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n);
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more, or vertically if contact point below ystep*/
-struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n);
+// struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n);
 
 /*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
+// struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
 /*feed a poly, and radius of a sphere, it returns the minimum displacement and
   the direction that is needed for them not to intersect any more.*/
 /* struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n); */
 
 /*feed a line and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
+// struct point_XYZ get_line_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
 
 /*feed a line and a normal, and stats of a cylinder, it returns the vertical displacement
   that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
+// struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
 
 /*feed a line and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal, or the vertical displacement(in case of stepping) that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
+// struct point_XYZ get_line_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n);
 
 /*feed a point and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal that is needed for them not to intersect any more.*/
-struct point_XYZ get_point_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ n);
+// struct point_XYZ get_point_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ n);
 
 /*feed a point and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal, or the vertical displacement(in case of stepping) that is needed for them not to intersect any more.*/
-struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ n);
+// struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ n);
 
 /*feed a box (a corner, and the three vertice sides) and the stats of a cylinder, it returns the
   displacement of the box that is needed for them not to intersect any more, with optionnal stepping displacement */
@@ -159,7 +159,7 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
 
 /*fast test to see if the min/max of a polyrep structure (IndexedFaceSet, eg)  intersects a y-cylinder.
  * gives false positives */
-int fast_ycylinder_polyrep_intersect(double y1, double y2, double r,struct point_XYZ pcenter, double scale, struct X3D_PolyRep *pr);
+// int fast_ycylinder_polyrep_intersect(double y1, double y2, double r,struct point_XYZ pcenter, double scale, struct X3D_PolyRep *pr);
 
 /*fast test to see if a cone intersects a y-cylinder. */
 /*gives false positives. */
@@ -168,7 +168,7 @@ int fast_ycylinder_cone_intersect(double y1, double y2, double r,struct point_XY
 /* fast test to see if a sphere intersects a y-cylinder.
    specify sphere center, and a point on it's surface
   gives false positives. */
-int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct point_XYZ pcenter, struct point_XYZ psurface);
+// int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct point_XYZ pcenter, struct point_XYZ psurface);
 
 
 /*algorithm is approximative */
@@ -187,8 +187,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
   if normal is zero, it will be calculated form the first triangle*/
 struct point_XYZ planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLDOUBLE* mat, prflags flags, struct point_XYZ n);
 
-struct point_XYZ elevationgrid_disp( double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr,
-			      int xdim, int zdim, double xs, double zs, GLDOUBLE* mat, prflags flags);
+// struct point_XYZ elevationgrid_disp( double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, int xdim, int zdim, double xs, double zs, GLDOUBLE* mat, prflags flags);
 
 /* functions VERY usefull for debugging purposes
    Use these inside FreeWRL to export a scene to
@@ -217,12 +216,23 @@ struct sFallInfo
 	int allowClimbing; /* [0] - setting - will allow climbing in which case cyclindrical Y collision is over-ridden */
 	/* the following could be moved to sCollisionInfo */
 	GLDOUBLE collision2avatar[16], avatar2collision[16]; /* fly/examine: Identity, walk: BVVA2A, A2BVVA (BVVA bound-viewpoint-vertical avatar-centric) see viewer.c  */
+
 	int gravityVectorMethod; //[1] - setting -  0=old method 1=new method either bound viewpoint down or avatar down
+
+
+#ifdef OLDCODE
 	int fastTestMethod; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
+#endif
+
+
 	int checkFall;
 	int checkCylinder;
 	int checkPenetration;
+
+#ifdef OLDCODE
 	int walkColliderMethod; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+#endif
+
 	int canPenetrate; /* setting 1 will check for wall penetration */
 	int isPenetrate; /* initialize to 0 once per frame, will return as 1 if a wall penetration was found */
 	GLDOUBLE penMin[3], penMax[3]; /* MBB of scaled penetration vector (penRadius x penvec) - initialize once per frame */

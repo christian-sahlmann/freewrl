@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.36 2011/09/08 18:36:11 crc_canada Exp $
+$Id: Collision.c,v 1.37 2011/09/12 20:58:29 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -44,8 +44,17 @@ Render the children of nodes.
 #include "Collision.h"
 
 static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n);
+
+#ifdef OLDCODE
 static struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n);
+#endif // OLDCODE
+
 static struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, double k);
+static struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ n);
+static void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax);
+
+
+
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
@@ -186,6 +195,7 @@ void accumulate_disp(struct sCollisionInfo* ci, struct point_XYZ add) {
 	ci->Maximum2 = len2;
 }
 
+#ifdef OLDCODE
 static double closest_point_of_segment_to_y_axis(struct point_XYZ p1, struct point_XYZ p2) {
     /*the equation */
     double x12 = (p1.x - p2.x);
@@ -204,6 +214,7 @@ static double closest_point_of_segment_to_y_axis(struct point_XYZ p1, struct poi
     return i;
 
 }
+#endif // OLDCODE
 
 
 static double closest_point_of_segment_to_origin(struct point_XYZ p1, struct point_XYZ p2) {
@@ -296,7 +307,7 @@ static int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, 
 }
 
 
-
+#ifdef OLDCODE
 /*projects a point on the surface of the cylinder, in the inverse direction of n.
   returns TRUE if exists.
    */
@@ -314,7 +325,10 @@ static int project_on_cylindersurface(struct point_XYZ* res, struct point_XYZ p,
     }
     return 0;
 }
+#endif // OLDCODE
 
+
+#ifdef OLDCODE
 /*finds the intersection of the line pp1 + k n with a sphere.
   returns the 0,1 or 2 values.
  */
@@ -355,6 +369,8 @@ static int project_on_spheresurface(struct point_XYZ* res, struct point_XYZ p, s
     }
     return 0;
 }
+#endif // OLDCODE
+
 
 
 /*projects a point on the y="y" plane, in the direction of n. *
@@ -481,6 +497,7 @@ static struct point_XYZ weighted_sum(struct point_XYZ p1, struct point_XYZ p2, d
 }
 
 
+#ifdef OLDCODE
 /*used by get_poly_normal_disp to clip the polygon on the cylinder caps, called twice*/
 /*used by get_poly_step_disp to clip the polygon in the cylinder, by bypassing projection
   Code reuse please.
@@ -558,8 +575,10 @@ static int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynu
 
     return clippedpolynum;
 }
+#endif // OLDCODE
 
 
+#ifdef OLDCODE
 /* yes, global. for speed optimizations. */
 
 //double get_poly_mindisp;
@@ -697,10 +716,14 @@ static struct point_XYZ get_poly_normal_disp(double y1, double y2, double r, str
     /*free alloc'd data */
     return result;
 }
+#endif // OLDCODE
+
+
+#ifdef OLDCODE
 /*feed a poly, and stats of a cylinder, it returns the vertical displacement that is needed for them not to intersect any more,
   if this displacement is less than the height of the cylinder (y2-y1).*/
 
-struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+static struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     int i;
     /* int allin = 1; */
     double dmax = -1E99;
@@ -765,10 +788,12 @@ struct point_XYZ get_poly_step_disp(double y1, double y2, double r, struct point
     } else
 		return zero;
 }
+#endif // OLDCODE
 
+#ifdef OLDCODE
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more, or vertically if contact point below ystep*/
-struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+static struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     struct point_XYZ result;
 	result.x = result.y = result.z = 0.0;
     result = get_poly_step_disp(y1,ystep,r,p,num,n); /*dug9 - competes with climb for the knee-down part*/
@@ -779,9 +804,10 @@ struct point_XYZ get_poly_disp(double y1, double y2, double ystep, double r, str
 		return get_poly_normal_disp(y1,y2,r,p,num,n); /*dug9 - for walking should be used instead of sphere: just do this */
 	}
 }
-void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax);
+#endif
 
-int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, struct point_XYZ* n )
+
+static int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, struct point_XYZ* n )
 {
 	int i,j,inside;
 
@@ -801,7 +827,7 @@ int pointOnPlaneInsidePoly(struct point_XYZ D,struct point_XYZ *p, int num, stru
 	return inside;
 }
 
-int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
+static int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double r, struct point_XYZ *p,int num,struct point_XYZ n,double *dr)
 {
 	/* returns 1 if a line segment intersects a convex planar polygon, else 0
 	   if 1, returns dr the fraction of D=(s1-s0) where the intersection point is
@@ -854,7 +880,7 @@ int intersectLineSegmentWithPoly(struct point_XYZ s0,struct point_XYZ s1,double 
 
 /*feed a poly, and stats of a cylinder, it returns the displacement in the radial direction of the
   avatar that is needed for them not to intersect any more */
-struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax)
+static struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax)
 { 
 	/* uses a statistical sampler method - 8 radial rays at the ystep, avatar origin Y=0, and y2, levels, each ray segment r long 
 	   It's a sampler because it will miss small things. But it is supposed to catch major things like walls.
@@ -915,7 +941,7 @@ struct point_XYZ get_poly_radialSample_disp(double y1, double y2, double ystep, 
 	return result;
 }
 
-int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax, struct point_XYZ *result, double *rmax)
+static int get_poly_penetration_disp( double r,struct point_XYZ* p, int num, struct point_XYZ n, double *tmin, double *tmax, struct point_XYZ *result, double *rmax)
 {
 	/*	checks for wall penetration and computes a correction
 	    checks between the convex poly you pass in, 
@@ -1013,6 +1039,8 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 			tmax[2] = DOUBLE_MAX(tmax[2],p[i].z);
 		}
 
+// printf ("get_poly_disp_2, checkPenetration %d checkCylinder %d checkFall %d true %d\n",fi->checkPenetration, fi->checkCylinder, fi->checkFall, TRUE);
+
 		/* walking */
 		hit = 0;
 		if(fi->checkPenetration)
@@ -1032,6 +1060,8 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 		}
 		if(fi->checkCylinder && !hit)
 		{
+			result = get_poly_radialSample_disp(abottom,atop,astep,awidth,p,num,n,tmin,tmax); //statistical method
+#ifdef OLDCODE
 			/* the poly normal is jerky with wild displacements. I need a cylinder collision like the sphere. */
 			/* get_poly_normal_disp(y1,y2,r,p,num,n); */
 			/* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler. Jan 15, 2010 Sampler is the best for walking. Sphere works but ducks */
@@ -1043,6 +1073,7 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 				case 3: result = get_poly_radialSample_disp(abottom,atop,astep,awidth,p,num,n,tmin,tmax); break; //statistical method
 				case 4: result = get_poly_step_disp(abottom,atop,awidth,p,num,n); break; //<<< doesn't make sense I've got a cylinder going from foot to ystep
 			}
+#endif // OLDCODE
 
 			hit = !(APPROX(result.x, 0) && APPROX(result.y, 0) && APPROX(result.z, 0));
 			if(hit) 
@@ -1066,9 +1097,10 @@ struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ 
 }
 
 
+#ifdef OLDCODE
 /*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
-struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
+static struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
     int i;
     double polydisp;
     struct point_XYZ result;
@@ -1135,180 +1167,7 @@ struct point_XYZ get_poly_normal_disp_with_sphere(double r, struct point_XYZ* p,
 
     return result;
 }
-
-#ifdef JOHNS
-
-/* JOHNS debugging */
-/* this code is the collision code for the OpenCL kernel, but written in C. It is here
-because we can debug this here; debugging on the GPU is not so easy. */
-
-#define initVector(res,zz,yy) \
-	res.x = points[zz].x-points[yy].x;  \
-	res.y = points[zz].y-points[yy].y;  \
-	res.z = points[zz].z-points[yy].z;  
-
-
-static void closest_point_on_plane(struct point_XYZ *retval, struct point_XYZ* points) {
-	struct point_XYZ vector_ab; // b - a
-	struct point_XYZ vector_ac; // c - a
-	struct point_XYZ vector_bc; // c - b
-	struct point_XYZ vector_ba; // a - b
-	struct point_XYZ vector_ca; // a - c
-	struct point_XYZ vector_cb; // b - c
-
-	// Step 1. Initialize Vectors ab, ac, bc
-	initVector(vector_ab,0,1); // b - a;
-	initVector(vector_ac,0,2); // c - a;
-	initVector(vector_bc,1,2); // c - b; 
-	initVector(vector_ba,1,0); // a - b;
-	initVector(vector_ca,2,0); // a - c;
-	initVector(vector_cb,2,1); // b - c;
-
-	// we have moved points, so our bounding sphere is at (0,0,0) so p = (0,0,0)
-	struct point_XYZ vector_pa = {-points[0].x,-points[0].y,-points[0].z}; // a-p
-	struct point_XYZ vector_pb= {-points[1].x,-points[1].y,-points[1].z}; // b-p
-	struct point_XYZ vector_pc = {-points[2].x,-points[2].y,-points[2].z}; // c-p
-	struct point_XYZ vector_ap = {points[0].x,points[0].y,points[0].z};    // p-a
-	struct point_XYZ vector_bp = {points[1].x,points[1].y,points[1].z};    // p-b
-	struct point_XYZ vector_cp = {points[2].x,points[2].y,points[2].z};    // p-c
-	
-	/*
-	// printf ("closest_point_on_plane, vectors:\n\t%f %f %f\n\t%f %f %f\n\t%f %f %f\n",
-		vector_ab.x,vector_ab.y,vector_ab.z,vector_ac.x,vector_ac.y,vector_ac.z,vector_bc.x,vector_bc.y,vector_bc.z);
-	*/
-
-	// Step 2. Compute parametric position s for projection P' of P on AB,
-	// P' = A + s*AB, s = snom/(snom+sdenom)
-
-	double snom = vecdot(&vector_ap, &vector_ab); // (p - a, ab);
-	double sdenom = vecdot(&vector_bp, &vector_ba); // (p - b, a - b);
-
-	// Step 3.
-	// Compute parametric position t for projection P' of P on AC,
-	// P' = A + t*AC, s = tnom/(tnom+tdenom)
-	double tnom = vecdot(&vector_ap, &vector_ac); // (p - a, ac);
-	double tdenom = vecdot(&vector_cp, &vector_ca); //  (p - c, a - c);
-
-	// printf ("SW closest_point; snom %f sdenom %f\ntnom %f tdenom %f\n",snom, sdenom, tnom, tdenom);
-
-	// Step 4.
-	if (snom <= 0.0f && tnom <= 0.0f) {
-		// printf ("early out at step 4, returning p[0]\n");
-		memcpy (retval,&points[0],sizeof (struct point_XYZ));
-		return;
-	}
-
-	// Step 5.
-	// Compute parametric position u for projection P' of P on BC,
-	// P' = B + u*BC, u = unom/(unom+udenom)
-	double unom = vecdot(&vector_bp, &vector_bc); //(p - b, bc)
-	double udenom = vecdot(&vector_cp, &vector_cb); // (p - c, b - c);
-	// printf ("unom %f udenom %f\n",unom,udenom);
-
-	// Step 6.
-	if (sdenom <= 0.0f && unom <= 0.0f) {
-		// printf ("early out at step 6a, returning p[1]\n");
-		memcpy (retval,&points[1],sizeof (struct point_XYZ));
-		return;
-	}
-
-	if (tdenom <= 0.0f && udenom <= 0.0f) {
-		// printf ("early out at step 6b, returning p[2]\n");
-		memcpy (retval,&points[2],sizeof (struct point_XYZ));
-		return;
-	}
-
-
-	// Step 7.
-	// P is outside (or on) AB if the triple scalar product [N PA PB] <= 0
-	struct point_XYZ n;
-	struct point_XYZ tmp;
-	double vc;
-
-	veccross(&n, vector_ab, vector_ac); // (b - a, c - a);
-	veccross(&tmp, vector_pa, vector_pb); // veccross (a-p, b-p);
-
-	// vc = vecdot(n, veccross(a - p, b - p));
-	vc = vecdot(&n, &tmp);
-
-
-	// If P outside AB and within feature region of AB,
-	// return projection of P onto AB
-	if (vc <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) {
-		// printf ("P is outside or on AB\n");
-		//return a + snom / (snom + sdenom) * ab;
-		struct point_XYZ rv = {
-			points[0].x + snom/ (snom+sdenom) * vector_ab.x,
-			points[0].y + snom/ (snom+sdenom) * vector_ab.y,
-			points[0].z + snom/ (snom+sdenom) * vector_ab.z};
-
-		// printf ("returning point %f %f %f\n",rv.x,rv.y,rv.z);
-		memcpy (retval, &rv, sizeof (struct point_XYZ));
-		return;
-	}
-
-
-
-	// Step 8.
-	// P is outside (or on) BC if the triple scalar product [N PB PC] <= 0
-	veccross (&tmp,vector_pb, vector_pc);
-
-	double va = vecdot(&n, &tmp); // Cross(b - p, c - p));
-	
-	// If P outside BC and within feature region of BC,
-	// return projection of P onto BC
-	if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f) {
-		// printf ("P outside BC and within feature region of BC\n");
-		//return b + unom / (unom + udenom) * bc;
-		struct point_XYZ rv = {
-			points[1].x + unom/ (unom+udenom) * vector_bc.x,
-			points[1].y + unom/ (unom+udenom) * vector_bc.y,
-			points[1].z + unom/ (unom+udenom) * vector_bc.z};
-
-		// printf ("returning point %f %f %f\n",rv.x,rv.y,rv.z);
-		memcpy (retval, &rv, sizeof (struct point_XYZ));
-		return;
-	}
-
-	// Step 9.
-	// P is outside (or on) CA if the triple scalar product [N PC PA] <= 0
-	veccross (&tmp, vector_pc, vector_pa);
-
-	double vb = vecdot(&n, &tmp); //  Cross(c - p, a - p));
-	// If P outside CA and within feature region of CA,
-	// return projection of P onto CA
-	if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) {
-		// printf ("P is outside (or on) CA if the triple scalar product [N PC PA] <= 0\n");
-		//return a + tnom / (tnom + tdenom) * ac;
-		struct point_XYZ rv = {
-			points[2].x + tnom/ (tnom+tdenom) * vector_ac.x,
-			points[2].y + tnom/ (tnom+tdenom) * vector_ac.y,
-			points[2].z + tnom/ (tnom+tdenom) * vector_ac.z};
-
-		// printf ("returning point %f %f %f\n",rv.x,rv.y,rv.z);
-		memcpy (retval, &rv, sizeof (struct point_XYZ));
-		return;
-	}
-
-	// 10.
-	// P must project inside face region. Compute Q using barycentric coordinates
-	double u = va / (va + vb + vc);
-	double v = vb / (va + vb + vc);
-	double w = 1.0f - u - v; // = vc / (va + vb + vc)
-	struct point_XYZ rv = {
-		u*points[0].x + v*points[1].x + w*points[2].x,
-		u*points[0].y + v*points[1].y + w*points[2].y,
-		u*points[0].z + v*points[1].z + w*points[2].z};
-
-	//return u * a + v * b + w * c;
-	// printf ("SW closest_point, returning point %f %f %f\n",rv.x,rv.y,rv.z);
-	memcpy (retval, &rv, sizeof (struct point_XYZ));
-
-}
-
-
-
-#endif //JOHNS
+#endif
 
 
 
@@ -1326,46 +1185,6 @@ static struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ
     get_poly_mindisp = 1E90;
 
 	/* printf ("\nstart of get_poly_min_disp_with_sphere\n"); */
-
-#ifdef JOHNS
-/* JOHNS Debugging */
-/*
-	printf ("get_poly_min_disp_with_sphere %s:%d\n",__FILE__,__LINE__);
-	printf ("\tnum %d\n",num);
-	printf ("\tNorm %f %f %f\n",n.x,n.y,n.z);
-	printf ("\tp0   %f %f %f\n",p[0].x, p[0].y, p[0].z);
-	printf ("\tp1   %f %f %f\n",p[1].x, p[1].y, p[1].z);
-	printf ("\tp2   %f %f %f\n",p[2].x, p[2].y, p[2].z);
-*/
-	struct point_XYZ closest_point;
-	closest_point_on_plane(&closest_point, p);
-	get_poly_mindisp = vecdot (&closest_point, &closest_point); 
-
-
-	if (get_poly_mindisp <= r*r) {
-		double rl;
-
-		printf ("SW closest_point, have to move; closest point %f %f %f dot product %f r2 %f \n",closest_point.x, closest_point.y, closest_point.z, get_poly_mindisp, 0.25*0.25);
-		/*  scale result to length of missing distance. */
-		rl = veclength(closest_point);
-		/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
-		/* if(rl != 0.) */
-		if(! APPROX(rl, 0)) 
-		{
-			/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
-				r, sqrt(get_poly_mindisp), rl); */
-			vecscale(&closest_point,&closest_point,(r-sqrt(get_poly_mindisp)) / rl);
-			printf ("SW closest_point - now, return vector is %f %f %f\n",closest_point.x, closest_point.y, closest_point.z);
-			return closest_point;
-		} 
-	}
-	return zero;
-
-
-
-/* END JOHNS Debugging */
-#endif //JOHNS
-
 
 	/* cheap MBB test */
 	//double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
@@ -1500,7 +1319,7 @@ printf ("\t\t\tclippedPoly4 %d is %f %f %f\n",m,pp->clippedPoly4[m].x, pp->clipp
 
 
 /*used by get_line_normal_disp to clip the polygon on the cylinder caps, called twice*/
-int helper_line_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, struct point_XYZ p1, struct point_XYZ p2, double r, struct point_XYZ n, double y, int stepping)
+static int helper_line_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, struct point_XYZ p1, struct point_XYZ p2, double r, struct point_XYZ n, double y, int stepping)
 {
     struct point_XYZ ppoly[2];
     int allin = 1;
@@ -1557,7 +1376,7 @@ int helper_line_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, stru
 
 /*feed a line and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
+static struct point_XYZ get_line_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
     int i;
     double mindisp = 0;
     double polydisp;
@@ -1643,7 +1462,7 @@ struct point_XYZ get_line_normal_disp(double y1, double y2, double r, struct poi
 
 /*feed a line and a normal, and stats of a cylinder, it returns the vertical displacement
   that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
+static struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
     int i;
     /* int allin = 1; */
     double dmax = -1E99;
@@ -1696,12 +1515,15 @@ struct point_XYZ get_line_step_disp(double y1, double y2, double r, struct point
 	return result;
     } else
 	return zero;
-
 }
+
+/* JASJASJAS */
+
+
 
 /*feed a line and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal, or the vertical displacement(in case of stepping) that is needed for them not to intersect any more.*/
-struct point_XYZ get_line_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
+static struct point_XYZ get_line_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ p2, struct point_XYZ n) {
     struct point_XYZ result;
     result = get_line_step_disp(y1,ystep,r,p1,p2,n);
     /* if(result.y != 0.) */
@@ -1712,15 +1534,19 @@ struct point_XYZ get_line_disp(double y1, double y2, double ystep, double r, str
 	}
 }
 
+#ifdef OLDCODE
 /*feed a point and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal that is needed for them not to intersect any more.*/
-struct point_XYZ get_point_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ n) {
+static struct point_XYZ get_point_normal_disp(double y1, double y2, double r, struct point_XYZ p1, struct point_XYZ n) {
     return get_point_disp(y1,y2,y1,r,p1,n);
 }
+#endif
+
+
 
 /*feed a point and a normal, and stats of a cylinder, it returns the displacement in the direction of the
   normal, or the vertical displacement(in case of stepping) that is needed for them not to intersect any more.*/
-struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ n) {
+static struct point_XYZ get_point_disp(double y1, double y2, double ystep, double r, struct point_XYZ p1, struct point_XYZ n) {
     double y;
     struct point_XYZ result = {0,0,0};
     struct point_XYZ cp;
@@ -1840,7 +1666,6 @@ struct point_XYZ box_disp(double y1, double y2, double ystep, double r,struct po
     }
 	}
     return maxdispv;
-
 }
 
 /*
@@ -1853,7 +1678,10 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
     double lefteq = sqrt(y*y + r*r) + sqrt(xs*xs + ys*ys + zs*zs);
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
-void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
+
+
+
+static void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
 {
 	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
 	struct point_XYZ abox[8];
@@ -1896,6 +1724,9 @@ void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, 
 		}
 	}
 }
+
+
+#ifdef OLDCODE
 int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax )
 { //foot,atop,awidth, Collision2Shape, node->size.c))
 	/* goal: transform avatar collision volume from avatar space to raw shape space, get its enclosing 
@@ -1916,6 +1747,12 @@ int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLDO
 	transformMBB(avmin,avmax,collision2shape,avmin,avmax);
 	return overlapMBBs(shapeMBBmin,shapeMBBmax,avmin,avmax);
 }
+#endif
+
+
+
+
+
 int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
@@ -1940,6 +1777,8 @@ int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, 
 	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
 	return overlapMBBs(avmin,avmax,smin,smax);
 }
+
+
 int fast_sphere_MBB_intersect_collisionSpace(double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform shape MBB to avatar/collision space, get its MBB there, and return 1 if the shape MBB intersects 
@@ -1957,6 +1796,8 @@ int fast_sphere_MBB_intersect_collisionSpace(double r, GLDOUBLE *shape2collision
 	transformMBB(smin,smax,shape2collision,shapeMBBmin,shapeMBBmax);
 	return overlapMBBs(avmin,avmax,smin,smax);
 }
+
+#ifdef OLDCODE
 int fast_sphere_MBB_intersect_shapeSpace(double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax ) 
 {
 	/* goal: transform avatar/collision MBB to shape space, get its MBB there, and return 1 if the shape MBB intersects 
@@ -1974,14 +1815,17 @@ int fast_sphere_MBB_intersect_shapeSpace(double r, GLDOUBLE *collision2shape, GL
 	transformMBB(avmin,avmax,collision2shape,avmin,avmax);
 	return overlapMBBs(avmin,avmax,shapeMBBmin,shapeMBBmax);
 }
+#endif
 
+
+#ifdef OLDCODE
 /*
  * fast test to see if a box intersects a y-cylinder,
  * gives false positives.
 
  * this code is adapted from the fast_ycylinder_cone_intersect code, below.
  */
-int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, struct X3D_PolyRep *pr) {
+static int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, struct X3D_PolyRep *pr) {
 	double AVy = pcenter.y < 0 ? y1 : y2;
 	double rx, rz, myr;
 	double myh;
@@ -2012,6 +1856,10 @@ int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct poi
 
 	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
+#endif // OLDCODE
+
+
+#ifdef OLDCODE
 int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, double *minVals, double *maxVals) {
 	double AVy = pcenter.y < 0 ? y1 : y2;
 	double rx, rz, myr;
@@ -2043,6 +1891,8 @@ int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct po
 
 	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
+#endif // OLDCODE
+
 
 /*fast test to see if a cone intersects a y-cylinder. */
 /*gives false positives. */
@@ -2053,10 +1903,12 @@ int fast_ycylinder_cone_intersect(double y1, double y2, double r,struct point_XY
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
 
+
+#ifdef OLDCODE
 /* fast test to see if a sphere intersects a y-cylinder.
    specify sphere center, and a point on it's surface */
 /*gives false positives. */
-int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct point_XYZ pcenter, struct point_XYZ psurface) {
+static int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct point_XYZ pcenter, struct point_XYZ psurface) {
     double y = pcenter.y < 0 ? y1 : y2;
     double lefteq;
 
@@ -2065,6 +1917,7 @@ int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct point_
     lefteq = sqrt(y*y + r*r) + sqrt(psurface.x*psurface.x + psurface.y*psurface.y + psurface.z*psurface.z);
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
+#endif //OLDCODE
 
 
 
@@ -2220,7 +2073,10 @@ struct point_XYZ cylinder_disp(double y1, double y2, double ystep, double r, str
 
     return mindispv;
 }
-int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct point_XYZ* p, int num, struct point_XYZ* n, double *tmin, double *tmax )
+
+
+
+static int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct point_XYZ* p, int num, struct point_XYZ* n, double *tmin, double *tmax )
 {
 
 	/* 	Intersects a Y vertical infinite line passing through origin with a convex polygon  
@@ -2260,7 +2116,7 @@ int intersectionHeightOfVerticalLineWithSurfaceElement(double* height, struct po
 	return pointOnPlaneInsidePoly(D,p,num,n);
 }
 
-void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax)
+static void accumulateFallingClimbing(double y1, double y2, double ystep, struct point_XYZ *p, int num, struct point_XYZ nused, double *tmin, double *tmax)
 {
 	struct sFallInfo *fi = FallInfo();
 
@@ -2335,7 +2191,7 @@ dispsum.xyz - output - sum of collision displacement vectors - a mean will be co
 flags - doublesided, front/back facing hints, no-stepping (?)
 */
 //struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
-struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
+static struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n,  struct point_XYZ dispsum, prflags flags) {
     struct point_XYZ p[3];
     double maxdisp = 0;
     struct point_XYZ maxdispv = {0,0,0};
@@ -2588,7 +2444,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
   planar_polyrep_disp computes the normal using the first polygon, if no normal is specified (if it is zero).
   JAS - Normal is always specified now. (see VRMLRend.pm for invocation)
 */
-struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct point_XYZ n, struct point_XYZ dispsum, prflags flags) {
+static struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct point_XYZ n, struct point_XYZ dispsum, prflags flags) {
     struct point_XYZ p[3];
     double lmaxdisp = 0;
     struct point_XYZ maxdispv = {0,0,0};
@@ -2683,8 +2539,8 @@ struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double 
 
 
 
-
-struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double r, struct X3D_PolyRep pr,
+#ifdef OLDCODE
+static struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double r, struct X3D_PolyRep pr,
 			      int xdim, int zdim, double xs, double zs, GLDOUBLE* mat, prflags flags) {
     struct point_XYZ orig;
     int x1,x2,z1,z2; /*integer index bounds to elevation grid tests.*/
@@ -2826,15 +2682,15 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
 
 	return dispb;
     }
-
 }
+#endif // OLDCODE
 
 ///* Collision detection results */
 //struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 //struct sFallInfo FallInfo; /* = {100.0,1.0,0.0,0.0, 0,1,0,0}; ... too many to initialize here */
 
 
-void get_collisionoffset(double *x, double *y, double *z)
+static void get_collisionoffset(double *x, double *y, double *z)
 {
 	struct sCollisionInfo *ci;
 	struct sFallInfo *fi;
@@ -2929,9 +2785,21 @@ void render_collisions(int Viewer_type) {
 		fi->smoothStep = 1; /* [1] setting - will only fall by fallstep on a frame rather than the full hfall */
 		fi->allowClimbing = 1; /* [0] - setting - 0=climbing done by collision with cyclinder 1=signals popcycle avatar collision volume and allows single-footpoint climbing  */
 		fi->verticalOnly = 0; /* [0] - setting - will completely over-ride/skip cylindrical collision and do only fall/climb */
+
+#ifdef OLDCODE
 		fi->gravityVectorMethod = 1; //[1] - setting -  0=global Y down gravity 1= bound viewpoint Y down gravity as per specs
+#endif
+
+
+
+#ifdef OLDCODE
 		fi->fastTestMethod = 2; //[2] - setting -0=old method - uses fast cylinder test 1= MBB shape space 2= MBB avatar space 3=ignor fast cylinder test and keep going 
+#endif // OLDCODE
+
+#ifdef OLDCODE
 		fi->walkColliderMethod = 3; /* 0=sphere 1=normal_cylinder 2=disp_ 3=sampler */
+#endif // OLDCODE
+
 		fi->canPenetrate = 1; /* setting - 0= don't check for wall penetration 1= check for wall penetration */
 		fi->isPenetrate = 0; /* set to zero once per loop and will come back 1 if there was a penetration detected and corrected */
 
@@ -2945,6 +2813,7 @@ void render_collisions(int Viewer_type) {
 				/*bound viewpoint vertical aligned gravity as per specs*/
 				avatar2BoundViewpointVerticalAvatar(fi->avatar2collision, fi->collision2avatar);
 			}
+#ifdef OLDCODE
 			if(fi->gravityVectorMethod==0)
 			{
 				/* Y-up-world aligned gravity */
@@ -2955,6 +2824,7 @@ void render_collisions(int Viewer_type) {
 				matrotate2v(fi->avatar2collision,tupvWorld,tupvBoundViewpoint);
 				matrotate2v(fi->collision2avatar,tupvBoundViewpoint,tupvWorld);
 			}
+#endif
 		}
 		else
 		{
