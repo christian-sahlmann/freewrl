@@ -1,5 +1,5 @@
 /*
-  $Id: common.h,v 1.7 2011/07/30 19:50:38 dug9 Exp $
+  $Id: common.h,v 1.8 2011/09/12 17:28:44 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -38,6 +38,15 @@ extern int ocurse;
 //extern char messagebar[MAXSTAT];
 #define MAXTITLE 200
 //extern char window_title[MAXTITLE];
+
+/* textual status messages */
+typedef struct pcommon{
+        float myFps; // = (float) 0.0;
+        char myMenuStatus[MAXSTAT];
+        char messagebar[MAXSTAT];
+        char window_title[MAXTITLE];
+        int cursorStyle;
+}* ppcommon;
 
 /* Status update functions */
 

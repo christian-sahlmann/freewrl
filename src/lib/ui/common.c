@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.10 2011/07/30 19:50:38 dug9 Exp $
+  $Id: common.c,v 1.11 2011/09/12 17:28:44 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -21,18 +21,15 @@
 int ccurse = ACURSE;
 int ocurse = ACURSE;
 
-//float myFps = (float) 0.0;
-//char myMenuStatus[MAXSTAT];
-//char messagebar[MAXSTAT];
-//char window_title[MAXTITLE];
-
-typedef struct pcommon{
+/* typedef struct pcommon{
 	float myFps; // = (float) 0.0;
 	char myMenuStatus[MAXSTAT];
 	char messagebar[MAXSTAT];
 	char window_title[MAXTITLE];
 	int cursorStyle;
 }* ppcommon;
+*/
+
 void *common_constructor(){
 	void *v = malloc(sizeof(struct pcommon));
 	memset(v,0,sizeof(struct pcommon));

@@ -30,6 +30,7 @@ Variable use:
 #include "vrml_parser/Structs.h" //for SFColor
 #include "world_script/JScript.h" //for jsval
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
+#include "ui/common.h" // for ppcommon
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
@@ -372,6 +373,7 @@ ttglobal  iglobal_constructor();
 void iglobal_destructor(ttglobal);
 void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
 ttglobal gglobal(); //gets based on threadID, errors out if no threadID
+ppcommon gglobal_common(); // lets the front end get the myMenuStatus without hassle
 ttglobal gglobal0(); //will return null if thread not yet initialized
 ttglobal gglobalH(void *handle); //use window handle
 ttglobal gglobalH0(void *handle); //test if window handle is in the table yet

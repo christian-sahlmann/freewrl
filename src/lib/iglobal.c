@@ -399,6 +399,12 @@ ttglobal gglobalH0(void *handle)
 {
 	return gglobal0();
 }
+
+ppcommon gglobal_common() {
+	return gglobal0()->common.prv;
+}
+
+
 #endif // ANDROID AND IPHONE
 
 
