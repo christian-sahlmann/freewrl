@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.13 2011/09/09 20:30:07 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.14 2011/09/13 19:50:23 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -45,10 +45,9 @@ Render the children of nodes.
 
 #ifdef DO_COLLISION_GPU
 
+static const char* collide_non_walk_kernel;
 
-//#include <OpenGL/CGLDevice.h>
-//#include <OpenCL/opencl.h>
-// All OpenCL headers
+#ifdef OLDCODE
 #if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
 	#include <OpenCL/opencl.h>
 	#include <OpenGL/CGLDevice.h>
@@ -59,6 +58,7 @@ Render the children of nodes.
 #else  //LINUX
     #include <CL/opencl.h>
 #endif 
+#endif // OLDCODE
 
 
 #define FLOAT_TOLERANCE 0.00000001
@@ -68,6 +68,7 @@ Render the children of nodes.
 /* 	Collide kernel, generic structures, etc					*/
 /*										*/
 /********************************************************************************/
+
 
 struct OpenCLTransform
 {
@@ -100,164 +101,6 @@ static void printCLError(const char *where, int err) {
 		default: ConsoleMessage ("unknown OpenCL error in %s",where);
 	}
 }
-
-
-
-
-/********************************************************************************/
-/*										*/
-/*	Collide kernel. Step 1 - transform vertices and calculate normal	*/
-/*										*/
-/********************************************************************************/
-
-/* start the collide process.
-
-1) transform the vertex.
-2) calculate normal
-3) if triangle is visible to us, get ready for collide calcs
-
-TODO: 	ccw flag should be passed in.
-TODO:	flags for ccw tri, cw tri or two facing tris should be passed in
-TODO:	pre-compile kernels.
-TODO:	make kernel invocation dependent (using dougs' global structures)
-TODO:	get and drop OpenGL vertices every call, in case they change?
-
-*/
-
-/********************************************************************************/
-/*										*/
-/* Collide Kernel Step 2: do hit calculations					*/
-/*										*/
-/********************************************************************************/
-
-/* here we do the equivalent of get_poly_disp_2 for each mode */
-/* struct point_XYZ get_poly_disp_2(struct point_XYZ* p, int num, struct point_XYZ n) { */
-/* but, for non-walking, we have: 
-                // fly, examine 
-                result = get_poly_min_disp_with_sphere(awidth, p, num, n);
-        }
-        pp->get_poly_mindisp = vecdot(&result,&result);
-        return result;
-
-and,
-
-struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n)
-
-where 	r == avatar radius,
-	p == our 3 vectors,
-	num== 3?? (3 vectors)
-	n = normal
-*/
-
-/*
-TODO: 	code for non-walk mode;
-TODO:	code for walk-mode;
-*/
-
-#ifdef DougsCode
-
-struct point_XYZ get_poly_min_disp_with_sphere(double r, struct point_XYZ* p, int num, struct point_XYZ n) {
-    int i,j;
-    /* double polydisp; */
-    struct point_XYZ result;
-	double tmin[3],tmax[3],rmin[3],rmax[3],q[3];
-    double get_poly_mindisp;
-    int clippedPoly4num = 0;
-	ppcollision pp = (ppcollision)gglobal()->collision.prv;
-    get_poly_mindisp = 1E90;
-
-	/* cheap MBB test */
-...
-	/* end cheap MBB test */
-
-#ifdef DEBUGFACEMASK
-    if(facemask != debugsurface++)
-	return zero;
-#endif
-    /*keep if inside*/
-    if(perpendicular_line_passing_inside_poly(pp->clippedPoly4[clippedPoly4num],p, num)) {
-		DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedPoly4num);
-		clippedPoly4num++;
-	}
-
-
-#ifdef DEBUGPTS
-    for(i=0; i < clippedPoly4num; i++) {
-	debugpts.push_back(clippedPoly4[i]);
-    }
-#endif
-
-    /*here we find mimimum displacement possible */
-
-    /*calculate the closest point to origin */
-    for(i = 0; i < clippedPoly4num; i++) 
-	{
-		printf ("\t\tget_poly_min_disp_with_sphere, checking against %d %f %f %f",i,pp->clippedPoly4[i].x, 
-		pp->clippedPoly4[i].y,pp->clippedPoly4[i].z);
-
-		double disp = vecdot(&pp->clippedPoly4[i],&pp->clippedPoly4[i]);
-
-		printf ("\t\tdisp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); 
-
-		if(disp < get_poly_mindisp) 
-		{
-			get_poly_mindisp = disp;
-			result = pp->clippedPoly4[i];
-		}
-    }
-    if(get_poly_mindisp <= r*r) 
-	{
-		/*  scale result to length of missing distance. */
-		double rl;
-		rl = veclength(result);
-		/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
-		/* if(rl != 0.) */
-		if(! APPROX(rl, 0)) 
-		{
-			/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
-				r, sqrt(get_poly_mindisp), rl); */
-			vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);
-		} 
-		else
-		{
-			result = zero;
-		}
-    }
-    else
-	{
-		result = zero;
-	}
-    return result;
-}
-
-#endif //DougsCode
-
-
-/********************************************************************************/
-/*										*/
-/*	Collide kernel step 3 - return vector for this triangle			*/
-/*										*/
-/********************************************************************************/
-
-/* finish and return results */
-/* TODO - return displacement */
-
-/********************************************************************************/
-/*										*/
-/*										*/
-/********************************************************************************/
-cl_program program = NULL;
-cl_kernel kernel = NULL;
-cl_context context = NULL;
-cl_command_queue queue = NULL;
-cl_device_id device_id;
-int output_size;
-cl_mem output_buffer = NULL;
-cl_mem matrix_buffer = NULL;
-cl_mem vertex_buffer = NULL;
-cl_mem index_buffer = NULL;
-struct Multi_ColorRGBA collide_rvs = {0,NULL};
-struct Multi_Int32 cindicies = {0,NULL};
 
 
 /********************************************************************************/
@@ -405,7 +248,7 @@ int extraInitFromNvidiaSamples()
     //}
     shrLog("  Using Device %u: ", uiTargetDevice); 
     //oclPrintDevName(LOGBOTH, cdDevices[uiTargetDevice]);
-	device_id = cdDevices[uiTargetDevice];
+	initme->device_id = cdDevices[uiTargetDevice];
     ciErrNum = clGetDeviceInfo(cdDevices[uiTargetDevice], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(uiNumComputeUnits), &uiNumComputeUnits, NULL);
     //oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
     shrLog("\n  # of Compute Units = %u\n", uiNumComputeUnits); 
@@ -473,7 +316,8 @@ int extraInitFromNvidiaSamples()
 #endif  //_MSC_VER
 
 static int triedAlready = 0;
-bool init_GPU_collide(void) {
+bool init_GPU_collide(struct sCollisionGPU* initme) {
+
 	int err;
 	int gpu;
 	if(triedAlready) return false;
@@ -483,30 +327,24 @@ bool init_GPU_collide(void) {
 // then in the new compute context, we pass in the context
 
 	/* initialized yet? */
-	if (kernel != NULL) return false;
+	if (initme->kernel != NULL) return false;
 
 
 	// get the device id
-	err = 0;
-	if(0)
-	{
-		gpu=1;
-		err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-		printf("clGetDeviceIDs err=%d\n",err);
-	}
+
 #if defined (TARGET_AQUA)
 	CGLContextObj kCGLContext = CGLGetCurrentContext();
 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
 	cl_context_properties properties[] = {
 		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
 
-	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
 	if (err != CL_SUCCESS) {
 		printCLError("clGetDeviceIDs",err);
 		return FALSE;
 	}
 
-	context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
+	initme->context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
 
 #endif /* AQUA */
 
@@ -572,18 +410,20 @@ bool init_GPU_collide(void) {
 
 
 	// create a command queue
-	queue = clCreateCommandQueue(context, device_id, 0, &err);
-	if (!queue || (err != CL_SUCCESS)) {
+	initme->queue = clCreateCommandQueue(initme->context, initme->device_id, 0, &err);
+	if (!initme->queue || (err != CL_SUCCESS)) {
 		printCLError("clCreateCommandQueue",err);
 		return FALSE;
 	}
 	printf ("queue created\n");
  
-	// create the compute program
 	{
+	char *kp;
+
+#ifdef READ_FROM_FILE
+	// create the compute program
 	size_t readSize;
 #define RS 32768
-	char *kp;
 	FILE *kf;
 #ifdef _MSC_VER
 	char * kernelpath = "C:/source2/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt";
@@ -601,9 +441,12 @@ bool init_GPU_collide(void) {
 	readSize = fread(kp,1,RS,kf);
 	kp[readSize] = '\0'; /* ensure null termination */
 	printf ("read in %d bytes max %d\n",readSize,RS);
+#else
+	kp = collide_non_walk_kernel;
+#endif
 
-	program = clCreateProgramWithSource(context, 1, &kp, NULL, &err);
-	if (!program || (err != CL_SUCCESS)) {
+	initme->program = clCreateProgramWithSource(initme->context, 1, &kp, NULL, &err);
+	if (!initme->program || (err != CL_SUCCESS)) {
 		printCLError("clCreateProgramWithSource",err);
 		return FALSE;
 	}
@@ -615,15 +458,15 @@ bool init_GPU_collide(void) {
  
 	// build the compute program executable
 	//char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
-	char *opts = "-Werror -cl-single-precision-constant -cl-opt-disable -cl-strict-aliasing";
-	err = clBuildProgram(program, 0, NULL, opts, NULL, NULL);
-	//err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+	//char *opts = "-Werror -cl-single-precision-constant -cl-opt-disable -cl-strict-aliasing";
+	//err = clBuildProgram(initme->program, 0, NULL, opts, NULL, NULL);
+	err = clBuildProgram(initme->program, 0, NULL, NULL, NULL, NULL);
 	if (err != CL_SUCCESS) {
         	size_t len;
         	char buffer[16384];
  
         	printf("Error: Failed to build program executable\n");           
-        	clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG,
+        	clGetProgramBuildInfo(initme->program, initme->device_id, CL_PROGRAM_BUILD_LOG,
                                           sizeof(buffer), buffer, &len);
 		printf ("error string len %d\n",len);
         	printf("%s\n", buffer);
@@ -632,8 +475,8 @@ bool init_GPU_collide(void) {
 	printf ("program built\n");
  
 	// create the compute kernel
-	kernel = clCreateKernel(program, "compute_collide", &err);
-	if (!kernel || (err != CL_SUCCESS)) {
+	initme->kernel = clCreateKernel(initme->program, "compute_collide", &err);
+	if (!initme->kernel || (err != CL_SUCCESS)) {
 		printf ("cl create kernel problem\n"); exit(1);
 	}
 	printf ("kernel built\n");
@@ -647,37 +490,38 @@ bool init_GPU_collide(void) {
 
 #define GET_SFVEC3F_COUNT ntri
 
-struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri) {
+struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri,
+		int face_ccw, int face_flags, float avatar_radius) {
  
 	int i;
 	int err;
 	size_t global;
 	unsigned int count;
 
-	bool face_ccw;	
-	int face_flags; /* ccw, double sided, etc */
 	struct OpenCLTransform transform;
 
 	double maxdisp = 0.0;
 	struct point_XYZ dispv, maxdispv = {0,0,0};
 
-	// enough space for rv?
-	if (collide_rvs.n < ntri) {
+	struct sCollisionGPU* me = GPUCollisionInfo();
 
-		if (collide_rvs.n != 0) {
-			clReleaseMemObject(output_buffer);	
+	// enough space for rv?
+	if (me->collide_rvs.n < ntri) {
+
+		if (me->collide_rvs.n != 0) {
+			clReleaseMemObject(me->output_buffer);	
 		}
 
-		output_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT,
+		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT,
                                                                   NULL, NULL);
 
-		if (matrix_buffer == NULL) {
-		matrix_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof (struct OpenCLTransform), NULL, NULL);
+		if (me->matrix_buffer == NULL) {
+		me->matrix_buffer = clCreateBuffer(me->context, CL_MEM_READ_ONLY, sizeof (struct OpenCLTransform), NULL, NULL);
 		}
 
-		output_size = GET_SFVEC3F_COUNT;
-		collide_rvs.p = REALLOC(collide_rvs.p, sizeof(struct SFColorRGBA) *GET_SFVEC3F_COUNT);
-		collide_rvs.n = GET_SFVEC3F_COUNT;
+		me->output_size = GET_SFVEC3F_COUNT;
+		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *GET_SFVEC3F_COUNT);
+		me->collide_rvs.n = GET_SFVEC3F_COUNT;
 	}
 
 	// update the current matrix transform
@@ -686,17 +530,17 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 #else
         memcpy(transform.matrix, modelMat, sizeof(cl_float16));
 #endif
-        clEnqueueWriteBuffer(queue, matrix_buffer, CL_TRUE, 0, sizeof(struct OpenCLTransform), &transform, 0, NULL, NULL);
+        clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(struct OpenCLTransform), &transform, 0, NULL, NULL);
 
 	// lets get the openGL vertex buffer here
-	vertex_buffer=clCreateFromGLBuffer(context, CL_MEM_READ_ONLY, vertex_vbo, &err);
+	me->vertex_buffer=clCreateFromGLBuffer(me->context, CL_MEM_READ_ONLY, vertex_vbo, &err);
 	if (err != CL_SUCCESS) {
 		printCLError("clCreateFromGLBuffer",err);
 		return maxdispv;
 	}
 
 	// and the coordinate index buffer
-	index_buffer = clCreateFromGLBuffer(context, CL_MEM_READ_ONLY, index_vbo, &err);
+	me->index_buffer = clCreateFromGLBuffer(me->context, CL_MEM_READ_ONLY, index_vbo, &err);
 	if (err != CL_SUCCESS) {
 		printCLError("clCreateFromGLBuffer",err);
 		return maxdispv;
@@ -705,20 +549,15 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	
 	// set the args values
 	count = (unsigned int) ntri;
-	face_ccw = TRUE;
-#define PR_DOUBLESIDED 0x01
-#define PR_FRONTFACING 0x02 /* overrides effect of doublesided. */
-#define PR_BACKFACING 0x04 /* overrides effect of doublesided, all normals are reversed. */
 
-	face_flags = PR_FRONTFACING; /* ccw, double sided, etc */
-
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &output_buffer);
-	clSetKernelArg(kernel, 1, sizeof(unsigned int), &count);
-	clSetKernelArg(kernel, 2, sizeof (cl_mem), &matrix_buffer);
-	clSetKernelArg(kernel, 3, sizeof (cl_mem), &vertex_buffer);
-	clSetKernelArg(kernel, 4, sizeof (cl_mem), &index_buffer);
-	clSetKernelArg(kernel, 5, sizeof(int), &face_ccw);
-	clSetKernelArg(kernel, 6, sizeof(int), &face_flags);
+	clSetKernelArg(me->kernel, 0, sizeof(cl_mem), &me->output_buffer);
+	clSetKernelArg(me->kernel, 1, sizeof(unsigned int), &count);
+	clSetKernelArg(me->kernel, 2, sizeof (cl_mem), &me->matrix_buffer);
+	clSetKernelArg(me->kernel, 3, sizeof (cl_mem), &me->vertex_buffer);
+	clSetKernelArg(me->kernel, 4, sizeof (cl_mem), &me->index_buffer);
+	clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
+	clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
+	clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
 	
 	// global work group size
 	global = (size_t) ntri;
@@ -730,7 +569,7 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 	// as we do not know how many triangles we are getting.
 
 
-  	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
 		return maxdispv;
@@ -739,9 +578,9 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 
 	// wait for things to finish
 	// get the data
-	err = clEnqueueReadBuffer (queue, output_buffer, 
+	err = clEnqueueReadBuffer (me->queue, me->output_buffer, 
 		CL_TRUE, 0, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT, 
-		collide_rvs.p, 0, NULL, NULL);
+		me->collide_rvs.p, 0, NULL, NULL);
 
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
@@ -756,13 +595,13 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 		// we use the last float to indicate whether to bother here; saves us
 		// doing unneeded calculations here
 
-		if (collide_rvs.p[i].c[3] > 1.0) {
+		if (me->collide_rvs.p[i].c[3] > 1.0) {
 			// printf ("possibly triangle %d has some stuff for us\n",i);
 
 
-			dispv.x = collide_rvs.p[i].c[0];
-			dispv.y = collide_rvs.p[i].c[1];
-			dispv.z = collide_rvs.p[i].c[2];
+			dispv.x = me->collide_rvs.p[i].c[0];
+			dispv.y = me->collide_rvs.p[i].c[1];
+			dispv.z = me->collide_rvs.p[i].c[2];
 			 //printf ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
 
                         /*keep result only if:
@@ -784,5 +623,284 @@ struct point_XYZ run_collide_program(GLuint vertex_vbo, GLuint index_vbo, float 
 
 	return maxdispv;
 }
+
+static const char* collide_non_walk_kernel = " \
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
+#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
+#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
+#pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
+#pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
+ \n\
+/********************************************************************************/ \n\
+/*										*/ \n\
+/*	Collide kernel for fly and examine modes				*/ \n\
+/*										*/ \n\
+/********************************************************************************/ \n\
+ \n\
+/* start the collide process. \n\
+ \n\
+1) transform the vertex. \n\
+2) calculate normal \n\
+3) if triangle is visible to us, get ready for collide calcs \n\
+ \n\
+*/ \n\
+ \n\
+ \n\
+#define DOUGS_FLOAT_TOLERANCE 0.00000001 \n\
+#define FLOAT_TOLERANCE 0.0000001 \n\
+#define PR_DOUBLESIDED 0x01  \n\
+#define PR_FRONTFACING 0x02 /* overrides effect of doublesided. */  \n\
+#define PR_BACKFACING 0x04 /* overrides effect of doublesided, all normals are reversed. */  \n\
+ \n\
+/********************************************************************************/ \n\
+ \n\
+ \n\
+#define APPROX (a, b) (fabs(a-b) < FLOAT_TOLERANCE) \n\
+#define VECSCALE(v,s) (float4)(v.x*s, v.y*s, v.z*s, 0.0) \n\
+#define VECLENGTH(v) (float)sqrt((float)dot((float4)v,(float4)v)) \n\
+ \n\
+ \n\
+ \n\
+/********************************************************************************/ \n\
+/*										*/ \n\
+/*	Three vertices; find the closest one which intersects the Z plane;	*/ \n\
+/*	either we choose a Vertex, on an edge, or fabricate one in the		*/ \n\
+/*	middle of the triangle somewhere.					*/ \n\
+/*										*/ \n\
+/*	Adapted from \"Real time Collision Detection\", Christer Ericson.		*/ \n\
+/*										*/ \n\
+/********************************************************************************/ \n\
+ \n\
+ \n\
+float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c) { \n\
+	float4 vector_ab = (point_b - point_a); // b - a \n\
+	float4 vector_ac = (point_c - point_a); // c - a \n\
+	float4 vector_bc = (point_c - point_b); // c - b \n\
+	float4 vector_ba = (point_a - point_b); // a - b \n\
+	float4 vector_ca = (point_a - point_c); // a - c \n\
+	float4 vector_cb = (point_b - point_c); // b - c \n\
+ \n\
+ \n\
+	// we have moved points, so our bounding sphere is at (0,0,0) so p = (0,0,0) \n\
+	float4 vector_ap = point_a * (float4)(-1.0, -1.0, -1.0, -1.0); // p - a \n\
+	float4 vector_bp = point_b * (float4)(-1.0, -1.0, -1.0, -1.0); // p - b \n\
+	float4 vector_cp = point_c * (float4)(-1.0, -1.0, -1.0, -1.0); // p - c \n\
+	#define vector_pa point_a    /* a - p */ \n\
+	#define vector_pb point_b    /* b - p */ \n\
+	#define vector_pc point_c    /* c - p */ \n\
+	 \n\
+	// Step 2. Compute parametric position s for projection P' of P on AB, \n\
+	// P' = A + s*AB, s = snom/(snom+sdenom) \n\
+ \n\
+	float snom = dot(vector_ap, vector_ab); // (p - a, ab); \n\
+	float sdenom = dot(vector_bp, vector_ba); // (p - b, a - b); \n\
+ \n\
+	// Step 3. \n\
+	// Compute parametric position t for projection P' of P on AC, \n\
+	// P' = A + t*AC, s = tnom/(tnom+tdenom) \n\
+	float tnom = dot(vector_ap, vector_ac); // (p - a, ac); \n\
+	float tdenom = dot(vector_cp, vector_ca); //  (p - c, a - c); \n\
+ \n\
+	// Step 4. \n\
+	if (snom <= 0.0f && tnom <= 0.0f) { \n\
+		return point_a; \n\
+	} \n\
+ \n\
+	// Step 5. \n\
+	// Compute parametric position u for projection P' of P on BC, \n\
+	// P' = B + u*BC, u = unom/(unom+udenom) \n\
+	float unom = dot(vector_bp, vector_bc); //(p - b, bc) \n\
+	float udenom = dot(vector_cp, vector_cb); // (p - c, b - c); \n\
+ \n\
+	// Step 6. \n\
+	if (sdenom <= 0.0f && unom <= 0.0f) { \n\
+		return point_b; \n\
+	} \n\
+ \n\
+	if (tdenom <= 0.0f && udenom <= 0.0f) { \n\
+		return point_c; \n\
+	} \n\
+ \n\
+ \n\
+	// Step 7. \n\
+	// P is outside (or on) AB if the triple scalar product [N PA PB] <= 0 \n\
+	float4 n; \n\
+	float4 tmp; \n\
+	float vc; \n\
+ \n\
+	n = cross(vector_ab, vector_ac); // (b - a, c - a); \n\
+	tmp = cross(vector_pa, vector_pb); // veccross (a-p, b-p); \n\
+ \n\
+	// vc = dot(n, veccross(a - p, b - p)); \n\
+	vc = dot(n, tmp); \n\
+ \n\
+ \n\
+	// If P outside AB and within feature region of AB, \n\
+	// return projection of P onto AB \n\
+	if (vc <= 0.0f && snom >= 0.0f && sdenom >= 0.0f) { \n\
+		return point_a  + snom / (snom + sdenom) * vector_ab; \n\
+	} \n\
+ \n\
+ \n\
+ \n\
+	// Step 8. \n\
+	// P is outside (or on) BC if the triple scalar product [N PB PC] <= 0 \n\
+	tmp = cross (vector_pb, vector_pc); \n\
+ \n\
+	float va = dot(n, tmp); // Cross(b - p, c - p)); \n\
+	 \n\
+	// If P outside BC and within feature region of BC, \n\
+	// return projection of P onto BC \n\
+	if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f) { \n\
+		return point_b + unom / (unom + udenom) * vector_bc; \n\
+	} \n\
+ \n\
+	// Step 9. \n\
+	// P is outside (or on) CA if the triple scalar product [N PC PA] <= 0 \n\
+	tmp = cross (vector_pc, vector_pa); \n\
+ \n\
+	float vb = dot(n, tmp); //  Cross(c - p, a - p)); \n\
+	// If P outside CA and within feature region of CA, \n\
+	// return projection of P onto CA \n\
+	if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f) { \n\
+		return point_a + tnom / (tnom + tdenom) * vector_ac; \n\
+	} \n\
+ \n\
+	// 10. \n\
+	// P must project inside face region. Compute Q using barycentric coordinates \n\
+	float u = va / (va + vb + vc); \n\
+	float v = vb / (va + vb + vc); \n\
+	float w = 1.0f - u - v; // = vc / (va + vb + vc) \n\
+	float4 u4 = (float4)(u); \n\
+	float4 v4 = (float4)(v); \n\
+	float4 w4 = (float4)(w); \n\
+ \n\
+	//return u * point_a + v * point_b + w * point_c; \n\
+	float4 rv = mad(point_a,u4,mad(point_b,v4,point_c*w4)); \n\
+	return rv; \n\
+} \n\
+ \n\
+/********************************************************************************/ \n\
+ \n\
+	__kernel void compute_collide (  \n\
+	__global float4 *output,  	/* 0 */  \n\
+        const unsigned int count,	/* 1 */  \n\
+	__global float *mymat,   	/* 2 */  \n\
+	__global float *my_vertex,	/* 3 */  \n\
+	__global int *my_cindex, 	/* 4 */  \n\
+	const int face_ccw,		/* 5 */ \n\
+	const int face_flags,		/* 6 */  \n\
+	const float avatar_radius	/* 7 */ \n\
+	) {   \n\
+  \n\
+	/* which index this instantation is working on */ \n\
+	int i_am_canadian = get_global_id(0);  \n\
+ \n\
+	/* vertices for this triangle */  \n\
+	/* transformed by matrix */  \n\
+	float4 tv1;  \n\
+	float4 tv2;  \n\
+	float4 tv3;  \n\
+ \n\
+	/* starting index in my_vertex of this vertex */  \n\
+	/* we work in triangles; each triangle has 3 vertices */  \n\
+	#define COORD_1 (my_cindex[i_am_canadian*3+0]*3) \n\
+	#define COORD_2 (my_cindex[i_am_canadian*3+1]*3) \n\
+	#define COORD_3 (my_cindex[i_am_canadian*3+2]*3) \n\
+ \n\
+	/* do matrix transform, 4 floats wide. */ \n\
+	float4 matColumn1 = (float4)(mymat[0],mymat[1],mymat[2],0.0); \n\
+	float4 matColumn2 = (float4)(mymat[4],mymat[5],mymat[6],0.0); \n\
+	float4 matColumn3 = (float4)(mymat[8],mymat[9],mymat[10],0.0); \n\
+	float4 matColumn4 = (float4)(mymat[12],mymat[13],mymat[14],0.0); \n\
+ \n\
+	/* first vertex */ \n\
+	float4 Vertex_X = (float4)(my_vertex[COORD_1+0]); \n\
+	float4 Vertex_Y = (float4)(my_vertex[COORD_1+1]); \n\
+	float4 Vertex_Z = (float4)(my_vertex[COORD_1+2]); \n\
+	tv1 = mad(matColumn1,Vertex_X,mad(matColumn2,Vertex_Y,mad(matColumn3,Vertex_Z,matColumn4))); \n\
+ \n\
+	/* second vertex */ \n\
+	Vertex_X = (float4)(my_vertex[COORD_2+0]); \n\
+	Vertex_Y = (float4)(my_vertex[COORD_2+1]); \n\
+	Vertex_Z = (float4)(my_vertex[COORD_2+2]); \n\
+	tv2 = mad(matColumn1,Vertex_X,mad(matColumn2,Vertex_Y,mad(matColumn3,Vertex_Z,matColumn4))); \n\
+ \n\
+	/* third vertex */ \n\
+	Vertex_X = (float4)(my_vertex[COORD_3+0]); \n\
+	Vertex_Y = (float4)(my_vertex[COORD_3+1]); \n\
+	Vertex_Z = (float4)(my_vertex[COORD_3+2]); \n\
+	tv3 = mad(matColumn1,Vertex_X,mad(matColumn2,Vertex_Y,mad(matColumn3,Vertex_Z,matColumn4))); \n\
+ \n\
+ \n\
+	/* calculate normal for face from transformed vertices */  \n\
+	/* this replicates polynormalf for opencl */ \n\
+	#define VEC_DIST_1 (tv2-tv1) \n\
+	#define VEC_DIST_2 (tv3-tv1) \n\
+	float4 norm = normalize(cross(VEC_DIST_1,VEC_DIST_2));  \n\
+ \n\
+	/* from polyrep_disp_rec2, see that function for full comments */  \n\
+	bool frontfacing;  \n\
+ \n\
+	/* how we view it from the avatar */  \n\
+	if (face_ccw) frontfacing = (dot(norm,tv1) < 0);   \n\
+	else frontfacing = (dot(norm,tv1) >= 0);  \n\
+ \n\
+	/* now, is solid false, or ccw or ccw winded triangle? */  \n\
+	/* if we should do this triangle, the if statement is true */  \n\
+ \n\
+	bool should_do_this_triangle =  \n\
+	((frontfacing && !(face_flags & PR_DOUBLESIDED) )  \n\
+		|| ( (face_flags & PR_DOUBLESIDED)  && !(face_flags & (PR_FRONTFACING | PR_BACKFACING) )  )  \n\
+		|| (frontfacing && (face_flags & PR_FRONTFACING))  \n\
+		|| (!frontfacing && (face_flags & PR_BACKFACING))  ); \n\
+ \n\
+ \n\
+	if (!should_do_this_triangle) { \n\
+		output[i_am_canadian] = (float4)(0.0,0.0,0.0,0.0); \n\
+		return; \n\
+	} \n\
+ \n\
+ \n\
+	/* if we are down to here, we have to do this triangle */ \n\
+ \n\
+	if(!frontfacing) { /*can only be here in DoubleSided mode*/  \n\
+		/*reverse polygon orientation, and do calculations*/  \n\
+		norm = VECSCALE(norm,-1.0); \n\
+	} \n\
+ \n\
+	/********************************************************************************/ \n\
+	/*										*/ \n\
+	/* Collide Kernel Step 2: do hit calculations					*/ \n\
+	/* replicate Dougs get_poly_min_disp_with_sphere function 			*/  \n\
+	/*										*/ \n\
+	/********************************************************************************/ \n\
+ \n\
+	float4 closest_point = closest_point_on_plane(tv1,tv2,tv3); \n\
+ \n\
+	float get_poly_mindisp = dot(closest_point,closest_point); \n\
+	 \n\
+	if (get_poly_mindisp > (avatar_radius * avatar_radius)) { \n\
+		output[i_am_canadian] = (float4)(0.0,0.0,0.0,0.0); \n\
+		return; \n\
+	} \n\
+ \n\
+	/* do we have a movement here? */ \n\
+	if (VECLENGTH(closest_point) > FLOAT_TOLERANCE) { \n\
+		float poly_min_rt = sqrt(get_poly_mindisp); \n\
+		float sFactor = (avatar_radius -poly_min_rt) /VECLENGTH(closest_point); \n\
+ \n\
+		float4 result = VECSCALE(closest_point,sFactor); \n\
+		/* copy over the result */ \n\
+		result.w = 100.0; /* flag that this is a good one */ \n\
+		output[i_am_canadian] = result; \n\
+		return; \n\
+	} \n\
+ \n\
+ \n\
+	/* if we are down to here, we can just return zero */ \n\
+	output[i_am_canadian] = (float4)(0.0,0.0,0.0,0.0); \n\
+} \n\
+";
 
 #endif //DO_COLLISION_GPU

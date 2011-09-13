@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.77 2011/09/12 20:58:29 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.78 2011/09/13 19:50:23 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -1388,47 +1388,6 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		fi->checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
 		fi->checkPenetration = 1;
 
-#ifdef OLDCODE
-		if(fi->fastTestMethod==0)
-		{
-		   /* I'm getting false negatives - I'll be navigating along and this will start returning here
-			 - possibly why it quits colliding with the terrain and just floats through / falls through terrain mesh
-			 */
-			GLDOUBLE scale; /* FIXME: won''t work for non-uniform scales. */
-			struct point_XYZ t_orig = {0,0,0};
-			/* lets try and see if we are close - this gives false positives, but it does
-					weed out fairly distant objects */
-
-			/* values for rapid test */
-			t_orig.x = modelMatrix[12];
-			t_orig.y = modelMatrix[13];
-			t_orig.z = modelMatrix[14];
-			scale = pow(det3x3(modelMatrix),1./3.);
-			if(!fast_ycylinder_polyrep_intersect2(abottom,atop,awidth,t_orig,scale,prminvals,prmaxvals)){/*printf("#");*/ return 0;}
-			fi->checkCylinder = 1;
-			fi->checkFall = 0;
-			fi->checkPenetration = 0;
-		}
-		if(fi->fastTestMethod==1)
-		{
-		   /*  minimum bounding box MBB test in shape space */
-			GLDOUBLE Collision2Shape[16];
-			double foot = abottom;
-			if(fi->allowClimbing) foot = astep; /* < popcycle shaped avatar collision volume. problem: stem and succulent part intersection are intersected together later so I can't return here if the succulent part is a miss - the stem might intersect */
-			matinverse(Collision2Shape,modelMatrix);
-			/* do fall/climb bounds test (popcycle stick) */
-			fi->checkFall = fi->canFall;
-			if(fi->checkFall) fi->checkFall = fast_ycylinder_MBB_intersect_shapeSpace(-fi->fallHeight,atop,0.0, Collision2Shape, prminvals, prmaxvals);
-			/* do collision volume bounds test (popcycle succulent part)*/
-			fi->checkCylinder = fast_ycylinder_MBB_intersect_shapeSpace(foot,atop,awidth, Collision2Shape, prminvals, prmaxvals); 
-			fi->checkPenetration = 0;
-			if( fi->canPenetrate )
-				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
-			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("@");*/ return 0;} 
-		}
-
-		if(fi->fastTestMethod==2)
-#endif // OLDCODE
 		{
 		   /*  minimum bounding box MBB test in avatar/collision space */
 			double foot = abottom;
@@ -1443,37 +1402,15 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
 			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("$");*/ return 0;} 
 		}
-#ifdef OLDCODE
-		if(fi->fastTestMethod==3)
-		{
-		   //skip fast method
-		}
-#endif
 
 	}
 	else
 	{
 		/* examine/fly spherical avatar collision volume */
 		GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width - used as avatar sphere radius*/
-#ifdef OLDCODE
-		if(fi->fastTestMethod==2 || fi->fastTestMethod == 0)
-#endif
 
 
 			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
-
-#ifdef OLDCODE
-		if(fi->fastTestMethod == 1 )
-		{
-			GLDOUBLE Collision2Shape[16];
-			matinverse(Collision2Shape,modelMatrix);
-			if( !fast_sphere_MBB_intersect_shapeSpace(awidth, Collision2Shape, prminvals, prmaxvals )) return 0;
-		}
-		if(fi->fastTestMethod==3)
-		{
-		   //skip fast method
-		}
-#endif
 
 	}
 	return 1;

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.67 2011/08/01 17:06:47 dug9 Exp $
+  $Id: main.c,v 1.68 2011/09/13 19:50:23 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -232,7 +232,6 @@ int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 ttglobal fwl;
 void* fwl_init_instance()
 {
-	//ttglobal fwl;
 	fwl = iglobal_constructor();
 	return (void *)fwl;
 }
