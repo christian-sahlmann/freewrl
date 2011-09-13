@@ -23,21 +23,21 @@ AC_DEFUN([AC_MY_CHECK_MODULE],[
         AC_MSG_CHECKING([for $2])
         AC_MSG_RESULT([check disabled])
       else
-        if test x$3 = x; then
+        if test "x$3" = "x"; then
           AC_MSG_CHECKING([for $2 while ])
           PKG_CHECK_MODULES([$1],[$2],[found_$1="$2"],[found_$1=no])
         else
-          AC_MSG_CHECKING([for $2 >= $3 while ])
-          PKG_CHECK_MODULES([$1],[$2 >= $3],[found_$1="$2"],[found_$1=no])
+          AC_MSG_CHECKING([for $2 $3 $4 while ])
+          PKG_CHECK_MODULES([$1],[$2 $3 $4],[found_$1="$2"],[found_$1=no])
         fi
       fi
     ],[
-      if test x$3 = x; then
+      if test "x$3" = "x"; then
         AC_MSG_CHECKING([for $2 while ])
         PKG_CHECK_MODULES([$1],[$2],[found_$1="$2"],[found_$1=no])
       else
-        AC_MSG_CHECKING([for $2 >= $3 while ])
-        PKG_CHECK_MODULES([$1],[$2 >= $3],[found_$1="$2"],[found_$1=no])
+        AC_MSG_CHECKING([for $2 $3 $4 while ])
+        PKG_CHECK_MODULES([$1],[$2 $3 $4],[found_$1="$2"],[found_$1=no])
       fi
     ])
   fi

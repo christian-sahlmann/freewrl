@@ -189,15 +189,15 @@ AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
 case "$os_type" in
      mac) 
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,spidermonkey,1.7.0)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
         ;;
      *)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozjs185)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,mozilla-js,1.9)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,xulrunner-js,1.8)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,seamonkey-js)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox-js)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,firefox2-js)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[>=],[1.9])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[xulrunner-js],[>=],[1.8])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[seamonkey-js])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox-js])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox2-js])
         ;;
 esac
 
@@ -538,12 +538,12 @@ else
       *)      # Build plugin for Netscape compatible browser on Linux
               AC_MSG_NOTICE([Determining browser plug-in framework to build against])
               found_MOZILLA_PLUGIN=no
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,iceape-plugin)
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,xulrunner-plugin)
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,seamonkey-plugin)
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,firefox-plugin)
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,mozilla-plugin)
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,npapi-sdk <= 0.27)
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[iceape-plugin])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[xulrunner-plugin])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[seamonkey-plugin])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[firefox-plugin])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[mozilla-plugin])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[<=],[0.27])
               if test x$found_MOZILLA_PLUGIN = xno; then
                   AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
                   MAYBE_PLUGIN=
