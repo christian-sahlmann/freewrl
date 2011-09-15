@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.15 2011/09/15 14:26:06 dug9 Exp $
+$Id: CollisionGPU.c,v 1.16 2011/09/15 20:41:04 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -46,20 +46,6 @@ Render the children of nodes.
 #ifdef DO_COLLISION_GPU
 
 static const char* collide_non_walk_kernel;
-
-#ifdef OLDCODE
-#if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
-	#include <OpenCL/opencl.h>
-	#include <OpenGL/CGLDevice.h>
-#elif defined(_MSC_VER)
-    #include <windows.h>  //WGL prototyped in wingdi.h
-    #include <CL/opencl.h>
-	#define DEBUG
-#else  //LINUX
-    #include <CL/opencl.h>
-#endif 
-#endif // OLDCODE
-
 
 #define FLOAT_TOLERANCE 0.00000001
 

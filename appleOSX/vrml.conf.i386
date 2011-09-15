@@ -19,9 +19,10 @@ FREEWRL_CCFLAGS => '-arch '.
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
+		'-L/System/Library/Frameworks/OpenCL.framework/Libraries '.
 		'-lSystem '.
 		'-lfreetype '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
+		' -F/System/Library/Frameworks -framework OpenGL -framework OpenCL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
@@ -58,6 +59,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-mmacosx-version-min=10.4 '.
 		'-isysroot /Developer/SDKs/MacOSX10.5.sdk '.
 		'-framework OpenGL '.
+		'-framework OpenCL '.
 		'-framework GLUT '.
 		'-framework Cocoa ',
 
@@ -67,6 +69,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
+		'-framework OpenCL '.
 		'-framework GLUT '.
 		'-framework Cocoa ',
 );

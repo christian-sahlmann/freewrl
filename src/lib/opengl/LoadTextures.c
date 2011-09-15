@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.74 2011/08/01 17:06:47 dug9 Exp $
+  $Id: LoadTextures.c,v 1.75 2011/09/15 20:41:04 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -56,7 +56,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
 		#include <Imlib2.h>
 	#endif
 #endif
