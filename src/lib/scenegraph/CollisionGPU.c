@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.14 2011/09/13 19:50:23 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.15 2011/09/15 14:26:06 dug9 Exp $
 
 Render the children of nodes.
 
@@ -107,7 +107,7 @@ static void printCLError(const char *where, int err) {
 /*										*/
 /*										*/
 /********************************************************************************/
-#ifdef _MSC_VER
+#ifdef _MSC_VER_NOT
 cl_platform_id cpPlatform = NULL;          // OpenCL platform
 cl_device_id* cdDevices = NULL;     // device list
 cl_uint uiTargetDevice = 0;	        // Default Device to compute on
@@ -221,7 +221,7 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 
     return CL_SUCCESS;
 }
-int extraInitFromNvidiaSamples()
+int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
 {
     cl_uint uiNumDevices = 0;           // Number of devices available
     cl_uint uiTargetDevice = 0;	        // Default Device to compute on
@@ -350,18 +350,24 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 #if defined (WIN32)
 
-	if(1)
-		err = extraInitFromNvidiaSamples();
-	else
+	//if(1)
+	//	err = extraInitFromNvidiaSamples(initme);
+	//else
 	{
-		/* from OpenCL Programming Guide, pg 338 */
-		cl_context_properties properties[] = {
-			CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-			CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
-			CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
-			0};
+		cl_int ciErrNum;
+		cl_platform_id cpPlatform = NULL;          // OpenCL platform
+		// Get the NVIDIA platform
+		//ciErrNum = oclGetPlatformID(&cpPlatform);
+		{
+			/* from OpenCL Programming Guide, pg 338 */
+			cl_context_properties properties[] = {
+				CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
+				CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
+				CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform,
+				0};
 
-		context = clCreateContext(properties, 1, &cdDevices[uiTargetDevice], NULL, NULL, &err);
+			initme->context = clCreateContext(properties, 1, &initme->device_id, NULL, NULL, &err);
+		}
 	}
 #endif /* WIN32 */
 
