@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.95 2011/07/27 23:42:31 crc_canada Exp $
+$Id: X3DParser.c,v 1.96 2011/09/17 20:52:06 dug9 Exp $
 
 ???
 
@@ -1968,10 +1968,15 @@ int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);
 	
 	if (XML_ParseFile(p->currentX3DParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+		// http://xmlsoft.org/html/libxml-xmlerror.html
+		xmlErrorPtr xe = xmlGetLastError();
+		ConsoleMessage("Xml Error %s \n",xe->message);
+		/*
 		fprintf(stderr,
 			"%s at line %d\n",
 			XML_ErrorString(XML_GetErrorCode(currentX3DParser)),
 			XML_GetCurrentLineNumber(currentX3DParser));
+		*/
 		shutdownX3DParser();
 		return FALSE;
 	}
