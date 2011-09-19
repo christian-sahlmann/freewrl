@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.16 2011/09/15 20:41:04 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.17 2011/09/19 18:50:28 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -301,13 +301,20 @@ int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
 }
 #endif  //_MSC_VER
 
-static int triedAlready = 0;
 bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 	int err;
 	int gpu;
-	if(triedAlready) return false;
-	triedAlready = 1;
+
+	// debugging information
+	cl_int rv;
+	char rvstring[1000];
+	size_t rvlen;
+	size_t wgSize;
+	cl_ulong longish;
+
+
+
 // get the current context.
 // windows - IntPtr curDC = wglGetCurrentDC();
 // then in the new compute context, we pass in the context
@@ -382,24 +389,6 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 		printf ("CL context created\n");
 	}
 
-	// debugging information
-	{
-		cl_int rv;
-		char rvstring[1000];
-		size_t rvlen;
-		rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
-		printf ("PROFILE :%s:\n",rvstring);
-		rv = clGetPlatformInfo(NULL,CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
-		printf ("VERSION :%s:\n",rvstring);
-		rv = clGetPlatformInfo(NULL,CL_PLATFORM_NAME,1000,rvstring,&rvlen);
-		printf ("NAME :%s:\n",rvstring);
-		rv = clGetPlatformInfo(NULL,CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
-		printf ("VENDOR :%s:\n",rvstring);
-		rv = clGetPlatformInfo(NULL,CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
-		printf ("EXTENSIONS :%s:\n",rvstring);
-
-}
-
 
 	// create a command queue
 	initme->queue = clCreateCommandQueue(initme->context, initme->device_id, 0, &err);
@@ -437,6 +426,35 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	kp = collide_non_walk_kernel;
 #endif
 
+	#define DEBUG
+	#ifdef DEBUG
+	// debugging information
+	rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
+	printf ("PROFILE :%s:\n",rvstring);
+	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
+	printf ("VERSION :%s:\n",rvstring);
+	rv = clGetPlatformInfo(NULL,CL_PLATFORM_NAME,1000,rvstring,&rvlen);
+	printf ("NAME :%s:\n",rvstring);
+	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
+	printf ("VENDOR :%s:\n",rvstring);
+	rv = clGetPlatformInfo(NULL,CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
+	printf ("EXTENSIONS :%s:\n",rvstring);
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &wgSize, &rvlen);
+	printf ("MAX_WORK_GROUP_SIZE %d\n",wgSize);
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &wgSize, &rvlen);
+	printf ("MAX_COMPUTE_UNITS %d\n",wgSize);
+
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_ulong), &longish, &rvlen);
+	printf ("CL_DEVICE_GLOBAL_MEM_CACHE_SIZE %ld\n",longish);
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &longish, &rvlen);
+	printf ("CL_DEVICE_GLOBAL_MEM_SIZE %ld\n",longish);
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &longish, &rvlen);
+	printf ("CL_DEVICE_LOCAL_MEM_SIZE %ld\n",longish);
+
+
+	#endif //DEBUG
+
+
 	initme->program = clCreateProgramWithSource(initme->context, 1, &kp, NULL, &err);
 	if (!initme->program || (err != CL_SUCCESS)) {
 		printCLError("clCreateProgramWithSource",err);
@@ -471,7 +489,23 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	if (!initme->kernel || (err != CL_SUCCESS)) {
 		printf ("cl create kernel problem\n"); exit(1);
 	}
+
+
+	#ifdef DEBUG
+	rv = clGetKernelWorkGroupInfo (initme->kernel, initme->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &wgSize, &rvlen);
+	printf ("MAX_WORK_GROUP_SIZE %d\n",wgSize);
+
+
+/*
+1. Get workGroupSize from clGetDeviceInfo with CL_DEVICE_mum of two values and use that value as your optimal workGroupSize
+2. Get KernelWorkGroupSize from from clGetKernelWorkGroupInfo with CL_KERNEL_WORK_GPOUP_SIZE
+3. Get minimum of two values and use that value as your optimal workGroupSize
+*/
+
+	#endif // DEBUG
+
 	printf ("kernel built\n");
+
 	return TRUE;
 }
 
@@ -480,7 +514,7 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 /*										*/
 /********************************************************************************/
 
-#define GET_SFVEC3F_COUNT ntri
+#define TRIANGLES_TO_COLLIDE ntri
 
 struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri,
 		int face_ccw, int face_flags, float avatar_radius) {
@@ -504,16 +538,16 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 			clReleaseMemObject(me->output_buffer);	
 		}
 
-		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT,
+		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * TRIANGLES_TO_COLLIDE,
                                                                   NULL, NULL);
 
 		if (me->matrix_buffer == NULL) {
 		me->matrix_buffer = clCreateBuffer(me->context, CL_MEM_READ_ONLY, sizeof (struct OpenCLTransform), NULL, NULL);
 		}
 
-		me->output_size = GET_SFVEC3F_COUNT;
-		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *GET_SFVEC3F_COUNT);
-		me->collide_rvs.n = GET_SFVEC3F_COUNT;
+		me->output_size = TRIANGLES_TO_COLLIDE;
+		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *TRIANGLES_TO_COLLIDE);
+		me->collide_rvs.n = TRIANGLES_TO_COLLIDE;
 	}
 
 	// update the current matrix transform
@@ -550,6 +584,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
 	clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
 	clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
+	clSetKernelArg(me->kernel, 8, sizeof(int), &TRIANGLES_TO_COLLIDE);
 	
 	// global work group size
 	global = (size_t) ntri;
@@ -571,16 +606,16 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	// wait for things to finish
 	// get the data
 	err = clEnqueueReadBuffer (me->queue, me->output_buffer, 
-		CL_TRUE, 0, sizeof(struct SFColorRGBA) * GET_SFVEC3F_COUNT, 
+		CL_TRUE, 0, sizeof(struct SFColorRGBA) * TRIANGLES_TO_COLLIDE, 
 		me->collide_rvs.p, 0, NULL, NULL);
 
 	if (err != CL_SUCCESS) {
-		printCLError("clEnqueueNDRangeKernel",err);
+		printCLError("clEnqueueReadBuffer",err);
 		return maxdispv;
 	}
 
 
-	for (i=0; i < GET_SFVEC3F_COUNT; i++) {
+	for (i=0; i < TRIANGLES_TO_COLLIDE; i++) {
 		/* XXX float to double conversion; make a vecdotf for speed */
 		double disp;
 
@@ -782,11 +817,13 @@ float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c) { 
 	__global int *my_cindex, 	/* 4 */  \n\
 	const int face_ccw,		/* 5 */ \n\
 	const int face_flags,		/* 6 */  \n\
-	const float avatar_radius	/* 7 */ \n\
+	const float avatar_radius,	/* 7 */ \n\
+	const int ntri			/* 8 */ \n\
 	) {   \n\
   \n\
 	/* which index this instantation is working on */ \n\
 	int i_am_canadian = get_global_id(0);  \n\
+	if (i_am_canadian > ntri) return; /* allows for workgroup size sizes */ \n\
  \n\
 	/* vertices for this triangle */  \n\
 	/* transformed by matrix */  \n\
