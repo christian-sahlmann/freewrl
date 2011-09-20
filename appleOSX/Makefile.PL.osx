@@ -72,7 +72,7 @@ if ($ok eq 0) {
 push @inc, $VRML_CONFIG{FREEWRL_INC}, 
 	"-I../src/lib ",
 	" -IOSX_Specific ";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-ljs";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-lFreeX3Djs";
 push @ldflags, $VRML_CONFIG{LDFLAGS};
 
 # push build directory, for running standalone

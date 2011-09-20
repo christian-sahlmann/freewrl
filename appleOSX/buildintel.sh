@@ -28,5 +28,5 @@ cp libFreeX3DFunc.dylib /usr/local/lib/libFreeX3DFunc.dylib
 
 
 ## Clean up
-rm -f X3DFunc_i386.dylib
-rm -f X3DFunc_x86_64.dylib
+#JAS rm -f X3DFunc_i386.dylib
+#JAS rm -f X3DFunc_x86_64.dylib

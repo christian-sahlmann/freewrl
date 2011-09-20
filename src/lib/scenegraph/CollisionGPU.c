@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.18 2011/09/20 14:38:47 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.19 2011/09/20 18:24:00 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -704,6 +704,8 @@ static const char* collide_non_walk_kernel = " \
 /*	Collide kernel for fly and examine modes				*/ \n\
 /*										*/ \n\
 /********************************************************************************/ \n\
+/* Function prototypes */ \n\
+float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c); \n\
  \n\
 /* start the collide process. \n\
  \n\
