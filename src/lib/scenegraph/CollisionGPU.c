@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.17 2011/09/19 18:50:28 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.18 2011/09/20 14:38:47 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -56,10 +56,25 @@ static const char* collide_non_walk_kernel;
 /********************************************************************************/
 
 
-struct OpenCLTransform
-{
-        cl_float16      matrix;
-};
+#ifdef OLDCODE
+OLDCODE//http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
+OLDCODEstatic size_t roundUpToNextPowerOfTwo(size_t n) {
+OLDCODE	if (n==0) return 1;
+OLDCODE
+OLDCODE	n = n - 1;
+OLDCODE	n = n | (n >> 1);
+OLDCODE	n = n | (n >> 2);
+OLDCODE	n = n | (n >> 4);
+OLDCODE	n = n | (n >> 8);
+OLDCODE	n = n | (n >> 16);
+OLDCODE	if (sizeof(size_t)>32)
+OLDCODE		n = n | (n >> 32);
+OLDCODE	n = n + 1;
+OLDCODE	return n;
+OLDCODE}
+#endif // OLDCODE
+
+
 
 static void printCLError(const char *where, int err) {
 	switch (err) {
@@ -304,14 +319,19 @@ int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
 bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 	int err;
-	int gpu;
 
 	// debugging information
 	cl_int rv;
-	char rvstring[1000];
 	size_t rvlen;
-	size_t wgSize;
+	size_t wg_size;
+	size_t kernel_wg_size;
+
+	#ifdef DEBUG
 	cl_ulong longish;
+	size_t xyz;
+	char rvstring[1000];
+	int gpu;
+	#endif // DEBUG
 
 
 
@@ -423,26 +443,29 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	kp[readSize] = '\0'; /* ensure null termination */
 	printf ("read in %d bytes max %d\n",readSize,RS);
 #else
-	kp = collide_non_walk_kernel;
+	kp = (char *)collide_non_walk_kernel;
 #endif
 
-	#define DEBUG
+
+	// Find the work group size
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &wg_size, &rvlen);
+
+	#undef DEBUG
 	#ifdef DEBUG
 	// debugging information
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
-	printf ("PROFILE :%s:\n",rvstring);
+	printf ("CL_PLATFORM_PROFILE :%s:\n",rvstring);
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
-	printf ("VERSION :%s:\n",rvstring);
+	printf ("CL_PLATFORM_VERSION :%s:\n",rvstring);
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_NAME,1000,rvstring,&rvlen);
-	printf ("NAME :%s:\n",rvstring);
+	printf ("CL_PLATFORM_NAME :%s:\n",rvstring);
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
-	printf ("VENDOR :%s:\n",rvstring);
+	printf ("CL_PLATFORM_VENDOR :%s:\n",rvstring);
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
-	printf ("EXTENSIONS :%s:\n",rvstring);
-	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &wgSize, &rvlen);
-	printf ("MAX_WORK_GROUP_SIZE %d\n",wgSize);
-	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &wgSize, &rvlen);
-	printf ("MAX_COMPUTE_UNITS %d\n",wgSize);
+	printf ("CL_PLATFORM_EXTENSIONS :%s:\n",rvstring);
+	printf ("CL_DEVICE_MAX_WORK_GROUP_SIZE %d\n",wg_size);
+	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &xyz, &rvlen);
+	printf ("CL_DEVICE_MAX_COMPUTE_UNITS %d\n",xyz);
 
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_ulong), &longish, &rvlen);
 	printf ("CL_DEVICE_GLOBAL_MEM_CACHE_SIZE %ld\n",longish);
@@ -455,7 +478,7 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	#endif //DEBUG
 
 
-	initme->program = clCreateProgramWithSource(initme->context, 1, &kp, NULL, &err);
+	initme->program = clCreateProgramWithSource(initme->context, 1, (const char **) &kp, NULL, &err);
 	if (!initme->program || (err != CL_SUCCESS)) {
 		printCLError("clCreateProgramWithSource",err);
 		return FALSE;
@@ -478,7 +501,7 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
         	printf("Error: Failed to build program executable\n");           
         	clGetProgramBuildInfo(initme->program, initme->device_id, CL_PROGRAM_BUILD_LOG,
                                           sizeof(buffer), buffer, &len);
-		printf ("error string len %d\n",len);
+		printf ("error string len %d\n",(int)len);
         	printf("%s\n", buffer);
         	return FALSE;
     	}
@@ -491,9 +514,16 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	}
 
 
+	// Kernel Workgroup size
+	rv = clGetKernelWorkGroupInfo (initme->kernel, initme->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &kernel_wg_size, &rvlen);
+
+	// try the smaller of the two
+	if (kernel_wg_size < wg_size) wg_size = kernel_wg_size;
+	initme->workgroup_size = wg_size;
+
 	#ifdef DEBUG
-	rv = clGetKernelWorkGroupInfo (initme->kernel, initme->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &wgSize, &rvlen);
-	printf ("MAX_WORK_GROUP_SIZE %d\n",wgSize);
+	printf ("MAX_WORK_GROUP_SIZE %d\n",kernel_wg_size);
+	printf ("We are going to set our workgroup size to %d\n",wg_size);
 
 
 /*
@@ -514,17 +544,14 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 /*										*/
 /********************************************************************************/
 
-#define TRIANGLES_TO_COLLIDE ntri
-
 struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri,
 		int face_ccw, int face_flags, float avatar_radius) {
  
 	int i;
 	int err;
-	size_t global;
+	size_t local_work_size;
+	size_t global_work_size;
 	unsigned int count;
-
-	struct OpenCLTransform transform;
 
 	double maxdisp = 0.0;
 	struct point_XYZ dispv, maxdispv = {0,0,0};
@@ -538,25 +565,20 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 			clReleaseMemObject(me->output_buffer);	
 		}
 
-		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * TRIANGLES_TO_COLLIDE,
+		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * ntri,
                                                                   NULL, NULL);
 
 		if (me->matrix_buffer == NULL) {
-		me->matrix_buffer = clCreateBuffer(me->context, CL_MEM_READ_ONLY, sizeof (struct OpenCLTransform), NULL, NULL);
+		me->matrix_buffer = clCreateBuffer(me->context, CL_MEM_READ_ONLY, sizeof (cl_float16), NULL, NULL);
 		}
 
-		me->output_size = TRIANGLES_TO_COLLIDE;
-		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *TRIANGLES_TO_COLLIDE);
-		me->collide_rvs.n = TRIANGLES_TO_COLLIDE;
+		me->output_size = ntri;
+		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *ntri);
+		me->collide_rvs.n = ntri;
 	}
 
 	// update the current matrix transform
-#ifdef _MSC_VER
-        memcpy(transform.matrix.s, modelMat, sizeof(cl_float16));
-#else
-        memcpy(transform.matrix, modelMat, sizeof(cl_float16));
-#endif
-        clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(struct OpenCLTransform), &transform, 0, NULL, NULL);
+        clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(cl_float16), modelMat, 0, NULL, NULL);
 
 	// lets get the openGL vertex buffer here
 	me->vertex_buffer=clCreateFromGLBuffer(me->context, CL_MEM_READ_ONLY, vertex_vbo, &err);
@@ -584,10 +606,25 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
 	clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
 	clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
-	clSetKernelArg(me->kernel, 8, sizeof(int), &TRIANGLES_TO_COLLIDE);
+	clSetKernelArg(me->kernel, 8, sizeof(int), &ntri);
 	
 	// global work group size
-	global = (size_t) ntri;
+	#define MYWG (me->workgroup_size)
+	// find out how many "blocks" we can have
+	if (MYWG > 0)
+		global_work_size = (size_t) (ntri) / MYWG;
+	else global_work_size = 0;
+
+	// add 1 to it, because we have to round up
+	global_work_size += 1;
+
+	// now, global_work_size will be an exact multiple of local_work_size
+	global_work_size *= MYWG;
+
+	// printf ("global_work_size is %d %x right now...\n",global_work_size, global_work_size);
+
+	local_work_size = MYWG;
+	//printf ("local_work_size %d\n",local_work_size);
 
 	// note - we let the openCL implementation work out the local work group size`
 	// so just leave this as "NULL". We could specify a local work group size, but
@@ -595,8 +632,12 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	// size must be divisible by the local group size, and we can not ensure this
 	// as we do not know how many triangles we are getting.
 
+	// printf ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
 
-  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+	// If we let the system determing workgroup size, we can get non-optimal workgroup sizes.
+  	//err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &ntri, NULL, 0, NULL, NULL);
+
+  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
 		return maxdispv;
@@ -606,7 +647,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	// wait for things to finish
 	// get the data
 	err = clEnqueueReadBuffer (me->queue, me->output_buffer, 
-		CL_TRUE, 0, sizeof(struct SFColorRGBA) * TRIANGLES_TO_COLLIDE, 
+		CL_TRUE, 0, sizeof(struct SFColorRGBA) * ntri, 
 		me->collide_rvs.p, 0, NULL, NULL);
 
 	if (err != CL_SUCCESS) {
@@ -615,7 +656,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	}
 
 
-	for (i=0; i < TRIANGLES_TO_COLLIDE; i++) {
+	for (i=0; i < ntri; i++) {
 		/* XXX float to double conversion; make a vecdotf for speed */
 		double disp;
 
@@ -823,7 +864,7 @@ float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c) { 
   \n\
 	/* which index this instantation is working on */ \n\
 	int i_am_canadian = get_global_id(0);  \n\
-	if (i_am_canadian > ntri) return; /* allows for workgroup size sizes */ \n\
+	if (i_am_canadian >= ntri) return; /* allows for workgroup size sizes */ \n\
  \n\
 	/* vertices for this triangle */  \n\
 	/* transformed by matrix */  \n\

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.h,v 1.17 2011/09/13 19:50:23 crc_canada Exp $
+$Id: Collision.h,v 1.18 2011/09/20 14:38:47 crc_canada Exp $
 
 Collision ???
 
@@ -122,6 +122,7 @@ struct sCollisionGPU {
 	cl_context context;
 	cl_command_queue queue;
 	cl_device_id device_id;
+	size_t workgroup_size;
 	int output_size;
 	cl_mem output_buffer;
 	cl_mem matrix_buffer;
