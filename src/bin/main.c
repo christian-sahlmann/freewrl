@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.50 2011/07/26 23:59:52 dug9 Exp $
+  $Id: main.c,v 1.51 2011/09/21 20:43:06 crc_canada Exp $
 
   FreeWRL main program.
 
@@ -25,6 +25,9 @@
 ****************************************************************************/
 
 
+#if !defined(TARGET_AQUA)
+
+
 #include <config.h>
 #include <system.h>
 #include <internal.h>
@@ -36,7 +39,6 @@
 #ifdef _MSC_VER
 #include "getopt.h"
 #endif
-
 
 /**
  * FreeWRL parameters
@@ -72,9 +74,7 @@ char *strBackslash2fore(char *str);
 int main (int argc, char **argv)
 {
     const char *libver;
-#ifndef AQUA
     const char  *progver;
-#endif
 
 #if defined(_ANDROID)
     int tempIsAndroid = 1 ;
@@ -88,13 +88,12 @@ int main (int argc, char **argv)
 
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();
-#ifndef AQUA
     progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
 	sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
 	fwl_StringConsoleMessage(consoleBuffer);
     }
-#endif
+
 #ifdef _MSC_VER
 	/*
 	Set fonts directory
@@ -161,7 +160,6 @@ int main (int argc, char **argv)
 
     fwl_init_StereoDefaults();
 
-#if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
     if (fv_parseCommandLine(argc, argv)) {
 		if(argc > 1){
@@ -173,7 +171,6 @@ int main (int argc, char **argv)
 			start_url = NULL;
 		}
     }
-#endif
 
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
@@ -247,3 +244,4 @@ void fv_catch_SIGALRM(int sig)
 
 #endif
 
+#endif // AQUA
