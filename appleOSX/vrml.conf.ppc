@@ -61,13 +61,4 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa ',
-
-	LDFLAGS2 => '-flat_namespace '.
-		'-undefined error '.
-		'-bundle '.
-		'-L/usr/lib '.
-		'-F/System/Library/Frameworks '.
-		'-framework OpenGL '.
-		'-framework GLUT '.
-		'-framework Cocoa ',
 );

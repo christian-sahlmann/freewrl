@@ -3,9 +3,10 @@
 #build javascript
 cd ../../freewrl/JS/js1.8/src
 ./build64_32_noppc.sh
-cp ../../freewrl/JS/js1.8/src/Darwin_DBG.OBJ/libFreeX3Djs.dylib /usr/local/lib/libFreeX3Djs.dylib 
+cp Darwin_DBG.OBJ/libFreeX3Djs.dylib /usr/local/lib/libFreeX3Djs.dylib 
 
-cd ../../../../freex3d/appleOSX/
+cd -
+#cd ../../../../freex3d/appleOSX/
 
 ## Make i386 library first
 make distclean

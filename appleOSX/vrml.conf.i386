@@ -34,11 +34,10 @@ FREEWRL_CCFLAGS => '-arch '.
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
-		'-I/usr/local/include/freetype2 '.
-		'-I/usr/local/include/freetype2/freetype '.
-		'-I/usr/local/include '.
+		'-I/usr/X11/include/freetype2 '.
+		'-I/usr/X11/include/freetype2/freetype '.
+		'-I/usr/X11/include '.
 		'-I/usr/include/libxml2 '.
-		'-I/opt/local/include '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src '.
 		'-I/FreeWRL/freewrl/freewrl/JS/js1.8/src/Darwin_DBG.OBJ '.
 		' ',
@@ -54,20 +53,11 @@ FREEWRL_CCFLAGS => '-arch '.
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-L/usr/lib '.
+		'-L/usr/X11/lib '.
 		'-F/System/Library/Frameworks '. 
 		'-arch i386 '.
 		'-mmacosx-version-min=10.4 '.
 		'-isysroot /Developer/SDKs/MacOSX10.5.sdk '.
-		'-framework OpenGL '.
-		'-framework OpenCL '.
-		'-framework GLUT '.
-		'-framework Cocoa ',
-
-	LDFLAGS2 => '-flat_namespace '.
-		'-undefined error '.
-		'-bundle '.
-		'-L/usr/lib '.
-		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
 		'-framework OpenCL '.
 		'-framework GLUT '.
