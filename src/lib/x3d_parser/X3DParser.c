@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.96 2011/09/17 20:52:06 dug9 Exp $
+$Id: X3DParser.c,v 1.97 2011/09/21 15:56:06 dug9 Exp $
 
 ???
 
@@ -1446,6 +1446,7 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 			nvp = MALLOC(struct nameValuePairs* , sizeof (struct nameValuePairs));
 			nvp->fieldName = STRDUP(atts[i]);
 			nvp->fieldValue=STRDUP(atts[i+1]);
+			//ConsoleMessage("name[%s] value[%s]\n",atts[i], atts[i+1]);
 			nvp->fieldType = 0;
 			vector_pushBack(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex], nvp);
 		}
@@ -1678,7 +1679,33 @@ static void parseAttributes(void) {
 					{
                         //I get -85529292 so some branches arent setting .value or .fieldValue to 0.
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
-						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+						int libxml2 = 1;
+						if(libxml2){
+							//for x3d string '"&amp;"' libxml2 gives us &#38; 
+							//we want & like other browsers get
+							//we do it by left-shifting over the #38;
+							char *fieldValue;
+							fieldValue = nvp->fieldValue;
+							if(fieldValue)
+							{
+								char *pp = strstr(fieldValue,"&#38;");
+								if(pp){
+									memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
+									/* or the following works if you don't have memmove:
+									int len, nmove, ii;
+									len = strlen(fieldValue);
+									pp++;
+									nmove = (len+1) - (pp - fieldValue);
+									for(ii=0;ii<nmove;ii++){
+										*pp = *(pp+4);
+										pp++;
+									}
+									*/
+								}
+							}
+							setField_fromJavascript (thisNode, nvp->fieldName,fieldValue, TRUE);
+						}else
+							setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
 					}
 			}
