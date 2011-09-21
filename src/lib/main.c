@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.68 2011/09/13 19:50:23 crc_canada Exp $
+  $Id: main.c,v 1.69 2011/09/21 19:26:45 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -113,6 +113,9 @@ static bool qParamsInit = FALSE ;
 
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
+	ttglobal tg = gglobal();
+
+printf ("fwl_OSX_initializeParameters called, url %s\n",initialURL);
 
     /* have we been through once already (eg, plugin loading new file)? */
     if (!qParamsInit) {
@@ -132,6 +135,14 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
+
+	/* Give the main argument to the resource handler */
+	if (initialURL != NULL) {
+		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(initialURL);
+	} else {
+		ConsoleMessage ("fwl_OSX_initializeParameters is NULL!");
+	}
+
 
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
@@ -317,6 +328,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
  */
 void fwl_startFreeWRL(const char *url)
 {
+
+	printf ("fwl_startFreeWRL called\n");
 	ttglobal tg = gglobal();
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
@@ -331,6 +344,7 @@ void fwl_startFreeWRL(const char *url)
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
 }
+
 /**
  * Explicit exit routine
  */
