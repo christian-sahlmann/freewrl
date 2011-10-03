@@ -1,5 +1,5 @@
 /*
-  $Id: fwCommonX11.c,v 1.12 2011/06/13 15:41:15 crc_canada Exp $
+  $Id: fwCommonX11.c,v 1.13 2011/10/03 18:47:28 istakenv Exp $
 
   FreeWRL support library.
   X11 common functions.
@@ -352,8 +352,8 @@ void setCursor()
 
 void setWindowTitle()
 {
-	XStoreName(Xdpy, Xwin, window_title);
-	XSetIconName(Xdpy, Xwin, window_title);
+	XStoreName(Xdpy, Xwin, getWindowTitle());
+	XSetIconName(Xdpy, Xwin, getWindowTitle());
 }
 
 #endif /* IPHONE */

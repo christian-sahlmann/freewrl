@@ -1,5 +1,5 @@
 /*
-  $Id: fwMotifWindow.c,v 1.34 2011/06/14 16:20:49 istakenv Exp $
+  $Id: fwMotifWindow.c,v 1.35 2011/10/03 18:47:28 istakenv Exp $
 
   FreeWRL support library.
   Create Motif window, widget, menu. Manage events.
@@ -41,7 +41,7 @@
 #include "../vrml_parser/Structs.h"
 #include "../opengl/OpenGL_Utils.h"
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 #include <Xm/MainW.h>
 #include <Xm/RowColumn.h>
@@ -203,7 +203,7 @@ int fv_create_main_window(int argc, char *argv[])
 /* 	argv_out = argv; */
 
 	/* XtVaAppInitialize ??? */
-	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(window_title, XmSTRING_DEFAULT_CHARSET)); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(getWindowTitle(), XmSTRING_DEFAULT_CHARSET)); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNheight, fwl_params.height); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNwidth, fwl_params.width); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNmappedWhenManaged, False); initArgc++;
@@ -231,7 +231,7 @@ int fv_create_main_window(int argc, char *argv[])
 		      XmNcolormap, colormap,
 		      NULL);
 	
-	mainw = XmCreateMainWindow(freewrlTopWidget, window_title, NULL, 0);
+	mainw = XmCreateMainWindow(freewrlTopWidget, getWindowTitle(), NULL, 0);
 	if (!mainw)
 		return FALSE;
 	

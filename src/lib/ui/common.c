@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.11 2011/09/12 17:28:44 crc_canada Exp $
+  $Id: common.c,v 1.12 2011/10/03 18:47:28 istakenv Exp $
 
   FreeWRL support library.
 
@@ -141,6 +141,6 @@ void updateCursorStyle()
 	updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
 #else
 	ccurse = ocurse = cstyle;
-	setCursor(); /*updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
+	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
 #endif
 }
