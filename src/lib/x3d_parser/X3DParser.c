@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.97 2011/09/21 15:56:06 dug9 Exp $
+$Id: X3DParser.c,v 1.98 2011/10/08 17:34:11 dug9 Exp $
 
 ???
 
@@ -1453,7 +1453,33 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 	}
 }
 
-
+static char* fixAmp(char *fieldValue)
+{
+	//for x3d string '"&amp;"' libxml2 gives us &#38; 
+	//we want & like other browsers get
+	//we do it by left-shifting over the #38;
+	//fieldValue - the MFString before splitting into SFs ie ["you & me" "John & Ian"\0]
+	//except that libxml2 will wrongly give you ["you &#38; me" "John &#38; Ian"\0]
+	if(fieldValue)
+	{
+		char *pp = strstr(fieldValue,"&#38;");
+		while(pp){
+			memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
+			pp = strstr(pp,"&#38;");
+			/* or the following works if you don't have memmove:
+			int len, nmove, ii;
+			len = strlen(fieldValue);
+			pp++;
+			nmove = (len+1) - (pp - fieldValue);
+			for(ii=0;ii<nmove;ii++){
+				*pp = *(pp+4);
+				pp++;
+			}
+			*/
+		}
+	}
+	return fieldValue;
+}
 
 static void parseAttributes(void) {
 	size_t ind;
@@ -1681,29 +1707,30 @@ static void parseAttributes(void) {
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
 						int libxml2 = 1;
 						if(libxml2){
-							//for x3d string '"&amp;"' libxml2 gives us &#38; 
-							//we want & like other browsers get
-							//we do it by left-shifting over the #38;
-							char *fieldValue;
-							fieldValue = nvp->fieldValue;
-							if(fieldValue)
-							{
-								char *pp = strstr(fieldValue,"&#38;");
-								if(pp){
-									memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
-									/* or the following works if you don't have memmove:
-									int len, nmove, ii;
-									len = strlen(fieldValue);
-									pp++;
-									nmove = (len+1) - (pp - fieldValue);
-									for(ii=0;ii<nmove;ii++){
-										*pp = *(pp+4);
-										pp++;
-									}
-									*/
-								}
-							}
-							setField_fromJavascript (thisNode, nvp->fieldName,fieldValue, TRUE);
+							////for x3d string '"&amp;"' libxml2 gives us &#38; 
+							////we want & like other browsers get
+							////we do it by left-shifting over the #38;
+							//char *fieldValue;
+							//fieldValue = nvp->fieldValue;
+							//if(fieldValue)
+							//{
+							//	char *pp = strstr(fieldValue,"&#38;");
+							//	if(pp){
+							//		memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
+							//		/* or the following works if you don't have memmove:
+							//		int len, nmove, ii;
+							//		len = strlen(fieldValue);
+							//		pp++;
+							//		nmove = (len+1) - (pp - fieldValue);
+							//		for(ii=0;ii<nmove;ii++){
+							//			*pp = *(pp+4);
+							//			pp++;
+							//		}
+							//		*/
+							//	}
+							//}
+							nvp->fieldValue = fixAmp(nvp->fieldValue);
+							setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 						}else
 							setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
