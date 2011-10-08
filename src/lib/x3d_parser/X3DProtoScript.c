@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.78 2011/10/08 20:33:39 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.79 2011/10/08 22:24:20 dug9 Exp $
 
 ???
 
@@ -1227,9 +1227,10 @@ static void fixXmlString(char *fvout, char* fvin)
 	//and we want fvout=["\&quot;" "\&apos;" "&amp;" "&lt;" "&gt;"\0]
 	//assume the ' and " have already been properly backslashed by the scene author ie \&quot; and \&apos;
 	//Then our job is to search for &,\',\",<,> and substitute &amp; \&apos; \&quot; &lt; &gt;
-	int i,j,k,len,translated;
+	int i,j,k,len,translated,nadd;
 	char *c = fvout;
 	len = strlen(fvin);
+	nadd = 0;
 	for(i=0;i<len;i++)
 	{
 		*c = fvin[i];
@@ -1240,6 +1241,12 @@ static void fixXmlString(char *fvout, char* fvin)
 				if( (j < 2 && i >0 && *(c-1) == '\\') || j > 1)
 				{
 					translated = 1;
+					nadd += strlen(fixtable[j]) -1;
+					if(nadd > 1000) 
+					{
+						fvout = realloc(fvout,strlen(fvout)+1000);
+						nadd = 0;
+					}
 					for(k=0;k<strlen(fixtable[j]);k++)
 					{
 						*c = fixtable[j][k];
@@ -1374,7 +1381,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		} 
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ 
 		if (fv != NULL) { 
-			char* fv2 = (char *) malloc(sizeof(strlen(fv))+1000);
+			char* fv2 = (char *) malloc(strlen(fv)+1000);
 			fixXmlString(fv2,fv);
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", 
 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), 
