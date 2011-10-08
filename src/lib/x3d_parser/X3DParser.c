@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.98 2011/10/08 17:34:11 dug9 Exp $
+$Id: X3DParser.c,v 1.99 2011/10/08 20:33:39 dug9 Exp $
 
 ???
 
@@ -1705,34 +1705,7 @@ static void parseAttributes(void) {
 					{
                         //I get -85529292 so some branches arent setting .value or .fieldValue to 0.
 						//printf("Unknown fieldType %d\n",nvp->fieldType);
-						int libxml2 = 1;
-						if(libxml2){
-							////for x3d string '"&amp;"' libxml2 gives us &#38; 
-							////we want & like other browsers get
-							////we do it by left-shifting over the #38;
-							//char *fieldValue;
-							//fieldValue = nvp->fieldValue;
-							//if(fieldValue)
-							//{
-							//	char *pp = strstr(fieldValue,"&#38;");
-							//	if(pp){
-							//		memmove(pp+1,pp+5,strlen(fieldValue) - (pp+1 - fieldValue));
-							//		/* or the following works if you don't have memmove:
-							//		int len, nmove, ii;
-							//		len = strlen(fieldValue);
-							//		pp++;
-							//		nmove = (len+1) - (pp - fieldValue);
-							//		for(ii=0;ii<nmove;ii++){
-							//			*pp = *(pp+4);
-							//			pp++;
-							//		}
-							//		*/
-							//	}
-							//}
-							nvp->fieldValue = fixAmp(nvp->fieldValue);
-							setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
-						}else
-							setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
+						setField_fromJavascript (thisNode, nvp->fieldName,nvp->fieldValue, TRUE);
 
 					}
 			}
@@ -1748,6 +1721,7 @@ static void parseAttributes(void) {
 static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xmlChar **atts) {
 	int myNodeIndex;
 	char **myAtts;
+	int i;
 	char *blankAtts[] = {NULL,NULL};
     const char *name = (const char*) iname;  // get around compiler warnings on iPhone, etc...
 	ttglobal tg = gglobal();
@@ -1769,6 +1743,11 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 	//printf ("X3DstartElement - finished looking at myAtts\n\n");
 	#endif
 
+	if(atts)
+		for (i = 0; atts[i]; i += 2) {
+			atts[i+1] = fixAmp(atts[i+1]);
+		}
+	
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
 		dumpProtoBody(name,myAtts);

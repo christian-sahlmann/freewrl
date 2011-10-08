@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.77 2011/08/01 17:06:47 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.78 2011/10/08 20:33:39 dug9 Exp $
 
 ???
 
@@ -1216,6 +1216,42 @@ void parseProtoInstance (char **atts) {
 	} \
 	fdl += fprintf (fileDescriptor, "<!-- end of MAKE_PROTO_COPY_FIELDS --> \n");
 
+static char fixchar [] = {'\'', '"', '&', '<', '>'};
+static char* fixtable [] = {"&apos;", "&quot;", "&amp;", "&lt;", "&gt;"};
+static void fixXmlString(char *fvout, char* fvin)
+{
+	//xml reader is expecting to see &amp; for &, &lt; for <, &gt; for >
+	//and -special for x3d- for non-SF-delimiting quotes and apostrophies, backslashed: \&apos; for \', \&quot; for \"
+	//so when we write xml, we need to translate
+	//for mfstrings already concatonated from SFs, we'll have fvin=["\"" "\'" "&" "<" ">"\0]
+	//and we want fvout=["\&quot;" "\&apos;" "&amp;" "&lt;" "&gt;"\0]
+	//assume the ' and " have already been properly backslashed by the scene author ie \&quot; and \&apos;
+	//Then our job is to search for &,\',\",<,> and substitute &amp; \&apos; \&quot; &lt; &gt;
+	int i,j,k,len,translated;
+	char *c = fvout;
+	len = strlen(fvin);
+	for(i=0;i<len;i++)
+	{
+		*c = fvin[i];
+		translated = 0;
+		for(j=0;j<5;j++)
+			if(*c == fixchar[j]) 
+			{
+				if( (j < 2 && i >0 && *(c-1) == '\\') || j > 1)
+				{
+					translated = 1;
+					for(k=0;k<strlen(fixtable[j]);k++)
+					{
+						*c = fixtable[j][k];
+						c++;
+					}
+				}
+			}
+		if(!translated)
+			c++;
+	}
+	*c = '\0';
+}
 
 /* have a </ProtoInstance> so should have valid name and fieldValues */
 void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
@@ -1338,12 +1374,15 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 		} 
 		/* JAS if (field->fieldDecl->mode != PKW_initializeOnly) { */ 
 		if (fv != NULL) { 
+			char* fv2 = (char *) malloc(sizeof(strlen(fv))+1000);
+			fixXmlString(fv2,fv);
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' value='%s'/>\n", 
 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), 
 			fieldDecl_getShaderScriptName(field->fieldDecl),  
 			FREEWRL_SPECIFIC,  
 			CPI.uniqueNumber, 
-			fv); 
+			fv2); //fv); 
+			free(fv2);
 		} else { 
 		fdl += fprintf (fileDescriptor,"\t<Metadata%s DEF='%s_%s_%d' />\n", 
 			stringFieldtypeType(fieldDecl_getType(field->fieldDecl)), 
