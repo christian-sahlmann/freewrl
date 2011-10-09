@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.23 2011/07/09 18:40:59 dug9 Exp $
+$Id: Snapshot.c,v 1.24 2011/10/09 23:38:51 roelofs Exp $
 
 CProto ???
 
@@ -383,16 +383,16 @@ void saveSnapSequence() {
 		t->snapGoodCount++;
 	
 		if (t->snapGif) {
-			sprintf (thisGoodFile,"%s/%s.%04d.gif",mytmp,myseqb,p->snapGoodCount);
+			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.gif",mytmp,myseqb,t->snapGoodCount);
 		} else {
-			sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,p->snapGoodCount);
+			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.mpg",mytmp,myseqb,t->snapGoodCount);
 		}
-		/* sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
+		/* snprintf(sysline,sizeof(sysline),"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
 	
 		/* Dani Rozenbaum - In order to generate 
 		 movies (e.g. with mencoder) images have to be three-band RGB (in other 
 		 words 24-bits) */
-	sprintf(sysline, "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
+		snprintf(sysline,sizeof(sysline), "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
 			CONVERT, gglobal()->display.screenWidth, gglobal()->display.screenHeight,mytmp,myseqb,thisGoodFile);
 	
 		/* printf ("convert line %s\n",sysline); */
@@ -400,10 +400,10 @@ void saveSnapSequence() {
 		if (system (sysline) != 0) {
 			printf ("Freewrl: error running convert line %s\n",sysline);
 		}
-		printf ("snapshot is :%s\n",thisGoodFile);
+		printf ("[1] snapshot is:  %s\n",thisGoodFile);
 		/* remove temporary files */
 		for (xx=1; xx <= p->snapRawCount; xx++) {
-			sprintf (thisRawFile, "%s/%s.%04d.rgb",mytmp,myseqb,xx);
+			snprintf (thisRawFile, sizeof(thisRawFile), "%s/%s.%04d.rgb",mytmp,myseqb,xx);
 			UNLINK (thisRawFile);
 		}
 		t->snapRawCount=0;
@@ -573,14 +573,14 @@ void Snapshot () {
 
 		p->snapGoodCount++;
 		if (t->doPrintshot) {
-			sprintf (thisGoodFile, "/tmp/FW_print_snap_tmp.png");
+			snprintf (thisGoodFile, sizeof(thisGoodFile), "/tmp/FW_print_snap_tmp.png");
 			p->doPrintshot = FALSE;
 			t->doSnapshot = p->savedSnapshot;
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
 			printf("thisGoodFile is %s\n", thisGoodFile);
 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
 		} else {
-			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
+			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,p->snapGoodCount);
 
 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
@@ -591,22 +591,22 @@ void Snapshot () {
 		CFRelease(path);
 
 		if (!imageDest) {
-			ConsoleMessage("Snapshot can not be written");
+			ConsoleMessage("[1] Snapshot cannot be written");
 			return;
 		}
 
 		CGImageDestinationAddImage(imageDest, image, NULL);
 		if (!CGImageDestinationFinalize(imageDest)) {
-			ConsoleMessage ("Snapshot can not be written, part 2");
+			ConsoleMessage ("[2] Snapshot cannot be written");
 		}
 		CFRelease(imageDest);
 		CGImageRelease(image); 
 	#else	
 		/* save the file */
-		sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,p->snapRawCount);
+		snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.rgb",mytmp,mysnapb,p->snapRawCount);
 		tmpfile = fopen(thisRawFile,"w");
 		if (tmpfile == NULL) {
-			printf ("can not open temp file (%s) for writing\n",thisRawFile);
+			printf ("cannot open temp file (%s) for writing\n",thisRawFile);
 			FREE_IF_NZ (buffer);
 			return;
 		}
@@ -629,14 +629,14 @@ void Snapshot () {
 		if (!p->snapsequence) {
 #endif
 			t->snapGoodCount++;
-			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,p->snapGoodCount);
-			sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
+			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
+			snprintf(sysline,sizeof(sysline),"%s -size %dx%d -depth 8 -flip %s %s",
 			IMAGECONVERT,gglobal()->display.screenWidth, gglobal()->display.screenHeight,thisRawFile,thisGoodFile);
 	
 			if (system (sysline) != 0) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			}
-			printf ("snapshot is :%s\n",thisGoodFile);
+			printf ("[2] snapshot is:  %s\n",thisGoodFile);
 			UNLINK (thisRawFile);
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
