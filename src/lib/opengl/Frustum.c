@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.44 2011/07/28 17:38:30 dug9 Exp $
+$Id: Frustum.c,v 1.45 2011/10/11 17:53:58 crc_canada Exp $
 
 ???
 
@@ -511,8 +511,10 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	me->EXTENT_MAX_Y = maxy; me->EXTENT_MIN_Y = miny;
 	me->EXTENT_MAX_Z = maxz; me->EXTENT_MIN_Z = minz;
 
-	for (c=0; c<(me->_nparents); c++) {
-		shapeParent = X3D_NODE(me->_parents[c]);
+	for (c=0; c<vector_size(me->_parentVector); c++) {
+	// OLDCODE for (c=0; c<(me->_nparents); c++) {
+		// OLDCODE shapeParent = X3D_NODE(me->_parents[c]);
+		shapeParent = vector_get(struct X3D_Node *, me->_parentVector,c);
 	
 		/* record this for ME for sorting purposes for sorting children fields */
 		shapeParent->EXTENT_MAX_X = maxx; shapeParent->EXTENT_MIN_X = minx;
@@ -524,11 +526,12 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 		printf ("parent %u of %u is %u, is null\n",c,me,me->_parents[c]); 
 		else
 		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
-		printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);
 		#endif
 
-		for (d=0; d<(shapeParent->_nparents); d++) {
-			geomParent = X3D_NODE(shapeParent->_parents[d]);
+		for (d=0; d<vector_size(shapeParent->_parentVector); d++) {
+		// OLDCODE for (d=0; d<(shapeParent->_nparents); d++) {
+			geomParent = vector_get(struct X3D_Node *, shapeParent->_parentVector,d);
+			// OLDCODEgeomParent = X3D_NODE(shapeParent->_parents[d]);
 
 			#ifdef FRUSTUMVERBOSE
 			printf ("setExtent in loop, parent %u of shape %s is %s\n",c,stringNodeType(shapeParent->_nodeType),
@@ -628,7 +631,7 @@ void propagateExtent(struct X3D_Node *me) {
 			me->EXTENT_MAX_X, me->EXTENT_MIN_X,
 			me->EXTENT_MAX_Y, me->EXTENT_MIN_Y,
 			me->EXTENT_MAX_Z, me->EXTENT_MIN_Z,
-			me, me->_nparents);
+			me, vector_size(me->parentVector));
 	#endif
 
 	/* calculate the maximum of the current position, and add the previous extent */
@@ -643,8 +646,10 @@ void propagateExtent(struct X3D_Node *me) {
 	FRUSTUM_TRANS(HAnimSite);
 	FRUSTUM_TRANS(HAnimJoint);
 
-	for (i=0; i<(me->_nparents); i++) {
-		geomParent = X3D_NODE(me->_parents[i]);
+	// OLDCODE for (i=0; i<(me->_nparents); i++) {
+	for (i=0; i<vector_size(me->_parentVector); i++) {
+		//OLDCODEgeomParent = X3D_NODE(me->_parents[i]);
+		geomParent = vector_get(struct X3D_Node *, me->_parentVector, i);
 
 		/* do we propagate for this parent? */
 		touched = FALSE;

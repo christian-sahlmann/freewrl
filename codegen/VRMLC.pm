@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.62 2011/06/11 01:14:25 couannette Exp $
+# $Id: VRMLC.pm,v 1.63 2011/10/11 17:53:58 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.63  2011/10/11 17:53:58  crc_canada
+# move the scenegraph Node parent structure to the Vector methodology.
+#
 # Revision 1.62  2011/06/11 01:14:25  couannette
 # A mistake that prevented VRMLC.pm to generate file when it didn't exist.
 #
@@ -499,10 +502,8 @@ my $interalNodeCommonFields =
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
-	       "       void **_parents; \n"	  	.
-	       "       int _nparents; \n"		.
-	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
+               "       struct Vector* _parentVector; \n"  .
 	       "       double _dist; /*sorting for blending */ \n".
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
@@ -1485,9 +1486,7 @@ sub gen {
 	"	node->_renderFlags = 0; /*sensitive, etc */\n".
 	"	node->_hit = 0;\n".
 	"	node->_change = NODE_CHANGE_INIT_VAL; \n".
-	"	node->_parents = 0;\n".
-	"	node->_nparents = 0;\n".
-	"	node->_nparalloc = 0;\n".
+	"	node->_parentVector = newVector(struct X3D_Node*, 1);\n".
 	"	node->_ichange = 0;\n".
 	"	node->_dist = -10000.0; /*sorting for blending */\n".
 	"	INITIALIZE_EXTENT\n".
@@ -1598,8 +1597,8 @@ sub gen {
 		push @genFuncs2, "			struct X3D_$node *tmp;\n";
 		push @genFuncs2, "			tmp = (struct X3D_$node *) node;\n";
 		if($node eq "PointPickSensor") {
-			push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t_nparents (int) %d\\n\",tmp->_nparents); /* DJTRACK_PICKSENSORS */\n";
-			push @genFuncs2, "\t\t\tfor (i=0; i<tmp->_nparents; i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, tmp->_parents[i]); }\n";
+			push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t_nparents (int) %d\\n\",vector_size(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
+			push @genFuncs2, "\t\t\tfor (i=0; i<vector_size(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
 		}
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 

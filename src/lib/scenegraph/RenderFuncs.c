@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.119 2011/09/13 19:50:23 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.120 2011/10/11 17:53:58 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -818,6 +818,9 @@ void update_node(struct X3D_Node *node) {
 		if (node == rootNode) printf ("...no parents, this IS the rootNode\n"); 
 		else printf ("...no parents, this IS NOT the rootNode\n");
 	}
+
+
+
 	for (i = 0; i < node->_nparents; i++) {
 		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
 		if( n != 0 ) {
@@ -829,11 +832,17 @@ void update_node(struct X3D_Node *node) {
 #endif
 
 	node->_change ++;
-	for (i = 0; i < node->_nparents; i++) {
-		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
+
+	/* parentVector here yet?? */
+	if (node->_parentVector == NULL) {
+		return;
+	}
+
+	for (i = 0; i < vector_size(node->_parentVector); i++) {
+		struct X3D_Node *n = vector_get(struct X3D_Node *, node->_parentVector,i);
 		if(n == node) {
 			fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
-			node->_parents[i] = p->empty_group;
+			vector_set(struct X3D_Node*, node->_parentVector, i,NULL);
 		} else if( n != 0 ) {
 			update_node(n);
 		}
@@ -1082,19 +1091,8 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
-	oldparcount = node->_nparents;
-	if((oldparcount+1) > node->_nparalloc) {
-		node->_nparents = 0; /* for possible threading issues */
-		node->_nparalloc += 10;
-		if (node->_parents == NULL)  {
-			node->_parents = MALLOC(void **, sizeof(node->_parents[0])* node->_nparalloc) ;
-		} else {
-			node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
-							  node->_nparalloc) ;
-		}
-	}
-	node->_parents[oldparcount] = parent;
-	node->_nparents = oldparcount+1;
+	/* add it to the parents list */
+	vector_pushBack (struct X3D_Node*,node->_parentVector, parent);
 
 	/* tie in sensitive nodes */
 	setSensitive (parent, node);
@@ -1112,37 +1110,21 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 		child, stringNodeType(child->_nodeType));
 #endif
 
-	/* find the index of this parent in this child. */
 	pi = -1;
-
-	for(i=0; i<child->_nparents; i++) {
-		/* printf ("comparing %u and %u\n",child->_parents[i], parent); */
-		if(child->_parents[i] == parent) {
-			pi = i;
-			break;
-		}
+	for (i=0; i<vector_size(child->_parentVector); i++) {
+		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
+		if (n==parent) pi = i;
 	}
 
-	if (pi < 0) return; /* child does not have this parent - removed already?? anyway... */
+	if (pi >=0) {
+		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vector_size(child->_parentVector)-1);
 
-	/* The order of parents does not matter. Instead of moving the whole
-	 * block of data after the current position, we simply swap the one to
-	 * delete at the end and do a vector pop_back (decrease nparents, which
-	 * has already happened).
-	 */
+		/* get the last entry, and overwrite the entry found */
+		vector_set(struct X3D_Node*, child->_parentVector, pi,n);
 
-#ifdef CHILDVERBOSE
-	printf ("remove_parent, pi %d, index at end %d\n",pi, child->_nparents-1);
-#endif
-
-	child->_parents[pi]=child->_parents[child->_nparents-1];
-	child->_nparents--;
-
-#ifdef CHILDVERBOSE
-	if (child->_nparents == -1) {
-		printf ("remove_parent, THIS NODE HAS NO PARENTS...\n");
+		/* take that last entry off the vector */
+		vector_popBack(struct X3D_Node*, child->_parentVector);
 	}
-#endif
 }
 
 void

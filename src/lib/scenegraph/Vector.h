@@ -60,6 +60,10 @@ void vector_ensureSpace_(int, struct Vector*);
 #define vector_get(type, me, ind) \
  ((type*)((struct Vector*)me)->data)[ind]
 
+/* Element set. */
+#define vector_set(type,me,element,value) \
+        ((type*)((struct Vector *)  (me))->data)[element]=value
+
 /* Size of vector */
 #define vector_size(me) \
  (((struct Vector*)me)->n)

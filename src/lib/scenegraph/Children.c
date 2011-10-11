@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Children.c,v 1.17 2010/10/26 13:40:04 crc_canada Exp $
+$Id: Children.c,v 1.18 2011/10/11 17:53:58 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -97,39 +97,41 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 	/* send notification up the chain */
 	
 	/* printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
-			flag, p->_nparents); */
+			flag, vector_size(p->_parentVector); */
 	
 
 	p->_renderFlags = p->_renderFlags | flag;
 
-	for (i = 0; i < p->_nparents; i++) {
+	for (i = 0; i < vector_size(p->_parentVector); i++) {
+		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
+
 		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]);  */
-		switch (X3D_NODE(p->_parents[i])->_nodeType) {
+		switch (me->_nodeType) {
 
 			case NODE_Switch:
-				if (is_Switchchild_inrange(X3D_SWITCH(p->_parents[i]),p)) {
+				if (is_Switchchild_inrange(X3D_SWITCH(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlag(p->_parents[i],flag);
+					update_renderFlag(me,flag);
 				}
 				break;
 
 			case NODE_LOD:
 				/* works for both X3D and VRML syntax; compare with the "_selected" field */
-				if (p == X3D_LODNODE(p->_parents[i])->_selected) {
-					update_renderFlag(p->_parents[i],flag);
+				if (p == X3D_LODNODE(me)->_selected) {
+					update_renderFlag(me,flag);
 				}
 				break;
 
 			case NODE_GeoLOD:
-				if (is_GeoLODchild_inrange(X3D_GEOLOD(p->_parents[i]),p)) {
+				if (is_GeoLODchild_inrange(X3D_GEOLOD(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlag(p->_parents[i],flag);
+					update_renderFlag(me,flag);
 				}
 				break;
 
 			default:
 
-				update_renderFlag(p->_parents[i],flag);
+				update_renderFlag(me,flag);
 		}
 	}
 	/* printf ("finished update_RenderFlag for %d\n",p); */

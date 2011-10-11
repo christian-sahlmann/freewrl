@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.38 2011/09/07 18:45:15 crc_canada Exp $
+$Id: StreamPoly.c,v 1.39 2011/10/11 17:53:58 crc_canada Exp $
 
 ???
 
@@ -356,8 +356,10 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	/* parent[0] should be a NODE_Shape */
 	{ 
 		struct X3D_Shape *parent;
-		if (X3D_NODE(node)->_nparents != 0) {
-			parent = X3D_SHAPE(X3D_NODE(node)->_parents[0]);
+
+		if (node->_parentVector != NULL) {
+		if (vector_size(node->_parentVector) != 0) {
+			parent = vector_get(struct X3D_Shape *, node->_parentVector, 0);
 			// printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); 
 			if (parent->_nodeType == NODE_Shape) {
 				struct X3D_Appearance *app;
@@ -378,6 +380,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 					}
 				}
 			}
+		}
 		}
 	}
 

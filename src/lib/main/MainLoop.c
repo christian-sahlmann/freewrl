@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.232 2011/09/21 19:42:12 crc_canada Exp $
+  $Id: MainLoop.c,v 1.233 2011/10/11 17:53:58 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1619,7 +1619,7 @@ int vpGroupActive(struct X3D_ViewpointGroup *vp_parent) {
 }
 
 /* find if there is another valid viewpoint */
-int moreThanOneValidViewpoint( void) {
+static int moreThanOneValidViewpoint( void) {
 	int count;
 	struct tProdCon *t = &gglobal()->ProdCon;
 
@@ -1627,16 +1627,22 @@ int moreThanOneValidViewpoint( void) {
 
 	for (count=0; count < t->totviewpointnodes; count++) {
 		if (count != t->currboundvpno) {
+			struct Vector *me = X3D_NODE(t->viewpointnodes[count])->_parentVector;
+
 			/* ok, we have a viewpoint; is its parent a ViewpointGroup? */
-			if (X3D_NODE(t->viewpointnodes[count])->_nparents > 0) {
+			if (me != NULL) {
+
+			    if (vector_size(me) > 0) {
 				struct X3D_Node * vp_parent;
 
-				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, X3D_NODE(t->viewpointnodes[count])->_parents[0],
+				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, vector_get( struct X3D_Node *,
+					X3D_NODE(t->viewpointnodes[count])->_parentVector, 0),
 					vp_parent);
 				/* printf ("parent found, it is a %s\n",stringNodeType(vp_parent->_nodeType)); */
 
 				/* sigh, find if the ViewpointGroup is active or not */
 				return vpGroupActive((struct X3D_ViewpointGroup *)vp_parent);
+			   }
 			}
 		}
 	}

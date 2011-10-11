@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.226 2011/10/11 00:21:33 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.227 2011/10/11 17:53:58 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2858,8 +2858,8 @@ void zeroVisibilityFlag(void) {
 #define SIBLING_SENSITIVE(thistype) \
 			/* make Sensitive */ \
 			if (((struct X3D_##thistype *)node)->enabled) { \
-				nParents = ((struct X3D_##thistype *)node)->_nparents; \
-				pp = (((struct X3D_##thistype *)node)->_parents); \
+				nParents = vector_size((struct X3D_##thistype *)node->_parentVector); \
+				parentVector = (((struct X3D_##thistype *)node)->_parentVector); \
 			}  
 
 #define ANCHOR_SENSITIVE(thistype) \
@@ -2925,8 +2925,8 @@ void zeroVisibilityFlag(void) {
 /* do NOT send this up the scenegraph! */
 #define LOCAL_LIGHT_PARENT_FLAG \
 { int i; \
-	for (i = 0; i < node->_nparents; i++) { \
-		struct X3D_Node *n = X3D_NODE(node->_parents[i]); \
+	for (i = 0; i < vector_size(node->_parentVector); i++) { \
+		struct X3D_Node *n = vector_get(struct X3D_Node*, node->_parentVector, i); \
 		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
 	} \
 }
@@ -2965,7 +2965,7 @@ void zeroVisibilityFlag(void) {
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Anchor* anchorPtr;
-	void **pp;
+	struct Vector *parentVector;
 	int nParents;
 	int i,j;
 	uintptr_t *setBindPtr;
@@ -2987,7 +2987,7 @@ void startOfLoopNodeUpdates(void) {
 	addChildren = NULL;
 	removeChildren = NULL;
 	childrenPtr = NULL;
-	pp = NULL;
+	parentVector = NULL;
 	loadInlines = NULL;
 	offsetOfChildrenPtr = 0;
 
@@ -3384,7 +3384,7 @@ X3D_GROUP(node)->removeChildren.n);
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
 			for (j=0; j<nParents; j++) {
-				struct X3D_Node *n = X3D_NODE(pp[j]);
+				struct X3D_Node *n = vector_get(struct X3D_Node *, parentVector, j);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
 			}
 
@@ -3601,7 +3601,7 @@ static void killNode (int index) {
 
 	#ifdef VERBOSE
 	printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
-	printf (" number of parents %d ", structptr->_nparents);
+	printf (" number of parents %d ", vector_size(structptr->_parentVector);
 	printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
 	#endif
 
