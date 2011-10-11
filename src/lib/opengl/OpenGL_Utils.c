@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.225 2011/08/25 20:40:47 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.226 2011/10/11 00:21:33 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2107,8 +2107,10 @@ bool fwl_initialize_GL()
     
 
 	/* Configure OpenGL for our uses. */
+#ifndef SHADERS_2011
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+#endif
 	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
