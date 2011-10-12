@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.65 2011/06/13 17:12:52 crc_canada Exp $
+$Id: Bindable.c,v 1.66 2011/10/12 20:16:44 istakenv Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -496,7 +496,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 		/* save pointer to new top of stack */
 		*newstacktop = (uintptr_t) node;
-		update_node(X3D_NODE(newstacktop));
+		update_node(X3D_NODE(*newstacktop));
 
 		/* was there another DIFFERENT node at the top of the stack?
 		   have to check for a different one, as if we are binding to the current
