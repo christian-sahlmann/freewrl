@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.93 2011/07/14 18:54:46 crc_canada Exp $
+  $Id: ProdCon.c,v 1.94 2011/10/13 16:14:58 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -85,12 +85,6 @@ int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
-///* bind nodes in display loop, NOT in parsing threadthread */
-//void *setViewpointBindInRender = NULL;
-//void *setFogBindInRender = NULL;
-//void *setBackgroundBindInRender = NULL;
-//void *setNavigationBindInRender = NULL;
-
 /* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
 //struct VRMLParser* savedParser;
 
@@ -171,23 +165,11 @@ struct PSStruct {
 bool parser_do_parse_string(const char *input, struct X3D_Group *nRn);
 
 /* Bindables */
-//void* *fognodes = NULL;
-//void* *backgroundnodes = NULL;
-//void* *navnodes = NULL;
-////void* *viewpointnodes = NULL;
-//int totfognodes = 0;
-//int totbacknodes = 0;
-//int totnavnodes = 0;
-//int totviewpointnodes = 0;
-//int currboundvpno=0;
 typedef struct pProdCon{
-		void* *fognodes;// = NULL;
-		void* *backgroundnodes;// = NULL;
-		void* *navnodes;// = NULL;
-		//void* *viewpointnodes = NULL;
-		int totfognodes;// = 0;
-		int totbacknodes;// = 0;
-		int totnavnodes;// = 0;
+		struct Vector *fogNodes;
+		struct Vector *backgroundNodes;
+		struct Vector *navigationNodes;
+
 		/* thread synchronization issues */
 		int _P_LOCK_VAR;// = 0;
 		s_list_t *resource_list_to_parse;// = NULL;
@@ -209,8 +191,7 @@ void *ProdCon_constructor(){
 void ProdCon_init(struct tProdCon *t)
 {
 	//public
-	t->viewpointnodes = NULL;
-	t->totviewpointnodes = 0;
+	t->viewpointNodes = newVector(struct X3D_Node *,8);
 	t->currboundvpno=0;
 
 	/* bind nodes in display loop, NOT in parsing threadthread */
@@ -224,12 +205,9 @@ void ProdCon_init(struct tProdCon *t)
 	t->prv = ProdCon_constructor();
 	{
 		ppProdCon p = (ppProdCon)t->prv;
-		p->fognodes = NULL;
-		p->backgroundnodes = NULL;
-		p->navnodes = NULL;
-		p->totfognodes = 0;
-		p->totbacknodes = 0;
-		p->totnavnodes = 0;
+		p->fogNodes = newVector(struct X3D_Node *, 2);
+		p->backgroundNodes = newVector(struct X3D_Node *, 2);
+		p->navigationNodes = newVector(struct X3D_Node *, 2);
 
 		/* thread synchronization issues */
 		p->_P_LOCK_VAR = 0;
@@ -354,12 +332,6 @@ void EAI_killBindables (void) {
 
 	/* grab data */
 	UNLOCK;
-
-	/* and, reset our stack pointers */
-	tg->Bindable.background_tos = INT_ID_UNDEFINED;
-	tg->Bindable.fog_tos = INT_ID_UNDEFINED;
-	tg->Bindable.navi_tos = INT_ID_UNDEFINED;
-	tg->Bindable.viewpoint_tos = INT_ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */
@@ -586,25 +558,30 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			tg->CParse.globalParser = t->savedParser;
 		}
 	
-	
 		if (shouldBind) {
-			if (p->totfognodes != 0) { 
-				for (i=0; i < p->totfognodes; ++i) send_bind_to(X3D_NODE(p->fognodes[i]), 0); /* Initialize binding info */
-				t->setFogBindInRender = p->fognodes[0];
+			if (vector_size(p->fogNodes) > 0) {
+				for (i=0; i < vector_size(p->fogNodes); ++i) 
+					send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0); 
+					/* Initialize binding info */
+				t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
 			}
-			if (p->totbacknodes != 0) {
-				for (i=0; i < p->totbacknodes; ++i) send_bind_to(X3D_NODE(p->backgroundnodes[i]), 0);  /* Initialize binding info */
-				t->setBackgroundBindInRender = p->backgroundnodes[0];
+			if (vector_size(p->backgroundNodes) > 0) {
+				for (i=0; i < vector_size(p->backgroundNodes); ++i) 
+					send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0); 
+					/* Initialize binding info */
+				t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
 			}
-			if (p->totnavnodes != 0) {
-				for (i=0; i < p->totnavnodes; ++i) send_bind_to(X3D_NODE(p->navnodes[i]), 0);  /* Initialize binding info */
-				t->setNavigationBindInRender = p->navnodes[0];
+			if (vector_size(p->navigationNodes) > 0) {
+				for (i=0; i < vector_size(p->navigationNodes); ++i) 
+					send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0); 
+					/* Initialize binding info */
+				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 			}
-			if (t->totviewpointnodes != 0) {
-				for (i=0; i < t->totviewpointnodes; ++i) send_bind_to(X3D_NODE(t->viewpointnodes[i]), 0);  /* Initialize binding info */
-
-				/* set the initial viewpoint for this file */
-				t->setViewpointBindInRender = t->viewpointnodes[0];
+			if (vector_size(t->viewpointNodes) > 0) {
+				for (i=0; i < vector_size(t->viewpointNodes); ++i) 
+					send_bind_to(vector_get(struct X3D_Node*,t->viewpointNodes,i), 0); 
+					/* Initialize binding info */
+				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
 			}
 		}
 	
@@ -853,15 +830,12 @@ void kill_bindables (void) {
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
-	p->totfognodes=0;
-	p->totbacknodes=0;
-	p->totnavnodes=0;
-	t->totviewpointnodes=0;
-	t->currboundvpno=0;
+	/* XXX MEMORY LEAK HERE
 	FREE_IF_NZ(p->fognodes);
 	FREE_IF_NZ(p->backgroundnodes);
 	FREE_IF_NZ(p->navnodes);
 	FREE_IF_NZ(t->viewpointnodes);
+	*/
 }
 
 
@@ -875,25 +849,17 @@ void registerBindable (struct X3D_Node *node) {
 		case NODE_Viewpoint:
 		case NODE_OrthoViewpoint:
 		case NODE_GeoViewpoint:
-			t->viewpointnodes = REALLOC (t->viewpointnodes, (sizeof(void *)*(t->totviewpointnodes+1)));
-			t->viewpointnodes[t->totviewpointnodes] = node;
-			t->totviewpointnodes ++;
+			vector_pushBack (struct X3D_Node*,t->viewpointNodes, node);
 			break;
 		case NODE_Background:
 		case NODE_TextureBackground:
-			p->backgroundnodes = REALLOC (p->backgroundnodes, (sizeof(void *)*(p->totbacknodes+1)));
-			p->backgroundnodes[p->totbacknodes] = node;
-			p->totbacknodes ++;
+			vector_pushBack (struct X3D_Node*,p->backgroundNodes, node);
 			break;
 		case NODE_NavigationInfo:
-			p->navnodes = REALLOC (p->navnodes, (sizeof(void *)*(p->totnavnodes+1)));
-			p->navnodes[p->totnavnodes] = node;
-			p->totnavnodes ++;
+			vector_pushBack (struct X3D_Node*,p->navigationNodes, node);
 			break;
 		case NODE_Fog:
-			p->fognodes = REALLOC (p->fognodes, (sizeof(void *)*(p->totfognodes+1)));
-			p->fognodes[p->totfognodes] = node;
-			p->totfognodes ++;
+			vector_pushBack (struct X3D_Node*,p->fogNodes, node);
 			break;
 		default: {
 			/* do nothing with this node */

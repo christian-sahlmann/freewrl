@@ -155,14 +155,13 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	} Mainloop;
 	struct tProdCon{
-		void* *viewpointnodes;// = NULL;
-		int totviewpointnodes;// = 0;
+		struct Vector *viewpointNodes;// = NULL;
 		int currboundvpno;//=0;
 		/* bind nodes in display loop, NOT in parsing threadthread */
-		void *setViewpointBindInRender;// = NULL;
-		void *setFogBindInRender;// = NULL;
-		void *setBackgroundBindInRender;// = NULL;
-		void *setNavigationBindInRender;// = NULL;
+		struct X3D_Node *setViewpointBindInRender;// = NULL;
+		struct X3D_Node *setFogBindInRender;// = NULL;
+		struct X3D_Node *setBackgroundBindInRender;// = NULL;
+		struct X3D_Node *setNavigationBindInRender;// = NULL;
 		void *savedParser; //struct VRMLParser* savedParser;
 		void *prv;
 	} ProdCon;
@@ -343,14 +342,10 @@ iOLDCODE	}Component_Networking;
 	}jsVRMLClasses;
 	struct tBindable{
 		struct sNaviInfo naviinfo;
-		int background_tos;// = -1;
-		int navi_tos;// = -1;
-		int viewpoint_tos;// = -1;
-		int fog_tos;// = -1;
-		uintptr_t *background_stack;//[MAX_STACK];
-		uintptr_t *viewpoint_stack;//[MAX_STACK];
-		uintptr_t *navi_stack;//[MAX_STACK];
-		uintptr_t *fog_stack;//[MAX_STACK];
+        	struct Vector *background_stack;
+        	struct Vector *viewpoint_stack;
+        	struct Vector *navigation_stack;
+        	struct Vector *fog_stack;
 		void *prv;
 	}Bindable;
 	struct tX3DParser{

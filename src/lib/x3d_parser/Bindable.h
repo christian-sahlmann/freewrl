@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.h,v 1.10 2011/06/10 22:28:33 dug9 Exp $
+$Id: Bindable.h,v 1.11 2011/10/13 16:14:58 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
@@ -32,26 +32,6 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
 
 /* Bind stack */
-#define MAX_STACK 20
-
-//extern GLint viewPort[];
-
-/* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
-//extern void * *fognodes;
-//extern void * *backgroundnodes;
-//extern void * *navnodes;
-//extern void * *viewpointnodes;
-//extern int totfognodes, totbacknodes, totnavnodes;//, totviewpointnodes;
-//extern int currboundvpno;
-
-//extern int viewpoint_tos;
-//extern int background_tos;
-//extern int fog_tos;
-//extern int navi_tos;
-//
-//extern uintptr_t viewpoint_stack[];
-//extern uintptr_t background_stack[];
-//extern uintptr_t navi_stack[];
 
 void
 reset_upvector(void);
@@ -63,7 +43,7 @@ void
 send_bind_to(struct X3D_Node *node, int value);
 
 void
-bind_node(struct X3D_Node *node, int *tos, uintptr_t *stack);
+bind_node(struct X3D_Node *node, struct Vector *stack);
 
 void
 render_Fog(struct X3D_Fog *node);

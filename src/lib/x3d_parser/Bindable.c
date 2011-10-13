@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.66 2011/10/12 20:16:44 istakenv Exp $
+$Id: Bindable.c,v 1.67 2011/10/13 16:14:58 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -60,76 +60,20 @@ struct MyVertex
  };
 
 
-/* Viewport data */
-//GLint viewPort[10];
-//int fog_tos = -1;
-//uintptr_t fog_stack[MAX_STACK];
-
-//int background_tos = -1;
-//int navi_tos = -1;
-//int viewpoint_tos = -1;
-//uintptr_t background_stack[MAX_STACK];
-//uintptr_t viewpoint_stack[MAX_STACK];
-//uintptr_t navi_stack[MAX_STACK];
-
-//#ifndef GL_ES_VERSION_2_0
-///* Background - fog nodes do not affect the background node rendering. */
-//static int fog_enabled = FALSE;
-//#endif
-
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
-/* dimentions of viewer, and "up" vector (for collision detection) */
-//struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
-
-typedef struct pBindable{
-	int junk;
-	uintptr_t background_stack[MAX_STACK];
-	uintptr_t viewpoint_stack[MAX_STACK];
-	uintptr_t navi_stack[MAX_STACK];
-	uintptr_t fog_stack[MAX_STACK];
-#ifndef GL_ES_VERSION_2_0
-/* Background - fog nodes do not affect the background node rendering. */
-	int fog_enabled;// = FALSE;
-#endif
-
-}* ppBindable;
-void *Bindable_constructor(){
-	void *v = malloc(sizeof(struct pBindable));
-	memset(v,0,sizeof(struct pBindable));
-	return v;
-}
 void Bindable_init(struct tBindable *t){
 	//public
 	t->naviinfo.width = 0.25;
 	t->naviinfo.height = 1.6;
 	t->naviinfo.step = 0.75;
 
-	t->background_tos = -1;
-	t->navi_tos = -1;
-	t->viewpoint_tos = -1;
-	t->fog_tos = -1;
-
-	//private
-	t->prv = Bindable_constructor();
-	{
-		ppBindable p = (ppBindable)t->prv;
-
-
-#ifndef GL_ES_VERSION_2_0
-		/* Background - fog nodes do not affect the background node rendering. */
-		p->fog_enabled = FALSE;
-#endif
-
-		//Q does this work 
-		t->background_stack = p->background_stack;
-		t->viewpoint_stack = p->viewpoint_stack;
-		t->navi_stack = p->navi_stack;
-		t->fog_stack = p->fog_stack;
-	}
+	t->background_stack = newVector(struct X3D_Node*, 2);
+	t->viewpoint_stack = newVector(struct X3D_Node*, 2);
+	t->fog_stack = newVector(struct X3D_Node*, 2);
+	t->navigation_stack = newVector(struct X3D_Node*, 2);
 }
-//	ppBindable p = (ppBindable)gglobal()->Bindable.prv;
 
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
@@ -229,21 +173,21 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 /* send a set_bind event from an event to this Bindable node */
 void send_bind_to(struct X3D_Node *node, int value) {
 	ttglobal tg = gglobal();
-	//printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime(),stringNodeType(node->_nodeType),node,value);  
+	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime(),stringNodeType(node->_nodeType),node,value);  */
 
 	switch (node->_nodeType) {
 
 	case NODE_Background:  {
 		struct X3D_Background *bg = (struct X3D_Background *) node;
 		bg->set_bind = value;
-		bind_node (node, &tg->Bindable.background_tos,&tg->Bindable.background_stack[0]);
+		bind_node (node, tg->Bindable.background_stack);
 		break;
 		}
 
 	case NODE_TextureBackground: {
 		struct X3D_TextureBackground *tbg = (struct X3D_TextureBackground *) node;
 		tbg->set_bind = value;
-		bind_node (node, &tg->Bindable.background_tos,&tg->Bindable.background_stack[0]);
+		bind_node (node, tg->Bindable.background_stack);
 		break;
 		}
 
@@ -251,7 +195,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
 		ovp->set_bind = value;
 		setMenuStatus(ovp->description->strptr);
-		bind_node (node, &tg->Bindable.viewpoint_tos,&tg->Bindable.viewpoint_stack[0]);
+		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_OrthoViewpoint (ovp);
 		}
@@ -262,7 +206,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
 		vp->set_bind = value;
 		setMenuStatus (vp->description->strptr);
-		bind_node (node, &tg->Bindable.viewpoint_tos,&tg->Bindable.viewpoint_stack[0]);
+		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_Viewpoint (vp);
 		}
@@ -273,7 +217,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
 		gvp->set_bind = value;
 		setMenuStatus (gvp->description->strptr);
-		bind_node (node, &tg->Bindable.viewpoint_tos,&tg->Bindable.viewpoint_stack[0]);
+		bind_node (node, tg->Bindable.viewpoint_stack);
 		if (value==1) {
 			bind_GeoViewpoint (gvp);
 		}
@@ -284,14 +228,14 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	case NODE_Fog:  {
 		struct X3D_Fog *fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
-		bind_node (node, &tg->Bindable.fog_tos,&tg->Bindable.fog_stack[0]);
+		bind_node (node, tg->Bindable.fog_stack);
 		break;
 		}
 
 	case NODE_NavigationInfo:  {
 		struct X3D_NavigationInfo *nv = (struct X3D_NavigationInfo *) node;
 		nv->set_bind = value;
-		bind_node (node, &tg->Bindable.navi_tos,&tg->Bindable.navi_stack[0]);
+		bind_node (node, tg->Bindable.navigation_stack);
 		if (value==1) set_naviinfo(nv);
 		break;
 		}
@@ -362,75 +306,40 @@ static size_t isboundofst(void *node) {
 	return 0;
 }
 
-void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
-
-	uintptr_t *oldstacktop;
-	uintptr_t *newstacktop;
-	uintptr_t unbindNode;
-	char *nst;			/* used for pointer maths */
-	unsigned int *setBindptr;	/* this nodes setBind */
-	unsigned int *isBoundptr;	/* this nodes isBound */
-	unsigned int *oldboundptr;	/* previous nodes isBound */
-	int i, ioldposition, do_unbind;
-	struct X3D_Background *bgnode;
+void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
+	int *isBoundPtr;
+	int *setBindPtr;
 	size_t offst;
-
-	X3D_NODE_CHECK(node);
-
-	bgnode=(struct X3D_Background*) node;
-	/* lets see what kind of node this is... */
-
-#ifdef BINDVERBOSE
-	printf ("\nbind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
-	#endif
-
-	/* setup some variables. Use char * as a pointer as it is ok between 32
-	   and 64 bit systems for a pointer arithmetic. */
-	nst = (char *)node;
-	nst += setBindofst(node);
-	setBindptr = (unsigned int *)nst;
-
-	nst = (char *)node;
-	nst += isboundofst(node);
-	isBoundptr = (unsigned int *) nst;
-
-        if (*isBoundptr && (*setBindptr != 0) ){ 
-			#ifdef BINDVERBOSE
-			/*printf("%d already bound\n",(uintptr_t)node);*/
-			#endif
-			*setBindptr = 100; 
-			return; } /* It has to be at the top of the stack so return */
-
-	if (*tos >=0) {oldstacktop = stack + *tos;}
-	else oldstacktop = stack;
-
-	#ifdef BINDVERBOSE
-	printf ("bind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
-	printf ("stack %x, oldstacktop %x sizeof usint %x\n",stack, oldstacktop,
-			sizeof(unsigned int));
-	#endif
+ 
+	isBoundPtr = offsetPointer_deref(int*, node, isboundofst(node));
+	setBindPtr = offsetPointer_deref(int*, node, setBindofst(node));
 	
-	
+ 	#ifdef BINDVERBOSE
+ 	printf ("bind_node, node %p, set_bind %d isBound %d\n",node,*setBindPtr,*isBoundPtr);
+ 	#endif
 
-	/* we either have a setBind of 1, which is a push, or 0, which
-	   is a pop. the value of 100 (arbitrary) indicates that this
-	   is not a new push or pop */
+	/* is this guy already bound? */
+	if (*isBoundPtr && (*setBindPtr != 0) ){
+		#ifdef BINDVERBOSE
+		printf("%p already bound\n",node);
+		#endif
+		*setBindPtr = 100;
+	return; } /* It has to be at the top of the stack so return */
+ 
 
-	if (*setBindptr == 1) {
+	 /* we either have a setBind of 1, which is a push, or 0, which
+	    is a pop. the value of 100 (arbitrary) indicates that this
+	    is not a new push or pop */
+
+	/* is this a push? */
+	if (*setBindPtr == 1) {
 		/* PUSH THIS TO THE TOP OF THE STACK */
 
-		/* are we off the top of the stack? */
-		/*if (*tos >= (MAX_STACK-2)) return;  
-		   dug9: too restrictive. It means you can't have > 20 
-		   different viewpoints/navinfos in your scene.
-		   Better: scroll the stack down. See below.
-		 */
-
 		/* isBound mimics setBind */
-		*isBoundptr = 1;
+		*isBoundPtr = 1;
 
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
-		*setBindptr = 100;
+		*setBindPtr = 100;
 
 		MARK_EVENT (node, (unsigned int) isboundofst(node));
 
@@ -438,145 +347,77 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		offst = bindTimeoffst(node);
 		if (offst != 0) {
 			double *dp;
-			/* add them as bytes, not pointers. */
 			dp = offsetPointer_deref(double*, node, offst);
 			*dp = TickTime();
 			MARK_EVENT (node, offst);
-		} 
-
-
-		/* set up pointers, increment stack */
-		/* is this node somewhere in the stack already? */
-		ioldposition = -1;
-		do_unbind = 1;
-		unbindNode = *oldstacktop;
-		for(i=0;i<=(*tos);i++)
-		{
-			#ifdef BINDVERBOSE
-			printf("%d %d %d\n",stack[i],(uintptr_t)node,i);
-			#endif
-			if(stack[i] == (uintptr_t) node) ioldposition = i;
-		}
-		if(ioldposition > -1)
-		{
-			#ifdef BINDVERBOSE
-			printf("Yes - it is already in the stack at position %d\n",ioldposition);
-			#endif
-			if(ioldposition == *tos)
-				do_unbind = 0; /* already top of stack */
-			else
-			{
-				/* bubble up */
-				for(i=ioldposition;i<(*tos);i++)
-					stack[i] = stack[i+1];
-			}
-		}
-		else
-		{
-			if (*tos >= (MAX_STACK-2))
-			{
-				/* scroll stack down (oldest bound get scrolled off) */
-				for(i=0;i<(*tos);i++)
-					stack[i] = stack[i+1];
-			}
-			else
-			{
-				*tos = *tos+1;
-				#ifdef BINDVERBOSE
-				printf ("just incremented tos, ptr %x val %d\n",tos,*tos);
-				#endif
-			}
 		}
 
-		newstacktop = stack + *tos;
-		#ifdef BINDVERBOSE
-		printf ("so, newstacktop is %x\n",newstacktop);
-		#endif
+		/* unbind the one below, unless it is same node */
+		if (vector_size(thisStack)>0) {
+			struct X3D_Node* oldTOS;
 
+			oldTOS = vector_back(struct X3D_Node *,thisStack);
+			/* printf ("already have a node here...have to unbind it %p %p\n",node,oldTOS); */
 
-		/* save pointer to new top of stack */
-		*newstacktop = (uintptr_t) node;
-		update_node(X3D_NODE(*newstacktop));
-
-		/* was there another DIFFERENT node at the top of the stack?
-		   have to check for a different one, as if we are binding to the current
-		   Viewpoint, then we do NOT want to unbind it, if we do then the current
-		   top of stack Viewpoint is unbound! */
-
-		#ifdef BINDVERBOSE
-		//printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop);
-		printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, unbindNode, *newstacktop);
-		#endif
-
-		if ((*tos >= 1) && do_unbind ) {
-			/* yep... unbind it, and send an event in case anyone cares */
-			//oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
-			oldboundptr = (unsigned int *) (unbindNode  + (uintptr_t)isboundofst((void *)unbindNode));
-			*oldboundptr = 0;
-
-			#ifdef BINDVERBOSE
-			printf ("....bind_node, in set_bind true, unbinding node %d\n",unbindNode);
-			#endif
-
-			//MARK_EVENT (X3D_NODE(*oldstacktop), (unsigned int) isboundofst((void *)*oldstacktop));
-			MARK_EVENT (X3D_NODE(unbindNode), (unsigned int) isboundofst((void *)unbindNode));
-
-			/* tell the possible parents of this change */
-			//update_node(X3D_NODE(*oldstacktop));
-			update_node(X3D_NODE(unbindNode));
+			if (oldTOS == node) return;  /* do not unbind */
+			isBoundPtr = offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS));
+			setBindPtr = offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS));
+			*isBoundPtr = 0;
+			*setBindPtr = 100;
+			MARK_EVENT (oldTOS, (unsigned int) isboundofst(oldTOS));
 		}
-	} else {
+
+		/* push it now */
+		vector_pushBack(struct X3D_Node*,thisStack,node);
+
+
+	} else if (*setBindPtr == 0) {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
-
 		/* isBound mimics setBind */
-		*isBoundptr = 0;
+		*isBoundPtr = 0;
 
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
-		*setBindptr = 100;
-
-		/* anything on stack? */
-		if (*tos <= -1) return;   /* too many pops */
+		*setBindPtr = 100;
 
 		MARK_EVENT (node, (unsigned int) isboundofst(node));
 
-		#ifdef BINDVERBOSE
-		printf ("old TOS is %d (%s) , we are %d (%s)\n",*oldstacktop,
-		((struct X3D_Viewpoint *)(*oldstacktop))->description->strptr, node, ((struct X3D_Viewpoint *)node)->description->strptr);
-		#endif
+		/* are we top of stack? */
+		if (vector_size(thisStack)>0) {
+			struct X3D_Node* oldTOS;
 
+			oldTOS = vector_back(struct X3D_Node *,thisStack);
+			/* printf ("already have a node here...have to unbind it %p %p\n",node,oldTOS); */
 
-		/* are we the top of the stack? */
-		if ((uintptr_t) node != *oldstacktop) {
-			return;
+			if (oldTOS != node) { 
+				printf ("can not pop from stack, not top (%p != %p)\n",node,oldTOS);
+				return;
+			} else {
+				/* we are top of stack... */
+				/* get myself off of the stack */
+				vector_popBack(struct X3D_Node *,thisStack);
+
+				if (vector_size(thisStack)>0) {
+					/* get the older one back */
+					oldTOS = vector_back(struct X3D_Node *,thisStack);
+
+					/* set it to be bound */
+					isBoundPtr = offsetPointer_deref(int*, oldTOS, isboundofst(oldTOS));
+					setBindPtr = offsetPointer_deref(int*, oldTOS, setBindofst(oldTOS));
+					*isBoundPtr = 1;
+					*setBindPtr = 100;
+					MARK_EVENT (oldTOS, (unsigned int) isboundofst(oldTOS));
+				}
+			} 
+		} else {
+			/* printf ("stack is zero size, can not pop off\n"); */
 		}
+		
 
-		#ifdef BINDVERBOSE
-		printf ("ok, we were TOS, setting %d (%s) to 0\n",node, ((struct X3D_Viewpoint *)node)->description->strptr);
-		#endif
-
-
-		*tos = *tos - 1;
-
-		if (*tos >= 0) {
-			/* stack is not empty */
-			newstacktop = stack + *tos;
-			#ifdef BINDVERBOSE
-			printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
-			#endif
-
-			/* set the popped value of isBound to true */
-			isBoundptr = (unsigned int *) (*newstacktop + (uintptr_t)isboundofst((void *)*newstacktop));
-
-			*isBoundptr = 1;
-
-			/* tell the possible parents of this change */
-			nst = (void *) (*newstacktop + (int) 0);
-			update_node(X3D_NODE(nst));
-
-			MARK_EVENT (X3D_NODE(nst), (unsigned int) isboundofst(nst));
-		}
+	} else {
+		printf ("setBindPtr %d\n",*setBindPtr);
 	}
 }
+
 
 void render_Fog (struct X3D_Fog *node) {
 	#ifndef GL_ES_VERSION_2_0 /* this should be handled in material shader */
@@ -590,7 +431,6 @@ void render_Fog (struct X3D_Fog *node) {
 	int foglen;
 	GLDOUBLE unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 	ttglobal tg = gglobal();
-	ppBindable p = (ppBindable)tg->Bindable.prv;
 
 	/* printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
 	node, node->isBound, node->color.c[0],node->color.c[1],node->color.c[2],node->set_bind); */
@@ -598,13 +438,10 @@ void render_Fog (struct X3D_Fog *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 
-		bind_node (X3D_NODE(node), &tg->Bindable.fog_tos,&tg->Bindable.fog_stack[0]);
+		bind_node (X3D_NODE(node), tg->Bindable.fog_stack);
 
 		/* if we do not have any more nodes on top of stack, disable fog */
 		FW_GL_DISABLE (GL_FOG);
-		p->fog_enabled = FALSE;		
-
-
 	}
 
 	if(!node->isBound) return;
@@ -652,7 +489,6 @@ void render_Fog (struct X3D_Fog *node) {
 		FW_GL_FOGI(GL_FOG_MODE, GL_LINEAR);
 	}
 	FW_GL_ENABLE (GL_FOG);
-	p->fog_enabled = TRUE;
 
 	FW_GL_POP_MATRIX();
 	#endif /* GL_ES_VERSION_2_0 this should be handled in material shader */
@@ -1007,10 +843,6 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 void render_Background (struct X3D_Background *node) {
 	ttglobal tg = gglobal();
     
-    #ifndef GL_ES_VERSION_2_0
-	ppBindable p = (ppBindable)tg->Bindable.prv;
-    #endif
-    
 	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
 	if (renderstate()->render_blend) return;
@@ -1018,16 +850,13 @@ void render_Background (struct X3D_Background *node) {
 	/* printf ("RBG, num %d node %d ib %d sb %d gepvp\n",node->__BGNumber, node,node->isBound,node->set_bind);    */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
-		bind_node (X3D_NODE(node), &tg->Bindable.background_tos,&tg->Bindable.background_stack[0]);
+		bind_node (X3D_NODE(node), tg->Bindable.background_stack);
 	}
 
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
-	#ifndef GL_ES_VERSION_2_0
-	/* is fog enabled? if so, disable it right now */
-	if (p->fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
-	#endif
+	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -1103,20 +932,13 @@ void render_Background (struct X3D_Background *node) {
 	}
 	FW_GL_POP_MATRIX();
 
-	#ifndef GL_ES_VERSION_2_0
 	/* is fog enabled? if so, disable it right now */
-	if (p->fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
-	#endif
-
+	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
 }
 
 
 void render_TextureBackground (struct X3D_TextureBackground *node) {
 	ttglobal tg = gglobal();
-    
-	#ifndef GL_ES_VERSION_2_0    
-	ppBindable p = (ppBindable)tg->Bindable.prv;
-    #endif
     
 	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
@@ -1126,16 +948,14 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
-		bind_node (X3D_NODE(node), &tg->Bindable.background_tos,&tg->Bindable.background_stack[0]);
+		bind_node (X3D_NODE(node), tg->Bindable.background_stack);
 	}
 
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	#ifndef GL_ES_VERSION_2_0
-	if (p->fog_enabled ==TRUE) FW_GL_DISABLE (GL_FOG);
-	#endif
+	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -1206,8 +1026,5 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
-	#ifndef GL_ES_VERSION_2_0
-	/* is fog enabled? if so, disable it right now */
-	if (p->fog_enabled ==TRUE) FW_GL_ENABLE (GL_FOG);
-	#endif
+	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
 }

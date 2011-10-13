@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Navigation.c,v 1.51 2011/07/18 02:05:45 dug9 Exp $
+$Id: Component_Navigation.c,v 1.52 2011/10/13 16:14:58 crc_canada Exp $
 
 X3D Navigation Component
 
@@ -279,8 +279,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	ttglobal tg = gglobal();
 	if (node->set_bind < 100) {
 		if (node->set_bind == 1) set_naviinfo(node);
-
-		bind_node (X3D_NODE(node), &tg->Bindable.navi_tos,&tg->Bindable.navi_stack[0]);
+		bind_node (X3D_NODE(node), tg->Bindable.navigation_stack);
 	}
 	if(!node->isBound) return;
 }

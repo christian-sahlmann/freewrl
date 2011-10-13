@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.53 2011/09/21 19:42:12 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.54 2011/10/13 16:14:58 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -118,13 +118,12 @@ static void goToViewpoint(char *vp) {
 	
 	/*  did we find a match with known Viewpoints?*/
 	if (localNode != NULL) {
-		for (flen=0; flen<t->totviewpointnodes;flen++) {
-			if (localNode == t->viewpointnodes[flen]) {
+		for (flen=0; flen<vector_size(t->viewpointNodes);flen++) {
+			if (localNode == vector_get(struct X3D_Node *,t->viewpointNodes,flen)) {
 				/* unbind current, and bind this one */
-				send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
+				send_bind_to(vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno),0);
 				t->currboundvpno=flen;
-				send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
-
+				send_bind_to(vector_get(struct X3D_Node *,t->viewpointNodes,t->currboundvpno),1);
 				return;
 			}
 		}

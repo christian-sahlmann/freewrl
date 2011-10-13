@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.227 2011/10/11 17:53:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.228 2011/10/13 16:14:58 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1938,7 +1938,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
-	if (tg->Bindable.background_stack[0]!= 0) {
+	if (vector_size(tg->Bindable.background_stack)!= 0) {
 		viewer->farPlane = cfp * 10.0;
 		viewer->backgroundPlane = cfp*5.0;
 	} else {
@@ -3408,7 +3408,7 @@ X3D_GROUP(node)->removeChildren.n);
 			if (*setBindPtr < 100) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
-				bind_node ((void *)node, &tg->Bindable.viewpoint_tos,&tg->Bindable.viewpoint_stack[0]);
+				bind_node (node, tg->Bindable.viewpoint_stack);
 
 				//dug9 added July 24, 2009: when you bind, it should set the 
 				//avatar to the newly bound viewpoint pose and forget any 
@@ -3463,9 +3463,10 @@ X3D_GROUP(node)->removeChildren.n);
 	}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos] != 0) {
-		update_renderFlag(X3D_NODE(tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos]), VF_Viewpoint);
-		calculateNearFarplanes(X3D_NODE(tg->Bindable.viewpoint_stack[tg->Bindable.viewpoint_tos]));
+	if (vector_size(tg->Bindable.viewpoint_stack) > 0) {
+		update_renderFlag(vector_back(struct X3D_Node*, 
+			tg->Bindable.viewpoint_stack), VF_Viewpoint);
+		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
 	} else {
 		/* keep these at the defaults, if no viewpoint is present. */
 		Viewer()->nearPlane = DEFAULT_NEARPLANE;

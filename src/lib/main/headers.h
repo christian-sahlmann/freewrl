@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.172 2011/08/23 15:24:40 crc_canada Exp $
+$Id: headers.h,v 1.173 2011/10/13 16:14:58 crc_canada Exp $
 
 Global includes.
 
@@ -899,12 +899,6 @@ void replaceWorldNeeded(char* str);
 /* X3D C parser */
 int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
-
-/* node binding */
-//extern void *setViewpointBindInRender;
-//extern void *setFogBindInRender;
-//extern void *setBackgroundBindInRender;
-//extern void *setNavigationBindInRender;
 
 char* convert1To2(const char *inp);
 
