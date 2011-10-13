@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.21 2011/06/08 22:39:30 dug9 Exp $
+$Id: Tess.c,v 1.22 2011/10/13 18:28:48 crc_canada Exp $
 
 ???
 
@@ -162,10 +162,10 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
 	GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
+/*
 	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
-/*
 	printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
 		*d[0]->x,*d[0]->y,*d[0]->z,
 		*d[1]->x,*d[1]->y,*d[1]->z,

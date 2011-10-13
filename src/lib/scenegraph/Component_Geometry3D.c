@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.78 2011/09/13 19:50:23 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.79 2011/10/13 18:28:48 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -1576,9 +1576,11 @@ struct sCollisionGeometry
 	double smin[3],smax[3];
 };
 
-struct sCollisionGeometry collisionSphere;
+static struct sCollisionGeometry collisionSphere = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
+static struct sCollisionGeometry collisionCylinder = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
+static struct sCollisionGeometry collisionCone = {NULL,NULL,NULL,0,NULL,0,0, {0.0,0.0,0.0},{0.0,0.0,0.0}};
 
-void collisionSphere_init(struct X3D_Sphere *node)
+static void collisionSphere_init(struct X3D_Sphere *node)
 {
 	int i,j,count;
 	/* for debug int k, biggestNum; */
@@ -1948,11 +1950,10 @@ void collide_Box (struct X3D_Box *node) {
 		#endif
 }
 
-struct sCollisionGeometry collisionCone;
 
 #define  CONEDIV 20
 
-void collisionCone_init(struct X3D_Cone *node)
+static void collisionCone_init(struct X3D_Cone *node)
 {
 	/* for debug ctri ct; */
 	/* for debug struct point_XYZ a,b,n; */
@@ -1992,19 +1993,18 @@ void collisionCone_init(struct X3D_Cone *node)
 	if( !APPROX(h,0.0) ) inverseh = 1.0/h;
 	if( !APPROX(r,0.0) ) inverser = 1.0/r;
 
-#ifdef SHADERS_2011
-    {
+    
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
 		struct SFVec3f *pt;
 		struct SFVec3f *spt;			/*  side points*/
 
 		/*  MALLOC memory (if possible)*/
-		node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
-		node->__sidepoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
+struct Multi_Vec3f botpoints;
+		botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
 
 		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = node->__botpoints.p;
+		pt = botpoints.p;
 		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
 		for (i=1; i<=CONEDIV; i++) {
 			pt[i].c[0] = (float) (r* sin(PI*2*i/(float)CONEDIV));
@@ -2017,10 +2017,11 @@ void collisionCone_init(struct X3D_Cone *node)
 		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
 		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
+#ifdef IGNORE
 		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = node->__sidepoints.p;
+		spt = sidepoints.p;
 		for (i=0; i<CONEDIV; i++) {
 			/*  top point*/
 			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
@@ -2032,11 +2033,11 @@ void collisionCone_init(struct X3D_Cone *node)
 
 		/*  wrap bottom point around once again... ie, final right point = initial left point*/
 		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
-	}
-#endif // SHADERS_2011
+#endif
+	
 
-	if(node->bottom) {
-		pts = node->__botpoints.p;
+
+		pts = botpoints.p;
 		for(i=0;i<(CONEDIV+2);i++)
 		{
 			/* points */
@@ -2060,7 +2061,6 @@ void collisionCone_init(struct X3D_Cone *node)
 			collisionCone.tris[count][2] = i > (CONEDIV-2)?  1 : i+2; 
 			count ++;
 		}
-	}
 
 
 	/* count should == num triangles 
@@ -2079,38 +2079,31 @@ void collisionCone_init(struct X3D_Cone *node)
 	collisionCone.smin[1] = -1.0; //-h;
 	collisionCone.smax[1] =  1.0; //h;
 	
-#ifdef SHADERS_2011
-    {
-		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
-		   uses the same algorithm whether running in VBO mode or not */
-		FREE_IF_NZ(node->__botpoints.p);
-		FREE_IF_NZ(node->__sidepoints.p);
-	}
-#endif
+	/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
+	   uses the same algorithm whether running in VBO mode or not */
+	FREE_IF_NZ(botpoints.p);
     
 }
 
-#ifdef DEBUGGING_CODE
-DEBUGGINGCODEint collisionCone_render(double r, double h)
-DEBUGGINGCODE{
-DEBUGGINGCODE	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
-DEBUGGINGCODE	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
-DEBUGGINGCODE	*/
-DEBUGGINGCODE	int i,j;
-DEBUGGINGCODE	for(i =0; i < collisionCone.ntris; i++)  
-DEBUGGINGCODE	{ 
-DEBUGGINGCODE		struct point_XYZ pts[3]; //,a,b,n;
-DEBUGGINGCODE		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
-DEBUGGINGCODE		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
-DEBUGGINGCODE		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
-DEBUGGINGCODE		FW_GL_BEGIN(GL_TRIANGLES);
-DEBUGGINGCODE		for(j=0;j<3;j++)
-DEBUGGINGCODE			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
-DEBUGGINGCODE		FW_GL_END();
-DEBUGGINGCODE	}
-DEBUGGINGCODE	return 0;
-DEBUGGINGCODE}
-#endif
+int collisionCone_render(double r, double h)
+{
+	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
+	   to see it draw, you need to turn on collision and get close to the mesh object - then it will initialize and start drawing it.
+	*/
+	int i,j;
+	for(i =0; i < collisionCone.ntris; i++)  
+	{ 
+		struct point_XYZ pts[3]; //,a,b,n;
+		pts[0] = collisionCone.pts[collisionCone.tris[i][0]];
+		pts[1] = collisionCone.pts[collisionCone.tris[i][1]];
+		pts[2] = collisionCone.pts[collisionCone.tris[i][2]];
+		glBegin(GL_TRIANGLES);
+		for(j=0;j<3;j++)
+			FW_GL_VERTEX3D(pts[j].x*r,pts[j].y*h,pts[j].z*r);
+		glEnd();
+	}
+	return 0;
+}
 
 void collide_Cone (struct X3D_Cone *node) {
 
@@ -2159,6 +2152,7 @@ void collide_Cone (struct X3D_Cone *node) {
 				struct point_XYZ radscale;
 
 				if(!collisionCone.npts) collisionCone_init(node);
+collisionCone_render(5.0,5.0);
 				radscale.x = radscale.z = node->bottomRadius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);
@@ -2230,9 +2224,8 @@ void collide_Cone (struct X3D_Cone *node) {
 			  );
 		#endif
 }
-struct sCollisionGeometry collisionCylinder;
 
-void collisionCylinder_init(struct X3D_Cylinder *node)
+static void collisionCylinder_init(struct X3D_Cylinder *node)
 {
 	/* for debug ctri ct; */
 	/* for debug struct point_XYZ a,b,n; */
