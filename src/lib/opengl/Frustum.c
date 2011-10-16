@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.45 2011/10/11 17:53:58 crc_canada Exp $
+$Id: Frustum.c,v 1.46 2011/10/16 00:23:03 crc_canada Exp $
 
 ???
 
@@ -511,9 +511,13 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	me->EXTENT_MAX_Y = maxy; me->EXTENT_MIN_Y = miny;
 	me->EXTENT_MAX_Z = maxz; me->EXTENT_MIN_Z = minz;
 
+	if (me->_parentVector == NULL) {
+		printf ("setExtent, parentVector NULL for node %p type %s\n",
+			me,stringNodeType(me->_nodeType));
+		return;
+	}
+
 	for (c=0; c<vector_size(me->_parentVector); c++) {
-	// OLDCODE for (c=0; c<(me->_nparents); c++) {
-		// OLDCODE shapeParent = X3D_NODE(me->_parents[c]);
 		shapeParent = vector_get(struct X3D_Node *, me->_parentVector,c);
 	
 		/* record this for ME for sorting purposes for sorting children fields */
@@ -529,9 +533,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 		#endif
 
 		for (d=0; d<vector_size(shapeParent->_parentVector); d++) {
-		// OLDCODE for (d=0; d<(shapeParent->_nparents); d++) {
 			geomParent = vector_get(struct X3D_Node *, shapeParent->_parentVector,d);
-			// OLDCODEgeomParent = X3D_NODE(shapeParent->_parents[d]);
 
 			#ifdef FRUSTUMVERBOSE
 			printf ("setExtent in loop, parent %u of shape %s is %s\n",c,stringNodeType(shapeParent->_nodeType),
@@ -634,6 +636,13 @@ void propagateExtent(struct X3D_Node *me) {
 			me, vector_size(me->parentVector));
 	#endif
 
+
+	if (me->_parentVector == NULL) {
+		printf ("propagateExtent, parentVector NULL, me %p %s\n",
+			me,stringNodeType(me->_nodeType));
+		return;
+	}
+
 	/* calculate the maximum of the current position, and add the previous extent */
 	maxx = me->EXTENT_MAX_X; minx = me->EXTENT_MIN_X;
 	maxy = me->EXTENT_MAX_Y; miny = me->EXTENT_MIN_Y;
@@ -646,9 +655,7 @@ void propagateExtent(struct X3D_Node *me) {
 	FRUSTUM_TRANS(HAnimSite);
 	FRUSTUM_TRANS(HAnimJoint);
 
-	// OLDCODE for (i=0; i<(me->_nparents); i++) {
 	for (i=0; i<vector_size(me->_parentVector); i++) {
-		//OLDCODEgeomParent = X3D_NODE(me->_parents[i]);
 		geomParent = vector_get(struct X3D_Node *, me->_parentVector, i);
 
 		/* do we propagate for this parent? */
