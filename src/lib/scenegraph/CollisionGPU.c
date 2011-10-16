@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.19 2011/09/20 18:24:00 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.20 2011/10/16 16:24:22 dug9 Exp $
 
 Render the children of nodes.
 
@@ -108,7 +108,7 @@ static void printCLError(const char *where, int err) {
 /*										*/
 /*										*/
 /********************************************************************************/
-#ifdef _MSC_VER_NOT
+#ifdef _MSC_VER
 cl_platform_id cpPlatform = NULL;          // OpenCL platform
 cl_device_id* cdDevices = NULL;     // device list
 cl_uint uiTargetDevice = 0;	        // Default Device to compute on
@@ -130,7 +130,7 @@ int bQATest = 0;			// false = normal GL loop, true = run No-GL test sequence
 bool bGLinteropSupported = false;	// state var for GL interop supported or not
 cl_uint uiNumDevsUsed = 1;          // Number of devices used in this sample 
 bool bGLinterop = false;			// state var for GL interop or not
-
+/*
 void Cleanup(int iExitCode)
 {
     // Cleanup allocated objects
@@ -161,6 +161,7 @@ void Cleanup(int iExitCode)
     exit (iExitCode);
 }
 void (*pCleanup)(int) = &Cleanup;
+*/
 #define shrLog printf
 cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 {
@@ -299,7 +300,7 @@ int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
                     CL_CONTEXT_PLATFORM, (cl_context_properties)cpPlatform, 
                     0
                 };
-                context = clCreateContext(props, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+                initme->context = clCreateContext(props, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
 				printf("ciErrNum=%d\n",ciErrNum);
             #endif
         #endif
@@ -308,7 +309,7 @@ int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
     else 
     {
         bGLinterop = false;
-        context = clCreateContext(0, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
+        initme->context = clCreateContext(0, uiNumDevsUsed, &cdDevices[uiTargetDevice], NULL, NULL, &ciErrNum);
         shrLog("clCreateContext, GL Interop %s...\n", bQATest ? "N/A" : "not supported"); 
     }
    // oclCheckErrorEX(ciErrNum, CL_SUCCESS, pCleanup);
@@ -363,9 +364,9 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 #if defined (WIN32)
 
-	//if(1)
-	//	err = extraInitFromNvidiaSamples(initme);
-	//else
+	if(1)
+		err = extraInitFromNvidiaSamples(initme);
+	else
 	{
 		cl_int ciErrNum;
 		cl_platform_id cpPlatform = NULL;          // OpenCL platform
@@ -693,7 +694,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 }
 
 static const char* collide_non_walk_kernel = " \
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
+//#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
 #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
 #pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\

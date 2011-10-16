@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.91 2011/08/12 22:11:14 dug9 Exp $
+  $Id: display.c,v 1.92 2011/10/16 16:24:22 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -200,6 +200,9 @@ int fv_display_initialize()
 		XMapWindow(Xdpy, Xwin);
 	}
 #endif /* IPHONE */
+#ifdef DO_COLLISION_GPU
+		collision_initGPUCollide();
+#endif
 
 	return TRUE;
 }
