@@ -173,6 +173,84 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
+		<Configuration
+			Name="Debug_openCL|Win32"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib_windows\JS\js1.5\src;..\..\src\Lib;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\expat\source\lib;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;..\..\..\..\lib_windows\glew\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DLLFREEWRL_EXPORTS;GLEW_MX;STATUSBAR_HUD"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				DebugInformationFormat="4"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libFreeWRLd.lib Glu32.lib glew32mx.lib Opengl32.lib pthreadVC2d.lib zlib.lib js32d.lib fdlibmd.lib ws2_32.lib freetype239_D.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\Debug"
+				GenerateManifest="true"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames="MSVCRT"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -207,6 +285,15 @@
 						CompileAsManaged="0"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_openCL|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+						CompileAsManaged="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\stdafx.cpp"
@@ -221,6 +308,14 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug_openCL|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
