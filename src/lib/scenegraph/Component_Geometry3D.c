@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.79 2011/10/13 18:28:48 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.80 2011/10/16 15:08:49 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -1961,6 +1961,9 @@ static void collisionCone_init(struct X3D_Cone *node)
 	/* for debug int j,k,biggestNum; */
 	double h,r,inverseh,inverser;
 	struct SFVec3f *pts;// = node->__botpoints;
+	struct SFVec3f *pt;
+	struct SFVec3f *spt;			/*  side points*/
+	struct Multi_Vec3f botpoints;
     	
 #if !defined(IPHONE) && !defined(_ANDROID)
 	extern unsigned char tribotindx[];
@@ -1996,11 +1999,8 @@ static void collisionCone_init(struct X3D_Cone *node)
     
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
-		struct SFVec3f *pt;
-		struct SFVec3f *spt;			/*  side points*/
 
 		/*  MALLOC memory (if possible)*/
-struct Multi_Vec3f botpoints;
 		botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
 
 		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
@@ -2017,7 +2017,7 @@ struct Multi_Vec3f botpoints;
 		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
 		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
 
-#ifdef IGNORE
+#ifdef fwIGNORE
 		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
