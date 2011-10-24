@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# $Id: Makefile.sources,v 1.41 2011/06/10 19:10:05 couannette Exp $
+# $Id: Makefile.sources,v 1.42 2011/10/24 19:08:10 crc_canada Exp $
 #
 # List all source files
 #
@@ -115,6 +115,7 @@ scenegraph/Component_Core.c \
 scenegraph/Component_EnvironEffects.c \
 scenegraph/Component_Grouping.c \
 scenegraph/Collision.c \
+scenegraph/CollisionGPU.c \
 scenegraph/Component_Text.c \
 scenegraph/Component_Text.h \
 scenegraph/LinearAlgebra.c \

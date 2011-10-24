@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.20 2011/10/16 16:24:22 dug9 Exp $
+$Id: CollisionGPU.c,v 1.21 2011/10/24 19:08:10 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -99,8 +99,9 @@ static void printCLError(const char *where, int err) {
 		case CL_DEVICE_NOT_AVAILABLE: ConsoleMessage ("%s, error CL_DEVICE_NOT_AVAILABLE",where); break;
 		case CL_OUT_OF_HOST_MEMORY: ConsoleMessage ("%s, error CL_OUT_OF_HOST_MEMORY",where); break;
 		case CL_OUT_OF_RESOURCES: ConsoleMessage("%s, error CL_OUT_OF_RESOURCES",where);break;
-		default: ConsoleMessage ("unknown OpenCL error in %s",where);
+		default: ConsoleMessage ("unknown OpenCL error (%d %x) in %s",err,err,where);
 	}
+printf ("(JAS...)\n");
 }
 
 
@@ -360,9 +361,7 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 	initme->context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
 
-#endif /* AQUA */
-
-#if defined (WIN32)
+#elseif defined (WIN32)
 
 	if(1)
 		err = extraInitFromNvidiaSamples(initme);
@@ -383,23 +382,59 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 			initme->context = clCreateContext(properties, 1, &initme->device_id, NULL, NULL, &err);
 		}
 	}
-#endif /* WIN32 */
 
-
-
-#if defined (LINUX)
+#else
 	cl_platform_id platform;
 
-	printf ("linux, have to check clGetPlatformIDs for error \n");
+printf ("\ngetting platform...\n");
+	clGetPlatformIDs(1,&platform,NULL);
+/*
+	if (err != CL_SUCCESS) {
+		printCLError("clGetPlatformIDs",err);
+		return FALSE;
+	} else {
+		printf ("Linux, have platform id...\n");
+	}
+*/
+
+
+
+printf ("getting device id...\n");
+	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
+
+	if (err != CL_SUCCESS) {
+		printCLError("clGetDeviceIDs",err);
+		return FALSE;
+	} else {
+		printf ("Linux, have device id...\n");
+	}
+
+
+printf ("\n....\n");
+
+   
+//	err = clGetPlatformIDs(1, &platform, NULL);
+//printf ("platform %p\n",platform);
+//printf ("currentContext %p\n",glXGetCurrentContext());
+//printf ("currentDisplay %p\n",glXGetCurrentDisplay());
 
 	cl_context_properties properties[] = {
+
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
 		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
 		CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
 		0 };
-   
-	err = clGetPlatformIDs(1, &platform, NULL);
-	context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+
+
+//	if (err != CL_SUCCESS) {
+//		printCLError("clGetPlatformIDs",err);
+//		return FALSE;
+//	} else {
+//		printf ("CL have platformIDs\n");
+//	}
+	initme->context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+	//initme->context=clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+
 #endif
 
  
@@ -412,6 +447,8 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 
 	// create a command queue
+printf ("initme->context %p\n",initme->context);
+
 	initme->queue = clCreateCommandQueue(initme->context, initme->device_id, 0, &err);
 	if (!initme->queue || (err != CL_SUCCESS)) {
 		printCLError("clCreateCommandQueue",err);
@@ -422,6 +459,7 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	{
 	char *kp;
 
+#undef READ_FROM_FILE
 #ifdef READ_FROM_FILE
 	// create the compute program
 	size_t readSize;
@@ -626,26 +664,33 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 
 	local_work_size = MYWG;
 	//printf ("local_work_size %d\n",local_work_size);
-
-	// note - we let the openCL implementation work out the local work group size`
-	// so just leave this as "NULL". We could specify a local work group size, but
-	// there is some math (look it up again) that is something like the global group
-	// size must be divisible by the local group size, and we can not ensure this
-	// as we do not know how many triangles we are getting.
-
 	// printf ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
 
 	// If we let the system determing workgroup size, we can get non-optimal workgroup sizes.
-  	//err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &ntri, NULL, 0, NULL, NULL);
+  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &ntri, NULL, 0, NULL, NULL);
 
-  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+  	//err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
 		return maxdispv;
 	}
 	
 
+#ifdef TRY_FLUSH
 	// wait for things to finish
+	err = clFlush(me->queue);
+	if (err != CL_SUCCESS) {
+		printCLError("clFlush",err);
+		return maxdispv;
+	} 
+
+	err = clFinish(me->queue);
+	if (err != CL_SUCCESS) {
+		printCLError("clFinish",err);
+		return maxdispv;
+	} 
+#endif
+
 	// get the data
 	err = clEnqueueReadBuffer (me->queue, me->output_buffer, 
 		CL_TRUE, 0, sizeof(struct SFColorRGBA) * ntri, 
