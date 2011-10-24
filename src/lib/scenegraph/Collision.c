@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Collision.c,v 1.39 2011/10/16 16:24:22 dug9 Exp $
+$Id: Collision.c,v 1.40 2011/10/24 21:04:24 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -1760,7 +1760,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 			pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri,
 			pr.ccw, flags, awidth);
 		
-		 printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+		 //printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
 		
 
 #ifdef POLYREP_DISP2_PERFORMANCE

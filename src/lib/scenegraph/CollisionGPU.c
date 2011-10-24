@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.21 2011/10/24 19:08:10 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.22 2011/10/24 21:04:24 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -354,14 +354,16 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
 
 	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
+
 	if (err != CL_SUCCESS) {
 		printCLError("clGetDeviceIDs",err);
 		return FALSE;
 	}
 
 	initme->context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
+#endif // TARGET_AQUA
 
-#elseif defined (WIN32)
+#if defined (_MSC_VER)
 
 	if(1)
 		err = extraInitFromNvidiaSamples(initme);
@@ -382,24 +384,13 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 			initme->context = clCreateContext(properties, 1, &initme->device_id, NULL, NULL, &err);
 		}
 	}
+#endif // _MSC_VER
 
-#else
+/* is this Linux? */
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER))
 	cl_platform_id platform;
-
-printf ("\ngetting platform...\n");
 	clGetPlatformIDs(1,&platform,NULL);
-/*
-	if (err != CL_SUCCESS) {
-		printCLError("clGetPlatformIDs",err);
-		return FALSE;
-	} else {
-		printf ("Linux, have platform id...\n");
-	}
-*/
 
-
-
-printf ("getting device id...\n");
 	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
 
 	if (err != CL_SUCCESS) {
@@ -410,14 +401,6 @@ printf ("getting device id...\n");
 	}
 
 
-printf ("\n....\n");
-
-   
-//	err = clGetPlatformIDs(1, &platform, NULL);
-//printf ("platform %p\n",platform);
-//printf ("currentContext %p\n",glXGetCurrentContext());
-//printf ("currentDisplay %p\n",glXGetCurrentDisplay());
-
 	cl_context_properties properties[] = {
 
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
@@ -425,18 +408,8 @@ printf ("\n....\n");
 		CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
 		0 };
 
-
-//	if (err != CL_SUCCESS) {
-//		printCLError("clGetPlatformIDs",err);
-//		return FALSE;
-//	} else {
-//		printf ("CL have platformIDs\n");
-//	}
 	initme->context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
-	//initme->context=clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
-
 #endif
-
  
 	if (err != CL_SUCCESS) {
 		printCLError("clCreateContext",err);
@@ -666,10 +639,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	//printf ("local_work_size %d\n",local_work_size);
 	// printf ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
 
-	// If we let the system determing workgroup size, we can get non-optimal workgroup sizes.
-  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &ntri, NULL, 0, NULL, NULL);
-
-  	//err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+  	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printCLError("clEnqueueNDRangeKernel",err);
 		return maxdispv;
