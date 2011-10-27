@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.63 2011/10/11 17:53:58 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.64 2011/10/27 18:51:32 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,10 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.64  2011/10/27 18:51:32  crc_canada
+# bind_node, binding changed a bit; Inlines with Viewpoints were having bind_node called on them;
+# OpenGL Scnengraph with setBindPtr was a uintprt_t*, should have been an int*...
+#
 # Revision 1.63  2011/10/11 17:53:58  crc_canada
 # move the scenegraph Node parent structure to the Vector methodology.
 #
@@ -1376,6 +1380,7 @@ sub gen {
 	"#define X3D_SHAPE(node) ((struct X3D_Shape*)node)\n".
 	"#define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)\n".
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
+	"#define X3D_NAVIGATIONINFO(node) ((struct X3D_NavigationInfo*)node)\n".
 	"#define X3D_BACKGROUND(node) ((struct X3D_Background*)node)\n".
 	"#define X3D_TEXTUREBACKGROUND(node) ((struct X3D_TextureBackground*)node)\n".
 	"#define X3D_FOG(node) ((struct X3D_Fog*)node)\n".

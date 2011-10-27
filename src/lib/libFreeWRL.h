@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.44 2011/08/01 17:06:47 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.45 2011/10/27 18:51:32 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -158,10 +158,6 @@ extern uintptr_t _fw_instance;
 extern int with_libcurl;
 #endif
 
-/* void askForRefreshOK(); */
-/* int checkRefresh(); */
-/* void resetRefresh(); */
-
 #endif /* COMPILING_IPHONE_FRONT_END */
 
 /* ** NEW DJ ** */
@@ -244,11 +240,11 @@ void fwl_set_AnaglyphParameter(const char *optArg);
 void fwl_set_StereoParameter(const char *optArg);
 
 // JAS obsolete void fwl_askForRefreshOK();
-// JAS obsolete int  fwl_checkRefresh();
-// JAS obsolete void fwl_resetRefresh();
 
 /* DISPLAY THREAD */
 void fwl_initializeDisplayThread();
+bool checkNetworkFile(const char *fn);
+#define fwl_checkNetworkFile(a) checkNetworkFile(a)
 
 /* PARSER THREAD */
 void fwl_initialize_parser();

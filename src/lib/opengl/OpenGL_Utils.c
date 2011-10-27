@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.228 2011/10/13 16:14:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.229 2011/10/27 18:51:32 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2870,8 +2870,8 @@ void zeroVisibilityFlag(void) {
 #undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
 #endif
 #define VIEWPOINT(thistype) \
-			setBindPtr = (uintptr_t *) ((uintptr_t)(node) + offsetof (struct X3D_##thistype, set_bind)); \
-			if (*setBindPtr == 100) {setBindPtr = NULL; }/* already done */ 
+			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
+			if ((*setBindPtr) == 100) {setBindPtr = NULL; } else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
 
 #define CHILDREN_NODE(thistype) \
 			addChildren = NULL; removeChildren = NULL; \
@@ -2968,7 +2968,7 @@ void startOfLoopNodeUpdates(void) {
 	struct Vector *parentVector;
 	int nParents;
 	int i,j;
-	uintptr_t *setBindPtr;
+	int* setBindPtr;
 
 	struct Multi_Node *addChildren;
 	struct Multi_Node *removeChildren;
