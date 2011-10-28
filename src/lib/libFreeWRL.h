@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.45 2011/10/27 18:51:32 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.46 2011/10/28 20:52:26 crc_canada Exp $
 
   FreeWRL library API (public)
 
@@ -59,6 +59,10 @@
  * Version embedded
  */
 const char *libFreeWRL_get_version();
+
+/* for front ends to get the versions */
+const char *fwl_libFreeWRL_get_version(); /* library version */
+const char *fwl_freewrl_get_version();  /* UI version */
 
 /**
  * Initialization

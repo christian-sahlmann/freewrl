@@ -84,8 +84,10 @@ open OUT, ">../src/lib/JOHNS_lib_version.c" or die ("Couldn't write to JOHNSvers
 my $vers = `cat ../versions/FREEWRL`;
 $vers =~ s/\s+$//;
 
-print OUT "char *freewrl_get_version(void) { return \"",$vers,"\";}";
-print OUT "char *libFreeWRL_get_version(void) {return \"",$vers,"\";}";
+print OUT "char *freewrl_get_version(void) { return \"",$vers,"\";}  ";
+print OUT "char *libFreeWRL_get_version(void) {return \"",$vers,"\";}  ";
+print OUT "char *fwl_freewrl_get_version(void) { return \"",$vers,"\";}  ";
+print OUT "char *fwl_libFreeWRL_get_version(void) {return \"",$vers,"\";}  ";
 close OUT;
 
 # print out the CFuncs/vrmlconf.c C header file.
