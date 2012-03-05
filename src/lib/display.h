@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.136 2011/07/30 19:50:38 dug9 Exp $
+  $Id: display.h,v 1.137 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
 
@@ -43,6 +43,25 @@ Functions:
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
 
+/* for generic GLES2 ie from desktop simulator */
+#ifdef GLES2
+	#include <GLES2/gl2.h>
+	#include <EGL/egl.h>
+	#ifndef GLchar
+		#define GLchar GLbyte
+	#endif
+#define GL_BGRA  0x8765 /*random unlikely number so it never matches*/
+#undef HAVE_LIBGLEW
+#undef GLEW
+#undef GLEW_MX
+#ifndef fmin
+#define fmin(a,b) ((a)<(b) ? (a) : (b))
+#endif
+#ifndef fmax
+#define fmax(a,b) ((a)>(b) ? (a) : (b))
+#endif
+#endif
+
 /**
  * Specific platform : Mac
  */
@@ -60,20 +79,16 @@ Functions:
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
 
-#ifdef _MSC_VER /* TARGET_WIN32 */
-#ifndef AQUA
-
-/* Nothing special :P ... */
+#if defined(_MSC_VER) && !defined(GLES2) /* TARGET_WIN32 */
 #include <GL/glew.h>
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
 #endif
 #define ERROR 0
-#endif
 #endif /* TARGET_WIN32 */
 
 
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) /* not aqua and not win32, ie linux */
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(GLES2) /* not aqua and not win32, ie linux */
 #ifdef HAVE_GLEW_H
 #include <GL/glew.h>
 #ifdef GLEW_MX
@@ -81,7 +96,7 @@ GLEWContext * glewGetContext();
 #endif
 #else
 #ifndef AQUA
-#if !defined(_ANDROID)
+#if !defined(_ANDROID) && !defined(GLES2)
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
@@ -98,6 +113,17 @@ typedef char GLchar;
 #endif /*ANDROID_NDK*/
 #endif
 #endif
+#endif
+
+#ifdef FAKE_GLES2
+/* basically, its regular desktop opengl headers and drivers -included above-
+ * except in the code we'll use the GL ES 2 subset */
+#define GL_ES_VERSION_2_0
+/* desktop glew sets GL_VERSION_XX unconditionally and provides stubs
+ * we want it to go through the same code as mobile devices iPhone, Android
+ * see RenderFuncs.h L.37 */
+#undef GL_VERSION_2_0
+#undef GL_VERSION_1_5
 #endif
 
 
@@ -259,6 +285,11 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 	#define GL_QUADRATIC_ATTENUATION          0x1209
 	#define GL_SPOT_EXPONENT                  0x1205
 	#define GL_SPOT_CUTOFF                    0x1206
+	#define GL_COMPILE                        0x1300
+	#define GL_LIGHTING                       0x0B50
+	#define GL_FLAT                           0x1D00
+	#define GL_SMOOTH                         0x1D01
+	#define GL_LIST_BIT                   0x00020000
 
 	#define HAVE_SHADERS
 	#define VERTEX_SHADER GL_VERTEX_SHADER
@@ -400,7 +431,10 @@ typedef struct {
 	GLint Colours;
 	GLint TexCoords;
 	GLint Texture0;
-
+	GLint Texture1;
+	GLint Texture2;
+	GLint Texture3;
+	GLint useTex;
 	/* some items have no real colour, like lines and points */
 	GLint myMaterialColour;
 
@@ -710,7 +744,7 @@ void resetGeometry();
 	/* First - any platform specifics to do? 			*/
 	/****************************************************************/
 
-	#if defined(_MSC_VER)
+	#if defined(_MSC_VER) && !defined(GLES2)
 		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
 	#endif
 
@@ -737,7 +771,7 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_SWAPBUFFERS /* nothing */
 #endif
 	
-	#if defined( _ANDROID )
+	#if defined( _ANDROID ) || defined(GLES2)
 		#define FW_GL_SWAPBUFFERS /* nothing */
 	#endif
 
@@ -836,7 +870,9 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
 	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
-
+#ifndef GL_FOG
+#define GL_FOG 0x0B60
+#endif
 	#define FW_GL_FOGFV(aaa, bbb) glFogfv(aaa, bbb)
 	#define FW_GL_FOGF(aaa, bbb) glFogf(aaa, bbb)
 	#define FW_GL_FOGI(aaa, bbb) glFogi(aaa, bbb)
@@ -847,9 +883,47 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#ifdef IPHONE
+#if defined(IPHONE) || defined(GLES2)
 	/* ES 2.0 - set the sampler */
-	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0, aaa); }
+	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); \
+ //    glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0+aaa, aaa); \
+	// if(getAppearanceProperties()->currentShaderProperties->useTex > -1){ \
+	//	float fw_useTex[4]; \
+	//	int jj; \
+	//	for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= aaa ? 1.0f : 0.0f; \
+	//	glUniform4f(getAppearanceProperties()->currentShaderProperties->useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
+	//  } \
+	// }
+#define SET_TEXTURE_UNIT(c) \
+			if(1){ \
+				GLint loc; \
+				GLint x; \
+				GLint useTex; \
+				s_shader_capabilities_t *csp; \
+				csp = getAppearanceProperties()->currentShaderProperties; \
+				switch(c){ \
+					case 0: \
+							loc = csp->Texture0; break; \
+					case 1: \
+							loc = csp->Texture1; break; \
+					case 2: \
+							loc = csp->Texture2; break; \
+					case 3: \
+							loc = csp->Texture3; break; \
+					default: \
+							loc = csp->Texture0; break; \
+				} \
+				useTex = csp->useTex; \
+				glActiveTexture(GL_TEXTURE0+c); \
+			     /*glUniform1i(loc+c, c); */ \
+				glUniform1i(loc,c); \
+			 if( useTex > -1){  \
+				float fw_useTex[4];  \
+				int jj;  \
+				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; \
+				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
+			  } \
+			}
 #else
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 #endif

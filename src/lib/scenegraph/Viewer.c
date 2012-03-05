@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.81 2011/10/13 16:14:58 crc_canada Exp $
+$Id: Viewer.c,v 1.82 2012/03/05 19:56:03 dug9 Exp $
 
 CProto ???
 
@@ -1805,13 +1805,16 @@ void viewer_postGLinit_init(void)
 
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-
+	quadbuffer = GL_FALSE;
+#ifndef GLES2
 	FW_GL_GETBOOLEANV(GL_STEREO,&quadbuffer);
-
+#endif
 	p->Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
-
+#ifdef GLES2
+	p->Viewer.haveAnaglyphShader = 0;
+#else
 	p->Viewer.haveAnaglyphShader = initAnaglyphShaders();
-
+#endif
 	updateEyehalf();
 
 	type = 0;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.29 2011/06/21 18:19:46 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.30 2012/03/05 19:56:03 dug9 Exp $
 
 Proximity sensor macro.
 
@@ -46,7 +46,7 @@ void turnGlobalShaderOff(void);
 		#define TURN_FILLPROPERTIES_SHADER_OFF \
 			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
 	#else
-		#ifdef IPHONE
+		#if defined(IPHONE) || defined(GLES2)
 			#define TURN_GLOBAL_SHADER_OFF \
 				turnGlobalShaderOff()
 			#define TURN_FILLPROPERTIES_SHADER_OFF \

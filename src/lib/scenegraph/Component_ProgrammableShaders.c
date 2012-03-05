@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.57 2011/10/11 17:53:58 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.58 2012/03/05 19:56:03 dug9 Exp $
 
 X3D Programmable Shaders Component
 
@@ -264,7 +264,7 @@ static void shaderErrorLog(GLuint myShader) {
 /* do type checking of shader and field variables when initializing interface */
 static int shader_checkType(struct FieldDecl * myField,
 		GLuint myShader, GLint myVar) {
-	int retval;
+	int retval = FALSE;
 
 	/* check the type, if we are OpenGL 2.0 or above */
 

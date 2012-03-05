@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.80 2011/10/16 15:08:49 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.81 2012/03/05 19:56:03 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -2084,7 +2084,7 @@ static void collisionCone_init(struct X3D_Cone *node)
 	FREE_IF_NZ(botpoints.p);
     
 }
-
+#ifdef DEBUG_COLLISIONCONE
 int collisionCone_render(double r, double h)
 {
 	/* I needed to verify the collision mesh was good, and it uses triangles, so I drew it the triangle way and it looked good 
@@ -2104,7 +2104,7 @@ int collisionCone_render(double r, double h)
 	}
 	return 0;
 }
-
+#endif
 void collide_Cone (struct X3D_Cone *node) {
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
@@ -2152,7 +2152,9 @@ void collide_Cone (struct X3D_Cone *node) {
 				struct point_XYZ radscale;
 
 				if(!collisionCone.npts) collisionCone_init(node);
+#ifdef DEBUG_COLLISIONCONE
 collisionCone_render(5.0,5.0);
+#endif
 				radscale.x = radscale.z = node->bottomRadius;
 				radscale.y = node->height;
 				scale_to_matrix (modelMatrix, &radscale);

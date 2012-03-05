@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.42 2011/06/07 22:45:27 dug9 Exp $
+$Id: RenderTextures.c,v 1.43 2012/03/05 19:56:03 dug9 Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -80,7 +80,7 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
 /* TextureGenerator node? if so, do it */
 static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
-#if defined(IPHONE) || defined(_ANDROID )
+#if defined(IPHONE) || defined(_ANDROID ) || defined(GLES2)
 printf ("skipping setupTexGen\n");
 #else
 	switch (this->__compiledmode) {
@@ -114,8 +114,37 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	if (tg->display.rdr_caps.av_multitexture) {
 	    
 	    if (c != p->currentTextureUnit) {
-		SET_TEXTURE_UNIT(c);
-		p->currentTextureUnit = c;
+		  SET_TEXTURE_UNIT(c);
+			if(0){
+				GLint loc;
+				GLint x;
+				GLint useTex;
+				s_shader_capabilities_t *csp;
+				csp = getAppearanceProperties()->currentShaderProperties; 
+				switch(c){
+					case 0:
+							loc = csp->Texture0; break;
+					case 1:
+							loc = csp->Texture1; break;
+					case 2:
+							loc = csp->Texture2; break;
+					case 3:
+							loc = csp->Texture3; break;
+					default:
+							loc = csp->Texture0; break;
+				}
+				useTex = csp->useTex;
+				glActiveTexture(GL_TEXTURE0+c);
+			     //glUniform1i(loc+c, c); 
+				glUniform1i(loc,c);
+			 if( useTex > -1){ 
+				float fw_useTex[4]; 
+				int jj; 
+				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; 
+				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
+			  } 
+			}
+		  p->currentTextureUnit = c;
 	    }
 
 	} else {
@@ -123,7 +152,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	    // this should be already set
 	    p->currentTextureUnit = 0;
 	
-	    #ifdef IPHONE
+	    #if defined(IPHONE) || defined(GLES2)
 		/* printf ("forcing texture unit to zero and sending in uniform for shader \n"); */
 		SET_TEXTURE_UNIT(0);
 	    #endif
@@ -168,8 +197,8 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 		/* is this texture unit active? ie is mode something other than "OFF"? */
 		if (paramPtr->texture_env_mode != 0) {
 
-#ifdef IPHONE
-printf ("skipping the texenvi\n");
+#if defined(IPHONE) || defined(GLES2)
+//printf ("skipping the texenvi - assume replace color and add in shader\n");
 #else
 		switch (paramPtr->texture_env_mode) {
 			case GL_MODULATE:
@@ -268,6 +297,7 @@ void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) 
 		}
 	}
 	PRINT_GL_ERROR_IF_ANY("");
+	return;
 }
 
 /* lets disable textures here */
@@ -287,14 +317,30 @@ void textureDraw_end(void) {
 
 		if (c != p->currentTextureUnit) {
 			SET_TEXTURE_UNIT(c);
+			//glActiveTexture(GL_TEXTURE0+c);
+			//if(1){
+			//	GLint useTex;
+			//	s_shader_capabilities_t *csp;
+			//	csp = getAppearanceProperties()->currentShaderProperties; 
+			//	useTex = csp->useTex;
+			// if( useTex > -1){ 
+			//	float fw_useTex[4]; 
+			//	int jj; 
+			//	for(jj=0;jj<4;jj++) fw_useTex[jj] = 0.0f; //set textures off
+			//	glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
+			//  } 
+			//}
+
 			p->currentTextureUnit = c;
 		}
 
 	        if (getThis_textureTransform()) end_textureTransform();
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
+		#ifndef SHADERS_2011
 		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
 		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
 		FW_GL_DISABLE(GL_TEXTURE_2D);
+		#endif /* SHADERS_2011 */
 	    }
 
 	} else {
@@ -359,6 +405,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 	}
 	PRINT_GL_ERROR_IF_ANY("");
+	return;
 }
 
 

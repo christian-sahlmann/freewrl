@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.92 2011/10/16 16:24:22 dug9 Exp $
+  $Id: display.c,v 1.93 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -148,7 +148,7 @@ int fv_display_initialize()
 	d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
 	/* make the window, get the OpenGL context */
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(GLES2)
 	if (!fv_open_display()) {
 		return FALSE;
 	}
@@ -190,7 +190,7 @@ int fv_display_initialize()
 
     PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
     
-#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID))
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID) || defined(GLES2))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
@@ -332,6 +332,10 @@ bool initialize_rdr_caps()
 	#ifdef SHADERS_2011
 		if (rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
 		rdr_caps.av_npot_texture=FALSE;
+		#ifdef GLES2
+			/* attempting multi-texture */
+			rdr_caps.av_multitexture = 1;
+		#endif
 	#endif /* SHADERS_2011 */
 
 
@@ -351,8 +355,9 @@ bool initialize_rdr_caps()
 	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
+#ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
-
+#endif
 	/* User settings in environment */
 
 	if (gglobal()->internalc.global_texture_size > 0) {

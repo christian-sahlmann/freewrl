@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.95 2011/07/27 23:42:31 crc_canada Exp $
+$Id: Component_Shape.c,v 1.96 2012/03/05 19:56:03 dug9 Exp $
 
 X3D Shape Component
 
@@ -619,6 +619,7 @@ void render_Material (struct X3D_Material *node) {
 #define MATERIAL_APPEARANCE_SHADER 0x0001
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
 #define ONE_TEX_APPEARANCE_SHADER 0x004
+#define COMPLEX_TEX_APPEARANCE_SHADER 0x008
 
 /* second least significant hex digit - PolyRep colour present */
 #define NO_COLOUR_SHADER 0x0000
@@ -743,6 +744,9 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
 		if (realTextureNode->_nodeType == NODE_ImageTexture) {
 			retval |= ONE_TEX_APPEARANCE_SHADER;
+		} else if(realTextureNode->_nodeType == NODE_MultiTexture ){
+			retval |= COMPLEX_TEX_APPEARANCE_SHADER;
+			//q. do we need to recurse here into ImageTextures?
 		} else {
 			printf ("getAppearanceShader, texture field %s not supported yet\n",
 			stringNodeType(realTextureNode->_nodeType));
@@ -840,6 +844,10 @@ void compile_Shape (struct X3D_Shape *node) {
 		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
 
+	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = complexTexOneMaterialShader;
+		break;	
 
 	
 

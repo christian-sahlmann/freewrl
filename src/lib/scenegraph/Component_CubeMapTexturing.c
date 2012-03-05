@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.29 2011/06/09 21:07:12 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.30 2012/03/05 19:56:03 dug9 Exp $
 
 X3D Cubemap Texturing Component
 
@@ -144,27 +144,32 @@ struct DdsLoadInfo loadInfoDXT3 = {
 struct DdsLoadInfo loadInfoDXT5 = {
   true, false, false, 4, 16, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 };
+#ifndef GLES2
 struct DdsLoadInfo loadInfoBGRA8 = {
   false, false, false, 1, 4, GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE
 };
+#endif
 struct DdsLoadInfo loadInfoRGB8 = {
   false, false, false, 1, 3, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE
 };
 struct DdsLoadInfo loadInfoBGR8 = {
   false, false, false, 1, 3, GL_RGB8, GL_BGR, GL_UNSIGNED_BYTE
 };
+#ifndef GLES2
 struct DdsLoadInfo loadInfoBGR5A1 = {
   false, true, false, 1, 2, GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
 };
+#endif
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
+#ifndef GLES2
 struct DdsLoadInfo loadInfoIndex8 = {
   false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
 };
-
+#endif
 bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
-#if !(defined(IPHONE) || defined(_ANRDOID))
+#if !(defined(IPHONE) || defined(_ANRDOID) || defined(GLES2))
 
 	FILE *file;
 	char *buffer;

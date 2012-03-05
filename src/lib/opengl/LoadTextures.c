@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.75 2011/09/15 20:41:04 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.76 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -56,7 +56,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
+#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
 		#include <Imlib2.h>
 	#endif
 #endif
@@ -329,7 +329,54 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 }
 #endif
 
+#ifdef QNX
+#include <img/img.h>
+static img_lib_t  ilib = NULL;
+int loadImage(textureTableIndexStruct_s* tti, char* fname)
+{
+	int ierr, iret;
+	img_t img;
+	if(!ilib) ierr = img_lib_attach( &ilib );
+	img.format = IMG_FMT_PKLE_ARGB8888;  //GLES2 little endian 32bit - saw in sample code, no idea
+	img.flags |= IMG_FORMAT;
+	ierr= img_load_file(ilib, fname, NULL, &img);
+	iret = 0;
+	if(ierr == NULL)
+	{
 
+		//deep copy data so browser owns it (and does its FREE_IF_NZ) and we can delete our copy here and forget about it
+		tti->x = img.w;
+		tti->y = img.h;
+		tti->frames = 1;
+		tti->texdata = img.access.direct.data;
+		if(!tti->texdata)
+		   printf("ouch in gdiplus image loader L140 - no image data\n");
+		else
+		{
+			int flipvertically = 1;
+			if(flipvertically){
+				int i,j,ii,rowcount;
+				unsigned char *sourcerow, *destrow;
+				unsigned char * blob;
+				rowcount = tti->x * 4;
+				blob = malloc(img.h * rowcount);
+				for(i=0;i<img.h;i++) {
+					ii = tti->y - 1 - i;
+					sourcerow = &tti->texdata[i*rowcount];
+					destrow = &blob[ii*rowcount];
+					memcpy(destrow,sourcerow,rowcount);
+				}
+				tti->texdata = blob;
+			}
+		}
+		tti->hasAlpha = 1; //img.transparency; //Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0;
+		//printf("fname=%s alpha=%ld\n",fname,tti->hasAlpha);
+		iret = 1;
+	}
+	return iret;
+}
+
+#endif
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
@@ -340,7 +387,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* WINDOWS */
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined(GLES2)
 	char *fname;
 	int ret;
 
@@ -356,7 +403,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 
 
 /* LINUX */
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID)
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID) && !defined(GLES2)
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.120 2011/10/11 17:53:58 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.121 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -878,7 +878,8 @@ void update_node(struct X3D_Node *node) {
 		}							\
 	} while (0)
 
-
+//static int renderLevel = 0;
+//#define RENDERVERBOSE
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
 
@@ -1064,7 +1065,7 @@ void render_node(struct X3D_Node *node) {
 	renderLevel--;
 #endif
 }
-
+//#undef RENDERVERBOSE
 
 /*
  * The following code handles keeping track of the parents of a given

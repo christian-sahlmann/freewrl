@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.22 2011/10/13 18:28:48 crc_canada Exp $
+$Id: Tess.c,v 1.23 2012/03/05 19:56:03 dug9 Exp $
 
 ???
 
@@ -40,7 +40,7 @@ $Id: Tess.c,v 1.22 2011/10/13 18:28:48 crc_canada Exp $
 
 
 /* OpenGL-ES 2.0 does not have tessellator */
-#if !defined(IPHONE) && !defined(_ANDROID)
+#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
 
 
 /* JAS */
@@ -75,7 +75,7 @@ typedef  void (__stdcall *_GLUfuncptr)();
  * number of triangles in global_tess_polyrep after tessellation.
  */
 
-#if !defined(IPHONE) && !defined(_ANDROID)
+#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
 //GLUtriangulatorObj *global_tessobj;
 #else
 //int global_tessobj;
@@ -107,7 +107,7 @@ void Tess_init(struct tTess *t){
 }
 //ppTess p = (ppTess)gglobal()->Tess.prv;
 
-#if !defined(IPHONE) && !defined(_ANDROID)
+#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
 /* OpenGL-ES 2.0 does not have tessellator */
 /* and now all the callback functions, which will be called
 	by OpenGL automatically, if the Polygon is specified	*/

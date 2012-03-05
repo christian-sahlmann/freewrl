@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.234 2011/10/13 16:14:58 crc_canada Exp $
+  $Id: MainLoop.c,v 1.235 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -591,7 +591,7 @@ void fwl_RenderSceneUpdateScene() {
 #endif /* TARGET_MOTIF */
 #endif /* KEEP_X11_INLIB */
 
-#if defined(_MSC_VER) 
+#if defined(_MSC_VER) && !defined(GLES2)
 	/**
 	 *   Win32 event loop
 	 *   gives windows message handler a time slice and 
@@ -625,7 +625,7 @@ void fwl_RenderSceneUpdateScene() {
 			render();
 
         /* handle_mouse events if clicked on a sensitive node */
-	/* printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive);  */
+	 //printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);  
         if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
                 p->currentCursor = 0;
                 setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
@@ -765,7 +765,7 @@ void fwl_RenderSceneUpdateScene() {
 }
 
 
-#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(_ANDROID)
+#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(_ANDROID) && !defined(GLES2)
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -968,7 +968,7 @@ void setup_projection(int pick, int x, int y)
 	GLDOUBLE aspect2 = tg->display.screenRatio;
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
-    
+
     PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
     
 	fieldofview2 = viewer->fieldofview;
@@ -1060,8 +1060,9 @@ static void render()
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count]; 
 		Viewer()->iside = count;
+#ifndef GLES2
 		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
-
+#endif
         /*  turn lights off, and clear buffer bits*/
 
 		if(Viewer()->isStereo)
@@ -1127,7 +1128,7 @@ static void render()
 	}
 	
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-
+#ifndef GLES2
 		if (Viewer()->isStereo) {
 			if (Viewer()->anaglyph)
 				if(Viewer()->anaglyphMethod == 1) //haveAnaglyphShader) 
@@ -1143,11 +1144,9 @@ static void render()
 					}
 				}
 				else if(Viewer()->anaglyphMethod == 2)
-				{
 					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
-				}
 		}
-
+#endif
 	} /* for loop */
 
 	if (Viewer()->isStereo) {
@@ -1162,7 +1161,7 @@ static void render()
 			if(p->touchlist[i].isDown > 0)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
-    
+
 	/* status bar, if we have one */
 	drawStatusBar();
 
@@ -1172,7 +1171,7 @@ static void render()
 }
 
 
-#if defined (IPHONE) || defined (_ANDROID)
+#if defined (IPHONE) || defined (_ANDROID) || defined(GLES2)
 static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
@@ -1186,7 +1185,7 @@ static void setup_viewpoint() {
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
 
-	#if defined (IPHONE) || defined (_ANDROID)
+	#if defined (IPHONE) || defined (_ANDROID) || defined(GLES2)
     
     // has a change happened? 
     if (Viewer()->screenOrientation != currentViewerLandPort) {
@@ -1803,7 +1802,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 #endif /* KEEP_X11_INLIB */
 
-	#if !(defined(IPHONE) || defined(_ANDROID))
+	#if !(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
 	new_tessellation();
 	#endif /* IPHONE */
 	
@@ -1984,7 +1983,7 @@ void freewrlDie (const char *format) {
 }
 
 
-#if defined(AQUA) || defined(_MSC_VER)
+#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
 
 //int ntouch =0;
 //int currentTouch = -1;
@@ -2084,7 +2083,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
             mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
 
 	// do we have to worry about screen orientations (think mobile devices)
-	#if defined (IPHONE) || defined (_ANDROID)
+	#if defined (IPHONE) || defined (_ANDROID) // || defined(GLES2)
 	{ 
 
         // iPhone - with home button on bottom, in portrait mode, 

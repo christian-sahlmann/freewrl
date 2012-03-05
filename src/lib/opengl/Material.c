@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.27 2011/07/07 18:24:54 dug9 Exp $
+$Id: Material.c,v 1.28 2012/03/05 19:56:03 dug9 Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -297,20 +297,26 @@ void glColor4fv (float *cols) {
 }
 
 void glColorMaterial (GLenum face, GLenum mode) {
+#ifndef GLES2
 printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 printf ("glColorMaterial %x, %d\n",face,mode);
+#endif
 }
 
 void glMaterialf (GLenum face, GLenum pname, float param) {
+#ifndef GLES2
 printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
 	face,pname,GL_SHININESS,param);
+#endif
 }
 
 void glMaterialfv (GLenum face, GLenum pname, float *param) {
+#ifndef GLES2
 printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 printf ("glMaterialfv, face %d pname %d (GL_SHININESS == %d), param %f\n",
 	face,pname,GL_SHININESS,*param);
+#endif
 }
 #endif
 

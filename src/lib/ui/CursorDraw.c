@@ -182,7 +182,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 {
 	XY xy;
 
-	if( ID == 0 )return;
+	//if( ID == 0 )return;
 
 	FW_GL_DEPTHMASK(GL_FALSE);
 
@@ -193,6 +193,8 @@ void cursorDraw(int ID, int x, int y, float angle)
 	FW_GL_DISABLE(GL_DEPTH_TEST);
 	
 	xy = mouse2screen2(x,y);
+	//printf("x=%d y=%d\n",x,y);
+	//printf("x=%d y=%d\n",xy.x,xy.y);
 
 	/* please note that OpenGL ES and OpenGL-3.x does not have the following; here is
 	   a hint for future work:

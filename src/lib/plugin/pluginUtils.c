@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.54 2011/10/13 16:14:58 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.55 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -515,7 +515,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID)
+#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(GLES2)
 
 void sendXwinToPlugin()
 {

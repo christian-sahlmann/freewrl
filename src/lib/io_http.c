@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.19 2011/08/04 16:15:53 dug9 Exp $
+  $Id: io_http.c,v 1.20 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -159,7 +159,7 @@ bool is_url(const char *url)
 
 static CURL *curl_h = NULL;
 
-int with_libcurl = FALSE;
+int with_libcurl = TRUE;
 
 /*
   libCurl needs to be initialized once.

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.229 2011/10/27 18:51:32 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.230 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -339,6 +339,24 @@ static char *oneTexFragmentShader = " \
 		gl_FragColor = texture2D(fw_Texture0, v_texC); \
 	}";
 
+static char *complexTexFragmentShader = " \
+	varying vec2 v_texC; \
+	uniform sampler2D fw_Texture0; \
+	uniform sampler2D fw_Texture1; \
+	uniform sampler2D fw_Texture2; \
+	uniform sampler2D fw_Texture3; \
+	uniform vec4 fw_useTex;\
+	void main () { \
+		vec4 color0; \
+		color0 = texture2D(fw_Texture0, v_texC); \
+		if(fw_useTex.y > 0.0) \
+			color0 = color0 + texture2D(fw_Texture1, v_texC); \
+		if(fw_useTex.z > 0.0) \
+			color0 = color0 + texture2D(fw_Texture2, v_texC); \
+		if(fw_useTex.w > 0.0) \
+			color0 = color0 + texture2D(fw_Texture3, v_texC); \
+		gl_FragColor = color0; \
+	}";
 
 /* Vertex Shaders */
 
@@ -940,7 +958,7 @@ vec4 lighting_equation (int i) {   \
    \
 		VPpli = normalize(VPpli);   \
    \
-		if (lightSpotCut[i] < 180.0) {   \
+   if (lightSpotCut[i] < 180.0) {   \
 			spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
 			if (spot_factor >= cos(radians(lightSpotCut[i])))   \
 				spot_factor = pow(spot_factor, lightSpotExp[i]);   \
@@ -956,13 +974,13 @@ vec4 lighting_equation (int i) {   \
 	if (att_factor > c_zero) { \
 		computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
 		/* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
-		ndotl = max(c_zero,dot(n, VPpli));   \
-		computed_colour += (ndotl * lightDiffuse[i] * mat_diffuse_colour);    \
+		ndotl = max(c_zero,dot(n, VPpli));    \
+		computed_colour += (ndotl * (lightDiffuse[i] * mat_diffuse_colour));    \
 		/* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
 		h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
 		ndoth = dot(n, h_vec);   \
    \
-		if (ndoth > c_zero) {   \
+   if (ndoth > c_zero) {   \
 			computed_colour += (pow(ndoth,    \
 				fw_FrontMaterial.shininess) *   \
 				fw_FrontMaterial.specular *   \
@@ -1006,7 +1024,7 @@ vec4 do_lighting() {   \
    \
 	for (i=int(c_zero); i < 8; i++) {   \
 		if (lightState[i]==1) {   \
-			vtx_colour += lighting_equation(i);   \
+			vtx_colour += lighting_equation(i);    \
 		}   \
 	}   \
    \
@@ -1021,7 +1039,7 @@ void main (void) {   \
 	int i,j;   \
    \
 	/* do we need to tansform P */   \
-	if (xform_eye_p)    \
+	if (true || xform_eye_p)    \
 		p_eye = fw_ModelViewMatrix * fw_Vertex;   \
    \
 \n#ifdef USE_LIGHTING\n  \
@@ -1046,7 +1064,7 @@ mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */  \
 		v_front_colour = do_lighting();   \
 		v_back_colour = v_front_colour;   \
     \
-		if (light_model_two_sided) {   \
+	if (light_model_two_sided) {   \
 			n = -n;   \
 			v_back_colour = do_lighting();   \
 		}  \
@@ -1350,23 +1368,30 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 		case noTexOneMaterialShader: {
 			// OLDCODE *fragmentSource = phongFragmentShader;
 			// OLDCODE *vertexSource = phongSimpleVertexShader;
-
 			*fragmentSource = materialNoTexShader;
 			*vertexSource = fullVertexShader;
-			*compileFlags = "\n#undef USE_FOG\n \
-					\n#define USE_LIGHTING\n \
-					\n#undef USE_TEXTURES\n \
+			/* some shader compilers require something to be defined before it can be undefined */
+			*compileFlags = "\n\
+					#define USE_FOG \n\
+					#define USE_LIGHTING \n\
+					#define USE_TEXTURES \n\
+					#undef USE_FOG \n\
+					#undef USE_TEXTURES \n\
 			";
 			break;
 		}
 		case noMaterialNoAppearanceShader: {
 			*fragmentSource = noAppearanceNoMaterialFragmentShader;
 			*vertexSource = fullVertexShader;
-			*compileFlags = "#undef USE_FOG\n \
-					#undef USE_LIGHTING\n \
-					#undef USE_TEXTURES\n \
+			/* some shader compilers require something to be defined before it can be undefined */
+			*compileFlags = "\n\
+					#define USE_FOG \n\
+					#define USE_LIGHTING \n\
+					#define USE_TEXTURES \n\
+					#undef USE_FOG \n\
+					#undef USE_LIGHTING \n\
+					#undef USE_TEXTURES \n\
 			";
-
 			break;
 		}
 		case noTexTwoMaterialShader : {
@@ -1461,8 +1486,13 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 			break;
 		}
 
+		case complexTexOneMaterialShader: {
+			*fragmentSource = complexTexFragmentShader;
+            *vertexSource = oneTexVertexShader;
+			break;
+		}
+
 		/* still to be written */
-		case complexTexOneMaterialShader:
 		case complexTexTwoMaterialShader:
 		case complexTexOneMaterialSphereShader:
 		case complexTexTwoMaterialSphereShader: {
@@ -1551,6 +1581,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
 	me->lightQuadAtten = GET_UNIFORM(myProg,"lightQuadAtten");
 	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
+	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
 	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");
 
 
@@ -1563,6 +1594,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
 	me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
+	me->Texture1 = GET_UNIFORM(myProg,"fw_Texture1");
+	me->Texture2 = GET_UNIFORM(myProg,"fw_Texture2");
+	me->Texture3 = GET_UNIFORM(myProg,"fw_Texture3");
+	me->useTex = GET_UNIFORM(myProg,"fw_useTex");
 
 	/* for Sphere geometry shader */
 	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");

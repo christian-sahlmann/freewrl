@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.104 2011/09/19 01:53:56 dug9 Exp $
+  $Id: Textures.c,v 1.105 2012/03/05 19:56:03 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -141,7 +141,7 @@ void Textures_init(struct tTextures *t){
 #elif defined(_MSC_VER)
 
 #else
-#if !defined(_ANDROID)
+#if !defined(_ANDROID) && !defined(GLES2)
 GLXContext textureContext = NULL;
 #endif
 
@@ -780,6 +780,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    }
 	}
     new_bind_image (X3D_NODE(node), param);
+	return;
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {
@@ -1365,14 +1366,16 @@ OLDCODE		#endif
 				
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
 			FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
 #endif /* IPHONE */
 
+#ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
-		
+#endif
+
 			if (compression != GL_NONE) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);

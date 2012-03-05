@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.47 2011/08/17 14:50:43 dug9 Exp $
+$Id: Component_Text.c,v 1.48 2012/03/05 19:56:03 dug9 Exp $
 
 X3D Text Component
 
@@ -53,7 +53,7 @@ X3D Text Component
 #include "../scenegraph/Tess.h"
 
 
-#if defined(IPHONE) || defined(_ANDROID)
+#if defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
 void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
 void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
 void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}
@@ -277,7 +277,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
 		printf("realloc actualCoord=%ld\n",(unsigned int)p->FW_rep_->actualCoord);
     }
 }
-
+#define GLU_UNKNOWN     100124
 int FW_moveto (FT_Vector* to, void* user)
 {
 	ppComponent_Text p;
