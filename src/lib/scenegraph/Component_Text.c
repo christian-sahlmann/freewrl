@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.48 2012/03/05 19:56:03 dug9 Exp $
+$Id: Component_Text.c,v 1.49 2012/03/06 22:25:43 dug9 Exp $
 
 X3D Text Component
 
@@ -53,7 +53,7 @@ X3D Text Component
 #include "../scenegraph/Tess.h"
 
 
-#if defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
+#if !defined(HAVE_GLU_TESS) //defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
 void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
 void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
 void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}
