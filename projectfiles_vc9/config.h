@@ -10,7 +10,7 @@
 
 /* Directory for fonts. C:/Program Files/CRC/fonts */
 #undef FONTS_DIR
-#define FONTS_DIR "./fonts"
+#define FONTS_DIR "E:/fonts"
 
 /* The FreeWRL message wrapper program name. */
 #undef FREEWRL_MESSAGE_WRAPPER
@@ -268,5 +268,7 @@ char *getWgetPath();
 
 #undef HAVE_DIRECT_H
 #define HAVE_DIRECT_H 1
+#ifndef GLES2
 #define HAVE_LIBGLEW 1
 #define FREEWRL_STEREO_RENDERING 1
+#endif

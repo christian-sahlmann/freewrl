@@ -7,10 +7,11 @@ using namespace Gdiplus;
 extern "C"
 {
 #include "gdiPlusImageLoader.h"
-#include <GL/glew.h>
-#ifdef GLEW_MX
-GLEWContext * glewGetContext();
-#endif
+//#include <GL/glew.h>
+//#ifdef GLEW_MX
+//GLEWContext * glewGetContext();
+//#endif
+#include "display.h"
 #include "opengl/textures.h"
 /*
 struct textureTableIndexStruct {
