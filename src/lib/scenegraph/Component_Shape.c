@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.96 2012/03/05 19:56:03 dug9 Exp $
+$Id: Component_Shape.c,v 1.97 2012/03/09 14:05:36 dug9 Exp $
 
 X3D Shape Component
 
@@ -905,7 +905,7 @@ node->_shaderTableEntry = noMaterialNoAppearanceShader;
 
 /* debug */
 
-    
+	if(1){
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -932,7 +932,7 @@ case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
 case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
-
+	}
 
 
 	#endif /* SHADERS_2011 */
