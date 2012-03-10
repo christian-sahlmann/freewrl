@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.93 2012/03/05 19:56:03 dug9 Exp $
+  $Id: display.c,v 1.94 2012/03/10 13:59:50 couannette Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -182,6 +182,12 @@ int fv_display_initialize()
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         XFlush(Xdpy);
 #endif
+
+        /* initialize default font 
+           
+           TODO: this may be a configuration option (config file or command line)
+         */
+        rf_xfont_init("fixed");
 
 	/* Display full initialized :P cool ! */
 	d->display_initialized = TRUE;
