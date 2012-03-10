@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.43 2011/08/01 17:06:47 dug9 Exp $
+  $Id: io_files.c,v 1.44 2012/03/10 14:00:25 couannette Exp $
 
   FreeWRL support library.
   IO with files.
@@ -210,13 +210,10 @@ bool do_dir_exists(const char *dir)
 		if (access(dir,X_OK) == 0) {
 			return TRUE;
 		} else {
-			printf("Internal error: cannot access directory: %s\n", dir);
+			WARN_MSG("directory '%s' exists but is not accessible\n", dir);
 		}
-	} else {
-		printf("Internal error: directory does not exist: %s\n", dir);
 	}
 	return FALSE;
-
 }
 
 /**
