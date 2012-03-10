@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 7),
  libxaw7-dev,
  libmotif-dev,
  libimlib2-dev, libxml2-dev, libexpat1-dev,
+ libmozjs-dev,
  xulrunner-dev,
  gcj | java-compiler,
  libfontconfig1-dev

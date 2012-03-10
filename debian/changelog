@@ -1,3 +1,11 @@
+freewrl (1.22.13-1) unstable; urgency=low
+
+  * New upstream release
+  * Need libmozjs-dev for Javascript support, and
+    xulrunner-dev for Plugin support.
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Sat, 10 Mar 2012 15:39:13 +0100
+
 freewrl (1.22.10-1) unstable; urgency=low
 
   * New upstream release.
