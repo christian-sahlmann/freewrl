@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.40 2011/07/23 02:49:52 istakenv Exp $
+  $Id: jsVRML_SFClasses.c,v 1.41 2012/03/10 14:00:55 couannette Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1507,7 +1507,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 		/* does the property exist? */
                 if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
-			if (rval == JSVAL_VOID) {
+	                if (JSVAL_IS_NULL(rval)) {
 				ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
 				return JS_FALSE;
 			}

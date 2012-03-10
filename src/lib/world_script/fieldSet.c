@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.69 2011/07/25 16:38:37 istakenv Exp $
+  $Id: fieldSet.c,v 1.70 2012/03/10 14:00:55 couannette Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -913,7 +913,10 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 				getMFNodetype (mynode,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
 		}
 		case FIELDTYPE_MFString: {
-			getMFStringtype (scriptContext, (jsval *)tg->CRoutes.JSglobal_return_val,(struct Multi_String *)memptr);
+			getMFStringtype (
+				scriptContext, 
+				(jsval *)&tg->CRoutes.JSglobal_return_val,
+				(struct Multi_String *)memptr);
 			break;
 		}
 
@@ -1166,7 +1169,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	SFVec3fNative *sfvec3f;
 	SFRotationNative *sfrotation;
 	struct Uni_String * *ms;
-	jsval myJSVal;
+	jsval *myJSVal;
 	ttglobal tg = gglobal();
 
 	/* get size of each element, used for MALLOCing memory  - eg, this will
@@ -1181,8 +1184,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		(unsigned int) JSVAL_TO_INT(tg->CRoutes.JSglobal_return_val));
 	#endif
 
-	if (tg->jsVRMLBrowser.JSCreate_global_return_val!= INT_TO_JSVAL(0)) {
-		myJSVal = tg->jsVRMLBrowser.JSCreate_global_return_val;
+	if (JSVAL_TO_INT(tg->jsVRMLBrowser.JSCreate_global_return_val) != 0) {
+		myJSVal = &tg->jsVRMLBrowser.JSCreate_global_return_val;
 		tg->jsVRMLBrowser.JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 		#ifdef SETFIELDVERBOSE
@@ -1193,10 +1196,10 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		printf ("getJSMultiNumType: using JSglobal_return_val\n");
 		#endif
 
-		myJSVal = tg->CRoutes.JSglobal_return_val;
+		myJSVal = &tg->CRoutes.JSglobal_return_val;
 	}
 
-	if (!JSVAL_IS_OBJECT(myJSVal)) {
+	if (!JSVAL_IS_OBJECT(*myJSVal)) {
 		printf ("getJSMultiNumType - did not get an object\n");
 		return;
 	}
@@ -1208,7 +1211,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	printJSNodeType (cx,myJSVal);
 	#endif
 
-	if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(myJSVal),  MF_LENGTH_FIELD, &mainElement)) {
+	if (!JS_GetProperty(cx, JSVAL_TO_OBJECT(*myJSVal),  MF_LENGTH_FIELD, &mainElement)) {
 		printf ("JS_GetProperty failed for \"%s\" in getJSMultiNumType\n", MF_LENGTH_FIELD);
 		return;
 	}
@@ -1253,7 +1256,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, JSVAL_TO_OBJECT(myJSVal), i, &mainElement)) {
+		if (!JS_GetElement(cx, JSVAL_TO_OBJECT(*myJSVal), i, &mainElement)) {
 			printf ("WARNING: JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			switch (eletype) {
 			case FIELDTYPE_SFNode:
@@ -1450,7 +1453,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject(cx, (jsval) from, &obj))
+	if (!JS_ValueToObject(cx, *from, &obj))
 		printf ("JS_ValueToObject failed in getMFStringtype\n");
 
 	if (!JS_GetProperty(cx, obj,  MF_LENGTH_FIELD, &_v)) {

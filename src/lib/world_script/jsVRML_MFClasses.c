@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRML_MFClasses.c,v 1.29 2011/07/21 20:43:21 istakenv Exp $
+$Id: jsVRML_MFClasses.c,v 1.30 2012/03/10 14:00:55 couannette Exp $
 
 ???
 
@@ -1692,7 +1692,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 						"JS_LookupElement failed in VrmlMatrixGetProperty.\n");
 				return JS_FALSE;
 			}
-			if (*vp == JSVAL_VOID) {
+			if (JSVAL_IS_NULL(*vp)) {
 				printf( "VrmlMatrixGetProperty: obj = %p, jsval = %d does not exist!\n",
 					   obj, (int) _index);
 				return JS_FALSE;
@@ -1935,7 +1935,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 				printf( "JS_LookupElement failed in MFStringGetProperty.\n");
 				return JS_FALSE;
 			}
-			if (*vp == JSVAL_VOID) {
+			if (JSVAL_IS_NULL(*vp)) {
 				/* jut make up new strings, as above */
 				/* printf ("MFStringGetProperty, element %d is JSVAL_VOID, making up string for it\n",_index); */
 				_str = JS_NewStringCopyZ(cx, "NULL");

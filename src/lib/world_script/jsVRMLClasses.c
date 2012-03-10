@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.33 2011/07/25 16:30:30 istakenv Exp $
+$Id: jsVRMLClasses.c,v 1.34 2012/03/10 14:00:55 couannette Exp $
 
 ???
 
@@ -1130,7 +1130,13 @@ _standardMFGetProperty(JSContext *cx,
 				return JS_FALSE;
 			}
 
-			if (!doMFSetProperty(cx,obj,id,vp,type)) {
+			if (!doMFSetProperty(cx,obj,
+#if JS_VERSION < 185
+			                     id,
+#else
+			                     iid,
+#endif
+			                     vp,type)) {
 				printf ("wow, cant assign property\n");
 			}
 		}
@@ -1141,7 +1147,7 @@ _standardMFGetProperty(JSContext *cx,
 			printf( "JS_LookupElement failed in %d.\n",type);
 			return JS_FALSE;
 		}
-		if (*vp == JSVAL_VOID) {
+		if (JSVAL_IS_NULL(*vp)) {
 			printf( "warning: %d: obj = %p, jsval = %d does not exist!\n",type,
 				obj, (int) _index);
 			return JS_TRUE;
@@ -1463,6 +1469,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 	char * _cc;
 #if JS_VERSION >= 185
 	jsval id;
+	jsid oid;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("doMFSetProperty, JS_IdToValue failed.\n");
 		return JS_FALSE;
@@ -1649,7 +1656,12 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 			#endif
 			#endif
 
-			if (!setSFNodeField (cx, par, pf,
+			if (!JS_ValueToId(cx,pf,&oid)) {
+				printf("doMFSetProperty: JS_ValueToId failed.\n");
+				return JS_FALSE;
+			}
+
+			if (!setSFNodeField (cx, par, oid,
 #if JS_VERSION >= 185
 			    JS_FALSE,
 #endif
@@ -1740,7 +1752,7 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 		printf ("loading %s\n",JSLoadProps[i].id);
 		#endif
 
-		v = 0;
+		/* v = 0; */
 		if (( myProto = JS_InitClass(context, globalObj, NULL, JSLoadProps[i].class,
 			  JSLoadProps[i].constr, INIT_ARGC, NULL,
 			  JSLoadProps[i].Functions, NULL, NULL)) == NULL) {

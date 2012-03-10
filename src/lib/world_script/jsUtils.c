@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsUtils.c,v 1.41 2011/07/22 22:20:01 istakenv Exp $
+$Id: jsUtils.c,v 1.42 2012/03/10 14:00:55 couannette Exp $
 
 A substantial amount of code has been adapted from js/src/js.c,
 which is the sample application included with the javascript engine.
@@ -118,6 +118,7 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 #if JS_VERSION >= 185
 	char *tmp;
 	jsval id;
+	jsid oid;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("setSF_in_MF: JS_IdToValue failed.\n");
 		return JS_FALSE;
@@ -192,7 +193,12 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 			#endif
 			#endif
 
-			if (!setSFNodeField (cx, par, pf,
+			if (!JS_ValueToId(cx,pf,&oid)) {
+				printf("setSF_in_MF: JS_ValueToId failed.\n");
+				return JS_FALSE;
+			}
+
+			if (!setSFNodeField (cx, par, oid,
 #if JS_VERSION >= 185
 			   JS_FALSE,
 #endif
@@ -957,12 +963,18 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 
 	/* NOTE - caller is (eventually) a JS class constructor, no need to BeginRequest */
 
-	_idStr = JS_ValueToString(context, id);
+	/* _idStr = JS_ValueToString(context, id); */
+/* #if JS_VERSION < 185 */
+	/* _id_c = JS_GetStringBytes(_idStr); */
+/* #else */
+	/* _id_c = JS_EncodeString(context,_idStr); */
+/* #endif */
 #if JS_VERSION < 185
-	_id_c = JS_GetStringBytes(_idStr);
+	_id_c = JS_GetStringBytes(JSID_TO_STRING(id));
 #else
-	_id_c = JS_EncodeString(context,_idStr);
+	_id_c = JS_EncodeString(context,JSID_TO_STRING(id));
 #endif
+
 	
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("\ngetSFNodeField called on name %s object %u\n",_id_c, obj);
@@ -1168,9 +1180,9 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict
 	/* get the id field... */
 
 #if JS_VERSION < 185
-	_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id));
+	_id_c = JS_GetStringBytes(JSID_TO_STRING(id));
 #else
-	_id_c = JS_EncodeString(context,JSVAL_TO_STRING(id));
+	_id_c = JS_EncodeString(context,JSID_TO_STRING(id));
 #endif
 	
 	#ifdef JSVRMLCLASSESVERBOSE
