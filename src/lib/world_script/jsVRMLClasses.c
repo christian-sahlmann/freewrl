@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLClasses.c,v 1.34 2012/03/10 14:00:55 couannette Exp $
+$Id: jsVRMLClasses.c,v 1.35 2012/03/18 15:41:35 dug9 Exp $
 
 ???
 
@@ -1467,9 +1467,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 	jsval pf;
 	jsval nf;
 	char * _cc;
+	jsid oid;
 #if JS_VERSION >= 185
 	jsval id;
-	jsid oid;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("doMFSetProperty, JS_IdToValue failed.\n");
 		return JS_FALSE;
