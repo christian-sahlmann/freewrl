@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.81 2011/07/11 21:13:37 dug9 Exp $
+$Id: EAIEventsIn.c,v 1.82 2012/03/30 17:23:16 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -1125,3 +1125,5 @@ void EAI_Anchor_Response (int resp) {
 	}
 	p->waiting_for_anchor = FALSE;
 }
+
+

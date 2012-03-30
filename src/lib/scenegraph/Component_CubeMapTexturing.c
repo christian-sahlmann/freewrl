@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.30 2012/03/05 19:56:03 dug9 Exp $
+$Id: Component_CubeMapTexturing.c,v 1.31 2012/03/30 17:23:16 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -144,7 +144,7 @@ struct DdsLoadInfo loadInfoDXT3 = {
 struct DdsLoadInfo loadInfoDXT5 = {
   true, false, false, 4, 16, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 };
-#ifndef GLES2
+#ifndef GL_ES_VERSION_2_0
 struct DdsLoadInfo loadInfoBGRA8 = {
   false, false, false, 1, 4, GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE
 };
@@ -155,7 +155,7 @@ struct DdsLoadInfo loadInfoRGB8 = {
 struct DdsLoadInfo loadInfoBGR8 = {
   false, false, false, 1, 3, GL_RGB8, GL_BGR, GL_UNSIGNED_BYTE
 };
-#ifndef GLES2
+#ifndef GL_ES_VERSION_2_0
 struct DdsLoadInfo loadInfoBGR5A1 = {
   false, true, false, 1, 2, GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
 };
@@ -163,7 +163,7 @@ struct DdsLoadInfo loadInfoBGR5A1 = {
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
-#ifndef GLES2
+#ifndef GL_ES_VERSION_2_0
 struct DdsLoadInfo loadInfoIndex8 = {
   false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
 };
@@ -253,24 +253,36 @@ printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelForm
   else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
     li = &loadInfoDXT5;
   }
-  else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
+  
+#ifndef GL_ES_VERSION_2_0
+else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
     li = &loadInfoBGRA8;
   }
+#endif
+
   else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
     li = &loadInfoRGB8;
   }
   else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
     li = &loadInfoBGR8;
   }
+  
+#ifndef GL_ES_VERSION_2_0
   else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
     li = &loadInfoBGR5A1;
   }
+#endif
+
   else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
     li = &loadInfoBGR565;
   }
+  
+#ifndef GL_ES_VERSION_2_0
   else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
     li = &loadInfoIndex8;
   }
+#endif
+
   else {
 printf ("li failure\n");
 return FALSE;

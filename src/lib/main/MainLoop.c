@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.236 2012/03/06 22:25:43 dug9 Exp $
+  $Id: MainLoop.c,v 1.237 2012/03/30 17:23:16 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -355,6 +355,12 @@ static void stopDisplayThread()
 #ifndef SIGTERM
 #define SIGTERM SIG_TERM
 #endif
+
+#if defined (_ANDROID)
+	/* no pthread_cancel on Android?? */
+	#define pthread_cancel(aaa)
+#endif //ANDROID
+
 static void stopLoadThread()
 {
 	ttglobal tg = gglobal();
@@ -1983,7 +1989,7 @@ void freewrlDie (const char *format) {
 }
 
 
-#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
+#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2) || defined(_ANDROID)
 
 //int ntouch =0;
 //int currentTouch = -1;

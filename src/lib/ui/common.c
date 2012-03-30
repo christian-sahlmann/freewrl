@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.12 2011/10/03 18:47:28 istakenv Exp $
+  $Id: common.c,v 1.13 2012/03/30 17:23:16 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -77,6 +77,9 @@ void setMenuStatus(char *stattext)
 			 "Viewpoint: %s", stattext);
 	}
 }
+
+#if !defined (_ANDROID)
+
 void setWindowTitle0()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -89,6 +92,8 @@ char *getWindowTitle()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->window_title;
 }
+#endif //ANDROID
+
 void setMessageBar()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -105,21 +110,11 @@ void setArrowCursor()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->cursorStyle = ACURSE;
-
-	//if (ocurse != ACURSE) {
-	//	ccurse = ocurse = ACURSE;
-	//	setCursor();
-	//}
 }
 void setSensorCursor()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->cursorStyle = SCURSE;
-
-	//if (ocurse != SCURSE) {
-	//	ccurse = ocurse = SCURSE;
-	//	setCursor();
-	//}
 }
 void updateCursorStyle0(int cstyle);
 void updateCursorStyle()
@@ -140,7 +135,12 @@ void updateCursorStyle()
 #ifdef _MSC_VER
 	updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
 #else
+
 	ccurse = ocurse = cstyle;
+
+#if !defined (_ANDROID) 
+	/* ANDROID - no cursor style right now */
 	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
+#endif //ANDROID
 #endif
 }

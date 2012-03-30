@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.105 2012/03/05 19:56:03 dug9 Exp $
+  $Id: Textures.c,v 1.106 2012/03/30 17:23:16 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -281,7 +281,7 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	GLubyte *prevImage = NULL;
 	GLubyte *newImage = NULL;
 	
-
+#ifdef OLDCODE
 	/* do we need to ensure GL_RGBA for formats? */
 	/* OpenGL-ES 2.0 only supports RGBA, so lets flip bytes. Note that we do not need to do this in OpenGL 2.x, but,
 	   might as well keep it consistent */
@@ -302,6 +302,7 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 		format = GL_RGBA;
 	}
 		
+#endif //OLDCODE
 
 	/* first, base image */
 	FW_GL_TEXIMAGE2D(target,level,internalformat,width,height,border,format,type,pixels);
@@ -1256,9 +1257,13 @@ OLDCODE		#endif
 		# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
 		#endif
 
+#ifdef GL_ES_VERSION_2_0
+		iformat = GL_RGBA; format = GL_RGBA;
+		glEnable(GL_TEXTURE_CUBE_MAP);
+#else
 		iformat = GL_RGBA; format = GL_BGRA;
 		glEnable(GL_TEXTURE_CUBE_MAP);
-
+#endif
 
 		/* first image in the ComposedCubeMap, do some setups */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
@@ -1387,8 +1392,12 @@ OLDCODE		#endif
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 			
+#ifdef GL_ES_VERSION_2_0
+			iformat = GL_RGBA; format = GL_RGBA;
+#else
 			/* NOTE: trying BGRA format from textures */
 			iformat = GL_RGBA; format = GL_BGRA;
+#endif
 			
 			/* do the image. */
 			if(x && y) {

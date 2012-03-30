@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.94 2012/03/10 13:59:50 couannette Exp $
+  $Id: display.c,v 1.95 2012/03/30 17:23:15 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -129,6 +129,39 @@ d->myFps = (float) 0.0;
 
 
 #if KEEP_FV_INLIB
+
+#if defined (_ANDROID)
+
+/* simple display initialize for Android (and, probably, iPhones, too) */
+
+int fv_display_initialize()
+{
+    struct tdisplay* d = &gglobal()->display;
+    
+    //printf ("fv_display_initialize called\n");
+    if (d->display_initialized) {
+        printf ("fv_display_initialized re-called for a second time\n");
+        return TRUE;
+    }
+    
+    //memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
+    
+    if (!fwl_initialize_GL()) {
+        return FALSE;
+    }
+    
+    /* Display full initialized :P cool ! */
+    d->display_initialized = TRUE;
+   
+    PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
+    
+#ifdef DO_COLLISION_GPU
+    collision_initGPUCollide();
+#endif
+    
+    return TRUE;
+}
+#else
 /**
  *  fv_display_initialize: takes care of all the initialization process, 
  *                      creates the display thread and wait for it to complete
@@ -212,6 +245,8 @@ int fv_display_initialize()
 
 	return TRUE;
 }
+#endif //ANDROID
+
 
 /**
  *   fv_setGeometry_from_cmdline: scan command line arguments (X11 convention), to

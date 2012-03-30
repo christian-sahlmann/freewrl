@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.52 2011/06/10 01:42:15 dug9 Exp $
+$Id: EAIHelpers.c,v 1.53 2012/03/30 17:23:16 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -813,3 +813,113 @@ void outBufferCat (char *str) {
 	}
 	strcat (t->outBuffer, str);
 }
+
+
+#ifdef SWAMPTEA
+
+/* SWAMPTEA specific: get a switch node "whichChoice" pointer */
+int* getSwitchNodeFromTable(int cNode) {
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+	struct EAINodeIndexStruct *me;
+
+	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
+	me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,cNode);
+	return offsetPointer_deref (int *, me->actualNodePtr, offsetof (struct X3D_Switch, whichChoice));
+}
+
+/* SWAMPTEA specific: move a little cone up/down depending on a fraction */
+void confidenceConeSet(int coneNode, int shown,int found) {
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+
+	struct X3D_Transform *trans;
+	struct EAINodeIndexStruct *me;
+	struct SFVec3f *translation;
+
+#define CONE_MOVE_HEIGHT 14.0
+
+	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
+	// bounds check
+	if (coneNode <=0) return;
+
+    me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,coneNode);
+	trans = X3D_TRANSFORM(me->actualNodePtr);
+
+	if (trans->_nodeType != NODE_Transform) {
+		ConsoleMessage ("confidence - not a Transform");
+		return;
+	}
+	
+	if (found==0) {
+		ConsoleMessage ("confidence - nothing found, nothing to do");
+		return;
+	}
+
+	// find the translation field of this Transform
+	translation = offsetPointer_deref (struct SFVec3f*, trans, offsetof (struct X3D_Transform, translation));	
+	// move it in the "Y" axis
+	translation->c[1] = (float)shown/(float)found*CONE_MOVE_HEIGHT - (CONE_MOVE_HEIGHT/2);
+
+	// tell the system to recalculate it all
+	trans->_change ++;
+}
+
+
+/* SWAMPTEA specific: add/delete this texture to our multitexture */ 
+void textureToMultiTexture(int texNode, int MultiTexture, int add) {
+	ppEAIHelpers p;
+	ttglobal tg = gglobal();
+
+	char line[200];
+	struct X3D_Node *MultiTexNode;
+	struct X3D_Node *myTex;
+	int addFlag;
+	struct EAINodeIndexStruct *me;
+
+	p = (ppEAIHelpers)gglobal()->EAIHelpers.prv;
+
+	if (add) addFlag=1; else addFlag=2;
+	
+
+
+	sprintf (line,"textureToMultiTexture, texnode %d multitexture %d add %d",texNode,MultiTexture,add);
+	ConsoleMessage(line);
+	
+	// bounds checking
+	if ((texNode <=0) || (MultiTexture<=0)) {
+		sprintf (line,"textureToMultiTexture, can not do: texnode %d multitexture %d add %d",texNode,MultiTexture,add);
+		ConsoleMessage (line);
+		return;
+	}
+
+        me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,MultiTexture);
+	MultiTexNode = me->actualNodePtr;
+        me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex,texNode);
+	myTex = me->actualNodePtr;
+
+	sprintf (line,"textureToMultitexture, adding a :%s: to a :%s:",stringNodeType(myTex->_nodeType),
+		stringNodeType(MultiTexNode->_nodeType));
+	ConsoleMessage(line);
+
+	if ((myTex->_nodeType!=NODE_PixelTexture) && (MultiTexNode->_nodeType != NODE_MultiTexture)) {
+		ConsoleMessage ("textureToMultitexture, wrong type(s)");
+		return;
+	}
+
+	/* is it there already? */
+	if (add) {
+		int count;
+		struct Multi_Node *texture = offsetPointer_deref(struct Multi_Node *, MultiTexNode, offsetof (struct X3D_MultiTexture, texture));
+		for (count=0; count<texture->n; count++) {
+			if (texture->p[count] == myTex) return;
+		}
+
+	}
+
+	AddRemoveChildren (X3D_NODE(MultiTexNode),
+			offsetPointer_deref(void *, MultiTexNode, offsetof (struct X3D_MultiTexture, texture)),
+			(struct X3D_Node * *)&myTex,1,addFlag,__FILE__,__LINE__);
+}
+
+#endif //SWAMPTEA

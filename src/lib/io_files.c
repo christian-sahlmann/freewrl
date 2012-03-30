@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.44 2012/03/10 14:00:25 couannette Exp $
+  $Id: io_files.c,v 1.45 2012/03/30 17:23:16 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -49,6 +49,18 @@
 #include "input/InputFunctions.h"
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
+
+
+#ifdef SWAMPTEA 
+static int assetSuccessCount=0;
+
+
+/* SWAMPTEA - return the assetSuccessCount */
+int freewrlAssetReturnCount(void) {
+        return assetSuccessCount;
+}
+
+#endif // SWAMPTEA
 
 
 /* Internal function prototypes */
@@ -412,6 +424,14 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
+
+#ifdef SWAMPTEA
+               /* we have success in the following numbers: */
+                assetSuccessCount++;
+#endif //SWAMPTEA
+
+
+
 	}
 
 	SEND_FILE_SIGNAL
