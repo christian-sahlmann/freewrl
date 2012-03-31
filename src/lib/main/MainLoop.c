@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.237 2012/03/30 17:23:16 crc_canada Exp $
+  $Id: MainLoop.c,v 1.238 2012/03/31 19:15:16 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -131,7 +131,7 @@ typedef struct pMainloop{
 
 	/* Viewport data */
 	GLint viewPort2[10];
-
+	GLint viewpointScreenX[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
 	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
 	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
@@ -967,6 +967,7 @@ void setup_projection(int pick, int x, int y)
 {
 	GLDOUBLE fieldofview2;
 	GLint xvp = 0;
+	GLint scissorxl,scissorxr;
 	ppMainloop p;
 	X3D_Viewer *viewer;
 	ttglobal tg = gglobal();
@@ -975,37 +976,92 @@ void setup_projection(int pick, int x, int y)
 	p = (ppMainloop)tg->Mainloop.prv;
 	viewer = Viewer();
 
-    PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
-    
+	PRINT_GL_ERROR_IF_ANY("XEvents::start of setup_projection");
+
+	scissorxl = 0;
+	scissorxr = screenwidth2;
 	fieldofview2 = viewer->fieldofview;
 	if(viewer->type==VIEWER_YAWPITCHZOOM)
 		fieldofview2*=viewer->fovZoom;
-	if(viewer->sidebyside) 
+	if(viewer->isStereo)
+	{
+		double expansion;
+		GLint xl,xr,iexpand;
+		bool expand = viewer->screendist > .5f;
+		expansion = viewer->screendist - .5;
+		expansion = fabs(expansion);
+		iexpand = expansion * screenwidth2;
+		//assume: the viewpoint is centered in the viewport
+		//there are 2 viewports, one for left and one for right
+		//so if you want to spread the screen eyebase out, 
+		//you need to expand the viewport(s) horizontally by 2x 
+		// in the direction you want it to move
+		//for example to move the left viewpoint left, you expand the left viewport
+		//on the left side by 2x (and move the right side of the right viewport to the right)
+		//to move the left viewpoint right, move the right side of the left viewport
+		//to the right by 2x.
+		//except in sidebyside, that would cause an over-write in the middle, and changes
+		//to aspect2 ratio can change the field of view
+		//so for sidebyside, we make the viewports normal screenwidth2 wide and 
+		//use scissor test to crop to the viewports
+		xl = 0;
+		xr = screenwidth2;
+		if(viewer->sidebyside)
+		{
+			int l,f;
+			xr -= screenwidth2/4;
+			xl -= screenwidth2/4;
+			scissorxr = screenwidth2/2;
+			if(viewer->iside ==1)
+			{
+				xl += screenwidth2/2;
+				xr += screenwidth2/2;
+				scissorxl += screenwidth2/2;
+				scissorxr += screenwidth2/2;
+			}
+		}
+		if(expand)
+		{
+			if(viewer->iside ==1)
+				xr = xr + iexpand;
+			else
+				xl = xl - iexpand;
+		}else{
+			if(viewer->iside ==1)
+				xl = xl - iexpand;
+			else
+				xr = xr + iexpand;
+		}
+		aspect2 = (double)(xr - xl)/(double)(tg->display.screenHeight - tg->Mainloop.clipPlane);
+		xvp = xl;
+		screenwidth2 = xr-xl;
+	}
+	if(0) //if(viewer->sidebyside) //old method
 	{
 		screenwidth2 = (int)((screenwidth2 * .5)+.5);
 		aspect2 = aspect2 * .5;
 		if(viewer->iside == 1) xvp = (GLint)screenwidth2;
 	}
 
-        FW_GL_MATRIX_MODE(GL_PROJECTION);
+	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	/* >>> statusbar hud */
 	if(tg->Mainloop.clipPlane != 0)
 	{   /* scissor used to prevent mainloop from glClear()ing the statusbar area
 		 which is updated only every 10-25 loops */
-		FW_GL_SCISSOR(0,tg->Mainloop.clipPlane,tg->display.screenWidth,tg->display.screenHeight);
+		//FW_GL_SCISSOR(0,tg->Mainloop.clipPlane,tg->display.screenWidth,tg->display.screenHeight);
+		FW_GL_SCISSOR(scissorxl,tg->Mainloop.clipPlane,scissorxr-scissorxl,tg->display.screenHeight-tg->Mainloop.clipPlane);
 		FW_GL_ENABLE(GL_SCISSOR_TEST);
 	}
 	/* <<< statusbar hud */
+	p->viewpointScreenX[viewer->iside] = xvp + screenwidth2/2;
+	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight-tg->Mainloop.clipPlane);
 
-	FW_GL_VIEWPORT(xvp, tg->Mainloop.clipPlane, screenwidth2, tg->display.screenHeight);
-
-
-        FW_GL_LOAD_IDENTITY();
-        if(pick) {
-                /* picking for mouse events */
-                FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-                FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y, (float)100,(float)100,p->viewPort2);
-        }
+	FW_GL_LOAD_IDENTITY();
+	if(pick) {
+		/* picking for mouse events */
+		FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
+		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y, (float)100,(float)100,p->viewPort2);
+	}
 
 	/* ortho projection or perspective projection? */
 	if (Viewer()->ortho) {
@@ -1024,22 +1080,20 @@ void setup_projection(int pick, int x, int y)
 		}
 
 		FW_GL_ORTHO (minX, maxX, minY, maxY,
-				viewer->nearPlane,viewer->farPlane);
+			viewer->nearPlane,viewer->farPlane);
 		
 	} else {
-        	/* bounds check */
-        	if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
-				fieldofview2=45.0;
-        	/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
-
-        	FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
+		/* bounds check */
+		if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
+			fieldofview2=45.0;
+		/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
 	}
-        FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
-        PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
+	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
-void renderCursors();
 
 /* Render the scene */
 static void render() 
@@ -1093,9 +1147,9 @@ static void render()
 				//USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
 			}
 			setup_projection(0, 0, 0);
-			if(Viewer()->sidebyside && count >0)
-				BackEndClearBuffer(1);
-			else
+			//if(Viewer()->sidebyside && count >0)
+			//	BackEndClearBuffer(1);  changed Mar 2012 with scissored viewports in setup_projection
+			//else
 				BackEndClearBuffer(2);
 			if(Viewer()->anaglyph) //haveAnaglyphShader)
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
@@ -1134,8 +1188,9 @@ static void render()
 	}
 	
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-#ifndef GLES2
 		if (Viewer()->isStereo) {
+			cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
+#ifndef GLES2
 			if (Viewer()->anaglyph)
 				if(Viewer()->anaglyphMethod == 1) //haveAnaglyphShader) 
 				{
@@ -1151,8 +1206,8 @@ static void render()
 				}
 				else if(Viewer()->anaglyphMethod == 2)
 					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
-		}
 #endif
+		}
 	} /* for loop */
 
 	if (Viewer()->isStereo) {
@@ -1167,7 +1222,6 @@ static void render()
 			if(p->touchlist[i].isDown > 0)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
-
 	/* status bar, if we have one */
 	drawStatusBar();
 

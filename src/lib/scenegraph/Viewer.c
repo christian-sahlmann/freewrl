@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.82 2012/03/05 19:56:03 dug9 Exp $
+$Id: Viewer.c,v 1.83 2012/03/31 19:15:16 dug9 Exp $
 
 CProto ???
 
@@ -55,6 +55,31 @@ CProto ???
 //static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 //
 //static FILE *exfly_in_file;
+
+
+//int StereoInitializedOnce = 0;
+static void init_stereodefaults(X3D_Viewer *Viewer)
+{
+		/* must call this before getting values from command line in options.c */
+	Viewer->shutterGlasses = 0;
+	Viewer->anaglyph = 0;
+	Viewer->anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
+	Viewer->sidebyside = 0;
+	Viewer->isStereo = 0;
+		Viewer->eyedist = 0.06;
+		Viewer->screendist = 0.5; //was .8
+		Viewer->stereoParameter = 0.04; //was .4
+		Viewer->dominantEye = 1; /*0=Left 1=Right used for picking*/
+		Viewer->haveAnaglyphShader = 0; /* call after gl initialized initAnaglyphShaders(); */
+		Viewer->iprog[0] = 0; /* left red */
+		Viewer->iprog[1] = 1; /* right green */
+		Viewer->haveQuadbuffer = 0;
+}
+
+
+
+
+
 
 //true static:
 static Key staticKeyMap[KEYS_HANDLED] = KEYMAP;
@@ -136,6 +161,8 @@ void Viewer_init(struct tViewer *t){
 		loadIdentityMatrix(p->old2new);
 		loadIdentityMatrix(p->identity);
 		p->tickFrac = 0.0; //for debugging slowly
+		init_stereodefaults(&p->Viewer);
+		p->StereoInitializedOnce = 1;
 
 	}
 }
@@ -260,7 +287,6 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->fovZoom = 1.0;
 		viewer->calculatedNearPlane = 0.0;
 		viewer->calculatedFarPlane = 0.0;
-
 	}
 
 	resolve_pos();
@@ -306,6 +332,14 @@ int get_collision() {
 void toggle_collision() {
 	fwl_setp_collision(!fwl_getp_collision()); 
 	setMenuButton_collision(fwl_getp_collision());
+}
+
+void fwl_init_StereoDefaults()
+{
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	if(!p->StereoInitializedOnce)
+		init_stereodefaults(&p->Viewer);
+	p->StereoInitializedOnce = 1;
 }
 
 
@@ -1554,30 +1588,6 @@ int initAnaglyphShaders()
 }
 
 
-//int StereoInitializedOnce = 0;
-void fwl_init_StereoDefaults()
-{
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-
-	/* must call this before getting values from command line in options.c */
-	p->Viewer.shutterGlasses = 0;
-	p->Viewer.anaglyph = 0;
-	p->Viewer.anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
-	p->Viewer.sidebyside = 0;
-	p->Viewer.isStereo = 0;
-	if(!p->StereoInitializedOnce)
-	{
-		p->Viewer.eyedist = 0.06;
-		p->Viewer.screendist = 0.8;
-		p->Viewer.stereoParameter = 0.4;
-		p->Viewer.dominantEye = 1; /*0=Left 1=Right used for picking*/
-		p->Viewer.haveAnaglyphShader = 0; /* call after gl initialized initAnaglyphShaders(); */
-		p->Viewer.iprog[0] = 0; /* left red */
-		p->Viewer.iprog[1] = 1; /* right green */
-		p->Viewer.haveQuadbuffer = 0;
-		p->StereoInitializedOnce = 1;
-	}
-}
 
 
 void deleteAnaglyphShaders()
@@ -1795,7 +1805,28 @@ void updateEyehalf()
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	if( p->Viewer.screendist != 0.0)
-		set_eyehalf( p->Viewer.eyedist/2.0,atan2(p->Viewer.eyedist/2.0,p->Viewer.screendist)*360.0/(2.0*3.1415926));
+	{
+		//old semantics (variable meanings)
+		//eyedist - object space distance between left and right viewpoints
+		//screendist - distance to toe-in target
+		//stereoParameter - distance from infinity line to toe-in target
+		//set_eyehalf( p->Viewer.eyedist/2.0,atan2(p->Viewer.eyedist/2.0,p->Viewer.screendist)*360.0/(2.0*3.1415926));
+		
+		//new semantics as of March 12, 2012
+		//eyedist - object space distance between left and right viewpoints
+		//stereoParameter - tan(toe in angle per side) 
+		//	0=looking at infinity 
+		//	1= 45 degree toe-in per side (90 degree converengence)
+		//	.4 = 22 degree toe-in angle per side 
+		//screendist - distance from viewpoint center to 'central' viewport edge
+		//			 - measured in fraction-of side-viewport
+		//           - central viewport edge: 
+		//				left edge of right stereo viewport
+		//				right edge of left stereo viewport
+		//	 = .5 - for shutterglasses and anaglyph, both sides are centered on the screen
+		//        - for sidebyside, both sides are centered on their respective left and right viewports
+		set_eyehalf( p->Viewer.eyedist/2.0,atan(p->Viewer.stereoParameter)*180.0/3.1415926);
+	}
 }
 
 void viewer_postGLinit_init(void)
@@ -1891,11 +1922,11 @@ void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
       if (p->Viewer.iside == 0) {
 		      /* left */
               x = p->Viewer.eyehalf;
-              angle = p->Viewer.eyehalfangle * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
+              angle = p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter; /*stereoparamter: 0-1 1=toe in to cross-over at Screendist 0=look at infinity, eyes parallel*/
       } else if (p->Viewer.iside == 1) {
 		      /* right */
               x = -p->Viewer.eyehalf;
-              angle = -p->Viewer.eyehalfangle * p->Viewer.stereoParameter;
+              angle = -p->Viewer.eyehalfangle; //old semantics: * p->Viewer.stereoParameter;
       }
       FW_GL_TRANSLATE_D(x, 0.0, 0.0);
       FW_GL_ROTATE_D(angle, 0.0, 1.0, 0.0);

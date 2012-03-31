@@ -361,6 +361,9 @@ iOLDCODE	}Component_Networking;
 	struct tcommon{
 		void *prv;
 	}common;
+	struct tCursorDraw{
+		void *prv;
+	}CursorDraw;
 } * ttglobal;
 #define INSTANCEGLOBAL 1
 #endif

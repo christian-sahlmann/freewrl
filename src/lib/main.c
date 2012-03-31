@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.72 2012/03/05 19:56:03 dug9 Exp $
+  $Id: main.c,v 1.73 2012/03/31 19:15:16 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -270,7 +270,6 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
-	
 
 	/* Check parameters */
 	if (params) {

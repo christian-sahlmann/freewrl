@@ -28,9 +28,11 @@
 #include "main/headers.h"
 #include "vrml_parser/Structs.h"
 #include "scenegraph/Viewer.h"
+#include "scenegraph/Component_Shape.h"
 #include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
 #include "main/MainLoop.h"
+
 
 /* I made a 32x32 image in Gimp, and exported to C Struct format */
 static const struct {
@@ -162,7 +164,44 @@ static const struct {
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
   "\0\0\0",
 };
+//
+//1-2 4
+//|  /|
+//0 3 5
+GLfloat cursorVert[] = {
+	-.05f, -.05f, 0.0f,
+	-.05f,  .05f, 0.0f,
+	 .05f,  .05f, 0.0f,
+	-.05f, -.05f, 0.0f,
+	 .05f,  .05f, 0.0f,
+	 .05f, -.05f, 0.0f};
+GLfloat cursorTex[] = {
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f};
 
+typedef struct pCursorDraw{
+	GLint textureID;
+	int done;
+}* ppCursorDraw;
+void *CursorDraw_constructor(){
+	void *v = malloc(sizeof(struct pCursorDraw));
+	memset(v,0,sizeof(struct pCursorDraw));
+	return v;
+}
+void CursorDraw_init(struct tCursorDraw *t){
+	//public
+	//private
+	t->prv = CursorDraw_constructor();
+	{
+		ppCursorDraw p = (ppCursorDraw)t->prv;
+		p->done = 0;
+		p->textureID = 0;
+	}
+}
 
 typedef struct {int x; int y;} XY;
 XY mouse2screen2(int x, int y)
@@ -172,15 +211,35 @@ XY mouse2screen2(int x, int y)
 	xy.y = gglobal()->display.screenHeight -y;
 	return xy;
 }
-
+typedef struct {GLfloat x; GLfloat y;} FXY;
+FXY screen2normalized( GLfloat x, GLfloat y )
+{
+	FXY xy;
+	xy.x = (x / gglobal()->display.screenWidth)*2.0f -1.0f;
+	xy.y = (y / gglobal()->display.screenHeight)*2.0f -1.0f;
+	return xy;
+}
+static GLfloat cursIdentity[] = {
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 0.0f, 0.0f, 1.0f
+};
 
 /* the slave cursor method emulates a multitouch, but doesn't suppress 
    the regular mouse cursor, so don't draw ID=0 
    currently no use of angle
+   as of March 14, 2012 I'm using this only in stereovision mode, to draw
+   viewport alignment fiducials
    */
 void cursorDraw(int ID, int x, int y, float angle) 
 {
 	XY xy;
+	FXY fxy;
+	GLint shader, loc;
+	ppCursorDraw p;
+	ttglobal tg = gglobal();
+	p = (ppCursorDraw)tg->CursorDraw.prv;
 
 	//if( ID == 0 )return;
 
@@ -188,36 +247,82 @@ void cursorDraw(int ID, int x, int y, float angle)
 
     #ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_FLAT);
-    #endif /* GL_ES_VERSION_2_0 */
-    
+	y += 10;
+	#else
+	if(!p->done)
+	{
+		glGenTextures(1, &p->textureID);
+		glBindTexture(GL_TEXTURE_2D, p->textureID);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, circleCursor.width, circleCursor.height, 0, GL_RGBA , GL_UNSIGNED_BYTE, circleCursor.pixel_data);
+		p->done = 1; 
+	}
+	{
+		ttglobal tg = gglobal();
+		xy = mouse2screen2(x,y);
+		FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
+		FW_GL_MATRIX_MODE(GL_PROJECTION); //glMatrixMode(GL_PROJECTION);
+		FW_GL_LOAD_IDENTITY(); //glLoadIdentity();
+		FW_GL_MATRIX_MODE(GL_MODELVIEW); //glMatrixMode(GL_MODELVIEW);
+		FW_GL_LOAD_IDENTITY(); //glLoadIdentity();
+		fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+		FW_GL_TRANSLATE_F((float)fxy.x,(float)fxy.y,0.0f);
+	}
+	enableGlobalShader(backgroundTextureBoxShader);
+	shader = getAppearanceProperties()->currentShader;
+	//FW_GL_ENABLE(GL_TEXTURE_2D);
+	glActiveTexture ( GL_TEXTURE0 );
+	glBindTexture ( GL_TEXTURE_2D, p->textureID );
+	//SET_TEXTURE_UNIT(0);
+				//glActiveTexture(GL_TEXTURE0+c); 
+			     /*glUniform1i(loc+c, c); */ 
+	loc =  glGetAttribLocation ( shader, "fw_Texture0" );
+	glUniform1i(loc,0);
+	loc =  glGetAttribLocation ( shader, "fw_Vertex" );
+	glVertexAttribPointer ( loc, 3, GL_FLOAT, GL_FALSE, 0, cursorVert );
+	// Load the texture coordinate
+	loc =  glGetAttribLocation ( shader, "fw_TexCoords" );
+	glEnableVertexAttribArray ( loc );
+	glVertexAttribPointer ( loc, 2, GL_FLOAT, GL_FALSE, 0, cursorTex );  //fails - p->texCoordLoc is 429xxxxx - garbage
+
+	glEnableVertexAttribArray ( loc );
+
+	//FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+	//FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+	//FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,cursorVert);
+	//FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,cursorTex);
+	#endif /* GL_ES_VERSION_2_0 */
 	FW_GL_DISABLE(GL_DEPTH_TEST);
 	
 	xy = mouse2screen2(x,y);
-	//printf("x=%d y=%d\n",x,y);
-	//printf("x=%d y=%d\n",xy.x,xy.y);
-
 	/* please note that OpenGL ES and OpenGL-3.x does not have the following; here is
 	   a hint for future work:
-
-	
 		"If you are using OpenGL ES 2.0, you can use framebuffer objects to render to 
 		texture, which is a much better alternative."
-
 	*/
 	#ifndef GL_ES_VERSION_2_0
 	FW_GL_WINDOWPOS2I(xy.x,xy.y);
 	FW_GL_DRAWPIXELS(circleCursor.width,circleCursor.height,GL_BGRA,GL_UNSIGNED_BYTE,circleCursor.pixel_data);
+	#else
+	if(0){
+		// this more direct hacking also works
+		loc =  glGetAttribLocation ( shader, "fw_ModelViewMatrix" );
+		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
+		loc =  glGetAttribLocation ( shader, "fw_ProjectionMatrix" );
+		glUniformMatrix4fv(loc, 1, GL_FALSE, cursIdentity);
+	}
+	//FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES,0,6);
 	#endif /* GL_ES_VERSION_2_0 */
 
 	FW_GL_ENABLE(GL_DEPTH_TEST);
-    
-    #ifndef GL_ES_VERSION_2_0
+
+	#ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_SMOOTH);
-    #endif /* GL_ES_VERSION_2_0 */
-    
+	#endif /* GL_ES_VERSION_2_0 */
 	FW_GL_DEPTHMASK(GL_TRUE);
 	//FW_GL_FLUSH();
-
 	return;
 }
 

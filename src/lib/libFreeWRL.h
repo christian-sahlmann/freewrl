@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.47 2012/03/05 19:56:03 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.48 2012/03/31 19:15:16 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -236,7 +236,7 @@ void fwl_init_EaiVerbose();
 void fwl_create_EAI();
 
 void fwl_set_ScreenDist(const char *optArg);
-void fwl_init_StereoDefaults(void);
+void fwl_init_StereoDefaults(void); //don't need to call now March 2012
 void fwl_set_EyeDist(const char *optArg);
 void fwl_init_Shutter(void);
 void fwl_init_SideBySide(void);

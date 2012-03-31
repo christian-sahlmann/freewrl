@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.47 2012/03/05 19:56:03 dug9 Exp $
+  $Id: statusbarHud.c,v 1.48 2012/03/31 19:15:16 dug9 Exp $
 
 */
 
@@ -1245,7 +1245,7 @@ void handleOptionPress()
 	case 'D': {
 		/* screendist */
 		printf("reduce screendist");
-		viewer->screendist *= .9;
+		viewer->screendist -= .02; //*= .9;
 		updateEyehalf();
 		break;}
 	case 'E': {
@@ -1255,7 +1255,7 @@ void handleOptionPress()
 	case 'F': {
 		/* screendist */
 		printf("increase screendist");
-		viewer->screendist *= 1.1;
+		viewer->screendist += .02; //*= 1.1;
 		updateEyehalf();
 		break;}
 	case 'H': {

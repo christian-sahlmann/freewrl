@@ -85,6 +85,7 @@ void Bindable_init(struct tBindable *t);
 void X3DParser_init(struct tX3DParser *t);
 void X3DProtoScript_init(struct tX3DProtoScript *t);
 void common_init(struct tcommon *t);
+void CursorDraw_init(struct tCursorDraw *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
@@ -166,6 +167,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	X3DParser_init(&iglobal->X3DParser);
 	X3DProtoScript_init(&iglobal->X3DProtoScript);
 	common_init(&iglobal->common);
+	CursorDraw_init(&iglobal->CursorDraw);
 
 	uiThread = pthread_self();
 	set_thread2global(iglobal, uiThread ,"UI thread");
@@ -177,6 +179,7 @@ void iglobal_destructor(ttglobal tg)
 {
 	/* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
+	FREE_IF_NZ(tg->CursorDraw.prv);
 	FREE_IF_NZ(tg->common.prv);
 	FREE_IF_NZ(tg->X3DProtoScript.prv);
 	FREE_IF_NZ(tg->X3DParser.prv);

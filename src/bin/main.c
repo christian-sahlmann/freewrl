@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.51 2011/09/21 20:43:06 crc_canada Exp $
+  $Id: main.c,v 1.52 2012/03/31 19:15:16 dug9 Exp $
 
   FreeWRL main program.
 
@@ -157,8 +157,7 @@ int main (int argc, char **argv)
     fv_params->verbose = FALSE;
     fv_params->collision = 1; // if you set it, you need to update ui button with a call
 	setMenuButton_collision(fv_params->collision);
-
-    fwl_init_StereoDefaults();
+	//fwl_init_StereoDefaults();
 
     /* parse command line arguments */
     if (fv_parseCommandLine(argc, argv)) {
