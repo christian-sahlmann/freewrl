@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.238 2012/03/31 19:15:16 dug9 Exp $
+  $Id: MainLoop.c,v 1.239 2012/04/01 17:40:19 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1060,7 +1060,7 @@ void setup_projection(int pick, int x, int y)
 	if(pick) {
 		/* picking for mouse events */
 		FW_GL_GETINTEGERV(GL_VIEWPORT,p->viewPort2);
-		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y, (float)100,(float)100,p->viewPort2);
+		FW_GLU_PICK_MATRIX((float)x,(float)p->viewPort2[3]-y + tg->Mainloop.clipPlane, (float)100,(float)100,p->viewPort2);
 	}
 
 	/* ortho projection or perspective projection? */
