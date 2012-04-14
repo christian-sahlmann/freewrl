@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.41 2012/03/10 14:00:55 couannette Exp $
+  $Id: jsVRML_SFClasses.c,v 1.42 2012/04/14 22:46:32 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1455,7 +1455,6 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
                 FREE_IF_NZ (ptr);
         }
 }
-
 JSBool
 #if JS_VERSION < 185
 SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)

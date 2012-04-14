@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldGet.c,v 1.49 2011/07/21 20:43:21 istakenv Exp $
+$Id: fieldGet.c,v 1.50 2012/04/14 22:46:32 dug9 Exp $
 
 Javascript C language binding.
 
@@ -871,6 +871,7 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 		
         } else if (JS_InstanceOf(cx, sfObj, &SFNodeClass, NULL)) { 
 		SFNodeNative *me = (SFNodeNative *)_privPtr;
+		return (void **) &me->handle;;
 		//JAS return (void **) &me->v;
 		
         } else if (JS_InstanceOf(cx, sfObj, &SFImageClass, NULL)) { 
