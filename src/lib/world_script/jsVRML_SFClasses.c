@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.42 2012/04/14 22:46:32 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.43 2012/04/15 22:13:44 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1468,8 +1468,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	   properties, should we need to have properties in the future. */
 
 	SFNodeNative *ptr;
-        JSString *_idStr;
-        char *_id_c;
+	JSString *_idStr;
+	char *_id_c;
 	jsval rval;
 #if JS_VERSION >= 185
 	jsval id;
@@ -1479,11 +1479,11 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	}
 #endif
 
-        _idStr = JS_ValueToString(cx, id);
+	_idStr = JS_ValueToString(cx, id);
 #if JS_VERSION < 185
-        _id_c = JS_GetStringBytes(_idStr);
+	_id_c = JS_GetStringBytes(_idStr);
 #else
-        _id_c = JS_EncodeString(cx,_idStr);
+	_id_c = JS_EncodeString(cx,_idStr);
 #endif
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFNodeGetProperty... id is %s\n",_id_c);
@@ -1497,7 +1497,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	if (strcmp ("assign",_id_c) == 0) return JS_TRUE;
 
 	/* get the private pointer for this node */
-        if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) != NULL) {
+	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) != NULL) {
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFNodeGetProperty, working on node %p, field %s\n",ptr->handle,_id_c);
 		#endif
@@ -1505,13 +1505,15 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		JS_DefineSFNodeSpecificProperties (cx, obj, ptr->handle);
 
 		/* does the property exist? */
-                if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
-	                if (JSVAL_IS_NULL(rval)) {
+		if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
+			if (JSVAL_IS_NULL(rval)) {
+				/* if you mis-spell a builtin node field */
+				/* like Cylinder.hight (sb height) you'll end up in here */
 				ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
 				return JS_FALSE;
 			}
 		}
-
+		/* if your SFNode is type Script you'll end up here */
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("wondering about rval.. %d. it is a\n",(int)rval);
 		if (JSVAL_IS_INT(rval)) printf ("IS AN INT\n");
@@ -1526,13 +1528,16 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		#endif
 
 
-                if (JS_GetProperty (cx, obj, _id_c, &rval)) {
+		/*dug9 - I find the next line JS_GetProperty recursive*/
+		/*when the sfnode we're trying to read is a Script node*/
+		//if (JS_GetProperty (cx, obj, _id_c, &rval)) {
+		if(false){
 			#ifdef JSVRMLCLASSESVERBOSE
-                        printf ("SFNodeGetProperty, found field \"%s\" in node, returning property\n",_id_c);
+				printf ("SFNodeGetProperty, found field \"%s\" in node, returning property\n",_id_c);
 			#endif
 
 			*vp = rval;
-                } else {
+		} else {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("SFNodeGetProperty, did not find field \"%s\" in node.\n",_id_c);
 			#endif
@@ -1612,7 +1617,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		}
 
 	} else {
-		#ifdef JSVRMLCLASSESVERBOSE
+		//#ifdef JSVRMLCLASSESVERBOSE
 		printf ("JS_IS_INT false\n");
 
 		printf ("SFNodeSetProperty, setting node %p field %s to value %s\n", ptr->handle,_id_c,_val_c);
@@ -1622,7 +1627,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			ptx = X3D_NODE(ptr->handle);
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
-		#endif
+		//#endif
 		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
@@ -3489,6 +3494,10 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	SFVec3fNative *ptr;
 	jsdouble d;
+	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_idStr;
+	char *_id_c;
+	#endif
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -3499,8 +3508,8 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
-	JSString *_idStr;
-	char *_id_c;
+	//JSString *_idStr;
+	//char *_id_c;
 
 /* note, since same variables are used, this first bit gets overwritten -- commenting out
 	_idStr = JS_ValueToString(cx, id);
@@ -4138,6 +4147,10 @@ SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	SFVec3dNative *ptr;
 	jsdouble d;
+	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_idStr;
+	char *_id_c;
+	#endif
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -4148,8 +4161,6 @@ SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
-	JSString *_idStr;
-	char *_id_c;
 
 /* same as earlier, these are never used
 	_idStr = JS_ValueToString(cx, id);
@@ -4435,6 +4446,10 @@ SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	SFVec4fNative *ptr;
 	jsdouble d;
+	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_idStr;
+	char *_id_c;
+	#endif
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -4445,8 +4460,8 @@ SFVec4fGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 
-	JSString *_idStr;
-	char *_id_c;
+	//JSString *_idStr;
+	//char *_id_c;
 
 /* same as above
 	_idStr = JS_ValueToString(cx, id);
@@ -4750,6 +4765,10 @@ SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 {
 	SFVec4dNative *ptr;
 	jsdouble d;
+	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_idStr;
+	char *_id_c;
+	#endif
 #if JS_VERSION >= 185
 	jsval id;
 	if (!JS_IdToValue(cx,iid,&id)) {
@@ -4759,9 +4778,6 @@ SFVec4dGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 #endif
 
 	#ifdef JSVRMLCLASSESVERBOSE
-
-	JSString *_idStr;
-	char *_id_c;
 
 /*	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);*/
