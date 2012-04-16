@@ -543,7 +543,10 @@ else
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[seamonkey-plugin])
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[firefox-plugin])
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[mozilla-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[<=],[0.27])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[=],[0.27.1])
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[<],[0.27]) 
+              # npapi-sdk = 0.27 is undefined on whether NPN_GetMIMEDescription returns const or not; avoid that version
+
               if test x$found_MOZILLA_PLUGIN = xno; then
                   AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
                   MAYBE_PLUGIN=

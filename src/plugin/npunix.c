@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: npunix.c,v 1.14 2012/03/10 14:01:31 couannette Exp $
+   $Id: npunix.c,v 1.15 2012/04/16 17:18:57 istakenv Exp $
 
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -788,7 +788,11 @@ Private_GetJavaClass(void)
  *  - Netscape uses the return value to identify when an object instance
  *    of this plugin should be created.
  */
+#if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) >= 27)
 const char *
+#else
+char *
+#endif
 NP_GetMIMEDescription(void)
 {
         return NPP_GetMIMEDescription();
