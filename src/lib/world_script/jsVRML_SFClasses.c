@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.45 2012/04/16 00:58:27 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.46 2012/04/16 23:57:27 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1503,7 +1503,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		#endif
 
 		/* dug9 attempt to find read the field of another script */
-		if(!strcmp(stringNodeType(ptr->handle->_nodeType),"Script"))
+		//if(!strcmp(stringNodeType(ptr->handle->_nodeType),"Script"))
+		if( ptr->handle->_nodeType== NODE_Script )
 		{
 			struct Shader_Script *myObj;
 			JSContext *cx2;
@@ -1515,7 +1516,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 			obj2 = ScriptControl[myObj->num].glob;
 			if (JS_GetProperty (cx2, obj2, _id_c, &rval)) {
 				if (JSVAL_IS_NULL(rval)) {
-					ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
+					ConsoleMessage ("Script - field :%s: does not exist",_id_c);
 					return JS_FALSE;
 				}else{
 					*vp = rval;
@@ -1599,8 +1600,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	_id_c = JS_GetStringBytes(_idStr);
 	_val_c = JS_GetStringBytes(_valStr);
 #else
-	_id_c = JS_EncodeString(cx,_idStr);
-	_val_c = JS_EncodeString(cx,_valStr);
+	_id_c = JS_EncodeString(cx,_idStr); /* _id_c field name as a string ie "currX" */
+	_val_c = JS_EncodeString(cx,_valStr); /* _val_c field value as a string ie "33" */
 #endif
 
 
@@ -1650,6 +1651,92 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
 		#endif
+
+		/* dug9 attempt to find and write the field of another script */
+		if( ptr->handle->_nodeType== NODE_Script )
+		{
+			/* code borrowed from fieldGet.c L.138 in set_one_ECMAtype() and reworked
+			   for cx2, obj2 - writes to a script eventIn with timestamp, 
+			   and runs the script function, completing the event
+			   cascade (I think)
+			*/
+			char scriptline[100];
+			JSObject *eventInFunction;
+			struct ScriptFieldDecl* myfield;
+			struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
+			struct Shader_Script *myObj;
+			JSContext *cx2;
+			JSObject *obj2;
+			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
+			/* is the script ok and initialized? */
+			if ((!ScriptControl[myObj->num]._initialized) || (!ScriptControl[myObj->num].scriptOK)) {
+				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
+				return JS_FALSE;;
+			}
+			/* get context and global object for this script */
+			cx2 =  ScriptControl[myObj->num].cx;
+			obj2 = ScriptControl[myObj->num].glob;
+
+
+			#if defined(JS_THREADSAFE)
+			JS_BeginRequest(cx);
+			#endif
+			/* set the time for this script */
+			//SET_JS_TICKTIME()
+			{ 
+				jsval zimbo;
+				JS_NewNumberValue(cx2, TickTime(), &zimbo);
+				if (!JS_DefineProperty(cx2,obj2, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {
+					printf( "JS_DefineProperty failed for __eventInTickTime at %s:%d.\n",__FILE__,__LINE__);
+					return JS_FALSE;
+				}
+			}
+			//X3D_ECMA_TO_JS(cx, Data, datalen, dataType, &newval);
+			//Q. do I need to deepcopy the vp?
+			// newval = deepcopy(vp); ?? I'm not doing this
+			/* get the variable name to hold the incoming value */
+			sprintf (scriptline,"__eventIn_Value_%s",  _id_c);
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("set_one_ECMAtype, calling JS_DefineProperty on name %s obj %u, setting setECMANative, 0 \n",scriptline,obj2);
+			#endif
+			if (!JS_DefineProperty(cx2,obj2, scriptline, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
+				printf( "JS_DefineProperty failed for SFNodeSetProperty at %s:%d.\n",__FILE__,__LINE__); 
+				#if defined(JS_THREADSAFE)
+				JS_EndRequest(cx);
+				#endif
+				return JS_FALSE; 
+			}
+			/* is the function compiled yet? */
+			//COMPILE_FUNCTION_IF_NEEDED(toname)
+			myfield = script_getField_viaCharName(myObj, _id_c);
+			JSparamnames = getJSparamnames();
+			if (JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction == NULL) { 
+				sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", _id_c, _id_c); 
+				/* printf ("compiling function %s\n",scriptline); */
+				eventInFunction = JS_CompileScript(cx2, obj2, scriptline, strlen(scriptline), "compile eventIn",1);
+				if (!JS_AddObjectRoot(cx2,&eventInFunction)) {
+					printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__);
+					return JS_FALSE;
+				}
+			}
+
+			/* and run the function */
+			//RUN_FUNCTION (toname)
+			{
+				jsval zimbo;
+				if (!JS_ExecuteScript(cx2, obj2, eventInFunction, &zimbo)) 
+				{
+					printf ("failed to set parameter for eventIn %s in FreeWRL code %s:%d\n",_id_c,__FILE__,__LINE__); \
+					/* printf ("myThread is %u\n",pthread_self());*/ \
+					return JS_FALSE;
+				}
+				return JS_TRUE;
+			}
+			#if defined(JS_THREADSAFE)
+			JS_EndRequest(cx);
+			#endif
+		}
 		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
