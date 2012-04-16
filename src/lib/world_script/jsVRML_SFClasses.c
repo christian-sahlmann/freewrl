@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.44 2012/04/16 00:26:00 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.45 2012/04/16 00:58:27 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1639,7 +1639,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		}
 
 	} else {
-		//#ifdef JSVRMLCLASSESVERBOSE
+		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("JS_IS_INT false\n");
 
 		printf ("SFNodeSetProperty, setting node %p field %s to value %s\n", ptr->handle,_id_c,_val_c);
@@ -1649,7 +1649,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			ptx = X3D_NODE(ptr->handle);
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
-		//#endif
+		#endif
 		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
