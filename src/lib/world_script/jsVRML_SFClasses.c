@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.43 2012/04/15 22:13:44 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.44 2012/04/16 00:26:00 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1501,6 +1501,28 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("SFNodeGetProperty, working on node %p, field %s\n",ptr->handle,_id_c);
 		#endif
+
+		/* dug9 attempt to find read the field of another script */
+		if(!strcmp(stringNodeType(ptr->handle->_nodeType),"Script"))
+		{
+			struct Shader_Script *myObj;
+			JSContext *cx2;
+			JSObject *obj2;
+			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
+			/* get context and global object for this script */
+			cx2 =  ScriptControl[myObj->num].cx;
+			obj2 = ScriptControl[myObj->num].glob;
+			if (JS_GetProperty (cx2, obj2, _id_c, &rval)) {
+				if (JSVAL_IS_NULL(rval)) {
+					ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
+					return JS_FALSE;
+				}else{
+					*vp = rval;
+					return JS_TRUE;
+				}
+			}
+		}
 
 		JS_DefineSFNodeSpecificProperties (cx, obj, ptr->handle);
 
