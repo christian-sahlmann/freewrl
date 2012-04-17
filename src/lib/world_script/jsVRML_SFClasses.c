@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.46 2012/04/16 23:57:27 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.47 2012/04/17 17:44:20 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1662,11 +1662,15 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			*/
 			char scriptline[100];
 			JSObject *eventInFunction;
-			struct ScriptFieldDecl* myfield;
+			struct ScriptFieldDecl* myfield, *infield;
 			struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
 			struct Shader_Script *myObj;
 			JSContext *cx2;
 			JSObject *obj2;
+			jsval newval;
+			indexT myfieldType;
+			union anyVrml vrmlField;
+			bool deepcopy;
 			struct CRscriptStruct *ScriptControl = getScriptControl(); 
 			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
 			/* is the script ok and initialized? */
@@ -1674,10 +1678,13 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 				return JS_FALSE;;
 			}
+
 			/* get context and global object for this script */
 			cx2 =  ScriptControl[myObj->num].cx;
 			obj2 = ScriptControl[myObj->num].glob;
-
+			//it doesn't seem to matter which cx/obj we use.
+			cx2 = cx;
+			obj2 = obj;
 
 			#if defined(JS_THREADSAFE)
 			JS_BeginRequest(cx);
@@ -1693,14 +1700,100 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 				}
 			}
 			//X3D_ECMA_TO_JS(cx, Data, datalen, dataType, &newval);
+			//if( getSFNodeField(cx,obj, id, &newval) == JS_FALSE) //this is for getting fields from builtin node types, not Script nodes
+			//	return JS_FALSE;
+			myfield = script_getField_viaCharName(myObj, _id_c);
+
 			//Q. do I need to deepcopy the vp?
-			// newval = deepcopy(vp); ?? I'm not doing this
+			// newval = deepcopy(vp); 
+			//a slight difference: pointer copy: bool=true, deep copy: bool=1
+			//I'll stick with pointer copy
+			/*
+			deepcopy = false; 
+			if(deepcopy)
+			{
+				//step 1. get the target/output field's datatype
+				myfieldType = myfield->fieldDecl->fieldType;
+				
+				//step 2. try and read the input *vp using that datatype
+				// borrowed from jsUtils.c L.1247
+				switch (myfieldType) {
+					case FIELDTYPE_SFBool:
+					case FIELDTYPE_SFFloat:
+					case FIELDTYPE_SFTime:
+					case FIELDTYPE_SFDouble:
+					case FIELDTYPE_SFInt32:
+					case FIELDTYPE_SFString:
+					JS_ECMA_TO_X3D(cx2, &vrmlField,	returnElementLength(myfieldType), myfieldType, vp);
+					break;
+					case FIELDTYPE_SFColor:
+					case FIELDTYPE_SFNode:
+					case FIELDTYPE_SFVec2f:
+					case FIELDTYPE_SFVec3f:
+					case FIELDTYPE_SFVec3d:
+					case FIELDTYPE_SFRotation:
+					JS_SF_TO_X3D(cx2,&vrmlField,returnElementLength(myfieldType) * returnElementRowSize(myfieldType) , myfieldType, vp);
+					break;
+					case FIELDTYPE_MFColor:
+					case FIELDTYPE_MFVec3f:
+					case FIELDTYPE_MFVec2f:
+					case FIELDTYPE_MFFloat:
+					case FIELDTYPE_MFTime:
+					case FIELDTYPE_MFInt32:
+					case FIELDTYPE_MFString:
+					case FIELDTYPE_MFNode:
+					case FIELDTYPE_MFRotation:
+					case FIELDTYPE_SFImage:
+					JS_MF_TO_X3D(cx2, obj2, &vrmlField, myfieldType, vp);
+					break;
+					default: printf ("unhandled type in setSFNodeField\n");
+					return JS_FALSE;
+				}
+				//step 3. if successful, convert back to a second copy newval
+				//int setField_FromEAI_ToScript(int tonode, int toname, int datatype, void *data, unsigned rowcount) {
+				switch (myfieldType) {
+					case FIELDTYPE_SFBool:
+					case FIELDTYPE_SFFloat:
+					case FIELDTYPE_SFTime:
+					case FIELDTYPE_SFDouble:
+					case FIELDTYPE_SFInt32:
+					case FIELDTYPE_SFString:
+					X3D_ECMA_TO_JS(cx2, &vrmlField,	returnElementLength(myfieldType), myfieldType, &newval);
+					break;
+					case FIELDTYPE_SFColor:
+					case FIELDTYPE_SFNode:
+					case FIELDTYPE_SFVec2f:
+					case FIELDTYPE_SFVec3f:
+					case FIELDTYPE_SFVec3d:
+					case FIELDTYPE_SFRotation:
+					X3D_SF_TO_JS(cx2, obj2, &vrmlField,	returnElementLength(myfieldType) * returnElementRowSize(myfieldType) , myfieldType, &newval);
+					break;
+					case FIELDTYPE_MFColor:
+					case FIELDTYPE_MFVec3f:
+					case FIELDTYPE_MFVec2f:
+					case FIELDTYPE_MFFloat:
+					case FIELDTYPE_MFTime:
+					case FIELDTYPE_MFInt32:
+					case FIELDTYPE_MFString:
+					case FIELDTYPE_MFNode:
+					case FIELDTYPE_MFRotation:
+					case FIELDTYPE_SFImage:
+					X3D_MF_TO_JS(cx2, obj2, &vrmlField, myfieldType, &newval, _id_c);
+					break;
+					default: printf ("unhandled type FIELDTYPE_ %d in getSFNodeField\n", myfieldType) ;
+					return JS_FALSE;
+				}
+			}else{ //deepcopy
+			*/
+				newval = *vp;
+			//}
 			/* get the variable name to hold the incoming value */
 			sprintf (scriptline,"__eventIn_Value_%s",  _id_c);
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("set_one_ECMAtype, calling JS_DefineProperty on name %s obj %u, setting setECMANative, 0 \n",scriptline,obj2);
 			#endif
-			if (!JS_DefineProperty(cx2,obj2, scriptline, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
+
+			if (!JS_DefineProperty(cx2,obj2, scriptline, newval, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
 				printf( "JS_DefineProperty failed for SFNodeSetProperty at %s:%d.\n",__FILE__,__LINE__); 
 				#if defined(JS_THREADSAFE)
 				JS_EndRequest(cx);
@@ -1709,18 +1802,22 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 			}
 			/* is the function compiled yet? */
 			//COMPILE_FUNCTION_IF_NEEDED(toname)
-			myfield = script_getField_viaCharName(myObj, _id_c);
 			JSparamnames = getJSparamnames();
-			if (JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction == NULL) { 
+			eventInFunction = JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction;
+			if ( eventInFunction == NULL) { 
 				sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", _id_c, _id_c); 
 				/* printf ("compiling function %s\n",scriptline); */
 				eventInFunction = JS_CompileScript(cx2, obj2, scriptline, strlen(scriptline), "compile eventIn",1);
-				if (!JS_AddObjectRoot(cx2,&eventInFunction)) {
-					printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__);
-					return JS_FALSE;
+				if(true){
+					//if (!JS_AddObjectRoot(cx2,&eventInFunction)) {
+					JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction = eventInFunction;
+					if (!JS_AddObjectRoot(cx,&(JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction))) {
+						printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__);
+						return JS_FALSE;
+					}
+					JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction = eventInFunction;
 				}
 			}
-
 			/* and run the function */
 			//RUN_FUNCTION (toname)
 			{
