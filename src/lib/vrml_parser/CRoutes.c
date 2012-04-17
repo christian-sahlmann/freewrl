@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.82 2011/07/21 20:43:21 istakenv Exp $
+$Id: CRoutes.c,v 1.83 2012/04/17 21:32:13 dug9 Exp $
 
 ???
 
@@ -25,7 +25,6 @@ $Id: CRoutes.c,v 1.82 2011/07/21 20:43:21 istakenv Exp $
     You should have received a copy of the GNU General Public License
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
-
 
 
 #include <config.h>
@@ -55,6 +54,7 @@ $Id: CRoutes.c,v 1.82 2011/07/21 20:43:21 istakenv Exp $
 #include "../input/EAIHelpers.h"		/* for verify_Uni_String */
 
 #include "CRoutes.h"
+//#define CRVERBOSE 1
 
 /* static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype); */
 static void sendScriptEventIn(int num);
@@ -465,7 +465,7 @@ void markScriptResults(struct X3D_Node * tn, int tptr, int route, void * tonode)
 		update_node(tn);
 	#ifdef CRVERBOSE
 	} else {
-		printf ("markScriptResults: skipping this node %p %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); 
+		printf ("markScriptResults: skipping this node %p %d flag %d\n",tn,tptr,p->CRoutes[route].direction_flag); 
 	#endif
 	}
 
@@ -563,7 +563,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 		return FALSE;
         } else {
 		#ifdef CRVERBOSE
-		printf ("so, property is %d (%p)\n",JSglobal_return_val,JSglobal_return_val);
+		printf ("so, property is %d (%p)\n",tg->CRoutes.JSglobal_return_val,tg->CRoutes.JSglobal_return_val);
 		printf("get_valueChanged_flag: node type: %s name %s\n",FIELDTYPES[JSparamnames[fptr].type],JSparamnames[fptr].name);
 		#endif
 
@@ -1000,7 +1000,7 @@ int JSparamIndex (const char *name, const char *type) {
 	JSparamnames[tg->JScript.jsnameindex].type = ty;
 	JSparamnames[tg->JScript.jsnameindex].eventInFunction = NULL;
 	#ifdef CRVERBOSE
-	printf ("JSparamIndex, returning %d\n",jsnameindex); 
+	printf ("JSparamIndex, returning %d\n",tg->JScript.jsnameindex); 
 	#endif
 
 	return tg->JScript.jsnameindex;
@@ -1162,7 +1162,7 @@ static void actually_do_CRoutes_Register() {
 	if (p->routesToRegister == NULL) return; /* should never get here, but... */
 
 #ifdef CRVERBOSE
-	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(routesToRegister));
+	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(p->routesToRegister));
 #endif
 
 	for (ind=0; ind<vector_size(p->routesToRegister); ind++ ) {
@@ -1176,7 +1176,7 @@ static void actually_do_CRoutes_Register() {
 
 		printf ("off %u to %u intptr %p\n",
 				newEntry->fromoffset, newEntry->to, newEntry->intptr);
-		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
+		printf ("CRoutes_Register, CRoutes_Count is %d\n",p->CRoutes_Count);
 #endif
 
 		/* first time through, create minimum and maximum for insertion sorts */
@@ -1271,8 +1271,8 @@ static void actually_do_CRoutes_Register() {
 					}
 					p->CRoutes_Count --;
 					#ifdef CRVERBOSE 
-						printf ("routing table now %d\n",CRoutes_Count);
-						for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+						printf ("routing table now %d\n",p->CRoutes_Count);
+						for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
 							printf ("%d: %u %u %u\n",shifter, p->CRoutes[shifter].routeFromNode, p->CRoutes[shifter].fnptr,
 								p->CRoutes[shifter].interpptr);
 						}
@@ -1332,11 +1332,11 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes_Count ++;
 		
 	#ifdef CRVERBOSE 
-				printf ("routing table now %d\n",CRoutes_Count);
-				for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+				printf ("routing table now %d\n",p->CRoutes_Count);
+				for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
 					printf ("%d: from: %p offset: %u Interpolator %p direction %d, len %d extra %d : ",shifter,
 						p->CRoutes[shifter].routeFromNode, p->CRoutes[shifter].fnptr,
-						p->CRoutes[shifter].interpptr, p->CRoutes[shifter].direction_flag, p->CRoutes[shifter].len, CRoutes[shifter].extra);
+						p->CRoutes[shifter].interpptr, p->CRoutes[shifter].direction_flag, p->CRoutes[shifter].len, p->CRoutes[shifter].extra);
 					for (insert_here = 0; insert_here < p->CRoutes[shifter].tonode_count; insert_here++) {
 						printf (" to: %p %u",p->CRoutes[shifter].tonodes[insert_here].routeToNode,
 									p->CRoutes[shifter].tonodes[insert_here].foffset);
@@ -1504,7 +1504,7 @@ static void gatherScriptEventOuts(void) {
 	while (route < (p->CRoutes_Count-1)) {
 		#ifdef CRVERBOSE
 		printf ("gather, routing %d is %s\n",route,
-			stringNodeType(X3D_NODE(CRoutes[route].routeFromNode)->_nodeType));
+			stringNodeType(X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType));
 		#endif
 
 	if (X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
@@ -1625,7 +1625,7 @@ static void sendScriptEventIn(int num) {
     
 	#ifdef CRVERBOSE
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
-		CRoutes[num].direction_flag);
+		p->CRoutes[num].direction_flag);
 	#endif
 
 	/* script value: 1: this is a from script route
@@ -1721,20 +1721,23 @@ void propagate_events() {
 
 				#ifdef CRVERBOSE
 					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
-						   counter, to_counter, BOOL_STRING(CRoutes[counter].isActive),
-						   CRoutes[counter].routeFromNode, CRoutes[counter].fnptr,
-						   to_ptr->routeToNode, to_ptr->foffset, CRoutes[counter].interpptr,
-							CRoutes[counter].direction_flag);
+						   counter, to_counter, BOOL_STRING(p->CRoutes[counter].isActive),
+						   p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,
+						   to_ptr->routeToNode, to_ptr->foffset, p->CRoutes[counter].interpptr,
+							p->CRoutes[counter].direction_flag);
 				#endif
 
 				if (p->CRoutes[counter].isActive == TRUE) {
 					/* first thing, set this to FALSE */
 					p->CRoutes[counter].isActive = FALSE;
 						#ifdef CRVERBOSE
-						printf("event %p %u len %d sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr,CRoutes[counter].len);
-						if (CRoutes[counter].fnptr < 20) printf (" (script param: %s)",JSparamnames[CRoutes[counter].fnptr].name);
-						else {
-							printf (" (nodeType %s)",stringNodeType(X3D_NODE(CRoutes[counter].routeFromNode)->_nodeType));
+						printf("event %p %u len %d sent something", p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,p->CRoutes[counter].len);
+						if (p->CRoutes[counter].fnptr < 20)
+						{
+							struct CRjsnameStruct *JSparamnames = getJSparamnames();
+							printf (" (script param: %s)",JSparamnames[p->CRoutes[counter].fnptr].name);
+						}else {
+							printf (" (nodeType %s)",stringNodeType(X3D_NODE(p->CRoutes[counter].routeFromNode)->_nodeType));
 						}
 						printf ("\n");
 						#endif
@@ -1756,9 +1759,8 @@ void propagate_events() {
 							/* this is a Multi*node, do a specialized copy. eg, Tiny3D EAI test will
 							   trigger this */
 							#ifdef CRVERBOSE
-							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
+							printf ("in croutes, mmc len is %d\n",p->CRoutes[counter].len);
 							#endif
-
 							Multimemcpy (
 								X3D_NODE(to_ptr->routeToNode),
 								X3D_NODE(p->CRoutes[counter].routeFromNode),
@@ -1917,7 +1919,7 @@ void do_first() {
 		LOCK_PREROUTETABLE
 
 		#ifdef CRVERBOSE
-		printf ("doing preEvents, we have %d events \n",initialEventBeforeRoutesCount);
+		printf ("doing preEvents, we have %d events \n",p->initialEventBeforeRoutesCount);
 		#endif
 
 		for (counter = 0; counter < p->initialEventBeforeRoutesCount; counter ++) {
@@ -2026,6 +2028,7 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 
 	/* and the from and to sizes */
 	fromcount = mv3ffn->n;
+	//printf("fn = %u value *fn = %u fromcount = %u\n",(unsigned int)fn, *(unsigned int *)fn, (unsigned int) fromcount);
 	tocount = mv3ftn->n;
 
 	#ifdef CRVERBOSE 
@@ -2087,31 +2090,43 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	}
 
 
-	FREE_IF_NZ (mv3ftn->p);
+	if(multitype==ROUTING_SFNODE){
+		/* and do the copy of the data */
+		memcpy (tn,fn,structlen);
+		//*(unsigned int)toptr = (unsigned int)fromcount;
+		//memcpy(toptr,&fromcount,structlen);
+		//printf("tn=%u *tn=%u\n",tn,*(unsigned int *)tn);
+	}else{
+		FREE_IF_NZ (mv3ftn->p);
+		/* MALLOC the toptr */
+		mv3ftn->p = MALLOC (struct SFVec3f *, structlen*fromcount);
+		toptr = (void *)mv3ftn->p;
 
-	/* MALLOC the toptr */
-	mv3ftn->p = MALLOC (struct SFVec3f *, structlen*fromcount);
-	toptr = (void *)mv3ftn->p;
+		/* tell the recipient how many elements are here */
+		mv3ftn->n = fromcount;
 
-	/* tell the recipient how many elements are here */
-	mv3ftn->n = fromcount;
+		#ifdef CRVERBOSE 
+			printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
+		#endif
 
-	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, fromcount %d tocount %d fromptr %p toptr %p\n",fromcount,tocount,fromptr,toptr); 
-	#endif
-
-	/* and do the copy of the data */
-	memcpy (toptr,fromptr,structlen * fromcount);
-
+		/* and do the copy of the data */
+		memcpy (toptr,fromptr,structlen * fromcount);
+	}
 	/* is this an MFNode or SFNode? */
 	{
 	//ppEAIServ p = (ppEAIServ)gglobal()->EAIServ.prv;
 	if (toNode != (struct X3D_Node*) gglobal()->EAIServ.EAIListenerData) {
 		if (multitype==ROUTING_SFNODE) {
+			unsigned int fnvalue;
+			unsigned int *fnlocation;
+			struct X3D_Node *sfnodeptr;
+			fnlocation = (unsigned int*)fn;
+			fnvalue= *fnlocation;
+			sfnodeptr = (struct X3D_Node*)fnvalue;
 #ifdef CRVERBOSE
 			printf ("got a ROUTING_SFNODE, adding %u to %u\n",(unsigned int) fn, (unsigned int) toNode);
 #endif
-			ADD_PARENT(X3D_NODE(fn),toNode);
+			ADD_PARENT(X3D_NODE(sfnodeptr),toNode);
 		}
 		if (multitype==ROUTING_MFNODE) {
 			int count;
