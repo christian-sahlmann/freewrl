@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.83 2012/03/31 19:15:16 dug9 Exp $
+$Id: Viewer.c,v 1.84 2012/04/18 22:58:29 dug9 Exp $
 
 CProto ???
 
@@ -66,9 +66,14 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 	Viewer->anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
 	Viewer->sidebyside = 0;
 	Viewer->isStereo = 0;
-		Viewer->eyedist = 0.06;
-		Viewer->screendist = 0.5; //was .8
-		Viewer->stereoParameter = 0.04; //was .4
+		Viewer->eyedist = 0.065;
+		//For sidebyside: average human eyebase 2.4inches/65mm. 
+		// We want it narrower, 57mm or 2.25 inches 
+		// for 6" wide viewport: 2.25/6 = .375
+		// for shutter and anaglyph, .5 gets both eyes looking at the 
+		// same point on the screen (for nominal distance object)
+		Viewer->screendist = 0.375; //was .8 
+		Viewer->stereoParameter = 0.01; //was .4 or toe-in. Toe-in can force your eyes wall-eyed esp. in side-by-side, so set near zero.
 		Viewer->dominantEye = 1; /*0=Left 1=Right used for picking*/
 		Viewer->haveAnaglyphShader = 0; /* call after gl initialized initAnaglyphShaders(); */
 		Viewer->iprog[0] = 0; /* left red */
@@ -1735,6 +1740,8 @@ void fwl_init_SideBySide()
 	setStereoBufferStyle(1); 
 	p->Viewer.isStereo = 1;
 	p->Viewer.sidebyside = 1;
+	p->Viewer.screendist = min(p->Viewer.screendist,.375);
+	p->Viewer.stereoParameter = min(p->Viewer.stereoParameter,.01);
 }
 void setAnaglyph()
 {
@@ -1825,6 +1832,7 @@ void updateEyehalf()
 		//				right edge of left stereo viewport
 		//	 = .5 - for shutterglasses and anaglyph, both sides are centered on the screen
 		//        - for sidebyside, both sides are centered on their respective left and right viewports
+		//				average human eyebase 65mm or 2.5" - we prefer 2.25" or 57mm. For a 6" screen 2.25/6 = .375
 		set_eyehalf( p->Viewer.eyedist/2.0,atan(p->Viewer.stereoParameter)*180.0/3.1415926);
 	}
 }
