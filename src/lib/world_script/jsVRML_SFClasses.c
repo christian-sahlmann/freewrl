@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.47 2012/04/17 17:44:20 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.48 2012/04/21 21:21:40 dug9 Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1811,11 +1811,12 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 				if(true){
 					//if (!JS_AddObjectRoot(cx2,&eventInFunction)) {
 					JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction = eventInFunction;
+					#if JS_VERSION >= 185
 					if (!JS_AddObjectRoot(cx,&(JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction))) {
 						printf( "JS_AddObjectRoot failed for compilation of script \"%s\" at %s:%d.\n",scriptline,__FILE__,__LINE__);
 						return JS_FALSE;
 					}
-					JSparamnames[myfield->fieldDecl->JSparamNameIndex].eventInFunction = eventInFunction;
+					#endif
 				}
 			}
 			/* and run the function */
