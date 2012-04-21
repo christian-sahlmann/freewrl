@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.231 2012/03/30 17:23:16 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.232 2012/04/21 13:13:24 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -843,7 +843,10 @@ OLDCODE	}";
 #endif // OLDCODE
 
 
-
+//dug9 april 21, 2012, changed so:
+// a) never transforming eye_p and never transforming lighting normal 
+// (fw_Vertex and fw_Normal should always come in in viewpoint coordinates)
+// b) always normalize(n) which may have helped, not sure
 static char *fullVertexShader = " \
 /********************************************   \
 Vertex shader based on the one in chapter 8 in the Shriner ES 2.0 book   \
@@ -1038,16 +1041,16 @@ vec4 do_lighting() {   \
 void main (void) {   \
 	int i,j;   \
    \
-	/* do we need to tansform P */   \
-	if (true || xform_eye_p)    \
+	p_eye = fw_Vertex; \
+	if (false && xform_eye_p)    \
 		p_eye = fw_ModelViewMatrix * fw_Vertex;   \
    \
 \n#ifdef USE_LIGHTING\n  \
-		n = fw_NormalMatrix * fw_Normal;   \
+		n = fw_Normal;   \
 		if (rescale_normal) {   \
 			n = rescale_normal_factor * n;   \
 		}   \
-		if (normalize_normal)    \
+		if (true || normalize_normal)    \
 			n = normalize(n);   \
     \
 		mat_ambient_colour = enable_colour_material ? fw_Color   \
