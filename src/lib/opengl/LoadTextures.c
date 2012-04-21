@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.76 2012/03/05 19:56:03 dug9 Exp $
+  $Id: LoadTextures.c,v 1.77 2012/04/21 13:12:05 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -395,6 +395,27 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
+	}else{
+		if(GLES2){
+			//swap red and blue
+			//search for GL_RGBA in textures.c
+			int x,y,i,j,k,m;
+			unsigned char R,B,*data;
+			x = this_tex->x;
+			y = this_tex->y;
+			data = this_tex->texdata;
+			for(i=0,k=0;i<y;i++)
+			{
+				for(j=0;j<x;j++,k++)
+				{
+					m=k*4;
+					R = data[m];
+					B = data[m+2];
+					data[m] = B;
+					data[m+2] = R;
+				}
+			}
+		}
 	}
 	free(fname);
 	return (ret != 0);
