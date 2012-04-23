@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.232 2012/04/21 13:13:24 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.233 2012/04/23 18:56:24 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2647,7 +2647,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 }
 
 
-#ifdef SWAMPTEA
+#if  defined (_ANDROID)
 
 /* Android wants the OpenGL system to re-create assets like textures on onSurfaceCreated call */
 void fwl_Android_reloadAssets(void) {
@@ -2683,7 +2683,7 @@ void fwl_Android_reloadAssets(void) {
         UNLOCK_MEMORYTABLE
 
 }
-#endif //SWAMPTEA
+#endif
 
 /* for verifying that a memory pointer exists */
 int checkNode(struct X3D_Node *node, char *fn, int line) {

@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.121 2012/03/05 19:56:03 dug9 Exp $
+  $Id: RenderFuncs.c,v 1.122 2012/04/23 18:56:24 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -722,7 +722,14 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 //struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
 struct X3D_Group *rootNode()
 {
+	// ConsoleMessage ("rootNode called");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+if (p==NULL) {
+	ConsoleMessage ("rootNode, p null");
+	return NULL;
+}
+
+
 	return p->rootNode;
 }
 void setRootNode(struct X3D_Group *rn)

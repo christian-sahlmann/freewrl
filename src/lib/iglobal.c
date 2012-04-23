@@ -101,6 +101,9 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	ttglobal iglobal = malloc(sizeof(struct iiglobal));
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
 
+
+	ConsoleMessage ("iglobal_constructor called");
+
 	//call initializer for each sub-struct
 	display_init(&iglobal->display);
 	internalc_init(&iglobal->internalc);
@@ -311,7 +314,7 @@ void remove_iglobal_from_table(ttglobal tg)
 
 
 
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+#if !(defined(IPHONE) || !defined(_ANDROID) || defined(AQUA))
 ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
@@ -392,7 +395,7 @@ int iglobal_instance_count()
 
 ttglobal gglobal0()
 {
-	// printf ("gglobal - assuming only 1 thread here\n");
+	ConsoleMessage ("gglobal - assuming only 1 thread here");
 	if (nglobalthreads >=1) {
 		return thread2global[0].iglobal;
 	} 
