@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.106 2012/03/30 17:23:16 crc_canada Exp $
+  $Id: Textures.c,v 1.107 2012/04/23 18:19:34 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1218,9 +1218,11 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
 		if ((me->x<=256) || (me->y<=256)) {
 			minFilter = GL_NEAREST_MIPMAP_NEAREST;
+			if(!generateMipMaps) minFilter = GL_NEAREST;
 			magFilter = GL_NEAREST;
 		} else {
 			minFilter = GL_LINEAR_MIPMAP_NEAREST;
+			if(!generateMipMaps) minFilter = GL_LINEAR;
 			magFilter = GL_LINEAR;
 		}
 	}
@@ -1436,10 +1438,16 @@ OLDCODE		#endif
 				#ifdef SHADERS_2011
 				/* it is a power of 2, lets make sure it is square */
 				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
-				   lets just keep things consistent */
+				   lets just keep things consistent 
+				   But if not mipmapping, then (experience with win32 GLES2 emulator and QNX device)
+				   then it's not necessary to square the image, although current code will get here with
+				   generateMipMap always true.
+				   */
 				if (rx != ry) {
-					if (rx>ry)ry=rx;
-					else rx=ry;
+					if(generateMipMaps){
+						if (rx>ry)ry=rx;
+						else rx=ry;
+					}
 				}
 				#endif /* SHADERS_2011 */
 
