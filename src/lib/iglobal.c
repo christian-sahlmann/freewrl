@@ -395,7 +395,9 @@ int iglobal_instance_count()
 
 ttglobal gglobal0()
 {
-	ConsoleMessage ("gglobal - assuming only 1 thread here");
+	//the following line is recursive because ConsoleMessage calls ConsoleMessage0
+	//which calls this function gglobal()
+	//ConsoleMessage ("gglobal - assuming only 1 thread here");
 	if (nglobalthreads >=1) {
 		return thread2global[0].iglobal;
 	} 
