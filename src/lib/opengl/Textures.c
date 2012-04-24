@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.107 2012/04/23 18:19:34 dug9 Exp $
+  $Id: Textures.c,v 1.108 2012/04/24 17:19:04 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1214,6 +1214,26 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		Rrc = Rrc ? GL_REPEAT : GL_CLAMP_TO_EDGE; //GL_CLAMP;
 		generateMipMaps = GL_TRUE;
 
+#ifdef SHADERS_2011
+		if(me->x > 0 && me->y > 0)
+		{
+			// experimental code to deal with oblong texture images
+			// The 'cause' of blurry oblong textures with GLES2 is the anisotropic
+			// scaling of the image needed to square up the image for mipmapping. 
+			// For example if your texture image is oblong by a factor of 3, then
+			// your avatar will need to be 3 times closer to the object to see the
+			// same mipmap level as you would with an unscaled image.
+			// (OpenGL redbook talks about MipMap levels and rho and lambda.)
+			// here we detect if there's big anisotropic scaling/squaring coming up, 
+			// and if so turn off mipmapping and squaring
+			// scene authors need to make their repeating textures (brick, siding,
+			// shingles etc) squarish to get mipmapping and avoid moire/scintilation
+			float ratio = 1.0f;
+			if(me->x < me->y) ratio = (float)me->y / (float)me->x;
+			else ratio = (float)me->x / (float)me->y;
+			if(ratio > 2.0f) generateMipMaps = GL_FALSE;
+		}
+#endif
 
 		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
 		if ((me->x<=256) || (me->y<=256)) {
