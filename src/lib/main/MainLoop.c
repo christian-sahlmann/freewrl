@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.239 2012/04/01 17:40:19 dug9 Exp $
+  $Id: MainLoop.c,v 1.240 2012/04/24 17:52:53 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1925,6 +1925,9 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
+if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
+if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
+
         ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
 	/* create the root node */

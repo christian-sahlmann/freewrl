@@ -280,6 +280,8 @@ void fwl_clearCurrentHandle()
 }
 void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
+	ConsoleMessage ("set_thread2global called");
+
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
 	thread2global[nglobalthreads].handle = NULL;
@@ -314,7 +316,7 @@ void remove_iglobal_from_table(ttglobal tg)
 
 
 
-#if !(defined(IPHONE) || !defined(_ANDROID) || defined(AQUA))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
@@ -326,6 +328,7 @@ ttglobal gglobal0()
 	pthread_t tt = pthread_self();
 	iglobal = NULL;
 	ifound = 0;
+
 	for(i=0;i<nglobalthreads;i++)
 #ifdef _MSC_VER
 		if(tt.p == thread2global[i].thread.p){
