@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.97 2012/03/09 14:05:36 dug9 Exp $
+$Id: Component_Shape.c,v 1.98 2012/04/26 17:07:13 crc_canada Exp $
 
 X3D Shape Component
 
@@ -618,20 +618,17 @@ void render_Material (struct X3D_Material *node) {
 #define NO_APPEARANCE_SHADER 0x0000
 #define MATERIAL_APPEARANCE_SHADER 0x0001
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
-#define ONE_TEX_APPEARANCE_SHADER 0x004
-#define COMPLEX_TEX_APPEARANCE_SHADER 0x008
+#define ONE_TEX_APPEARANCE_SHADER 0x0004
+#define MULTI_TEX_APPEARANCE_SHADER 0x0008
 
 /* second least significant hex digit - PolyRep colour present */
 #define NO_COLOUR_SHADER 0x0000
 #define HAVE_COLOUR_SHADER 0x00010
 
-/* third least significant hex digit - do shape geom in shader */
-#define NO_GEOM_SHADER 0x0000
-#define SPHERE_GEOM_SHADER 0x0100
-
 /* fourth least significant hex digit - lines, points */
 #define NO_LINES_POINTS 0x0000
 #define HAVE_LINEPOINTS 0x1000
+
 
 #define CHECK_COLOUR_FIELD(aaa) \
 	case NODE_##aaa: { \
@@ -655,7 +652,7 @@ static int getIfLinePoints(struct X3D_Node *myGeom) {
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
-	if (realNode == NULL) return NO_GEOM_SHADER;
+	if (realNode == NULL) return NO_APPEARANCE_SHADER;
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
 		case NODE_LineSet:
@@ -676,7 +673,7 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
-	if (realNode == NULL) return NO_GEOM_SHADER;
+	if (realNode == NULL) return NO_APPEARANCE_SHADER;
 
 	/* go through each node type that can have a Color node, and if it is not NULL
 	   we know we have a Color node */
@@ -701,37 +698,80 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 	return NO_COLOUR_SHADER;
 }
 
-/* find info on the geometry of this shape */
-static int getGeometryShader (struct X3D_Node *myGeom) {
+#ifdef OLDCODE
+OLDCODE/* find info on the geometry of this shape */
+OLDCODEstatic int getGeometryShader (struct X3D_Node *myGeom) {
+OLDCODE
+OLDCODE	#ifdef HAVE_GEOMETRY_SHADERS
+OLDCODE	struct X3D_Node *realNode;
+OLDCODE    
+OLDCODE	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+OLDCODE
+OLDCODE	if (realNode == NULL) return NO_GEOM_SHADER;
+OLDCODE
+OLDCODE	if (realNode->_nodeType == NODE_Sphere) return SPHERE_GEOM_SHADER;
+OLDCODE	#endif /* HAVE_GEOMETRY_SHADERS */
+OLDCODE
+OLDCODE	return NO_GEOM_SHADER;
+OLDCODE}
+OLDCODE
+OLDCODE static int getAppearanceShader (struct X3D_Node *myApp) {
+OLDCODE 	struct X3D_Appearance *realAppearanceNode;
+OLDCODE 	struct X3D_Node *realMaterialNode;
+OLDCODE 	struct X3D_Node *realTextureNode;
+OLDCODE 
+OLDCODE 	int retval = NO_APPEARANCE_SHADER;
+OLDCODE 
+OLDCODE 	/* if there is no appearance node... */
+OLDCODE 	if (myApp == NULL) return retval;
+OLDCODE 
+OLDCODE 	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp, realAppearanceNode);
+OLDCODE 	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
+OLDCODE 
+OLDCODE 	if (realAppearanceNode->material != NULL) {
+OLDCODE 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->material, realMaterialNode);
+OLDCODE 		if (realMaterialNode->_nodeType == NODE_Material) {
+OLDCODE 			retval |= MATERIAL_APPEARANCE_SHADER;
+OLDCODE 		}
+OLDCODE 		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
+OLDCODE 			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
+OLDCODE 		}
+OLDCODE 	}
+OLDCODE 
+OLDCODE 	if (realAppearanceNode->texture != NULL) {
+OLDCODE 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
+OLDCODE 		if (realTextureNode->_nodeType == NODE_ImageTexture) {
+OLDCODE 			retval |= ONE_TEX_APPEARANCE_SHADER;
+OLDCODE 		} else if(realTextureNode->_nodeType == NODE_MultiTexture ){
+OLDCODE 			retval |= COMPLEX_TEX_APPEARANCE_SHADER;
+OLDCODE 			//q. do we need to recurse here into ImageTextures?
+OLDCODE 		} else {
+OLDCODE 			printf ("getAppearanceShader, texture field %s not supported yet\n",
+OLDCODE 			stringNodeType(realTextureNode->_nodeType));
+OLDCODE 		}
+OLDCODE 	}
+OLDCODE 
+OLDCODE 
+OLDCODE 	return retval;
+OLDCODE }
+#endif //OLDCODE
 
-	#ifdef HAVE_GEOMETRY_SHADERS
-	struct X3D_Node *realNode;
-    
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
-
-	if (realNode == NULL) return NO_GEOM_SHADER;
-
-	if (realNode->_nodeType == NODE_Sphere) return SPHERE_GEOM_SHADER;
-	#endif /* HAVE_GEOMETRY_SHADERS */
-
-	return NO_GEOM_SHADER;
-}
 
 static int getAppearanceShader (struct X3D_Node *myApp) {
 	struct X3D_Appearance *realAppearanceNode;
 	struct X3D_Node *realMaterialNode;
-	struct X3D_Node *realTextureNode;
+
 
 	int retval = NO_APPEARANCE_SHADER;
 
 	/* if there is no appearance node... */
 	if (myApp == NULL) return retval;
 
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp, realAppearanceNode);
+	realAppearanceNode = ((struct X3D_Appearance *)myApp);
 	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
 
 	if (realAppearanceNode->material != NULL) {
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->material, realMaterialNode);
+		realMaterialNode = ((struct X3D_Node *)realAppearanceNode->material);
 		if (realMaterialNode->_nodeType == NODE_Material) {
 			retval |= MATERIAL_APPEARANCE_SHADER;
 		}
@@ -739,23 +779,54 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
 		}
 	}
+    
+    
 
 	if (realAppearanceNode->texture != NULL) {
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
-		if (realTextureNode->_nodeType == NODE_ImageTexture) {
+        printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
+        if ((realAppearanceNode->texture->_nodeType == NODE_ImageTexture) ||
+            (realAppearanceNode->texture->_nodeType == NODE_PixelTexture)){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
-		} else if(realTextureNode->_nodeType == NODE_MultiTexture ){
-			retval |= COMPLEX_TEX_APPEARANCE_SHADER;
-			//q. do we need to recurse here into ImageTextures?
-		} else {
+		} else if (realAppearanceNode->texture->_nodeType == NODE_MultiTexture) {
+            retval |= MULTI_TEX_APPEARANCE_SHADER;
+        } else {
 			printf ("getAppearanceShader, texture field %s not supported yet\n",
-			stringNodeType(realTextureNode->_nodeType));
+			stringNodeType(realAppearanceNode->texture->_nodeType));
 		}
 	}
-
+    printf ("getAppearanceShader, returning %x\n",retval);
 
 	return retval;
 }
+
+
+#define VERBOSE
+#ifdef VERBOSE
+static void printChoosingShader(shader_type_t whichOne) {
+    
+    printf ("choose shader: ");
+    switch (whichOne) {
+        case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
+        case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
+        case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
+        case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
+        case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
+        case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
+        case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
+        case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
+        case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
+        case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
+        case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
+        case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
+        case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
+        case multiTexShader: printf ("multiTexShader\n"); break;
+        case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
+        case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
+        default : printf ("shader node unidentified");
+    }
+    
+}
+#endif //VERBOSE
 
 /* find info on the appearance of this Shape and create a shader */
 /* 
@@ -779,19 +850,12 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 
 #endif /* SHADERS_2011 */
 
-/* this should be vectorized, and made global in the rdr_caps, but for now... */
-//s_shader_capabilities_t globalShaders[10];
-
-
+/* find info on the appearance of this Shape and create a shader */
 void compile_Shape (struct X3D_Shape *node) {
-#ifdef SHADERS_2011
-
-	int whichGeometryShader = -1;
 	int whichAppearanceShader = -1;
 	int whichShapeColorShader = -1;
 	int isUnlitGeometry = -1;
-
-	whichGeometryShader = getGeometryShader(node->geometry);
+    
 	whichShapeColorShader = getShapeColourShader(node->geometry);
 	whichAppearanceShader = getAppearanceShader(node->appearance);
 	isUnlitGeometry = getIfLinePoints(node->geometry);
@@ -800,146 +864,260 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	/* choose the shader. Note that we just "or" the results together */
 
-	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
-
-	/* SECTION 1 - Spheres CAN NOT have colour nodes, we can ignore the ColourShader field */
-	case SPHERE_GEOM_SHADER | NO_APPEARANCE_SHADER:
-		node->_shaderTableEntry = noMaterialNoAppearanceSphereShader;
-		break;
-
-	case SPHERE_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = noTexOneMaterialSphereShader;
-		break;
-
-	case SPHERE_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = noTexTwoMaterialSphereShader;
-		break;
-
-	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
-	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
-		node->_shaderTableEntry = oneTexOneMaterialSphereShader;
-		break;	
-
-
-
-	/* SECTION 2 - No Geom Shaders; No Color node in Shape */
-	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+    /* right now, multiTextures go through one heck of a big unoptimized shader */
+    if (whichAppearanceShader == (MULTI_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER)) {
+        node->_shaderTableEntry = multiTexShader;
+        
+    } else {
+	switch (whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
+            
+	case  NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noMaterialNoAppearanceShader;
 		break;
 
-	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case  TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexTwoMaterialShader;
 		break;
 
-	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexOneMaterialShader;
 		break;	
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexTwoMaterialShader;
 		break;
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
 
-	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = complexTexOneMaterialShader;
-		break;	
 
 	
 
-	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
+	/* SECTION 2 -  HAVE Color node in shape */
 
 	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
-	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
 		node->_shaderTableEntry = linePointColorNodeShader;
 		break;
 
 	
 	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
-	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
 		node->_shaderTableEntry = linePointNoColorNodeShader;
 		break;
 
-	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = backgroundSphereShader;
 		break;
 
-	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexTwoMaterialColourShader;
 		break;
 
-	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = noTexOneMaterialColourShader;
 		break;	
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
 		break;
 
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
 		node->_shaderTableEntry = oneTexOneMaterialColourShader;
 		break;	
 	
 
 	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
-	}
-/*
-printf ("forcing to use noMaterialNoAppearanceShader\n");
+    }
+    }
+
+/*printf ("compile_Shape forcing to use noMaterialNoAppearanceShader\n");
 node->_shaderTableEntry = noMaterialNoAppearanceShader;
-*/
 
-/* debug */
-
-	if(1){
-printf ("shape using shader: ");
-switch (node->_shaderTableEntry) {
-case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
-case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
-case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
-case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
-case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
-case noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
-case noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
-case noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
-case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
-case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
-case oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
-case oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
-case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
-case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
-case complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
-case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
-case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
-case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
-case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
-case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
-case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
-case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
-default: {printf ("no ascii equiv\n");}
-}
-	}
-
-
-	#endif /* SHADERS_2011 */
-
-
+    node->_shaderTableEntry = multiTexShader;
+    */
+    
+    
+#ifdef VERBOSE
+    printChoosingShader(node->_shaderTableEntry);
+#endif //VERBOSE
+    
 	MARK_NODE_COMPILED
 }
+#ifdef OLDCODE
+OLDCODE
+OLDCODEvoid compile_Shape (struct X3D_Shape *node) {
+OLDCODE#ifdef SHADERS_2011
+OLDCODE
+OLDCODE	int whichGeometryShader = -1;
+OLDCODE	int whichAppearanceShader = -1;
+OLDCODE	int whichShapeColorShader = -1;
+OLDCODE	int isUnlitGeometry = -1;
+OLDCODE
+OLDCODE	whichGeometryShader = getGeometryShader(node->geometry);
+OLDCODE	whichShapeColorShader = getShapeColourShader(node->geometry);
+OLDCODE	whichAppearanceShader = getAppearanceShader(node->appearance);
+OLDCODE	isUnlitGeometry = getIfLinePoints(node->geometry);
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE	/* choose the shader. Note that we just "or" the results together */
+OLDCODE
+OLDCODE	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
+OLDCODE
+OLDCODE	/* SECTION 1 - Spheres CAN NOT have colour nodes, we can ignore the ColourShader field */
+OLDCODE	case SPHERE_GEOM_SHADER | NO_APPEARANCE_SHADER:
+OLDCODE		node->_shaderTableEntry = noMaterialNoAppearanceSphereShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case SPHERE_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexOneMaterialSphereShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case SPHERE_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexTwoMaterialSphereShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
+OLDCODE	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
+OLDCODE		node->_shaderTableEntry = oneTexOneMaterialSphereShader;
+OLDCODE		break;	
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE	/* SECTION 2 - No Geom Shaders; No Color node in Shape */
+OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = noMaterialNoAppearanceShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexTwoMaterialShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexOneMaterialShader;
+OLDCODE		break;	
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = oneTexTwoMaterialShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = oneTexOneMaterialShader;
+OLDCODE		break;	
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = complexTexOneMaterialShader;
+OLDCODE		break;	
+OLDCODE
+OLDCODE	
+OLDCODE
+OLDCODE	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
+OLDCODE
+OLDCODE	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
+OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE		node->_shaderTableEntry = linePointColorNodeShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	
+OLDCODE	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
+OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+OLDCODE		node->_shaderTableEntry = linePointNoColorNodeShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = backgroundSphereShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexTwoMaterialColourShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = noTexOneMaterialColourShader;
+OLDCODE		break;	
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
+OLDCODE		break;
+OLDCODE
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+OLDCODE		node->_shaderTableEntry = oneTexOneMaterialColourShader;
+OLDCODE		break;	
+OLDCODE	
+OLDCODE
+OLDCODE	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
+OLDCODE	}
+OLDCODE/*
+OLDCODEprintf ("forcing to use noMaterialNoAppearanceShader\n");
+OLDCODEnode->_shaderTableEntry = noMaterialNoAppearanceShader;
+OLDCODE*/
+OLDCODE
+OLDCODE/* debug */
+OLDCODE
+OLDCODE	if(1){
+OLDCODEprintf ("shape using shader: ");
+OLDCODEswitch (node->_shaderTableEntry) {
+OLDCODEcase backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
+OLDCODEcase backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
+OLDCODEcase noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
+OLDCODEcase noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
+OLDCODEcase noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
+OLDCODEcase noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
+OLDCODEcase noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
+OLDCODEcase noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
+OLDCODEcase oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
+OLDCODEcase oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
+OLDCODEcase oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
+OLDCODEcase oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
+OLDCODEcase complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
+OLDCODEcase complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
+OLDCODEcase complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
+OLDCODEcase complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
+OLDCODEcase noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
+OLDCODEcase noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
+OLDCODEcase oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
+OLDCODEcase oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
+OLDCODEcase linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
+OLDCODEcase linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
+OLDCODEdefault: {printf ("no ascii equiv\n");}
+OLDCODE}
+OLDCODE	}
+OLDCODE
+OLDCODE
+OLDCODE	#endif /* SHADERS_2011 */
+OLDCODE
+OLDCODE
+OLDCODE	MARK_NODE_COMPILED
+OLDCODE}
+#endif //OLDCODE
+
 
 #ifdef SHADERS_2011
 void child_Shape (struct X3D_Shape *node) {

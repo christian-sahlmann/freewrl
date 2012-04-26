@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.234 2012/04/26 16:36:23 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.235 2012/04/26 17:07:13 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -300,8 +300,11 @@ static void shaderErrorLog(GLuint myShader, char *which) {
         #endif
 }
 
+
+
+
 static char *materialNoTexShader =
-" varying vec4 v_front_colour; void main () {gl_FragColor = v_front_colour; }";
+" varying vec4 v_front_colour; void main () {gl_FragColor = v_front_colour;}";
 
 static char *backgroundSphereShaderFragment = 
 " varying vec4 v_color; void main () {gl_FragColor = v_color;}";
@@ -318,10 +321,10 @@ static char *backgroundSphereShaderVertex = "attribute	vec4 fw_Color; " \
 			"}";
 
 static char *backgroundTextureBoxShaderFragment =
-       				" varying vec2 v_texC; uniform sampler2D fw_Texture0; " \
-				" void main () {gl_FragColor = texture2D(fw_Texture0, v_texC);}";
+       				" varying vec2 v_texC; uniform sampler2D fw_Texture_unit0; " \
+				" void main () {gl_FragColor = texture2D(fw_Texture_unit0, v_texC);}";
 static char *backgroundTextureBoxShaderVertex =
-			"attribute	vec2 fw_TexCoords; " \
+			"attribute	vec2 fw_MultiTexCoord0; " \
 			"attribute	vec4 fw_Vertex;" \
 			"uniform	mat4 fw_ModelViewMatrix;" \
 			"uniform	mat4 fw_ProjectionMatrix;" \
@@ -329,61 +332,9 @@ static char *backgroundTextureBoxShaderVertex =
 			"void main(void) {" \
 			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
 			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
-			"	v_texC =fw_TexCoords;" \
+			"	v_texC =fw_MultiTexCoord0;" \
 			"}";
 
-static char *oneTexFragmentShader = " \
-	varying vec2 v_texC; \
-	uniform sampler2D fw_Texture0; \
-	void main () { \
-		gl_FragColor = texture2D(fw_Texture0, v_texC); \
-	}";
-
-static char *complexTexFragmentShader = " \
-	varying vec2 v_texC; \
-	uniform sampler2D fw_Texture0; \
-	uniform sampler2D fw_Texture1; \
-	uniform sampler2D fw_Texture2; \
-	uniform sampler2D fw_Texture3; \
-	uniform vec4 fw_useTex;\
-	void main () { \
-		vec4 color0; \
-		color0 = texture2D(fw_Texture0, v_texC); \
-		if(fw_useTex.y > 0.0) \
-			color0 = color0 + texture2D(fw_Texture1, v_texC); \
-		if(fw_useTex.z > 0.0) \
-			color0 = color0 + texture2D(fw_Texture2, v_texC); \
-		if(fw_useTex.w > 0.0) \
-			color0 = color0 + texture2D(fw_Texture3, v_texC); \
-		gl_FragColor = color0; \
-	}";
-
-/* Vertex Shaders */
-
-static char *noTexVertexShaderForSphereGeomShader = " \
-	attribute      vec4 fw_Vertex; \
-	uniform        mat4 fw_ModelViewMatrix; \
-	uniform        mat4 fw_ProjectionMatrix; \
-	void main(void) { \
-		/* just pass these through - the geom shader will calculate */ \
-		/* and transform as it creates new vertices */ \
-		gl_Position = fw_Vertex; \
-	}";
-
-static char *oneTexVertexShaderForSphereGeomShader = " \
-	attribute      vec4 fw_Vertex; \
-	uniform        mat4 fw_ModelViewMatrix; \
-	uniform        mat4 fw_ProjectionMatrix; \
-        \
-        attribute vec2 fw_TexCoords; \
-        varying        vec2 v_texCIn; /* goes to v_texCin[3] */ \
-        \
-	void main(void) { \
-		/* just pass these through - the geom shader will calculate */ \
-		/* and transform as it creates new vertices */ \
-		gl_Position = fw_Vertex; \
-               v_texCIn =fw_TexCoords; \
-	}";
 
 /* vertex shader - phong lighting */
 static char *phongSimpleVertexShader = " \
@@ -401,336 +352,357 @@ static char *phongSimpleVertexShader = " \
 	}";
 
 
-
-
+static char *oneTexFragmentShader = " \
+varying vec2 v_texC; \
+uniform sampler2D fw_Texture_unit0; \
+void main () { \
+gl_FragColor = texture2D(fw_Texture_unit0, v_texC); \
+}";
 
 static char *oneTexVertexShader = " \
-        /* varying vec3 Norm; */ \
-        /* varying vec4 Pos; */ \
+attribute      vec4 fw_Vertex; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+\
+attribute vec2 fw_MultiTexCoord0; \
+varying        vec2 v_texC; \
+\
+void main(void) { \
+gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+v_texC =fw_MultiTexCoord0; \
+}";
+
+/* still to do:
+ #define MTMODE_BLENDCURRENTALPHA	2
+ #define MTMODE_DOTPRODUCT3	4
+ #define MTMODE_SELECTARG2	5
+ #define MTMODE_SELECTARG1	6
+ #define MTMODE_BLENDDIFFUSEALPHA	7
+ #define MTMODE_MODULATEINVCOLOR_ADDALPHA	10
+ #define MTMODE_MODULATEINVALPHA_ADDCOLOR	15
+ #define MTMODE_MODULATEALPHA_ADDCOLOR	16
+*/
+
+
+static char *eightTexFragmentShader = " \
+\n#define MTMODE_ADDSIGNED2X	0\n \
+\n#define MTMODE_REPLACE	1\n \
+\n#define MTMODE_BLENDCURRENTALPHA	2\n \
+\n#define MTMODE_MODULATE	3\n \
+\n#define MTMODE_DOTPRODUCT3	4\n \
+\n#define MTMODE_SELECTARG2	5\n \
+\n#define MTMODE_SELECTARG1	6\n \
+\n#define MTMODE_BLENDDIFFUSEALPHA	7\n \
+\n#define MTMODE_SUBTRACT	8\n \
+\n#define MTMODE_ADD	9\n \
+\n#define MTMODE_MODULATEINVCOLOR_ADDALPHA	10\n \
+\n#define MTMODE_ADDSMOOTH	11\n \
+\n#define MTMODE_MODULATE2X	12\n \
+\n#define MTMODE_MODULATE4X	13\n \
+\n#define MTMODE_OFF	14\n \
+\n#define MTMODE_MODULATEINVALPHA_ADDCOLOR	15\n \
+\n#define MTMODE_MODULATEALPHA_ADDCOLOR	16\n \
+\n#define MTMODE_ADDSIGNED	17\n \
+\
+varying vec2 v_texC; \
+varying vec4 v_front_colour;\
+uniform sampler2D fw_Texture_unit0; \
+uniform sampler2D fw_Texture_unit1; \
+uniform sampler2D fw_Texture_unit2; \
+/* \
+uniform sampler2D fw_Texture_unit3; \
+uniform sampler2D fw_Texture_unit4; \
+uniform sampler2D fw_Texture_unit5; \
+uniform sampler2D fw_Texture_unit6; \
+uniform sampler2D fw_Texture_unit7; \
+*/  \
+uniform int fw_Texture_mode0; \
+uniform int fw_Texture_mode1; \
+uniform int fw_Texture_mode2; \
+/* \
+uniform int fw_Texture_mode3; \
+uniform int fw_Texture_mode4; \
+uniform int fw_Texture_mode5; \
+uniform int fw_Texture_mode6; \
+uniform int fw_Texture_mode7; \
+*/ \
+\
+ uniform int textureCount;\
+vec4 finalColCalc(in vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \
+/* \
+    if (mode==MTMODE_OFF) { return vec4(prevColour);} \
+    if (mode==MTMODE_REPLACE) {return vec4(texture2D(tex, texcoord));}\
+    if (mode==MTMODE_MODULATE) { \
+*/ \
+        vec3 ct,cf; \
+        vec4 texel; \
+        float at,af; \
+        \
+        cf = prevColour.rgb; \
+        af = prevColour.a; \
+        \
+        texel = texture2D(tex,texcoord); \
+        ct = texel.rgb; \
+        at = texel.a; \
+        return vec4(ct*cf, at*af); \
+/* \
+    }\
+    if (mode==MTMODE_MODULATE2X) { \
+        vec3 ct,cf; \
+        vec4 texel; \
+        float at,af; \
+        \
+        cf = prevColour.rgb; \
+        af = prevColour.a; \
+        \
+        texel = texture2D(tex,texcoord); \
+        ct = texel.rgb; \
+        at = texel.a; \
+        return vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.)); \
+    }\
+    if (mode==MTMODE_MODULATE4X) { \
+        vec3 ct,cf; \
+        vec4 texel; \
+        float at,af; \
+        \
+        cf = prevColour.rgb; \
+        af = prevColour.a; \
+        \
+        texel = texture2D(tex,texcoord); \
+        ct = texel.rgb; \
+        at = texel.a; \
+        return vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.)); \
+    }\
+    if (mode== MTMODE_ADDSIGNED) {\
+        return vec4 (prevColour + texture2D(tex, texcoord) - vec4 (0.5, 0.5, 0.5, -.5)); \
+    } \
+    if (mode== MTMODE_ADDSIGNED2X) {\
+        return vec4 ((prevColour + texture2D(tex, texcoord) - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.)); \
+    } \
+    if (mode== MTMODE_ADD) {\
+        return vec4 (prevColour + texture2D(tex, texcoord)); \
+    } \
+    if (mode== MTMODE_SUBTRACT) {\
+        return vec4 (prevColour - texture2D(tex, texcoord)); \
+    } \
+    if (mode==MTMODE_ADDSMOOTH) { \
+         return vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texture2D(tex,texcoord)); \
+    }\
+    return vec4 (prevColour * texture2D(tex, texcoord)); \
+*/ \
+} \
+\
+void main () { \
+vec4 finalColour; \
+\
+finalColour = v_front_colour; \
+\
+ if(textureCount>=1) {finalColour=finalColCalc(finalColour,fw_Texture_mode0,fw_Texture_unit0,v_texC);} \
+ if(textureCount>=2) {finalColour=finalColCalc(finalColour,fw_Texture_mode1,fw_Texture_unit1,v_texC);} \
+ if(textureCount>=3) {finalColour=finalColCalc(finalColour,fw_Texture_mode2,fw_Texture_unit2,v_texC);} \
+/* \
+ if(textureCount>=4) {finalColour=finalColCalc(finalColour,fw_Texture_mode3,fw_Texture_unit3,v_texC);} \
+ if(textureCount>=5) {finalColour=finalColCalc(finalColour,fw_Texture_mode4,fw_Texture_unit4,v_texC);} \
+ if(textureCount>=6) {finalColour=finalColCalc(finalColour,fw_Texture_mode5,fw_Texture_unit5,v_texC);} \
+ if(textureCount>=7) {finalColour=finalColCalc(finalColour,fw_Texture_mode6,fw_Texture_unit6,v_texC);} \
+ if(textureCount>=8) {finalColour=finalColCalc(finalColour,fw_Texture_mode7,fw_Texture_unit7,v_texC);} \
+ */ \
+\
+gl_FragColor = finalColour; \
+}";
+
+/* eightTexVertexShader = copy of fullVertexShader, but with texturing added */
+static char *eightTexVertexShader = " \
+/********************************************   \
+Vertex shader based on the one in chapter 8 in the Shriner ES 2.0 book   \
+********************************************/   \
+\
+\
+\n \
+uniform int lightState[8];    \
+uniform float light_linAtten[8];    \
+uniform float light_constAtten[8];    \
+uniform float light_quadAtten[8];    \
+uniform float lightSpotCut[8];    \
+uniform float lightSpotExp[8];    \
+uniform vec4 lightAmbient[8];    \
+uniform vec4 lightDiffuse[8];    \
+uniform vec4 lightPosition[8];    \
+uniform vec4 lightSpotDir[8];    \
+uniform vec4 lightSpecular[8];    \
+\
+/* Multitexture Stuff */ \
+attribute vec2 fw_MultiTexCoord0; \
+varying        vec2 v_texC; \
+\
+\
+struct fw_MaterialParameters {    \
+vec4 emission;    \
+vec4 ambient;    \
+vec4 diffuse;    \
+vec4 specular;    \
+float shininess;    \
+};    \
+\
+const float	c_zero = 0.0;   \
+const float	c_one = 1.0;   \
+const int	indx_zero = 0;   \
+const int	indx_one = 1;   \
+\
+uniform mat4	fw_ModelViewMatrix;   \
+uniform mat4 	fw_ProjectionMatrix;   \
+\
+uniform mat3	fw_NormalMatrix;   \
+\
+\
+uniform fw_MaterialParameters  fw_FrontMaterial;   \
+\
+/* uniform vec4	ambient_scene_colour; */  \
+/* uniform bool 	light_model_two_sided;  */ \
+/* uniform bool	enable_colour_material; */  \
+/* uniform bool	rescale_normal;   \
+uniform bool 	normalize_normal;   \
+uniform float	rescale_normal_factor;  */ \
+\
+attribute vec4	fw_Vertex;   \
+attribute vec4	a_texcoord0;   \
+attribute vec4	a_texcoord1;   \
+attribute vec4	fw_Color;   \
+attribute vec3	fw_Normal;   \
+\
+varying vec4	v_front_colour;   \
+vec4 p_eye;   \
+vec3 n;   \
+vec4 mat_ambient_colour;   \
+vec4 mat_diffuse_colour;   \
+\
+vec4 lighting_equation (int i) {   \
+vec4 computed_colour = vec4(c_zero, c_zero, c_zero, c_zero);   \
+vec3 h_vec;   \
+float ndotl, ndoth;   \
+float att_factor;   \
+vec3 VPpli;   \
+\
+att_factor = c_one;   \
+if (lightPosition[i].w != c_zero) { \
+float spot_factor;   \
+vec3 att_dist;   \
+\
+VPpli = lightPosition[i].xyz - p_eye.xyz;   \
+if (light_constAtten[i]> 0.0) {   \
+att_dist.x = c_one;   \
+att_dist.z = dot(VPpli, VPpli);  \
+att_dist.y = sqrt(att_dist.z);    \
+/* JAS - make the light_constAtten a vec3 - correct? */ \
+/* att_factor = c_one / dot (att_dist, vec3(light_constAtten[i],light_constAtten[i],light_constAtten[i]));   */ \
+}   \
+\
+VPpli = normalize(VPpli);   \
+\
+if (lightSpotCut[i] < 180.0) {   \
+spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
+if (spot_factor >= cos(radians(lightSpotCut[i])))   \
+spot_factor = pow(spot_factor, lightSpotExp[i]);   \
+else   \
+spot_factor = c_zero;   \
+\
+att_factor *= spot_factor;   \
+}   \
+} else {   \
+VPpli = lightPosition[i].xyz;   \
+}   \
+\
+if (att_factor > c_zero) { \
+computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
+/* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
+ndotl = max(c_zero,dot(n, VPpli));   \
+computed_colour += (ndotl * lightDiffuse[i] * mat_diffuse_colour);    \
+/* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
+h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
+ndoth = dot(n, h_vec);   \
+\
+if (ndoth > c_zero) {   \
+computed_colour += (pow(ndoth,    \
+fw_FrontMaterial.shininess) *   \
+fw_FrontMaterial.specular *   \
+lightSpecular[i]);   \
+}   \
+\
+computed_colour *= att_factor;   \
+}  \
+\
+return computed_colour;   \
+}   \
+\
+vec4 do_lighting() {   \
+vec4	vtx_colour;   \
+int i;   \
+\
+vtx_colour = fw_FrontMaterial.emission +   \
+/* JAS ambient_scene_colour not set (mat_ambient_colour * ambient_scene_colour);   */ \
+mat_ambient_colour; \
+\
+for (i=int(c_zero); i < 8; i++) {   \
+if (lightState[i]==1) {   \
+vtx_colour += lighting_equation(i);   \
+}   \
+}   \
+\
+vtx_colour.a = mat_diffuse_colour.a;   \
+\
+return vtx_colour;   \
+}   \
+\
+\
+void main (void) {   \
+int i,j;   \
+\
+p_eye = fw_ModelViewMatrix * fw_Vertex;   \
+\
+\
+n = fw_NormalMatrix * fw_Normal;   \
+/* if (rescale_normal) {   \
+n = rescale_normal_factor * n;   \
+}   \
+if (normalize_normal)    \
+n = normalize(n);   \
+*/  \
+/* mat_ambient_colour = enable_colour_material ? fw_Color   \
+: fw_FrontMaterial.ambient; */   \
+\
+/* mat_diffuse_colour = enable_colour_material ? fw_Color   \
+: fw_FrontMaterial.diffuse;  */  \
+/* mat_ambient_colour = vec4(0.16, 0.16, 0.16, 1.0); \
+mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */ \
+mat_ambient_colour = fw_FrontMaterial.ambient;   \
+mat_diffuse_colour = fw_FrontMaterial.diffuse;   \
+\
+\
+v_front_colour = do_lighting(); \
+/* v_front_colour = vec4(1., 0., 1., 1.);*/ \
+\
+\
+v_texC =fw_MultiTexCoord0;\
+\
+gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
+}";
+
+#ifdef OLDCODE
+static char *eightTexVertexShader = " \
         attribute      vec4 fw_Vertex; \
-        attribute      vec3 fw_Normal; \
         uniform        mat4 fw_ModelViewMatrix; \
         uniform        mat4 fw_ProjectionMatrix; \
-        uniform        mat3 fw_NormalMatrix; \
         \
-        attribute vec2 fw_TexCoords; \
+        attribute vec2 fw_MultiTexCoord0; \
         varying        vec2 v_texC; \
-        \
+        varying	vec4 v_color; \
+         \
         void main(void) { \
-               /* Norm = normalize(fw_NormalMatrix * fw_Normal); */ \
-               /* Pos = fw_ModelViewMatrix * fw_Vertex;  */ \
-               gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
-               v_texC =fw_TexCoords; \
+            gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+            v_color = fw_Color;  \
+            v_texC =fw_MultiTexCoord0;\
         }";
-
-
-
-/* Geometry Shaders */
-
-static char *noTexSphereGeomShader = " \
-	\
-	int numLayers;\
-	\
-	varying float LightIntensity;\
-	varying vec3 Norm; \
-	varying vec4 Pos; \
-	uniform		mat4 fw_ModelViewMatrix; \
-	uniform		mat4 fw_ProjectionMatrix; \
-	uniform		mat3 fw_NormalMatrix; \
-	uniform		float sphereRadius; \
-	\
-	vec3 V0, V01, V02;\
-	\
-	void ProduceVertex( float s, float t ) {\
-		const vec3 lightPos = vec3( 0., 10., 0. );\
-		\
-		vec3 v = V0 + s*V01 + t*V02;\
-		v = normalize(v);\
-		vec3 n = v;\
-		Norm = normalize( fw_NormalMatrix * n ); \
-		\
-		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
-		\
-		gl_Position = fw_ProjectionMatrix * ECposition;\
-		Pos = ECposition; \
-		EmitVertex();\
-	}\
-	 \
-	void main() { \
-		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
-		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
-		V0  =   gl_PositionIn[0].xyz;\
-		\
-		/* trying random scaling to perform LOD */ \
-		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
-		float dist = distFromViewer.z * sphereRadius; \
-		if (dist < 20) { numLayers=6; } else { \
-			if (dist < 70) {numLayers=4;} else { \
-				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
-			} \
-		} \
-		float dt = 1. / float( numLayers );\
-		\
-		float t_top = 1.;\
-		\
-		for( int it = 0; it < numLayers; it++ ) {\
-			float t_bot = t_top - dt;\
-			float smax_top = 1. - t_top;\
-			float smax_bot = 1. - t_bot;\
-			\
-			int nums = it + 1;\
-			float ds_top = smax_top / float( nums - 1 );\
-			float ds_bot = smax_bot / float( nums );\
-			\
-			float s_top = 0.;\
-			float s_bot = 0.;\
-			\
-			for( int is = 0; is < nums; is++ ) {\
-				ProduceVertex( s_bot, t_bot );\
-				ProduceVertex( s_top, t_top );\
-				s_top += ds_top;\
-				s_bot += ds_bot;\
-			}\
-			\
-			ProduceVertex( s_bot, t_bot );\
-			EndPrimitive();\
-			\
-			t_top = t_bot;\
-			t_bot -= dt;\
-		} \
-	 }";
-
-static char *noAppearanceSphereGeomShader = " \
-	\
-	int numLayers;\
-	\
-	varying float LightIntensity;\
-	/* varying vec3 Norm; */ \
-	/* varying vec4 Pos; */ \
-	uniform		mat4 fw_ModelViewMatrix; \
-	uniform		mat4 fw_ProjectionMatrix; \
-	uniform		mat3 fw_NormalMatrix; \
-	uniform		float sphereRadius; \
-	\
-	vec3 V0, V01, V02;\
-	\
-	void ProduceVertex( float s, float t ) {\
-		const vec3 lightPos = vec3( 0., 10., 0. );\
-		\
-		vec3 v = V0 + s*V01 + t*V02;\
-		v = normalize(v);\
-		vec3 n = v;\
-		/* Norm = normalize( fw_NormalMatrix * n ); */ \
-		\
-		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
-		\
-		gl_Position = fw_ProjectionMatrix * ECposition;\
-		/* Pos = ECposition; */ \
-		EmitVertex();\
-	}\
-	 \
-	void main() { \
-		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
-		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
-		V0  =   gl_PositionIn[0].xyz;\
-		\
-		/* trying random scaling to perform LOD */ \
-		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
-		float dist = distFromViewer.z * sphereRadius; \
-		if (dist < 20) { numLayers=6; } else { \
-			if (dist < 70) {numLayers=4;} else { \
-				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
-			} \
-		} \
-		float dt = 1. / float( numLayers );\
-		\
-		float t_top = 1.;\
-		\
-		for( int it = 0; it < numLayers; it++ ) {\
-			float t_bot = t_top - dt;\
-			float smax_top = 1. - t_top;\
-			float smax_bot = 1. - t_bot;\
-			\
-			int nums = it + 1;\
-			float ds_top = smax_top / float( nums - 1 );\
-			float ds_bot = smax_bot / float( nums );\
-			\
-			float s_top = 0.;\
-			float s_bot = 0.;\
-			\
-			for( int is = 0; is < nums; is++ ) {\
-				ProduceVertex( s_bot, t_bot );\
-				ProduceVertex( s_top, t_top );\
-				s_top += ds_top;\
-				s_bot += ds_bot;\
-			}\
-			\
-			ProduceVertex( s_bot, t_bot );\
-			EndPrimitive();\
-			\
-			t_top = t_bot;\
-			t_bot -= dt;\
-		} \
-	 }";
-
-/* simple texture shader for Sphere Geometry Shader */
-static char *oneTexSphereGeomShader = " \
-	\
-	int numLayers;\
-	\
-	varying float LightIntensity;\
-	/* varying vec3 Norm; */ \
-	/* varying vec4 Pos; */ \
-	uniform		mat4 fw_ModelViewMatrix; \
-	uniform		mat4 fw_ProjectionMatrix; \
-	uniform		mat3 fw_NormalMatrix; \
-	uniform		float sphereRadius; \
-	varying in vec2 v_texCIn[3]; /* texture coordinates in */ \
-	varying out vec2 v_texC;  /* texture coordinates out */ \
-	\
-	vec3 V0, V01, V02;\
-	vec2 T0, T01, T02; \
-	\
-	void ProduceVertex( float s, float t ) {\
-		const vec3 lightPos = vec3( 0., 10., 0. );\
-		\
-		vec3 v = V0 + s*V01 + t*V02;\
-		v = normalize(v);\
-		vec3 n = v;\
-		/* Norm = normalize( fw_NormalMatrix * n ); */	\
-		\
-		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
-		\
-		gl_Position = fw_ProjectionMatrix * ECposition;\
-		/* Pos = ECposition; */ \
-		v_texC = T0; \
-		EmitVertex();\
-	}\
-	 \
-	void main() { \
-		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
-		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
-		V0  =   gl_PositionIn[0].xyz;\
-		T0 = v_texCIn[0]; \
-		T01 = v_texCIn[1]; \
-		T02 = v_texCIn[2];  \
-		\
-		/* trying random scaling to perform LOD */ \
-		vec4 distFromViewer = fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
-		distFromViewer = fw_ProjectionMatrix * distFromViewer; \
-		float dist = distFromViewer.z * sphereRadius; \
-		if (dist < 20) { numLayers=6; } else { \
-			if (dist < 70) {numLayers=4;} else { \
-				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
-			} \
-		} \
-		float dt = 1. / float( numLayers );\
-		\
-		float t_top = 1.;\
-		\
-		for( int it = 0; it < numLayers; it++ ) {\
-			float t_bot = t_top - dt;\
-			float smax_top = 1. - t_top;\
-			float smax_bot = 1. - t_bot;\
-			\
-			int nums = it + 1;\
-			float ds_top = smax_top / float( nums - 1 );\
-			float ds_bot = smax_bot / float( nums );\
-			\
-			float s_top = 0.;\
-			float s_bot = 0.;\
-			\
-			for( int is = 0; is < nums; is++ ) {\
-				ProduceVertex( s_bot, t_bot );\
-				ProduceVertex( s_top, t_top );\
-				s_top += ds_top;\
-				s_bot += ds_bot;\
-			}\
-			\
-			ProduceVertex( s_bot, t_bot );\
-			EndPrimitive();\
-			\
-			t_top = t_bot;\
-			t_bot -= dt;\
-		} \
-	 }";
-/* Fragment Shaders */
-
-
-
-static char *phongFragmentShader =  " \
-\
-struct fw_MaterialParameters { \
-                vec4 emission; \
-                vec4 ambient; \
-                vec4 diffuse; \
-                vec4 specular; \
-                float shininess; \
-        }; \
- \
-uniform fw_MaterialParameters fw_FrontMaterial; \
-uniform fw_MaterialParameters fw_BackMaterial; \
-\
-varying vec3 Norm;  \
-varying vec4 Pos;  \
-\
-uniform int lightState[8]; \
-uniform float light_linAtten[8]; \
-uniform float light_constAtten[8]; \
-uniform float light_quadAtten[8]; \
-uniform float lightSpotCut[8]; \
-uniform float lightSpotExp[8]; \
-uniform vec4 lightAmbient[8]; \
-uniform vec4 lightDiffuse[8]; \
-uniform vec4 lightPosition[8]; \
-uniform vec4 lightSpecular[8]; \
-\
-/* use ADSLightModel here \
- the ADS colour is returned from the function. \
-*/  \
-vec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
-	int i; \
-	vec4 diffuse = vec4(0., 0., 0., 0.); \
-	vec4 ambient = vec4(0., 0., 0., 0.); \
-	vec4 specular = vec4(0., 0., 0., 1.); \
- \
-	vec3 norm = normalize (myNormal); \
-	vec3 viewv = -normalize(myPosition.xyz); \
-	vec4 emissive = fw_FrontMaterial.emission; \
-\
-	/* apply the lights to this material */ \
-	for (i=0; i<8; i++) { \
-		if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = lightDiffuse[i]; \
-		vec4 myLightAmbient = lightAmbient[i]; \
-		vec4 myLightSpecular = lightSpecular[i]; \
-		vec4 myLightPosition = lightPosition[i]; \
-  \
-		/* normal, light, view, and light reflection vectors */ \
-		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 refl = reflect (-lightv, norm); \
- \
-		/* diffuse light computation */ \
-		diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
- \
-		/* ambient light computation */ \
-		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
- \
-		/* Specular light computation */ \
-		if (dot(lightv, viewv) > 0.0) { \
-			specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
-		} \
-		} \
-	} \
-	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
-} \
-void main () { \
-	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
-} \
- " ;
-
-
+#endif
 
 
 static char *phongTwoSidedFragmentShader =  " \
@@ -832,38 +804,27 @@ void main () { \
 static char *noAppearanceNoMaterialFragmentShader =
 " void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
 
-#ifdef OLDCODE
-OLDCODE static char *noAppearanceNoMaterialVertexShader = " \
-OLDCODE	attribute      vec4 fw_Vertex; \
-OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
-OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
-OLDCODE	void main(void) { \
-OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
-OLDCODE	}";
-#endif // OLDCODE
 
+static char *NoAppearanceNoMaterialVertexShader = " \
+/********************************************   \
+********************************************/   \
+   \
+uniform mat4	fw_ModelViewMatrix;   \
+uniform mat4 	fw_ProjectionMatrix;   \
+attribute vec4	fw_Vertex;   \
+   \
+   \
+void main (void) {   \
+	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
+}";
 
-//dug9 april 21, 2012, changed so:
-// a) never transforming eye_p and never transforming lighting normal 
-// (fw_Vertex and fw_Normal should always come in in viewpoint coordinates)
-// b) always normalize(n) which may have helped, not sure
 static char *fullVertexShader = " \
 /********************************************   \
 Vertex shader based on the one in chapter 8 in the Shriner ES 2.0 book   \
 ********************************************/   \
-   \
-\n \
-#ifdef USE_TEXTURES\n   \
-#define NUM_TEXTURES 2 \n  \
-#endif\n \
 \
-\n#ifdef USE_FOG\n \
-#define GLI_FOG_MODE_LINEAR 0 \n  \
-#define GLI_FOG_MODE_EXP 1 \n  \
-#define GLI_FOG_MODE_EXP2 2 \n  \
-\n#endif\n   \
-   \
-\n#ifdef USE_LIGHTING\n \
+\
+\n \
 uniform int lightState[8];    \
 uniform float light_linAtten[8];    \
 uniform float light_constAtten[8];    \
@@ -875,236 +836,155 @@ uniform vec4 lightDiffuse[8];    \
 uniform vec4 lightPosition[8];    \
 uniform vec4 lightSpotDir[8];    \
 uniform vec4 lightSpecular[8];    \
-\n#endif\n   \
-   \
+\
 struct fw_MaterialParameters {    \
-                vec4 emission;    \
-                vec4 ambient;    \
-                vec4 diffuse;    \
-                vec4 specular;    \
-                float shininess;    \
-        };    \
-   \
+vec4 emission;    \
+vec4 ambient;    \
+vec4 diffuse;    \
+vec4 specular;    \
+float shininess;    \
+};    \
+\
 const float	c_zero = 0.0;   \
 const float	c_one = 1.0;   \
 const int	indx_zero = 0;   \
 const int	indx_one = 1;   \
-   \
+\
 uniform mat4	fw_ModelViewMatrix;   \
 uniform mat4 	fw_ProjectionMatrix;   \
-   \
+\
 uniform mat3	fw_NormalMatrix;   \
-   \
-\n#ifdef USE_TEXTURES\n  \
-uniform mat4	tex_matrix[NUM_TEXTURES];   \
-uniform bool	enable_tex[NUM_TEXTURES];   \
-uniform bool	enable_tex_matrix[NUM_TEXTURES];   \
-\n#endif\n  \
-   \
+\
+\
 uniform fw_MaterialParameters  fw_FrontMaterial;   \
-uniform fw_MaterialParameters  fw_BackMaterial;   \
-   \
-uniform vec4	ambient_scene_colour;   \
-uniform bool 	light_model_two_sided;   \
-uniform bool	enable_colour_material;   \
-uniform float	fog_density;   \
-uniform float	fog_start, fog_end;   \
-uniform int	fog_mode;   \
-uniform bool	xform_eye_p;   \
-uniform bool	rescale_normal;   \
+\
+/* uniform vec4	ambient_scene_colour; */  \
+/* uniform bool 	light_model_two_sided;  */ \
+/* uniform bool	enable_colour_material; */  \
+/* uniform bool	rescale_normal;   \
 uniform bool 	normalize_normal;   \
-uniform float	rescale_normal_factor;   \
-uniform vec4	ucp_eqn;   \
-uniform bool	enable_ucp;   \
-   \
+uniform float	rescale_normal_factor;  */ \
+\
 attribute vec4	fw_Vertex;   \
 attribute vec4	a_texcoord0;   \
 attribute vec4	a_texcoord1;   \
 attribute vec4	fw_Color;   \
 attribute vec3	fw_Normal;   \
-   \
-\n#ifdef USE_TEXTURES\n  \
-varying vec4	v_texcoord[NUM_TEXTURES];   \
-\n#endif\n  \
 \
 varying vec4	v_front_colour;   \
-varying vec4	v_back_colour;   \
-varying float	v_fog_factor;   \
-varying	float	v_ucp_factor;   \
-   \
 vec4 p_eye;   \
 vec3 n;   \
 vec4 mat_ambient_colour;   \
 vec4 mat_diffuse_colour;   \
-   \
-\n#ifdef USE_LIGHTING \n \
+\
 vec4 lighting_equation (int i) {   \
-	vec4 computed_colour = vec4(c_zero, c_zero, c_zero, c_zero);   \
-	vec3 h_vec;   \
-	float ndotl, ndoth;   \
-	float att_factor;   \
-	vec3 VPpli;   \
-   \
-	att_factor = c_one;   \
-	if (lightPosition[i].w != c_zero) { \
-		float spot_factor;   \
-		vec3 att_dist;   \
-   \
-		VPpli = lightPosition[i].xyz - p_eye.xyz;   \
-		if (light_constAtten[i]> 0.0) {   \
-			att_dist.x = c_one;   \
-			att_dist.z = dot(VPpli, VPpli);  \
-			att_dist.y = sqrt(att_dist.z);    \
-			/* JAS - make the light_constAtten a vec3 - correct? */ \
-			/* att_factor = c_one / dot (att_dist, vec3(light_constAtten[i],light_constAtten[i],light_constAtten[i]));   */ \
-		}   \
-   \
-		VPpli = normalize(VPpli);   \
-   \
-   if (lightSpotCut[i] < 180.0) {   \
-			spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
-			if (spot_factor >= cos(radians(lightSpotCut[i])))   \
-				spot_factor = pow(spot_factor, lightSpotExp[i]);   \
-			else   \
-				spot_factor = c_zero;   \
-   \
-			att_factor *= spot_factor;   \
-		}   \
-	} else {   \
-		VPpli = lightPosition[i].xyz;   \
-	}   \
-   \
-	if (att_factor > c_zero) { \
-		computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
-		/* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
-		ndotl = max(c_zero,dot(n, VPpli));    \
-		computed_colour += (ndotl * (lightDiffuse[i] * mat_diffuse_colour));    \
-		/* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
-		h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
-		ndoth = dot(n, h_vec);   \
-   \
-   if (ndoth > c_zero) {   \
-			computed_colour += (pow(ndoth,    \
-				fw_FrontMaterial.shininess) *   \
-				fw_FrontMaterial.specular *   \
-				lightSpecular[i]);   \
-		}   \
-   \
-		computed_colour *= att_factor;   \
-	}  \
-    \
-	return computed_colour;   \
+vec4 computed_colour = vec4(c_zero, c_zero, c_zero, c_zero);   \
+vec3 h_vec;   \
+float ndotl, ndoth;   \
+float att_factor;   \
+vec3 VPpli;   \
+\
+att_factor = c_one;   \
+if (lightPosition[i].w != c_zero) { \
+float spot_factor;   \
+vec3 att_dist;   \
+\
+VPpli = lightPosition[i].xyz - p_eye.xyz;   \
+if (light_constAtten[i]> 0.0) {   \
+att_dist.x = c_one;   \
+att_dist.z = dot(VPpli, VPpli);  \
+att_dist.y = sqrt(att_dist.z);    \
+/* JAS - make the light_constAtten a vec3 - correct? */ \
+/* att_factor = c_one / dot (att_dist, vec3(light_constAtten[i],light_constAtten[i],light_constAtten[i]));   */ \
 }   \
-\n#endif \n \
-   \
-   \
-\n#ifdef USE_FOG \n \
-float compute_fog() {   \
-	float f;   \
-   \
-	if (fog_mode == GLI_FOG_MODE_LINEAR) {   \
- 		f = (fog_end - p_eye.z) / (fog_end - fog_start);   \
-	} else if (fog_mode == GLI_FOG_MODE_EXP) {   \
-		f = exp(-(p_eye.z * fog_density));   \
-	} else {   \
-		f = (p_eye.z * fog_density);   \
-		f = exp(-(f * f));   \
-	}   \
-   \
-	f = clamp(f,c_zero, c_one);   \
-	return f;   \
+\
+VPpli = normalize(VPpli);   \
+\
+if (lightSpotCut[i] < 180.0) {   \
+spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
+if (spot_factor >= cos(radians(lightSpotCut[i])))   \
+spot_factor = pow(spot_factor, lightSpotExp[i]);   \
+else   \
+spot_factor = c_zero;   \
+\
+att_factor *= spot_factor;   \
 }   \
-\n#endif \n \
-   \
-\n#ifdef USE_LIGHTING\n \
+} else {   \
+VPpli = lightPosition[i].xyz;   \
+}   \
+\
+if (att_factor > c_zero) { \
+computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
+/* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
+ndotl = max(c_zero,dot(n, VPpli));   \
+computed_colour += (ndotl * lightDiffuse[i] * mat_diffuse_colour);    \
+/* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
+h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
+ndoth = dot(n, h_vec);   \
+\
+if (ndoth > c_zero) {   \
+computed_colour += (pow(ndoth,    \
+fw_FrontMaterial.shininess) *   \
+fw_FrontMaterial.specular *   \
+lightSpecular[i]);   \
+}   \
+\
+computed_colour *= att_factor;   \
+}  \
+\
+return computed_colour;   \
+}   \
+\
 vec4 do_lighting() {   \
-	vec4	vtx_colour;   \
-	int i;   \
-   \
-	vtx_colour = fw_FrontMaterial.emission +   \
-		/* JAS ambient_scene_colour not set (mat_ambient_colour * ambient_scene_colour);   */ \
-		mat_ambient_colour; \
-   \
-	for (i=int(c_zero); i < 8; i++) {   \
-		if (lightState[i]==1) {   \
-			vtx_colour += lighting_equation(i);    \
-		}   \
-	}   \
-   \
-	vtx_colour.a = mat_diffuse_colour.a;   \
-   \
-	return vtx_colour;   \
+vec4	vtx_colour;   \
+int i;   \
+\
+vtx_colour = fw_FrontMaterial.emission +   \
+/* JAS ambient_scene_colour not set (mat_ambient_colour * ambient_scene_colour);   */ \
+mat_ambient_colour; \
+\
+for (i=int(c_zero); i < 8; i++) {   \
+if (lightState[i]==1) {   \
+vtx_colour += lighting_equation(i);   \
 }   \
-\n#endif \n \
-   \
-   \
+}   \
+\
+vtx_colour.a = mat_diffuse_colour.a;   \
+\
+return vtx_colour;   \
+}   \
+\
+\
 void main (void) {   \
-	int i,j;   \
-   \
-	p_eye = fw_Vertex; \
-	if (false && xform_eye_p)    \
-		p_eye = fw_ModelViewMatrix * fw_Vertex;   \
-   \
-\n#ifdef USE_LIGHTING\n  \
-		n = fw_Normal;   \
-		if (rescale_normal) {   \
-			n = rescale_normal_factor * n;   \
-		}   \
-		if (true || normalize_normal)    \
-			n = normalize(n);   \
-    \
-		mat_ambient_colour = enable_colour_material ? fw_Color   \
-				: fw_FrontMaterial.ambient;    \
-   \
-		mat_diffuse_colour = enable_colour_material ? fw_Color   \
-				: fw_FrontMaterial.diffuse;    \
+int i,j;   \
+\
+p_eye = fw_ModelViewMatrix * fw_Vertex;   \
+\
+\
+n = fw_NormalMatrix * fw_Normal;   \
+/* if (rescale_normal) {   \
+n = rescale_normal_factor * n;   \
+}   \
+if (normalize_normal)    \
+n = normalize(n);   \
+*/  \
+/* mat_ambient_colour = enable_colour_material ? fw_Color   \
+: fw_FrontMaterial.ambient; */   \
+\
+/* mat_diffuse_colour = enable_colour_material ? fw_Color   \
+: fw_FrontMaterial.diffuse;  */  \
 /* mat_ambient_colour = vec4(0.16, 0.16, 0.16, 1.0); \
-mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */  \
- mat_ambient_colour = fw_FrontMaterial.ambient;   \
- mat_diffuse_colour = fw_FrontMaterial.diffuse;    \
+mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */ \
+mat_ambient_colour = fw_FrontMaterial.ambient;   \
+mat_diffuse_colour = fw_FrontMaterial.diffuse;   \
 \
 \
-		v_front_colour = do_lighting();   \
-		v_back_colour = v_front_colour;   \
-    \
-	if (light_model_two_sided) {   \
-			n = -n;   \
-			v_back_colour = do_lighting();   \
-		}  \
-\n#else \n \
-		/* set the default output colour to be the per-vertex / per-primitive colour */   \
-		v_front_colour = fw_Color;   \
-		v_back_colour = fw_Color;   \
-\n#endif \n \
-   \
-\n#ifdef USE_TEXTURES \n \
-	/* do texture transforms */   \
-	v_texcoord[indx_zero] = vec4 (c_zero, c_zero, c_zero, c_one);   \
-	if (enable_tex[indx_zero]) {   \
-		if (enable_tex_matrix[indx_zero])   \
-			v_texcoord[indx_zero] = tex_matrix[indx_zero] * a_texcoord0;   \
-		else   \
-			v_texcoord[indx_zero] = a_texcoord0;   \
-	}   \
-	v_texcoord[indx_one] = vec4 (c_zero, c_zero, c_zero, c_one);   \
-	if (enable_tex[indx_one]) {   \
-		if (enable_tex_matrix[indx_one])   \
-			v_texcoord[indx_one] = tex_matrix[indx_zero] * a_texcoord1;   \
-		else   \
-			v_texcoord[indx_one] = a_texcoord1;   \
-	}   \
-   \
-\n#endif \n \
+v_front_colour = do_lighting(); \
+/* v_front_colour = vec4(1., 0., 1., 1.);*/ \
 \
-	v_ucp_factor = enable_ucp ? dot(p_eye, ucp_eqn) : c_zero;   \
 \
-\n#ifdef USE_FOG\n \
-	v_fog_factor = compute_fog();   \
-\n#endif \n \
-    \
-	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
+gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
 }";
-
 
 
 /****************************************************************************************/
@@ -1339,16 +1219,1055 @@ static char *linePointVertexNoColourShader = " \
 
 
 
+#ifdef OLDCODE
+OLDCODE
+OLDCODEstatic char *materialNoTexShader =
+OLDCODE" varying vec4 v_front_colour; void main () {gl_FragColor = v_front_colour; }";
+OLDCODE
+OLDCODEstatic char *backgroundSphereShaderFragment = 
+OLDCODE" varying vec4 v_color; void main () {gl_FragColor = v_color;}";
+OLDCODE
+OLDCODEstatic char *backgroundSphereShaderVertex = "attribute	vec4 fw_Color; " \
+OLDCODE			"attribute	vec4 fw_Vertex;" \
+OLDCODE			"uniform		mat4 fw_ModelViewMatrix;" \
+OLDCODE			"uniform		mat4 fw_ProjectionMatrix;" \
+OLDCODE			"varying	vec4 v_color;" \
+OLDCODE			"void main(void) {" \
+OLDCODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLDCODE			"	v_color = fw_Color; " \
+OLDCODE			"	/* v_color = vec4(1., 0., 0., 1.); v_color.a = 1.; */" \
+OLDCODE			"}";
+OLDCODE
+OLDCODEstatic char *backgroundTextureBoxShaderFragment =
+OLDCODE       				" varying vec2 v_texC; uniform sampler2D fw_Texture0; " \
+OLDCODE				" void main () {gl_FragColor = texture2D(fw_Texture0, v_texC);}";
+OLDCODEstatic char *backgroundTextureBoxShaderVertex =
+OLDCODE			"attribute	vec2 fw_TexCoords; " \
+OLDCODE			"attribute	vec4 fw_Vertex;" \
+OLDCODE			"uniform	mat4 fw_ModelViewMatrix;" \
+OLDCODE			"uniform	mat4 fw_ProjectionMatrix;" \
+OLDCODE			"varying	vec2 v_texC;" \
+OLDCODE			"void main(void) {" \
+OLDCODE			"	vec4 pos = fw_ModelViewMatrix * fw_Vertex;" \
+OLDCODE			"	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;" \
+OLDCODE			"	v_texC =fw_TexCoords;" \
+OLDCODE			"}";
+OLDCODE
+OLDCODEstatic char *oneTexFragmentShader = " \
+OLDCODE	varying vec2 v_texC; \
+OLDCODE	uniform sampler2D fw_Texture0; \
+OLDCODE	void main () { \
+OLDCODE		gl_FragColor = texture2D(fw_Texture0, v_texC); \
+OLDCODE	}";
+OLDCODE
+OLDCODEstatic char *complexTexFragmentShader = " \
+OLDCODE	varying vec2 v_texC; \
+OLDCODE	uniform sampler2D fw_Texture0; \
+OLDCODE	uniform sampler2D fw_Texture1; \
+OLDCODE	uniform sampler2D fw_Texture2; \
+OLDCODE	uniform sampler2D fw_Texture3; \
+OLDCODE	uniform vec4 fw_useTex;\
+OLDCODE	void main () { \
+OLDCODE		vec4 color0; \
+OLDCODE		color0 = texture2D(fw_Texture0, v_texC); \
+OLDCODE		if(fw_useTex.y > 0.0) \
+OLDCODE			color0 = color0 + texture2D(fw_Texture1, v_texC); \
+OLDCODE		if(fw_useTex.z > 0.0) \
+OLDCODE			color0 = color0 + texture2D(fw_Texture2, v_texC); \
+OLDCODE		if(fw_useTex.w > 0.0) \
+OLDCODE			color0 = color0 + texture2D(fw_Texture3, v_texC); \
+OLDCODE		gl_FragColor = color0; \
+OLDCODE	}";
+OLDCODE
+OLDCODE/* Vertex Shaders */
+OLDCODE
+OLDCODEstatic char *noTexVertexShaderForSphereGeomShader = " \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE		/* just pass these through - the geom shader will calculate */ \
+OLDCODE		/* and transform as it creates new vertices */ \
+OLDCODE		gl_Position = fw_Vertex; \
+OLDCODE	}";
+OLDCODE
+OLDCODEstatic char *oneTexVertexShaderForSphereGeomShader = " \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE        \
+OLDCODE        attribute vec2 fw_TexCoords; \
+OLDCODE        varying        vec2 v_texCIn; /* goes to v_texCin[3] */ \
+OLDCODE        \
+OLDCODE	void main(void) { \
+OLDCODE		/* just pass these through - the geom shader will calculate */ \
+OLDCODE		/* and transform as it creates new vertices */ \
+OLDCODE		gl_Position = fw_Vertex; \
+OLDCODE               v_texCIn =fw_TexCoords; \
+OLDCODE	}";
+OLDCODE
+OLDCODE/* vertex shader - phong lighting */
+OLDCODEstatic char *phongSimpleVertexShader = " \
+OLDCODE	varying vec3 Norm; \
+OLDCODE	varying vec4 Pos; \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	attribute      vec3 fw_Normal; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	uniform        mat3 fw_NormalMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE	       Norm = normalize(fw_NormalMatrix * fw_Normal); \
+OLDCODE	       Pos = fw_ModelViewMatrix * fw_Vertex;  \
+OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE	}";
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODEstatic char *oneTexVertexShader = " \
+OLDCODE        /* varying vec3 Norm; */ \
+OLDCODE        /* varying vec4 Pos; */ \
+OLDCODE        attribute      vec4 fw_Vertex; \
+OLDCODE        attribute      vec3 fw_Normal; \
+OLDCODE        uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE        uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE        uniform        mat3 fw_NormalMatrix; \
+OLDCODE        \
+OLDCODE        attribute vec2 fw_TexCoords; \
+OLDCODE        varying        vec2 v_texC; \
+OLDCODE        \
+OLDCODE        void main(void) { \
+OLDCODE               /* Norm = normalize(fw_NormalMatrix * fw_Normal); */ \
+OLDCODE               /* Pos = fw_ModelViewMatrix * fw_Vertex;  */ \
+OLDCODE               gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE               v_texC =fw_TexCoords; \
+OLDCODE        }";
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE/* Geometry Shaders */
+OLDCODE
+OLDCODEstatic char *noTexSphereGeomShader = " \
+OLDCODE	\
+OLDCODE	int numLayers;\
+OLDCODE	\
+OLDCODE	varying float LightIntensity;\
+OLDCODE	varying vec3 Norm; \
+OLDCODE	varying vec4 Pos; \
+OLDCODE	uniform		mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform		mat4 fw_ProjectionMatrix; \
+OLDCODE	uniform		mat3 fw_NormalMatrix; \
+OLDCODE	uniform		float sphereRadius; \
+OLDCODE	\
+OLDCODE	vec3 V0, V01, V02;\
+OLDCODE	\
+OLDCODE	void ProduceVertex( float s, float t ) {\
+OLDCODE		const vec3 lightPos = vec3( 0., 10., 0. );\
+OLDCODE		\
+OLDCODE		vec3 v = V0 + s*V01 + t*V02;\
+OLDCODE		v = normalize(v);\
+OLDCODE		vec3 n = v;\
+OLDCODE		Norm = normalize( fw_NormalMatrix * n ); \
+OLDCODE		\
+OLDCODE		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+OLDCODE		\
+OLDCODE		gl_Position = fw_ProjectionMatrix * ECposition;\
+OLDCODE		Pos = ECposition; \
+OLDCODE		EmitVertex();\
+OLDCODE	}\
+OLDCODE	 \
+OLDCODE	void main() { \
+OLDCODE		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V0  =   gl_PositionIn[0].xyz;\
+OLDCODE		\
+OLDCODE		/* trying random scaling to perform LOD */ \
+OLDCODE		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+OLDCODE		float dist = distFromViewer.z * sphereRadius; \
+OLDCODE		if (dist < 20) { numLayers=6; } else { \
+OLDCODE			if (dist < 70) {numLayers=4;} else { \
+OLDCODE				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
+OLDCODE			} \
+OLDCODE		} \
+OLDCODE		float dt = 1. / float( numLayers );\
+OLDCODE		\
+OLDCODE		float t_top = 1.;\
+OLDCODE		\
+OLDCODE		for( int it = 0; it < numLayers; it++ ) {\
+OLDCODE			float t_bot = t_top - dt;\
+OLDCODE			float smax_top = 1. - t_top;\
+OLDCODE			float smax_bot = 1. - t_bot;\
+OLDCODE			\
+OLDCODE			int nums = it + 1;\
+OLDCODE			float ds_top = smax_top / float( nums - 1 );\
+OLDCODE			float ds_bot = smax_bot / float( nums );\
+OLDCODE			\
+OLDCODE			float s_top = 0.;\
+OLDCODE			float s_bot = 0.;\
+OLDCODE			\
+OLDCODE			for( int is = 0; is < nums; is++ ) {\
+OLDCODE				ProduceVertex( s_bot, t_bot );\
+OLDCODE				ProduceVertex( s_top, t_top );\
+OLDCODE				s_top += ds_top;\
+OLDCODE				s_bot += ds_bot;\
+OLDCODE			}\
+OLDCODE			\
+OLDCODE			ProduceVertex( s_bot, t_bot );\
+OLDCODE			EndPrimitive();\
+OLDCODE			\
+OLDCODE			t_top = t_bot;\
+OLDCODE			t_bot -= dt;\
+OLDCODE		} \
+OLDCODE	 }";
+OLDCODE
+OLDCODEstatic char *noAppearanceSphereGeomShader = " \
+OLDCODE	\
+OLDCODE	int numLayers;\
+OLDCODE	\
+OLDCODE	varying float LightIntensity;\
+OLDCODE	/* varying vec3 Norm; */ \
+OLDCODE	/* varying vec4 Pos; */ \
+OLDCODE	uniform		mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform		mat4 fw_ProjectionMatrix; \
+OLDCODE	uniform		mat3 fw_NormalMatrix; \
+OLDCODE	uniform		float sphereRadius; \
+OLDCODE	\
+OLDCODE	vec3 V0, V01, V02;\
+OLDCODE	\
+OLDCODE	void ProduceVertex( float s, float t ) {\
+OLDCODE		const vec3 lightPos = vec3( 0., 10., 0. );\
+OLDCODE		\
+OLDCODE		vec3 v = V0 + s*V01 + t*V02;\
+OLDCODE		v = normalize(v);\
+OLDCODE		vec3 n = v;\
+OLDCODE		/* Norm = normalize( fw_NormalMatrix * n ); */ \
+OLDCODE		\
+OLDCODE		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+OLDCODE		\
+OLDCODE		gl_Position = fw_ProjectionMatrix * ECposition;\
+OLDCODE		/* Pos = ECposition; */ \
+OLDCODE		EmitVertex();\
+OLDCODE	}\
+OLDCODE	 \
+OLDCODE	void main() { \
+OLDCODE		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V0  =   gl_PositionIn[0].xyz;\
+OLDCODE		\
+OLDCODE		/* trying random scaling to perform LOD */ \
+OLDCODE		vec4 distFromViewer = fw_ProjectionMatrix * fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+OLDCODE		float dist = distFromViewer.z * sphereRadius; \
+OLDCODE		if (dist < 20) { numLayers=6; } else { \
+OLDCODE			if (dist < 70) {numLayers=4;} else { \
+OLDCODE				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
+OLDCODE			} \
+OLDCODE		} \
+OLDCODE		float dt = 1. / float( numLayers );\
+OLDCODE		\
+OLDCODE		float t_top = 1.;\
+OLDCODE		\
+OLDCODE		for( int it = 0; it < numLayers; it++ ) {\
+OLDCODE			float t_bot = t_top - dt;\
+OLDCODE			float smax_top = 1. - t_top;\
+OLDCODE			float smax_bot = 1. - t_bot;\
+OLDCODE			\
+OLDCODE			int nums = it + 1;\
+OLDCODE			float ds_top = smax_top / float( nums - 1 );\
+OLDCODE			float ds_bot = smax_bot / float( nums );\
+OLDCODE			\
+OLDCODE			float s_top = 0.;\
+OLDCODE			float s_bot = 0.;\
+OLDCODE			\
+OLDCODE			for( int is = 0; is < nums; is++ ) {\
+OLDCODE				ProduceVertex( s_bot, t_bot );\
+OLDCODE				ProduceVertex( s_top, t_top );\
+OLDCODE				s_top += ds_top;\
+OLDCODE				s_bot += ds_bot;\
+OLDCODE			}\
+OLDCODE			\
+OLDCODE			ProduceVertex( s_bot, t_bot );\
+OLDCODE			EndPrimitive();\
+OLDCODE			\
+OLDCODE			t_top = t_bot;\
+OLDCODE			t_bot -= dt;\
+OLDCODE		} \
+OLDCODE	 }";
+OLDCODE
+OLDCODE/* simple texture shader for Sphere Geometry Shader */
+OLDCODEstatic char *oneTexSphereGeomShader = " \
+OLDCODE	\
+OLDCODE	int numLayers;\
+OLDCODE	\
+OLDCODE	varying float LightIntensity;\
+OLDCODE	/* varying vec3 Norm; */ \
+OLDCODE	/* varying vec4 Pos; */ \
+OLDCODE	uniform		mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform		mat4 fw_ProjectionMatrix; \
+OLDCODE	uniform		mat3 fw_NormalMatrix; \
+OLDCODE	uniform		float sphereRadius; \
+OLDCODE	varying in vec2 v_texCIn[3]; /* texture coordinates in */ \
+OLDCODE	varying out vec2 v_texC;  /* texture coordinates out */ \
+OLDCODE	\
+OLDCODE	vec3 V0, V01, V02;\
+OLDCODE	vec2 T0, T01, T02; \
+OLDCODE	\
+OLDCODE	void ProduceVertex( float s, float t ) {\
+OLDCODE		const vec3 lightPos = vec3( 0., 10., 0. );\
+OLDCODE		\
+OLDCODE		vec3 v = V0 + s*V01 + t*V02;\
+OLDCODE		v = normalize(v);\
+OLDCODE		vec3 n = v;\
+OLDCODE		/* Norm = normalize( fw_NormalMatrix * n ); */	\
+OLDCODE		\
+OLDCODE		vec4 ECposition = fw_ModelViewMatrix * vec4( (sphereRadius*v), 1. );\
+OLDCODE		\
+OLDCODE		gl_Position = fw_ProjectionMatrix * ECposition;\
+OLDCODE		/* Pos = ECposition; */ \
+OLDCODE		v_texC = T0; \
+OLDCODE		EmitVertex();\
+OLDCODE	}\
+OLDCODE	 \
+OLDCODE	void main() { \
+OLDCODE		V01 = ( gl_PositionIn[1] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V02 = ( gl_PositionIn[2] - gl_PositionIn[0] ).xyz;\
+OLDCODE		V0  =   gl_PositionIn[0].xyz;\
+OLDCODE		T0 = v_texCIn[0]; \
+OLDCODE		T01 = v_texCIn[1]; \
+OLDCODE		T02 = v_texCIn[2];  \
+OLDCODE		\
+OLDCODE		/* trying random scaling to perform LOD */ \
+OLDCODE		vec4 distFromViewer = fw_ModelViewMatrix * vec4 (0., 0., 0., 1.); \
+OLDCODE		distFromViewer = fw_ProjectionMatrix * distFromViewer; \
+OLDCODE		float dist = distFromViewer.z * sphereRadius; \
+OLDCODE		if (dist < 20) { numLayers=6; } else { \
+OLDCODE			if (dist < 70) {numLayers=4;} else { \
+OLDCODE				if (dist < 120) {numLayers=2;} else {numLayers=1;}; \
+OLDCODE			} \
+OLDCODE		} \
+OLDCODE		float dt = 1. / float( numLayers );\
+OLDCODE		\
+OLDCODE		float t_top = 1.;\
+OLDCODE		\
+OLDCODE		for( int it = 0; it < numLayers; it++ ) {\
+OLDCODE			float t_bot = t_top - dt;\
+OLDCODE			float smax_top = 1. - t_top;\
+OLDCODE			float smax_bot = 1. - t_bot;\
+OLDCODE			\
+OLDCODE			int nums = it + 1;\
+OLDCODE			float ds_top = smax_top / float( nums - 1 );\
+OLDCODE			float ds_bot = smax_bot / float( nums );\
+OLDCODE			\
+OLDCODE			float s_top = 0.;\
+OLDCODE			float s_bot = 0.;\
+OLDCODE			\
+OLDCODE			for( int is = 0; is < nums; is++ ) {\
+OLDCODE				ProduceVertex( s_bot, t_bot );\
+OLDCODE				ProduceVertex( s_top, t_top );\
+OLDCODE				s_top += ds_top;\
+OLDCODE				s_bot += ds_bot;\
+OLDCODE			}\
+OLDCODE			\
+OLDCODE			ProduceVertex( s_bot, t_bot );\
+OLDCODE			EndPrimitive();\
+OLDCODE			\
+OLDCODE			t_top = t_bot;\
+OLDCODE			t_bot -= dt;\
+OLDCODE		} \
+OLDCODE	 }";
+OLDCODE/* Fragment Shaders */
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODEstatic char *phongFragmentShader =  " \
+OLDCODE\
+OLDCODEstruct fw_MaterialParameters { \
+OLDCODE                vec4 emission; \
+OLDCODE                vec4 ambient; \
+OLDCODE                vec4 diffuse; \
+OLDCODE                vec4 specular; \
+OLDCODE                float shininess; \
+OLDCODE        }; \
+OLDCODE \
+OLDCODEuniform fw_MaterialParameters fw_FrontMaterial; \
+OLDCODEuniform fw_MaterialParameters fw_BackMaterial; \
+OLDCODE\
+OLDCODEvarying vec3 Norm;  \
+OLDCODEvarying vec4 Pos;  \
+OLDCODE\
+OLDCODEuniform int lightState[8]; \
+OLDCODEuniform float light_linAtten[8]; \
+OLDCODEuniform float light_constAtten[8]; \
+OLDCODEuniform float light_quadAtten[8]; \
+OLDCODEuniform float lightSpotCut[8]; \
+OLDCODEuniform float lightSpotExp[8]; \
+OLDCODEuniform vec4 lightAmbient[8]; \
+OLDCODEuniform vec4 lightDiffuse[8]; \
+OLDCODEuniform vec4 lightPosition[8]; \
+OLDCODEuniform vec4 lightSpecular[8]; \
+OLDCODE\
+OLDCODE/* use ADSLightModel here \
+OLDCODE the ADS colour is returned from the function. \
+OLDCODE*/  \
+OLDCODEvec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+OLDCODE	int i; \
+OLDCODE	vec4 diffuse = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 ambient = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 specular = vec4(0., 0., 0., 1.); \
+OLDCODE \
+OLDCODE	vec3 norm = normalize (myNormal); \
+OLDCODE	vec3 viewv = -normalize(myPosition.xyz); \
+OLDCODE	vec4 emissive = fw_FrontMaterial.emission; \
+OLDCODE\
+OLDCODE	/* apply the lights to this material */ \
+OLDCODE	for (i=0; i<8; i++) { \
+OLDCODE		if (lightState[i] == 1) { \
+OLDCODE		vec4 myLightDiffuse = lightDiffuse[i]; \
+OLDCODE		vec4 myLightAmbient = lightAmbient[i]; \
+OLDCODE		vec4 myLightSpecular = lightSpecular[i]; \
+OLDCODE		vec4 myLightPosition = lightPosition[i]; \
+OLDCODE  \
+OLDCODE		/* normal, light, view, and light reflection vectors */ \
+OLDCODE		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+OLDCODE		vec3 refl = reflect (-lightv, norm); \
+OLDCODE \
+OLDCODE		/* diffuse light computation */ \
+OLDCODE		diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+OLDCODE \
+OLDCODE		/* ambient light computation */ \
+OLDCODE		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE		/* Specular light computation */ \
+OLDCODE		if (dot(lightv, viewv) > 0.0) { \
+OLDCODE			specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+OLDCODE		} \
+OLDCODE		} \
+OLDCODE	} \
+OLDCODE	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
+OLDCODE} \
+OLDCODEvoid main () { \
+OLDCODE	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+OLDCODE} \
+OLDCODE " ;
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODEstatic char *phongTwoSidedFragmentShader =  " \
+OLDCODE\
+OLDCODEstruct fw_MaterialParameters { \
+OLDCODE                vec4 emission; \
+OLDCODE                vec4 ambient; \
+OLDCODE                vec4 diffuse; \
+OLDCODE                vec4 specular; \
+OLDCODE                float shininess; \
+OLDCODE        }; \
+OLDCODE \
+OLDCODEuniform fw_MaterialParameters fw_FrontMaterial; \
+OLDCODEuniform fw_MaterialParameters fw_BackMaterial; \
+OLDCODE\
+OLDCODEvarying vec3 Norm;  \
+OLDCODEvarying vec4 Pos;  \
+OLDCODE\
+OLDCODEuniform int lightState[8]; \
+OLDCODEuniform float light_linAtten[8]; \
+OLDCODEuniform float light_constAtten[8]; \
+OLDCODEuniform float light_quadAtten[8]; \
+OLDCODEuniform float lightSpotCut[8]; \
+OLDCODEuniform float lightSpotExp[8]; \
+OLDCODEuniform vec4 lightAmbient[8]; \
+OLDCODEuniform vec4 lightDiffuse[8]; \
+OLDCODEuniform vec4 lightPosition[8]; \
+OLDCODEuniform vec4 lightSpecular[8]; \
+OLDCODE\
+OLDCODE/* use ADSLightModel here \
+OLDCODE the ADS colour is returned from the function. \
+OLDCODE*/  \
+OLDCODEvec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+OLDCODE	int i; \
+OLDCODE	vec4 diffuse = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 ambient = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 specular = vec4(0., 0., 0., 1.); \
+OLDCODE	vec3 viewv = -normalize(myPosition.xyz); \
+OLDCODE	vec3 norm = normalize (myNormal); \
+OLDCODE	vec4 emissive; \
+OLDCODE\
+OLDCODE	bool backFacing = (dot(norm,viewv) < 0.0); \
+OLDCODE \
+OLDCODE	/* back Facing materials - flip the normal */ \
+OLDCODE	if (backFacing) { \
+OLDCODE		norm = -norm; \
+OLDCODE		emissive = fw_BackMaterial.emission;	\
+OLDCODE	} else { \
+OLDCODE		emissive = fw_FrontMaterial.emission;	\
+OLDCODE	} \
+OLDCODE\
+OLDCODE	/* apply the lights to this material */ \
+OLDCODE	for (i=0; i<8; i++) { \
+OLDCODE		if (lightState[i] == 1) { \
+OLDCODE		vec4 myLightDiffuse = lightDiffuse[i]; \
+OLDCODE		vec4 myLightAmbient = lightAmbient[i]; \
+OLDCODE		vec4 myLightSpecular = lightSpecular[i]; \
+OLDCODE		vec4 myLightPosition = lightPosition[i]; \
+OLDCODE  \
+OLDCODE		/* normal, light, view, and light reflection vectors */ \
+OLDCODE		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+OLDCODE		vec3 refl = reflect (-lightv, norm); \
+OLDCODE \
+OLDCODE		if (backFacing) { \
+OLDCODE			/* diffuse light computation */ \
+OLDCODE			diffuse += max (0.0, dot(lightv, norm))*fw_BackMaterial.diffuse*myLightDiffuse; \
+OLDCODE \
+OLDCODE			/* ambient light computation */ \
+OLDCODE			ambient += fw_BackMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE			/* Specular light computation */ \
+OLDCODE			if (dot(lightv, viewv) > 0.0) { \
+OLDCODE				specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE					fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
+OLDCODE			} \
+OLDCODE		} else { \
+OLDCODE \
+OLDCODE			/* diffuse light computation */ \
+OLDCODE			diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+OLDCODE \
+OLDCODE			/* ambient light computation */ \
+OLDCODE			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE			/* Specular light computation */ \
+OLDCODE			if (dot(lightv, viewv) > 0.0) { \
+OLDCODE				specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE					fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+OLDCODE			} \
+OLDCODE		} \
+OLDCODE		} \
+OLDCODE	} \
+OLDCODE	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
+OLDCODE} \
+OLDCODEvoid main () { \
+OLDCODE	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+OLDCODE} \
+OLDCODE " ;
+OLDCODE
+OLDCODEstatic char *noAppearanceNoMaterialFragmentShader =
+OLDCODE" void main () {gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);}";
+OLDCODE
+OLDCODE static char *noAppearanceNoMaterialVertexShader = " \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE	}";
+OLDCODE
+OLDCODE
+OLDCODE//dug9 april 21, 2012, changed so:
+OLDCODE// a) never transforming eye_p and never transforming lighting normal 
+OLDCODE// (fw_Vertex and fw_Normal should always come in in viewpoint coordinates)
+OLDCODE// b) always normalize(n) which may have helped, not sure
+OLDCODEstatic char *fullVertexShader = " \
+OLDCODE/********************************************   \
+OLDCODEVertex shader based on the one in chapter 8 in the Shriner ES 2.0 book   \
+OLDCODE********************************************/   \
+OLDCODE   \
+OLDCODE\n \
+OLDCODE#ifdef USE_TEXTURES\n   \
+OLDCODE#define NUM_TEXTURES 2 \n  \
+OLDCODE#endif\n \
+OLDCODE\
+OLDCODE\n#ifdef USE_FOG\n \
+OLDCODE#define GLI_FOG_MODE_LINEAR 0 \n  \
+OLDCODE#define GLI_FOG_MODE_EXP 1 \n  \
+OLDCODE#define GLI_FOG_MODE_EXP2 2 \n  \
+OLDCODE\n#endif\n   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_LIGHTING\n \
+OLDCODEuniform int lightState[8];    \
+OLDCODEuniform float light_linAtten[8];    \
+OLDCODEuniform float light_constAtten[8];    \
+OLDCODEuniform float light_quadAtten[8];    \
+OLDCODEuniform float lightSpotCut[8];    \
+OLDCODEuniform float lightSpotExp[8];    \
+OLDCODEuniform vec4 lightAmbient[8];    \
+OLDCODEuniform vec4 lightDiffuse[8];    \
+OLDCODEuniform vec4 lightPosition[8];    \
+OLDCODEuniform vec4 lightSpotDir[8];    \
+OLDCODEuniform vec4 lightSpecular[8];    \
+OLDCODE\n#endif\n   \
+OLDCODE   \
+OLDCODEstruct fw_MaterialParameters {    \
+OLDCODE                vec4 emission;    \
+OLDCODE                vec4 ambient;    \
+OLDCODE                vec4 diffuse;    \
+OLDCODE                vec4 specular;    \
+OLDCODE                float shininess;    \
+OLDCODE        };    \
+OLDCODE   \
+OLDCODEconst float	c_zero = 0.0;   \
+OLDCODEconst float	c_one = 1.0;   \
+OLDCODEconst int	indx_zero = 0;   \
+OLDCODEconst int	indx_one = 1;   \
+OLDCODE   \
+OLDCODEuniform mat4	fw_ModelViewMatrix;   \
+OLDCODEuniform mat4 	fw_ProjectionMatrix;   \
+OLDCODE   \
+OLDCODEuniform mat3	fw_NormalMatrix;   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_TEXTURES\n  \
+OLDCODEuniform mat4	tex_matrix[NUM_TEXTURES];   \
+OLDCODEuniform bool	enable_tex[NUM_TEXTURES];   \
+OLDCODEuniform bool	enable_tex_matrix[NUM_TEXTURES];   \
+OLDCODE\n#endif\n  \
+OLDCODE   \
+OLDCODEuniform fw_MaterialParameters  fw_FrontMaterial;   \
+OLDCODEuniform fw_MaterialParameters  fw_BackMaterial;   \
+OLDCODE   \
+OLDCODEuniform vec4	ambient_scene_colour;   \
+OLDCODEuniform bool 	light_model_two_sided;   \
+OLDCODEuniform bool	enable_colour_material;   \
+OLDCODEuniform float	fog_density;   \
+OLDCODEuniform float	fog_start, fog_end;   \
+OLDCODEuniform int	fog_mode;   \
+OLDCODEuniform bool	xform_eye_p;   \
+OLDCODEuniform bool	rescale_normal;   \
+OLDCODEuniform bool 	normalize_normal;   \
+OLDCODEuniform float	rescale_normal_factor;   \
+OLDCODEuniform vec4	ucp_eqn;   \
+OLDCODEuniform bool	enable_ucp;   \
+OLDCODE   \
+OLDCODEattribute vec4	fw_Vertex;   \
+OLDCODEattribute vec4	a_texcoord0;   \
+OLDCODEattribute vec4	a_texcoord1;   \
+OLDCODEattribute vec4	fw_Color;   \
+OLDCODEattribute vec3	fw_Normal;   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_TEXTURES\n  \
+OLDCODEvarying vec4	v_texcoord[NUM_TEXTURES];   \
+OLDCODE\n#endif\n  \
+OLDCODE\
+OLDCODEvarying vec4	v_front_colour;   \
+OLDCODEvarying vec4	v_back_colour;   \
+OLDCODEvarying float	v_fog_factor;   \
+OLDCODEvarying	float	v_ucp_factor;   \
+OLDCODE   \
+OLDCODEvec4 p_eye;   \
+OLDCODEvec3 n;   \
+OLDCODEvec4 mat_ambient_colour;   \
+OLDCODEvec4 mat_diffuse_colour;   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_LIGHTING \n \
+OLDCODEvec4 lighting_equation (int i) {   \
+OLDCODE	vec4 computed_colour = vec4(c_zero, c_zero, c_zero, c_zero);   \
+OLDCODE	vec3 h_vec;   \
+OLDCODE	float ndotl, ndoth;   \
+OLDCODE	float att_factor;   \
+OLDCODE	vec3 VPpli;   \
+OLDCODE   \
+OLDCODE	att_factor = c_one;   \
+OLDCODE	if (lightPosition[i].w != c_zero) { \
+OLDCODE		float spot_factor;   \
+OLDCODE		vec3 att_dist;   \
+OLDCODE   \
+OLDCODE		VPpli = lightPosition[i].xyz - p_eye.xyz;   \
+OLDCODE		if (light_constAtten[i]> 0.0) {   \
+OLDCODE			att_dist.x = c_one;   \
+OLDCODE			att_dist.z = dot(VPpli, VPpli);  \
+OLDCODE			att_dist.y = sqrt(att_dist.z);    \
+OLDCODE			/* JAS - make the light_constAtten a vec3 - correct? */ \
+OLDCODE			/* att_factor = c_one / dot (att_dist, vec3(light_constAtten[i],light_constAtten[i],light_constAtten[i]));   */ \
+OLDCODE		}   \
+OLDCODE   \
+OLDCODE		VPpli = normalize(VPpli);   \
+OLDCODE   \
+OLDCODE   if (lightSpotCut[i] < 180.0) {   \
+OLDCODE			spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
+OLDCODE			if (spot_factor >= cos(radians(lightSpotCut[i])))   \
+OLDCODE				spot_factor = pow(spot_factor, lightSpotExp[i]);   \
+OLDCODE			else   \
+OLDCODE				spot_factor = c_zero;   \
+OLDCODE   \
+OLDCODE			att_factor *= spot_factor;   \
+OLDCODE		}   \
+OLDCODE	} else {   \
+OLDCODE		VPpli = lightPosition[i].xyz;   \
+OLDCODE	}   \
+OLDCODE   \
+OLDCODE	if (att_factor > c_zero) { \
+OLDCODE		computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
+OLDCODE		/* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
+OLDCODE		ndotl = max(c_zero,dot(n, VPpli));    \
+OLDCODE		computed_colour += (ndotl * (lightDiffuse[i] * mat_diffuse_colour));    \
+OLDCODE		/* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
+OLDCODE		h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
+OLDCODE		ndoth = dot(n, h_vec);   \
+OLDCODE   \
+OLDCODE   if (ndoth > c_zero) {   \
+OLDCODE			computed_colour += (pow(ndoth,    \
+OLDCODE				fw_FrontMaterial.shininess) *   \
+OLDCODE				fw_FrontMaterial.specular *   \
+OLDCODE				lightSpecular[i]);   \
+OLDCODE		}   \
+OLDCODE   \
+OLDCODE		computed_colour *= att_factor;   \
+OLDCODE	}  \
+OLDCODE    \
+OLDCODE	return computed_colour;   \
+OLDCODE}   \
+OLDCODE\n#endif \n \
+OLDCODE   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_FOG \n \
+OLDCODEfloat compute_fog() {   \
+OLDCODE	float f;   \
+OLDCODE   \
+OLDCODE	if (fog_mode == GLI_FOG_MODE_LINEAR) {   \
+OLDCODE 		f = (fog_end - p_eye.z) / (fog_end - fog_start);   \
+OLDCODE	} else if (fog_mode == GLI_FOG_MODE_EXP) {   \
+OLDCODE		f = exp(-(p_eye.z * fog_density));   \
+OLDCODE	} else {   \
+OLDCODE		f = (p_eye.z * fog_density);   \
+OLDCODE		f = exp(-(f * f));   \
+OLDCODE	}   \
+OLDCODE   \
+OLDCODE	f = clamp(f,c_zero, c_one);   \
+OLDCODE	return f;   \
+OLDCODE}   \
+OLDCODE\n#endif \n \
+OLDCODE   \
+OLDCODE\n#ifdef USE_LIGHTING\n \
+OLDCODEvec4 do_lighting() {   \
+OLDCODE	vec4	vtx_colour;   \
+OLDCODE	int i;   \
+OLDCODE   \
+OLDCODE	vtx_colour = fw_FrontMaterial.emission +   \
+OLDCODE		/* JAS ambient_scene_colour not set (mat_ambient_colour * ambient_scene_colour);   */ \
+OLDCODE		mat_ambient_colour; \
+OLDCODE   \
+OLDCODE	for (i=int(c_zero); i < 8; i++) {   \
+OLDCODE		if (lightState[i]==1) {   \
+OLDCODE			vtx_colour += lighting_equation(i);    \
+OLDCODE		}   \
+OLDCODE	}   \
+OLDCODE   \
+OLDCODE	vtx_colour.a = mat_diffuse_colour.a;   \
+OLDCODE   \
+OLDCODE	return vtx_colour;   \
+OLDCODE}   \
+OLDCODE\n#endif \n \
+OLDCODE   \
+OLDCODE   \
+OLDCODEvoid main (void) {   \
+OLDCODE	int i,j;   \
+OLDCODE   \
+OLDCODE	p_eye = fw_Vertex; \
+OLDCODE	if (false && xform_eye_p)    \
+OLDCODE		p_eye = fw_ModelViewMatrix * fw_Vertex;   \
+OLDCODE   \
+OLDCODE\n#ifdef USE_LIGHTING\n  \
+OLDCODE		n = fw_Normal;   \
+OLDCODE		if (rescale_normal) {   \
+OLDCODE			n = rescale_normal_factor * n;   \
+OLDCODE		}   \
+OLDCODE		if (true || normalize_normal)    \
+OLDCODE			n = normalize(n);   \
+OLDCODE    \
+OLDCODE		mat_ambient_colour = enable_colour_material ? fw_Color   \
+OLDCODE				: fw_FrontMaterial.ambient;    \
+OLDCODE   \
+OLDCODE		mat_diffuse_colour = enable_colour_material ? fw_Color   \
+OLDCODE				: fw_FrontMaterial.diffuse;    \
+OLDCODE/* mat_ambient_colour = vec4(0.16, 0.16, 0.16, 1.0); \
+OLDCODEmat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */  \
+OLDCODE mat_ambient_colour = fw_FrontMaterial.ambient;   \
+OLDCODE mat_diffuse_colour = fw_FrontMaterial.diffuse;    \
+OLDCODE\
+OLDCODE\
+OLDCODE		v_front_colour = do_lighting();   \
+OLDCODE		v_back_colour = v_front_colour;   \
+OLDCODE    \
+OLDCODE	if (light_model_two_sided) {   \
+OLDCODE			n = -n;   \
+OLDCODE			v_back_colour = do_lighting();   \
+OLDCODE		}  \
+OLDCODE\n#else \n \
+OLDCODE		/* set the default output colour to be the per-vertex / per-primitive colour */   \
+OLDCODE		v_front_colour = fw_Color;   \
+OLDCODE		v_back_colour = fw_Color;   \
+OLDCODE\n#endif \n \
+OLDCODE   \
+OLDCODE\n#ifdef USE_TEXTURES \n \
+OLDCODE	/* do texture transforms */   \
+OLDCODE	v_texcoord[indx_zero] = vec4 (c_zero, c_zero, c_zero, c_one);   \
+OLDCODE	if (enable_tex[indx_zero]) {   \
+OLDCODE		if (enable_tex_matrix[indx_zero])   \
+OLDCODE			v_texcoord[indx_zero] = tex_matrix[indx_zero] * a_texcoord0;   \
+OLDCODE		else   \
+OLDCODE			v_texcoord[indx_zero] = a_texcoord0;   \
+OLDCODE	}   \
+OLDCODE	v_texcoord[indx_one] = vec4 (c_zero, c_zero, c_zero, c_one);   \
+OLDCODE	if (enable_tex[indx_one]) {   \
+OLDCODE		if (enable_tex_matrix[indx_one])   \
+OLDCODE			v_texcoord[indx_one] = tex_matrix[indx_zero] * a_texcoord1;   \
+OLDCODE		else   \
+OLDCODE			v_texcoord[indx_one] = a_texcoord1;   \
+OLDCODE	}   \
+OLDCODE   \
+OLDCODE\n#endif \n \
+OLDCODE\
+OLDCODE	v_ucp_factor = enable_ucp ? dot(p_eye, ucp_eqn) : c_zero;   \
+OLDCODE\
+OLDCODE\n#ifdef USE_FOG\n \
+OLDCODE	v_fog_factor = compute_fog();   \
+OLDCODE\n#endif \n \
+OLDCODE    \
+OLDCODE	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
+OLDCODE}";
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE/****************************************************************************************/
+OLDCODE/*											*/
+OLDCODE/* Shaders where we have a specific Color node (check out IndexedFaceSets). The Color   */
+OLDCODE/* replaces the diffuse component of the colour of the appearance calculations.  	*/
+OLDCODE/*											*/
+OLDCODE/* Basically, these shaders are copies of the above, with the node colour sent in	*/
+OLDCODE/*											*/
+OLDCODE/****************************************************************************************/
+OLDCODE
+OLDCODE/* noMaterialNoAppearance - just use the backgroundSphereShader */
+OLDCODE
+OLDCODE/* this is the same as the phongFragmentShader, but replace the diffuseColor with the v_color from the shape */
+OLDCODEstatic char *phongFragmentColourShader =  " \
+OLDCODE\
+OLDCODEstruct fw_MaterialParameters { \
+OLDCODE                vec4 emission; \
+OLDCODE                vec4 ambient; \
+OLDCODE                vec4 diffuse; \
+OLDCODE                vec4 specular; \
+OLDCODE                float shininess; \
+OLDCODE        }; \
+OLDCODE \
+OLDCODEuniform fw_MaterialParameters fw_FrontMaterial; \
+OLDCODEuniform fw_MaterialParameters fw_BackMaterial; \
+OLDCODE\
+OLDCODEvarying vec3 Norm;  \
+OLDCODEvarying vec4 Pos;  \
+OLDCODEvarying vec4 v_color; \
+OLDCODE\
+OLDCODEuniform int lightState[8]; \
+OLDCODEuniform float light_linAtten[8]; \
+OLDCODEuniform float light_constAtten[8]; \
+OLDCODEuniform float light_quadAtten[8]; \
+OLDCODEuniform float lightSpotCut[8]; \
+OLDCODEuniform float lightSpotExp[8]; \
+OLDCODEuniform vec4 lightAmbient[8]; \
+OLDCODEuniform vec4 lightDiffuse[8]; \
+OLDCODEuniform vec4 lightPosition[8]; \
+OLDCODEuniform vec4 lightSpecular[8]; \
+OLDCODE\
+OLDCODE/* use ADSLightModel here \
+OLDCODE the ADS colour is returned from the function. \
+OLDCODE*/  \
+OLDCODEvec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+OLDCODE	int i; \
+OLDCODE	vec4 diffuse = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 ambient = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 specular = vec4(0., 0., 0., 1.); \
+OLDCODE \
+OLDCODE	vec3 norm = normalize (myNormal); \
+OLDCODE	vec3 viewv = -normalize(myPosition.xyz); \
+OLDCODE	vec4 emissive = fw_FrontMaterial.emission; \
+OLDCODE\
+OLDCODE	/* apply the lights to this material */ \
+OLDCODE	for (i=0; i<8; i++) { \
+OLDCODE		if (lightState[i] == 1) { \
+OLDCODE		vec4 myLightDiffuse = lightDiffuse[i]; \
+OLDCODE		vec4 myLightAmbient = lightAmbient[i]; \
+OLDCODE		vec4 myLightSpecular = lightSpecular[i]; \
+OLDCODE		vec4 myLightPosition = lightPosition[i]; \
+OLDCODE  \
+OLDCODE		/* normal, light, view, and light reflection vectors */ \
+OLDCODE		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+OLDCODE		vec3 refl = reflect (-lightv, norm); \
+OLDCODE \
+OLDCODE		/* diffuse light computation */ \
+OLDCODE		/* NOTE THE SUBSTITUTION OF v_color HERE */ \
+OLDCODE		diffuse += max (0.0, dot(lightv, norm))*v_color*myLightDiffuse; \
+OLDCODE \
+OLDCODE		/* ambient light computation */ \
+OLDCODE		ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE		/* Specular light computation */ \
+OLDCODE		if (dot(lightv, viewv) > 0.0) { \
+OLDCODE			specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+OLDCODE		} \
+OLDCODE		} \
+OLDCODE	} \
+OLDCODE	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
+OLDCODE} \
+OLDCODEvoid main () { \
+OLDCODE	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+OLDCODE} \
+OLDCODE " ;
+OLDCODE
+OLDCODE/* this is the same as the phongTwoSidedFragmentShader, but replace the diffuseColor with the v_color from the shape */
+OLDCODEstatic char *phongTwoSidedFragmentColourShader =  " \
+OLDCODE\
+OLDCODEstruct fw_MaterialParameters { \
+OLDCODE                vec4 emission; \
+OLDCODE                vec4 ambient; \
+OLDCODE                vec4 diffuse; \
+OLDCODE                vec4 specular; \
+OLDCODE                float shininess; \
+OLDCODE        }; \
+OLDCODE \
+OLDCODEuniform fw_MaterialParameters fw_FrontMaterial; \
+OLDCODEuniform fw_MaterialParameters fw_BackMaterial; \
+OLDCODE\
+OLDCODEvarying vec3 Norm;  \
+OLDCODEvarying vec4 Pos;  \
+OLDCODEvarying vec4 v_color; \
+OLDCODE\
+OLDCODEuniform int lightState[8]; \
+OLDCODEuniform float light_linAtten[8]; \
+OLDCODEuniform float light_constAtten[8]; \
+OLDCODEuniform float light_quadAtten[8]; \
+OLDCODEuniform float lightSpotCut[8]; \
+OLDCODEuniform float lightSpotExp[8]; \
+OLDCODEuniform vec4 lightAmbient[8]; \
+OLDCODEuniform vec4 lightDiffuse[8]; \
+OLDCODEuniform vec4 lightPosition[8]; \
+OLDCODEuniform vec4 lightSpecular[8]; \
+OLDCODE\
+OLDCODE/* use ADSLightModel here \
+OLDCODE the ADS colour is returned from the function. \
+OLDCODE*/  \
+OLDCODEvec3 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+OLDCODE	int i; \
+OLDCODE	vec4 diffuse = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 ambient = vec4(0., 0., 0., 0.); \
+OLDCODE	vec4 specular = vec4(0., 0., 0., 1.); \
+OLDCODE	vec3 viewv = -normalize(myPosition.xyz); \
+OLDCODE	vec3 norm = normalize (myNormal); \
+OLDCODE	vec4 emissive; \
+OLDCODE\
+OLDCODE	bool backFacing = (dot(norm,viewv) < 0.0); \
+OLDCODE \
+OLDCODE	/* back Facing materials - flip the normal */ \
+OLDCODE	if (backFacing) { \
+OLDCODE		norm = -norm; \
+OLDCODE		emissive = fw_BackMaterial.emission;	\
+OLDCODE	} else { \
+OLDCODE		emissive = fw_FrontMaterial.emission;	\
+OLDCODE	} \
+OLDCODE\
+OLDCODE	/* apply the lights to this material */ \
+OLDCODE	for (i=0; i<8; i++) { \
+OLDCODE		if (lightState[i] == 1) { \
+OLDCODE		vec4 myLightDiffuse = lightDiffuse[i]; \
+OLDCODE		vec4 myLightAmbient = lightAmbient[i]; \
+OLDCODE		vec4 myLightSpecular = lightSpecular[i]; \
+OLDCODE		vec4 myLightPosition = lightPosition[i]; \
+OLDCODE  \
+OLDCODE		/* normal, light, view, and light reflection vectors */ \
+OLDCODE		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+OLDCODE		vec3 refl = reflect (-lightv, norm); \
+OLDCODE \
+OLDCODE		if (backFacing) { \
+OLDCODE			/* diffuse light computation */ \
+OLDCODE			/* Colour material - SUBSTITUTE v_color HERE */ \
+OLDCODE			diffuse += max (0.0, dot(lightv, norm))*v_color*myLightDiffuse; \
+OLDCODE \
+OLDCODE			/* ambient light computation */ \
+OLDCODE			ambient += fw_BackMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE			/* Specular light computation */ \
+OLDCODE			if (dot(lightv, viewv) > 0.0) { \
+OLDCODE				specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE					fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
+OLDCODE			} \
+OLDCODE		} else { \
+OLDCODE \
+OLDCODE			/* diffuse light computation */ \
+OLDCODE			/* Colour material - SUBSTITUTE v_color HERE */ \
+OLDCODE			diffuse += max (0.0, dot(lightv, norm))*v_color*myLightDiffuse; \
+OLDCODE \
+OLDCODE			/* ambient light computation */ \
+OLDCODE			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+OLDCODE \
+OLDCODE			/* Specular light computation */ \
+OLDCODE			if (dot(lightv, viewv) > 0.0) { \
+OLDCODE				specular += pow(max(0.0, dot(viewv, refl)), \
+OLDCODE					fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+OLDCODE			} \
+OLDCODE		} \
+OLDCODE		} \
+OLDCODE	} \
+OLDCODE	return clamp(vec3(ambient+diffuse+specular+emissive), 0.0, 1.0); \
+OLDCODE} \
+OLDCODEvoid main () { \
+OLDCODE	gl_FragColor = vec4(ADSLightModel(Norm,Pos),1.); \
+OLDCODE} \
+OLDCODE " ;
+OLDCODE
+OLDCODEstatic char *phongSimpleVertexColourShader = " \
+OLDCODE	varying vec3 Norm; \
+OLDCODE	varying vec4 Pos; \
+OLDCODE        varying        vec4 v_color; \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	attribute      vec3 fw_Normal; \
+OLDCODE	attribute      vec4 fw_Color; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	uniform        mat3 fw_NormalMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE	       Norm = normalize(fw_NormalMatrix * fw_Normal); \
+OLDCODE	       Pos = fw_ModelViewMatrix * fw_Vertex;  \
+OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE		v_color = fw_Color; \
+OLDCODE	}";
+OLDCODE
+OLDCODE/* LineSet and PointSet style nodes with a Colour node */
+OLDCODEstatic char *linePointFragmentColourShader =
+OLDCODE" varying vec4 v_color; void main () {gl_FragColor = v_color;}";
+OLDCODE
+OLDCODEstatic char *linePointVertexColourShader = " \
+OLDCODE        varying        vec4 v_color; \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE	attribute      vec4 fw_Color; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE		v_color = fw_Color; \
+OLDCODE	}";
+OLDCODE
+OLDCODEstatic char *linePointVertexNoColourShader = " \
+OLDCODE        varying        vec4 v_color; \
+OLDCODE	attribute      vec4 fw_Vertex; \
+OLDCODE        uniform        vec3 fw_genericMaterialColour; \
+OLDCODE	uniform        mat4 fw_ModelViewMatrix; \
+OLDCODE	uniform        mat4 fw_ProjectionMatrix; \
+OLDCODE	void main(void) { \
+OLDCODE	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+OLDCODE		v_color = vec4(fw_genericMaterialColour,1.0); \
+OLDCODE	}";
+OLDCODE
+OLDCODE
+#endif //OLDCODE
+
+
 
 
 
 /****************************************************************************************/
 
-static int getGenericShaderSource (char **compileFlags, char **vertexSource, char **fragmentSource, char **geometrySource, shader_type_t whichOne) {
+static int getGenericShaderSource (char **compileFlags, char **vertexSource, char **fragmentSource, shader_type_t whichOne) {
 	/* initialize */
 	*vertexSource = NULL;
 	*fragmentSource = NULL;
-	*geometrySource = NULL;
 	*compileFlags = "";
 
 	switch (whichOne) {
@@ -1369,32 +2288,14 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 
 		/* generic polyreps */
 		case noTexOneMaterialShader: {
-			// OLDCODE *fragmentSource = phongFragmentShader;
-			// OLDCODE *vertexSource = phongSimpleVertexShader;
+
 			*fragmentSource = materialNoTexShader;
 			*vertexSource = fullVertexShader;
-			/* some shader compilers require something to be defined before it can be undefined */
-			*compileFlags = "\n\
-					#define USE_FOG \n\
-					#define USE_LIGHTING \n\
-					#define USE_TEXTURES \n\
-					#undef USE_FOG \n\
-					#undef USE_TEXTURES \n\
-			";
-			break;
+            break;
 		}
 		case noMaterialNoAppearanceShader: {
 			*fragmentSource = noAppearanceNoMaterialFragmentShader;
-			*vertexSource = fullVertexShader;
-			/* some shader compilers require something to be defined before it can be undefined */
-			*compileFlags = "\n\
-					#define USE_FOG \n\
-					#define USE_LIGHTING \n\
-					#define USE_TEXTURES \n\
-					#undef USE_FOG \n\
-					#undef USE_LIGHTING \n\
-					#undef USE_TEXTURES \n\
-			";
+			*vertexSource = NoAppearanceNoMaterialVertexShader;
 			break;
 		}
 		case noTexTwoMaterialShader : {
@@ -1408,6 +2309,16 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
                 	*vertexSource = oneTexVertexShader;
 			break;
 		}
+
+        case multiTexShader: {
+			*vertexSource = eightTexVertexShader;
+            *fragmentSource = eightTexFragmentShader;
+            break;
+            
+            
+            
+        }
+            
 
 		/* nodes with Color node - from spec, 11.4.2 Color:
 			"Color nodes are only used to specify multiple colours for a 
@@ -1447,8 +2358,7 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 		case oneTexOneMaterialColourShader:
 
 
-		case oneTexTwoMaterialShader:
-		case oneTexTwoMaterialSphereShader: {
+		case oneTexTwoMaterialShader: {
 			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
 			#endif
@@ -1457,57 +2367,7 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 			break;
 		}
 
-
-
-
-		/* Sphere Geometry shader */
-		case noMaterialNoAppearanceSphereShader: {
-			*fragmentSource = noAppearanceNoMaterialFragmentShader;
-                	*vertexSource = noTexVertexShaderForSphereGeomShader;
-			*geometrySource = noAppearanceSphereGeomShader;
-			break;
-		}
-
-		case noTexOneMaterialSphereShader: {
-			*fragmentSource = phongFragmentShader;
-                	*vertexSource = noTexVertexShaderForSphereGeomShader;
-			*geometrySource = noTexSphereGeomShader;
-			break;
-		}
-
-
-        	case noTexTwoMaterialSphereShader: {
-			*fragmentSource = phongTwoSidedFragmentShader;
-                	*vertexSource = noTexVertexShaderForSphereGeomShader;
-			*geometrySource = noTexSphereGeomShader;
-			break;
-		}
-		case oneTexOneMaterialSphereShader: {
-			*fragmentSource = oneTexFragmentShader;
-                	*vertexSource = oneTexVertexShaderForSphereGeomShader;
-			*geometrySource = oneTexSphereGeomShader;
-			break;
-		}
-
-		case complexTexOneMaterialShader: {
-			*fragmentSource = complexTexFragmentShader;
-            *vertexSource = oneTexVertexShader;
-			break;
-		}
-
-		/* still to be written */
-		case complexTexTwoMaterialShader:
-		case complexTexOneMaterialSphereShader:
-		case complexTexTwoMaterialSphereShader: {
-			#ifdef FW_DEBUG
-			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
-			#endif
-			return FALSE;
-			break;
-		}
-
-
-		default: {
+ 		default: {
 			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
 			return FALSE;
 		}
@@ -1515,9 +2375,178 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 
 	return TRUE;
 }
-
-/* find these names in our shaders */
 #ifdef OLDCODE
+OLDCODEstatic int getGenericShaderSource (char **compileFlags, char **vertexSource, char **fragmentSource, char **geometrySource, shader_type_t whichOne) {
+OLDCODE	/* initialize */
+OLDCODE	*vertexSource = NULL;
+OLDCODE	*fragmentSource = NULL;
+OLDCODE	*geometrySource = NULL;
+OLDCODE	*compileFlags = "";
+OLDCODE
+OLDCODE	switch (whichOne) {
+OLDCODE		/* Background, this is the simple shader for doing the sky/ground colours */
+OLDCODE		case backgroundSphereShader: {
+OLDCODE			*fragmentSource = backgroundSphereShaderFragment;
+OLDCODE			*vertexSource  = backgroundSphereShaderVertex;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE
+OLDCODE		/* background, this is the simple shader for adding textures */
+OLDCODE		case backgroundTextureBoxShader: {
+OLDCODE			*fragmentSource = backgroundTextureBoxShaderFragment;
+OLDCODE			*vertexSource = backgroundTextureBoxShaderVertex;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		/* generic polyreps */
+OLDCODE		case noTexOneMaterialShader: {
+OLDCODE			// OLDCODE *fragmentSource = phongFragmentShader;
+OLDCODE			// OLDCODE *vertexSource = phongSimpleVertexShader;
+OLDCODE			*fragmentSource = materialNoTexShader;
+OLDCODE			*vertexSource = fullVertexShader;
+OLDCODE			/* some shader compilers require something to be defined before it can be undefined */
+OLDCODE			*compileFlags = "\n\
+OLDCODE					#define USE_FOG \n\
+OLDCODE					#define USE_LIGHTING \n\
+OLDCODE					#define USE_TEXTURES \n\
+OLDCODE					#undef USE_FOG \n\
+OLDCODE					#undef USE_TEXTURES \n\
+OLDCODE			";
+OLDCODE			break;
+OLDCODE		}
+OLDCODE		case noMaterialNoAppearanceShader: {
+OLDCODE			*fragmentSource = noAppearanceNoMaterialFragmentShader;
+OLDCODE			*vertexSource = fullVertexShader;
+OLDCODE			/* some shader compilers require something to be defined before it can be undefined */
+OLDCODE			*compileFlags = "\n\
+OLDCODE					#define USE_FOG \n\
+OLDCODE					#define USE_LIGHTING \n\
+OLDCODE					#define USE_TEXTURES \n\
+OLDCODE					#undef USE_FOG \n\
+OLDCODE					#undef USE_LIGHTING \n\
+OLDCODE					#undef USE_TEXTURES \n\
+OLDCODE			";
+OLDCODE			break;
+OLDCODE		}
+OLDCODE		case noTexTwoMaterialShader : {
+OLDCODE			*fragmentSource = phongTwoSidedFragmentShader;
+OLDCODE                	*vertexSource = phongSimpleVertexShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		case oneTexOneMaterialShader: {
+OLDCODE			*fragmentSource = oneTexFragmentShader;
+OLDCODE                	*vertexSource = oneTexVertexShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		/* nodes with Color node - from spec, 11.4.2 Color:
+OLDCODE			"Color nodes are only used to specify multiple colours for a 
+OLDCODE			single geometric shape, such as colours for the faces or vertices 
+OLDCODE			of an IndexedFaceSet. A Material node is used to specify the overall 
+OLDCODE			material parameters of lit geometry. If both a Material node and a 
+OLDCODE			Color node are specified for a geometric shape, the colours shall 
+OLDCODE			replace the diffuse component of the material."
+OLDCODE		*/
+OLDCODE
+OLDCODE		/* simple; unlit shape, no shading, just present colours */
+OLDCODE		case linePointColorNodeShader: {
+OLDCODE			*fragmentSource = linePointFragmentColourShader;
+OLDCODE			*vertexSource = linePointVertexColourShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE		case noTexOneMaterialColourShader: {
+OLDCODE			*fragmentSource = phongFragmentColourShader;
+OLDCODE                	*vertexSource = phongSimpleVertexColourShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		case noTexTwoMaterialColourShader: {
+OLDCODE			*fragmentSource = phongTwoSidedFragmentColourShader;
+OLDCODE                	*vertexSource = phongSimpleVertexColourShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		case linePointNoColorNodeShader: {
+OLDCODE			*fragmentSource = linePointFragmentColourShader;
+OLDCODE			*vertexSource = linePointVertexNoColourShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		/* still to be written */
+OLDCODE		case oneTexTwoMaterialColourShader:
+OLDCODE		case oneTexOneMaterialColourShader:
+OLDCODE
+OLDCODE
+OLDCODE		case oneTexTwoMaterialShader:
+OLDCODE		case oneTexTwoMaterialSphereShader: {
+OLDCODE			#ifdef FW_DEBUG
+OLDCODE			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+OLDCODE			#endif
+OLDCODE
+OLDCODE			return FALSE;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE		/* Sphere Geometry shader */
+OLDCODE		case noMaterialNoAppearanceSphereShader: {
+OLDCODE			*fragmentSource = noAppearanceNoMaterialFragmentShader;
+OLDCODE                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+OLDCODE			*geometrySource = noAppearanceSphereGeomShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		case noTexOneMaterialSphereShader: {
+OLDCODE			*fragmentSource = phongFragmentShader;
+OLDCODE                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+OLDCODE			*geometrySource = noTexSphereGeomShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE
+OLDCODE        	case noTexTwoMaterialSphereShader: {
+OLDCODE			*fragmentSource = phongTwoSidedFragmentShader;
+OLDCODE                	*vertexSource = noTexVertexShaderForSphereGeomShader;
+OLDCODE			*geometrySource = noTexSphereGeomShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE		case oneTexOneMaterialSphereShader: {
+OLDCODE			*fragmentSource = oneTexFragmentShader;
+OLDCODE                	*vertexSource = oneTexVertexShaderForSphereGeomShader;
+OLDCODE			*geometrySource = oneTexSphereGeomShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		case complexTexOneMaterialShader: {
+OLDCODE			*fragmentSource = complexTexFragmentShader;
+OLDCODE            *vertexSource = oneTexVertexShader;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE		/* still to be written */
+OLDCODE		case complexTexTwoMaterialShader:
+OLDCODE		case complexTexOneMaterialSphereShader:
+OLDCODE		case complexTexTwoMaterialSphereShader: {
+OLDCODE			#ifdef FW_DEBUG
+OLDCODE			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+OLDCODE			#endif
+OLDCODE			return FALSE;
+OLDCODE			break;
+OLDCODE		}
+OLDCODE
+OLDCODE
+OLDCODE		default: {
+OLDCODE			printf ("getShaderSource, do not handle %d properly yet\n",whichOne);
+OLDCODE			return FALSE;
+OLDCODE		}
+OLDCODE	}
+OLDCODE
+OLDCODE	return TRUE;
+OLDCODE}
 OLDCODEstatic void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 OLDCODE	GLuint myProg = me->myShaderProgram;
 OLDCODE
@@ -1758,7 +2787,6 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *compileFlags;
 	char *vertexSource[2];
 	char  *fragmentSource[2];
-	char *geometrySource[2];
 
 	/* pointerize this */
 	myShader = &(gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne]);
@@ -1769,7 +2797,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	(*myShader).compiledOK = FALSE;
 	
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
-	if (!getGenericShaderSource (&compileFlags, &vertexSource[1], &fragmentSource[1], &geometrySource[1], whichOne)) {
+	if (!getGenericShaderSource (&compileFlags, &vertexSource[1], &fragmentSource[1], whichOne)) {
 		return;
 	}
 
@@ -1778,49 +2806,12 @@ static void getGenericShader(shader_type_t whichOne) {
 	fragmentSource[0] = " \
 		precision lowp float;\n \
 	";
-	geometrySource[0] = "";
-
 
 	#else
 
 	vertexSource[0] = compileFlags;
 	fragmentSource[0] = compileFlags;
-	geometrySource[0] = " \
-		#version 120\n \
-		#extension GL_EXT_gpu_shader4: enable\n \
-		#extension GL_EXT_geometry_shader4: enable\n \
-	";
 	#endif
-
-
-	/* geometryShader */
-	if (geometrySource[1] != NULL) {
-
-#ifndef GL_ES_VERSION_2_0
-
-		myGeometryShader = CREATE_SHADER(GL_GEOMETRY_SHADER_EXT);
-		SHADER_SOURCE(myGeometryShader, 2, (const GLchar **) &geometrySource, NULL);
-		COMPILE_SHADER(myGeometryShader);
-		GET_SHADER_INFO(myGeometryShader, COMPILE_STATUS, &success);
-		if (!success) {
-			shaderErrorLog(myGeometryShader,"GEOMETRY");
-		} else {
-			GLint n;
-
-	                glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &n);
-        	        /* printf ("compile_geomshader, geom shader max vertices at start %d\n",n); */
-                	glGetIntegerv(GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS_EXT, &n);
-                	/* printf ("compile_geomshader, geom total output components at start %d\n",n); */
-
-                	glProgramParameteriEXT (myProg,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
-                	glProgramParameteriEXT (myProg, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
-                	glProgramParameteriEXT (myProg, GL_GEOMETRY_VERTICES_OUT_EXT, 1024);
-			ATTACH_SHADER(myProg, myGeometryShader);
-		}
-#else
-printf ("HMMM - GL_ES_VERSION_2_0 and Geometry shader\n");
-#endif
-	}
 
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
@@ -2209,17 +3200,6 @@ bool fwl_initialize_GL()
 
 	/* lines, points, no colour node, get colour from material */
 	getGenericShader(linePointNoColorNodeShader);
-
-	/* nodes with Geometry Shaders */
-	#ifdef HAVE_GEOMETRY_SHADERS
-        getGenericShader(noMaterialNoAppearanceSphereShader);
-        getGenericShader(noTexOneMaterialSphereShader);
-	getGenericShader(noTexTwoMaterialSphereShader);
-	getGenericShader(oneTexOneMaterialSphereShader);
-	getGenericShader(oneTexTwoMaterialSphereShader);
-	getGenericShader(complexTexOneMaterialSphereShader);
-	getGenericShader(complexTexTwoMaterialSphereShader);
-	#endif /* HAVE_GEOMETRY_SHADERS */
 
 	#endif /* SHADERS_2011 */
 
