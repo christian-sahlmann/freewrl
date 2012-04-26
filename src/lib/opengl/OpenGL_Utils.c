@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.233 2012/04/23 18:56:24 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.234 2012/04/26 16:36:23 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1517,16 +1517,113 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 }
 
 /* find these names in our shaders */
+#ifdef OLDCODE
+OLDCODEstatic void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
+OLDCODE	GLuint myProg = me->myShaderProgram;
+OLDCODE
+OLDCODE	#ifdef DEBUG
+OLDCODE	{
+OLDCODE	GLsizei count;
+OLDCODE	GLuint shaders[10];
+OLDCODE	GLint  xxx[10];
+OLDCODE	int i;
+OLDCODE	GLchar sl[3000];
+OLDCODE
+OLDCODE	/*
+OLDCODE	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
+OLDCODE
+OLDCODE	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
+OLDCODE	glGetAttachedShaders(myProg,10,&count,shaders);
+OLDCODE	printf ("got %d attached shaders, they are: \n",count);
+OLDCODE	for (i=0; i<count; i++) {
+OLDCODE		GLsizei len;
+OLDCODE
+OLDCODE		printf ("%d\n",shaders[i]);
+OLDCODE		glGetShaderSource(shaders[i],3000,&len,sl);
+OLDCODE		printf ("len %d\n",len);
+OLDCODE		printf ("sl: %s\n",sl);
+OLDCODE	}
+OLDCODE	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx); printf ("GL_INFO_LOG_LENGTH_STATUS %d\n",xxx[0]);
+OLDCODE	glGetProgramiv(myProg,GL_LINK_STATUS, xxx); printf ("GL_LINK_STATUS %d\n",xxx[0]);
+OLDCODE	glGetProgramiv(myProg,GL_VALIDATE_STATUS, xxx); printf ("GL_VALIDATE_STATUS %d\n",xxx[0]);
+OLDCODE	glGetProgramiv(myProg,GL_ACTIVE_ATTRIBUTES, xxx); printf ("GL_ACTIVE_ATTRIBUTES %d\n",xxx[0]);
+OLDCODE	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
+OLDCODE*/
+OLDCODE	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx);
+OLDCODE	if (xxx[0] != 0) {
+OLDCODE		#define MAX_INFO_LOG_SIZE 512
+OLDCODE                GLchar infoLog[MAX_INFO_LOG_SIZE];
+OLDCODE                glGetProgramInfoLog(myProg, MAX_INFO_LOG_SIZE, NULL, infoLog);
+OLDCODE		printf ("log: %s\n",infoLog);
+OLDCODE
+OLDCODE
+OLDCODE	}
+OLDCODE	}
+OLDCODE	#endif /* DEBUG */
+OLDCODE
+OLDCODE
+OLDCODE	me->myMaterialEmission = GET_UNIFORM(myProg,"fw_FrontMaterial.emission");
+OLDCODE	me->myMaterialDiffuse = GET_UNIFORM(myProg,"fw_FrontMaterial.diffuse");
+OLDCODE	me->myMaterialShininess = GET_UNIFORM(myProg,"fw_FrontMaterial.shininess");
+OLDCODE	me->myMaterialAmbient = GET_UNIFORM(myProg,"fw_FrontMaterial.ambient");
+OLDCODE	me->myMaterialSpecular = GET_UNIFORM(myProg,"fw_FrontMaterial.specular");
+OLDCODE
+OLDCODE	me->myMaterialBackEmission = GET_UNIFORM(myProg,"fw_BackMaterial.emission");
+OLDCODE	me->myMaterialBackDiffuse = GET_UNIFORM(myProg,"fw_BackMaterial.diffuse");
+OLDCODE	me->myMaterialBackShininess = GET_UNIFORM(myProg,"fw_BackMaterial.shininess");
+OLDCODE	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
+OLDCODE	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
+OLDCODE
+OLDCODE	me->myMaterialColour = GET_UNIFORM(myProg,"fw_genericMaterialColour");
+OLDCODE
+OLDCODE        me->lightState = GET_UNIFORM(myProg,"lightState");
+OLDCODE        me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
+OLDCODE        me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
+OLDCODE        me->lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
+OLDCODE        me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
+OLDCODE	me->lightConstAtten = GET_UNIFORM(myProg,"light_constAtten");
+OLDCODE	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
+OLDCODE	me->lightQuadAtten = GET_UNIFORM(myProg,"lightQuadAtten");
+OLDCODE	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
+OLDCODE	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
+OLDCODE	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");
+OLDCODE
+OLDCODE
+OLDCODE	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
+OLDCODE	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
+OLDCODE	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
+OLDCODE	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+OLDCODE	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
+OLDCODE	me->Colours = GET_ATTRIB(myProg,"fw_Color");
+OLDCODE
+OLDCODE	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
+OLDCODE	//me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
+OLDCODE	//me->Texture1 = GET_UNIFORM(myProg,"fw_Texture1");
+OLDCODE	//me->Texture2 = GET_UNIFORM(myProg,"fw_Texture2");
+OLDCODE	//me->Texture3 = GET_UNIFORM(myProg,"fw_Texture3");
+OLDCODE	me->useTex = GET_UNIFORM(myProg,"fw_useTex");
+OLDCODE
+OLDCODE	/* for Sphere geometry shader */
+OLDCODE	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");
+OLDCODE
+OLDCODE	#ifdef DEBUG
+OLDCODE	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
+OLDCODE		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
+OLDCODE	#endif
+OLDCODE}
+#endif //OLDCODE
+
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
-
+    int i;
+    
 	#ifdef DEBUG
 	{
-	GLsizei count;
-	GLuint shaders[10];
+	//GLsizei count;
+	//GLuint shaders[10];
 	GLint  xxx[10];
-	int i;
-	GLchar sl[3000];
+	//int i;
+	//GLchar sl[3000];
 
 	/*
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
@@ -1584,7 +1681,6 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
 	me->lightQuadAtten = GET_UNIFORM(myProg,"lightQuadAtten");
 	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
-	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
 	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");
 
 
@@ -1595,17 +1691,22 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 
-	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
-	me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
-	me->Texture1 = GET_UNIFORM(myProg,"fw_Texture1");
-	me->Texture2 = GET_UNIFORM(myProg,"fw_Texture2");
-	me->Texture3 = GET_UNIFORM(myProg,"fw_Texture3");
-	me->useTex = GET_UNIFORM(myProg,"fw_useTex");
+	me->TexCoords = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
 
-	/* for Sphere geometry shader */
-	me->specialUniform1 = GET_UNIFORM(myProg,"sphereRadius");
 
-	#ifdef DEBUG
+    for (i=0; i<MAX_MULTITEXTURE; i++) {
+        char line[200];
+        sprintf (line,"fw_Texture_unit%d",i);
+        me->TextureUnit[i]= GET_UNIFORM(myProg,line);
+        sprintf (line,"fw_Texture_mode%d",i);
+        me->TextureMode[i] = GET_UNIFORM(myProg,line);
+        //printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
+        
+    }
+    
+    me->textureCount = GET_UNIFORM(myProg,"textureCount");
+
+	#ifdef VERBOSE
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
 	#endif

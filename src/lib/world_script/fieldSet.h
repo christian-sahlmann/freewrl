@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: fieldSet.h,v 1.15 2010/09/21 20:00:25 crc_canada Exp $
+$Id: fieldSet.h,v 1.16 2012/04/26 16:36:24 crc_canada Exp $
 
 ???
 
@@ -50,6 +50,9 @@ DEF_FINDFIELDFP(COMPONENTS);
 DEF_FINDFIELDFP(FIELDTYPES);
 DEF_FINDFIELDFP(X3DSPECIAL);
 DEF_FINDFIELDFP(GEOSPATIAL);
+DEF_FINDFIELDFP(MULTITEXTUREMODE);
+DEF_FINDFIELDFP(MULTITEXTURESOURCE);
+DEF_FINDFIELDFP(MULTITEXTUREFUNCTION);
 
 int findRoutedFieldInARR (struct X3D_Node *, const char *, int, const char**, size_t, BOOL);
 int findFieldInARR(const char*, const char**, size_t);

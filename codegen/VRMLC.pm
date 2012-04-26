@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.64 2011/10/27 18:51:32 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.65 2012/04/26 16:36:23 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.65  2012/04/26 16:36:23  crc_canada
+# Android changes - preparing for MultiTexturing
+#
 # Revision 1.64  2011/10/27 18:51:32  crc_canada
 # bind_node, binding changed a bit; Inlines with Viewpoints were having bind_node called on them;
 # OpenGL Scnengraph with setBindPtr was a uintprt_t*, should have been an int*...
@@ -1034,6 +1037,88 @@ sub gen {
 		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"(proto keyword invalid)\"; \n".
 		"	return PROTOKEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringPROTOKeywordType(int st);\n";
+
+
+	#####################
+	# process MULTITEXTUREMODE keywords 
+	push @str, "\n/* Table of built-in MULTITEXTUREMODE keywords */\nextern const char *MULTITEXTUREMODE[];\n";
+	push @str, "extern const int MULTITEXTUREMODE_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of MULTITEXTUREMODE keywords */\n       const char *MULTITEXTUREMODE[] = {\n";
+
+        my @sf = keys %MultiTextureModeC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define MTMODE_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst int MULTITEXTUREMODE_COUNT = ARR_SIZE(MULTITEXTUREMODE);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREMODE keyword type */\n". 
+		"const char *stringMULTITEXTUREMODEType (int st) {\n".
+		"	if ((st < 0) || (st >= MULTITEXTUREMODE_COUNT)) return \"(special keyword invalid)\"; \n".
+		"	return MULTITEXTUREMODE[st];\n}\n\n";
+	push @str, "const char *stringMULTITEXTUREMODEType(int st);\n";
+
+
+	#####################
+	# process MULTITEXTURESOURCE keywords 
+	push @str, "\n/* Table of built-in MULTITEXTURESOURCE keywords */\nextern const char *MULTITEXTURESOURCE[];\n";
+	push @str, "extern const int MULTITEXTURESOURCE_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of MULTITEXTURESOURCE keywords */\n       const char *MULTITEXTURESOURCE[] = {\n";
+
+        my @sf = keys %MultiTextureModeC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define MTSRC_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst int MULTITEXTURESOURCE_COUNT = ARR_SIZE(MULTITEXTURESOURCE);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTURESOURCE keyword type */\n". 
+		"const char *stringMULTITEXTURESOURCEType (int st) {\n".
+		"	if ((st < 0) || (st >= MULTITEXTURESOURCE_COUNT)) return \"(special keyword invalid)\"; \n".
+		"	return MULTITEXTURESOURCE[st];\n}\n\n";
+	push @str, "const char *stringMULTITEXTURESOURCEType(int st);\n";
+
+
+	#####################
+	# process MULTITEXTUREFUNCTION keywords 
+	push @str, "\n/* Table of built-in MULTITEXTUREFUNCTION keywords */\nextern const char *MULTITEXTUREFUNCTION[];\n";
+	push @str, "extern const int MULTITEXTUREFUNCTION_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of MULTITEXTUREFUNCTION keywords */\n       const char *MULTITEXTUREFUNCTION[] = {\n";
+
+        my @sf = keys %MultiTextureFunctionC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define MTFN_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTUREFUNCTION keyword type */\n". 
+		"const char *stringMULTITEXTUREFUNCTIONType (int st) {\n".
+		"	if ((st < 0) || (st >= MULTITEXTUREFUNCTION_COUNT)) return \"(special keyword invalid)\"; \n".
+		"	return MULTITEXTUREFUNCTION[st];\n}\n\n";
+	push @str, "const char *stringMULTITEXTUREFUNCTIONType(int st);\n";
+
 
 	#####################
 	# process X3DSPECIAL keywords 

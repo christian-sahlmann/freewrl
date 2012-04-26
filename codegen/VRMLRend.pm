@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.40 2011/06/04 19:05:42 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.41 2012/04/26 16:36:23 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.41  2012/04/26 16:36:23  crc_canada
+# Android changes - preparing for MultiTexturing
+#
 # Revision 1.40  2011/06/04 19:05:42  crc_canada
 # comment out MIDI code
 #
@@ -1369,6 +1372,38 @@
 #######################################################################
 #######################################################################
 #######################################################################
+
+%MultiTextureSourceC = map {($_=>1)} qw/
+	DIFFUSE
+	SPECULAR
+	FACTOR
+/;
+%MultiTextureFunctionC = map {($_=>1)} qw/
+	COMPLEMENT
+	ALPHAREPLICATE
+/;
+
+
+%MultiTextureModeC = map {($_=>1)} qw/
+	MODULATE2X
+	MODULATE4X
+	ADDSMOOTH
+	BLENDDIFFUSEALPHA
+	BLENDCURRENTALPHA
+	MODULATEALPHA_ADDCOLOR
+	MODULATEINVALPHA_ADDCOLOR
+	MODULATEINVCOLOR_ADDALPHA
+	SELECTARG1
+	SELECTARG2
+	DOTPRODUCT3
+	MODULATE
+	REPLACE
+	SUBTRACT
+	ADDSIGNED2X
+	ADDSIGNED
+	ADD
+	OFF
+/;
 
 #
 # X3DSPECIAL Keywords

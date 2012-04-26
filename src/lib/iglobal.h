@@ -31,6 +31,21 @@ Variable use:
 #include "world_script/JScript.h" //for jsval
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 #include "ui/common.h" // for ppcommon
+
+//JAS added here for Android compile. Maybe should define INSTANCEGLOBAL?
+struct multiTexParams {
+    int multitex_mode;
+    int multitex_source;
+    int multitex_function;
+};
+
+typedef struct pRenderTextures{
+/* variables for keeping track of status */
+int currentTextureUnit;// = 99;
+
+}* ppRenderTextures;
+
+
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
@@ -188,7 +203,7 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	}RasterFont;
 	struct tRenderTextures{
-		void *textureParameterStack[10]; //MAX_MULTITEXTURE];
+		struct multiTexParams* textureParameterStack[MAX_MULTITEXTURE];
 		void *prv;
 	}RenderTextures;
 	struct tTextures{

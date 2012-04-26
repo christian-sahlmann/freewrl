@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.108 2012/04/24 17:19:04 dug9 Exp $
+  $Id: Textures.c,v 1.109 2012/04/26 16:36:23 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -784,17 +784,295 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	return;
 }
 
+#ifdef OLDCODE
+OLDCODEvoid loadMultiTexture (struct X3D_MultiTexture *node) {
+OLDCODE	int count;
+OLDCODE	int max;
+OLDCODE	struct multiTexParams *paramPtr;
+OLDCODE
+OLDCODE	char *param;
+OLDCODE
+OLDCODE	struct X3D_ImageTexture *nt;
+OLDCODE
+OLDCODE#ifdef TEXVERBOSE
+OLDCODE	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
+OLDCODE			node->texture.n,
+OLDCODE			(int) node->texture.p[0], (int) node->texture.p[1]);
+OLDCODE	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
+OLDCODE#endif
+OLDCODE	
+OLDCODE	/* new node, or node paramaters changed */
+OLDCODE        if (NODE_NEEDS_COMPILING) {
+OLDCODE	    /*  have to regen the shape*/
+OLDCODE	    MARK_NODE_COMPILED;
+OLDCODE
+OLDCODE		/* alloc fields, if required - only do this once, even if node changes */
+OLDCODE		if (node->__params == 0) {
+OLDCODE			/* printf ("loadMulti, MALLOCing for params\n"); */
+OLDCODE			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+OLDCODE			paramPtr = (struct multiTexParams*) node->__params;
+OLDCODE
+OLDCODE			/* set defaults for these fields */
+OLDCODE			for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
+OLDCODE				paramPtr->texture_env_mode  = GL_MODULATE; 
+OLDCODE				paramPtr->combine_rgb = GL_MODULATE;
+OLDCODE				paramPtr->source0_rgb = GL_TEXTURE;
+OLDCODE				paramPtr->operand0_rgb = GL_SRC_COLOR;
+OLDCODE				paramPtr->source1_rgb = GL_PREVIOUS;
+OLDCODE				paramPtr->operand1_rgb = GL_SRC_COLOR;
+OLDCODE				paramPtr->combine_alpha = GL_REPLACE;
+OLDCODE				paramPtr->source0_alpha = GL_TEXTURE;
+OLDCODE				paramPtr->operand0_alpha = GL_SRC_ALPHA;
+OLDCODE				paramPtr->source1_alpha = 0;
+OLDCODE				paramPtr->operand1_alpha = 0;
+OLDCODE				/*
+OLDCODE				paramPtr->source1_alpha = GL_PREVIOUS;
+OLDCODE				paramPtr->operand1_alpha = GL_SRC_ALPHA;
+OLDCODE				*/
+OLDCODE				paramPtr->rgb_scale = 1;
+OLDCODE				paramPtr->alpha_scale = 1;
+OLDCODE				paramPtr++;
+OLDCODE			}
+OLDCODE		}
+OLDCODE
+OLDCODE		/* how many textures can we use? no sense scanning those we cant use */
+OLDCODE		max = node->mode.n; 
+OLDCODE		if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+OLDCODE
+OLDCODE		/* go through the params, and change string name into a GLint */
+OLDCODE		paramPtr = (struct multiTexParams*) node->__params;
+OLDCODE		for (count = 0; count < max; count++) {
+OLDCODE			param = node->mode.p[count]->strptr;
+OLDCODE			/* printf ("param %d is %s len %d\n",count, param, xx); */
+OLDCODE
+OLDCODE		        if (strcmp("MODULATE2X",param)==0) { 
+OLDCODE				paramPtr->texture_env_mode  = GL_COMBINE; 
+OLDCODE                                paramPtr->rgb_scale = 2;
+OLDCODE                                paramPtr->alpha_scale = 2; } 
+OLDCODE
+OLDCODE		        else if (strcmp("MODULATE4X",param)==0) {
+OLDCODE				paramPtr->texture_env_mode  = GL_COMBINE; 
+OLDCODE                                paramPtr->rgb_scale = 4;
+OLDCODE                                paramPtr->alpha_scale = 4; } 
+OLDCODE		        else if (strcmp("ADDSMOOTH",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_ADD;}
+OLDCODE/* 
+OLDCODE#define GL_ZERO                           0
+OLDCODE#define GL_ONE                            1
+OLDCODE#define GL_SRC_COLOR                      0x0300
+OLDCODE#define GL_ONE_MINUS_SRC_COLOR            0x0301
+OLDCODE#define GL_SRC_ALPHA                      0x0302
+OLDCODE#define GL_ONE_MINUS_SRC_ALPHA            0x0303
+OLDCODE#define GL_DST_ALPHA                      0x0304
+OLDCODE#define GL_ONE_MINUS_DST_ALPHA            0x0305
+OLDCODE
+OLDCODE*/
+OLDCODE		        else if (strcmp("BLENDDIFFUSEALPHA",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE		        else if (strcmp("BLENDCURRENTALPHA",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE		        else if (strcmp("MODULATEALPHA_ADDCOLOR",param)==0) { 
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE		        else if (strcmp("MODULATEINVALPHA_ADDCOLOR",param)==0) { 
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE		        else if (strcmp("MODULATEINVCOLOR_ADDALPHA",param)==0) { 
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE		        else if (strcmp("SELECTARG1",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;
+OLDCODE				paramPtr->combine_rgb = GL_TEXTURE0;}
+OLDCODE		        else if (strcmp("SELECTARG2",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;
+OLDCODE				paramPtr->combine_rgb = GL_TEXTURE1;}
+OLDCODE		        else if (strcmp("DOTPRODUCT3",param)==0) {  
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_DOT3_RGB;}
+OLDCODE/* */
+OLDCODE		        else if (strcmp("MODULATE",param)==0) {
+OLDCODE				/* defaults */}
+OLDCODE
+OLDCODE		        else if (strcmp("REPLACE",param)==0) {
+OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;}
+OLDCODE
+OLDCODE		        else if (strcmp("SUBTRACT",param)==0) {
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
+OLDCODE
+OLDCODE		        else if (strcmp("ADDSIGNED2X",param)==0) {
+OLDCODE				paramPtr->rgb_scale = 2;
+OLDCODE				paramPtr->alpha_scale = 2;
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE; 
+OLDCODE				paramPtr->combine_rgb = GL_ADD_SIGNED;}
+OLDCODE
+OLDCODE		        else if (strcmp("ADDSIGNED",param)==0) {
+OLDCODE				paramPtr->texture_env_mode = GL_COMBINE; 
+OLDCODE				paramPtr->combine_rgb = GL_ADD_SIGNED;}
+OLDCODE
+OLDCODE
+OLDCODE		        else if (strcmp("ADD",param)==0) {
+OLDCODE					paramPtr->texture_env_mode = GL_COMBINE;
+OLDCODE					paramPtr->combine_rgb = GL_ADD; }
+OLDCODE
+OLDCODE
+OLDCODE		        else if (strcmp("OFF",param)==0) { 
+OLDCODE					paramPtr->texture_env_mode = 0; } 
+OLDCODE
+OLDCODE			else {
+OLDCODE				ConsoleMessage ("MultiTexture - invalid param or not supported yet- \"%s\"\n",param);
+OLDCODE			}
+OLDCODE
+OLDCODE			/* printf ("paramPtr for %d is %d\n",count,*paramPtr);  */
+OLDCODE			paramPtr++;
+OLDCODE		}
+OLDCODE
+OLDCODE	/* coparamPtrile the sources */
+OLDCODE/*
+OLDCODE""
+OLDCODE"DIFFUSE"
+OLDCODE"SPECULAR"
+OLDCODE"FACTOR"
+OLDCODE*/
+OLDCODE	/* coparamPtrile the functions */
+OLDCODE/*""
+OLDCODE"COMPLEMENT"
+OLDCODE"ALPHAREPLICATE"
+OLDCODE*/
+OLDCODE
+OLDCODE	}
+OLDCODE
+OLDCODE	/* ok, normally the scene graph contains function pointers. What we have
+OLDCODE	   here is a set of pointers to datastructures of (hopefully!)
+OLDCODE	   types like X3D_ImageTexture, X3D_PixelTexture, and X3D_MovieTexture.
+OLDCODE
+OLDCODE	*/
+OLDCODE
+OLDCODE	/* how many textures can we use? */
+OLDCODE	max = node->texture.n; 
+OLDCODE	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+OLDCODE
+OLDCODE	/* go through and get all of the textures */
+OLDCODE	paramPtr = (struct multiTexParams *) node->__params;
+OLDCODE
+OLDCODE	for (count=0; count < max; count++) {
+OLDCODE#ifdef TEXVERBOSE
+OLDCODE		printf ("loadMultiTexture, working on texture %d\n",count);
+OLDCODE#endif
+OLDCODE
+OLDCODE		/* get the texture */
+OLDCODE		nt = X3D_IMAGETEXTURE(node->texture.p[count]);
+OLDCODE
+OLDCODE		switch (nt->_nodeType) {
+OLDCODE			case NODE_PixelTexture:
+OLDCODE			case NODE_ImageTexture : 
+OLDCODE			case NODE_MovieTexture:
+OLDCODE			case NODE_VRML1_Texture2:
+OLDCODE			case NODE_ImageCubeMapTexture:
+OLDCODE/* JAS still to implement
+OLDCODE			case NODE_GeneratedCubeMapTexture:
+OLDCODE*/
+OLDCODE				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
+OLDCODE				loadTextureNode (X3D_NODE(nt), paramPtr);
+OLDCODE				break;
+OLDCODE			case NODE_MultiTexture:
+OLDCODE				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
+OLDCODE				break;
+OLDCODE			default:
+OLDCODE				printf ("MultiTexture - unknown sub texture type %d\n",
+OLDCODE						nt->_nodeType);
+OLDCODE		}
+OLDCODE
+OLDCODE		/* now, lets increment textureStackTop. The current texture will be
+OLDCODE		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
+OLDCODE		   for "normal" textures; at least 1 for MultiTextures. */
+OLDCODE
+OLDCODE        	gglobal()->RenderFuncs.textureStackTop++;
+OLDCODE		paramPtr++;
+OLDCODE
+OLDCODE#ifdef TEXVERBOSE
+OLDCODE		printf ("loadMultiTexture, finished with texture %d\n",count);
+OLDCODE#endif
+OLDCODE	}
+OLDCODE}
+#endif //OLDCODE
+
+
+static void compileMultiTexture (struct X3D_MultiTexture *node) {
+    struct multiTexParams *paramPtr;
+    char *param;
+    int count;
+    int max;
+    
+    /*  have to regen the shape*/
+    MARK_NODE_COMPILED;
+    
+    /* alloc fields, if required - only do this once, even if node changes */
+    if (node->__params == 0) {
+        /* printf ("loadMulti, MALLOCing for params\n"); */
+        node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+        
+       // printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+    
+        
+        //printf ("paramPtr is %p\n",(int *)node->__params);
+        
+        paramPtr = (struct multiTexParams*) node->__params;
+        
+        /* set defaults for these fields */
+        for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
+            paramPtr->multitex_mode= MTMODE_MODULATE;
+            paramPtr->multitex_source=INT_ID_UNDEFINED;
+            paramPtr->multitex_function=INT_ID_UNDEFINED;
+            paramPtr++;
+        }
+    }
+    
+    /* how many textures can we use? no sense scanning those we cant use */
+    max = node->mode.n; 
+    if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+    
+    // warn users that function and source parameters not looked at right now 
+    if ((node->source.n>0) || (node->function.n>0)) {
+        ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
+    }
+    /* go through the params, and change string name into an int */
+    paramPtr = (struct multiTexParams*) node->__params;
+    for (count = 0; count < max; count++) {
+        param = node->mode.p[count]->strptr;
+        paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(param);
+        
+        if(node->source.n>count) {
+            param = node->source.p[count]->strptr;
+            paramPtr->multitex_source = findFieldInMULTITEXTURESOURCE(param);
+        }
+        
+        if (node->function.n>count) {
+            param = node->function.p[count]->strptr;
+            paramPtr->multitex_source = findFieldInMULTITEXTUREFUNCTION(param);
+        }
+
+printf ("compile_MultiTexture, %d of %d, string %s mode %d function %d\n",count,max,param,paramPtr->multitex_mode,paramPtr->multitex_function);
+
+        paramPtr++;
+    }
+}
+
 void loadMultiTexture (struct X3D_MultiTexture *node) {
 	int count;
 	int max;
 	struct multiTexParams *paramPtr;
 
-	char *param;
-
 	struct X3D_ImageTexture *nt;
+        ttglobal tg = gglobal();
+        ppRenderTextures p = (ppRenderTextures)tg->Textures.prv;
+
 
 #ifdef TEXVERBOSE
-	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
+	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),
 			node->texture.n,
 			(int) node->texture.p[0], (int) node->texture.p[1]);
 	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
@@ -802,146 +1080,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	
 	/* new node, or node paramaters changed */
         if (NODE_NEEDS_COMPILING) {
-	    /*  have to regen the shape*/
-	    MARK_NODE_COMPILED;
-
-		/* alloc fields, if required - only do this once, even if node changes */
-		if (node->__params == 0) {
-			/* printf ("loadMulti, MALLOCing for params\n"); */
-			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
-			paramPtr = (struct multiTexParams*) node->__params;
-
-			/* set defaults for these fields */
-			for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
-				paramPtr->texture_env_mode  = GL_MODULATE; 
-				paramPtr->combine_rgb = GL_MODULATE;
-				paramPtr->source0_rgb = GL_TEXTURE;
-				paramPtr->operand0_rgb = GL_SRC_COLOR;
-				paramPtr->source1_rgb = GL_PREVIOUS;
-				paramPtr->operand1_rgb = GL_SRC_COLOR;
-				paramPtr->combine_alpha = GL_REPLACE;
-				paramPtr->source0_alpha = GL_TEXTURE;
-				paramPtr->operand0_alpha = GL_SRC_ALPHA;
-				paramPtr->source1_alpha = 0;
-				paramPtr->operand1_alpha = 0;
-				/*
-				paramPtr->source1_alpha = GL_PREVIOUS;
-				paramPtr->operand1_alpha = GL_SRC_ALPHA;
-				*/
-				paramPtr->rgb_scale = 1;
-				paramPtr->alpha_scale = 1;
-				paramPtr++;
-			}
-		}
-
-		/* how many textures can we use? no sense scanning those we cant use */
-		max = node->mode.n; 
-		if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
-
-		/* go through the params, and change string name into a GLint */
-		paramPtr = (struct multiTexParams*) node->__params;
-		for (count = 0; count < max; count++) {
-			param = node->mode.p[count]->strptr;
-			/* printf ("param %d is %s len %d\n",count, param, xx); */
-
-		        if (strcmp("MODULATE2X",param)==0) { 
-				paramPtr->texture_env_mode  = GL_COMBINE; 
-                                paramPtr->rgb_scale = 2;
-                                paramPtr->alpha_scale = 2; } 
-
-		        else if (strcmp("MODULATE4X",param)==0) {
-				paramPtr->texture_env_mode  = GL_COMBINE; 
-                                paramPtr->rgb_scale = 4;
-                                paramPtr->alpha_scale = 4; } 
-		        else if (strcmp("ADDSMOOTH",param)==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_ADD;}
-/* 
-#define GL_ZERO                           0
-#define GL_ONE                            1
-#define GL_SRC_COLOR                      0x0300
-#define GL_ONE_MINUS_SRC_COLOR            0x0301
-#define GL_SRC_ALPHA                      0x0302
-#define GL_ONE_MINUS_SRC_ALPHA            0x0303
-#define GL_DST_ALPHA                      0x0304
-#define GL_ONE_MINUS_DST_ALPHA            0x0305
-
-*/
-		        else if (strcmp("BLENDDIFFUSEALPHA",param)==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strcmp("BLENDCURRENTALPHA",param)==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strcmp("MODULATEALPHA_ADDCOLOR",param)==0) { 
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strcmp("MODULATEINVALPHA_ADDCOLOR",param)==0) { 
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strcmp("MODULATEINVCOLOR_ADDALPHA",param)==0) { 
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strcmp("SELECTARG1",param)==0) {  
-				paramPtr->texture_env_mode = GL_REPLACE;
-				paramPtr->combine_rgb = GL_TEXTURE0;}
-		        else if (strcmp("SELECTARG2",param)==0) {  
-				paramPtr->texture_env_mode = GL_REPLACE;
-				paramPtr->combine_rgb = GL_TEXTURE1;}
-		        else if (strcmp("DOTPRODUCT3",param)==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_DOT3_RGB;}
-/* */
-		        else if (strcmp("MODULATE",param)==0) {
-				/* defaults */}
-
-		        else if (strcmp("REPLACE",param)==0) {
-				paramPtr->texture_env_mode = GL_REPLACE;}
-
-		        else if (strcmp("SUBTRACT",param)==0) {
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_rgb = GL_SUBTRACT;}
-
-		        else if (strcmp("ADDSIGNED2X",param)==0) {
-				paramPtr->rgb_scale = 2;
-				paramPtr->alpha_scale = 2;
-				paramPtr->texture_env_mode = GL_COMBINE; 
-				paramPtr->combine_rgb = GL_ADD_SIGNED;}
-
-		        else if (strcmp("ADDSIGNED",param)==0) {
-				paramPtr->texture_env_mode = GL_COMBINE; 
-				paramPtr->combine_rgb = GL_ADD_SIGNED;}
-
-
-		        else if (strcmp("ADD",param)==0) {
-					paramPtr->texture_env_mode = GL_COMBINE;
-					paramPtr->combine_rgb = GL_ADD; }
-
-
-		        else if (strcmp("OFF",param)==0) { 
-					paramPtr->texture_env_mode = 0; } 
-
-			else {
-				ConsoleMessage ("MultiTexture - invalid param or not supported yet- \"%s\"\n",param);
-			}
-
-			/* printf ("paramPtr for %d is %d\n",count,*paramPtr);  */
-			paramPtr++;
-		}
-
-	/* coparamPtrile the sources */
-/*
-""
-"DIFFUSE"
-"SPECULAR"
-"FACTOR"
-*/
-	/* coparamPtrile the functions */
-/*""
-"COMPLEMENT"
-"ALPHAREPLICATE"
-*/
-
+            compileMultiTexture(node);
 	}
 
 	/* ok, normally the scene graph contains function pointers. What we have
@@ -952,15 +1091,37 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 	/* how many textures can we use? */
 	max = node->texture.n; 
+    //printf ("texture.n %d, texture_units %d, MAX_MULTITEXTURE %d\n", node->texture.n, gglobal()->display.rdr_caps.texture_units, MAX_MULTITEXTURE);
+    
 	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
+    if (max > MAX_MULTITEXTURE) max = MAX_MULTITEXTURE;
+    
+    /* do this before we get here - it is the max number of textures */
+    if (getAppearanceProperties()->currentShaderProperties->textureCount != -1) {
+#ifdef TEXVERBOSE
+        printf ("loadMultiTexture, setting the textureCount to %d\n",max);
+#endif
 
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->textureCount, max);
+    }
+    
+    
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
+    
+#ifdef TEXVERBOSE
+    printf ("loadMultiTExture, param stack:\n");
+    for (count=0; count<max; count++) {
+        printf ("   tex %d source %d mode %d\n",count,paramPtr[count].multitex_source,paramPtr[count].multitex_mode);
+    }
+#endif 
 
 	for (count=0; count < max; count++) {
 #ifdef TEXVERBOSE
 		printf ("loadMultiTexture, working on texture %d\n",count);
 #endif
+        
+        p->currentTextureUnit = count;
 
 		/* get the texture */
 		nt = X3D_IMAGETEXTURE(node->texture.p[count]);
@@ -968,14 +1129,8 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		switch (nt->_nodeType) {
 			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
-			case NODE_MovieTexture:
-			case NODE_VRML1_Texture2:
-			case NODE_ImageCubeMapTexture:
-/* JAS still to implement
-			case NODE_GeneratedCubeMapTexture:
-*/
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadTextureNode (X3D_NODE(nt), paramPtr);
+				loadTextureNode (X3D_NODE(nt),paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -990,9 +1145,12 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		   for "normal" textures; at least 1 for MultiTextures. */
 
         	gglobal()->RenderFuncs.textureStackTop++;
-		paramPtr++;
+ 
+		
+        paramPtr++;
 
 #ifdef TEXVERBOSE
+        printf ("loadMultiTexture, textureStackTop %d\n",textureStackTop);
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
@@ -1644,7 +1802,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop] = (void*)param; 
+			tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop] = param; 
 	
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;

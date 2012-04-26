@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.43 2012/03/05 19:56:03 dug9 Exp $
+$Id: RenderTextures.c,v 1.44 2012/04/26 16:36:23 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -46,16 +46,23 @@ texture enabling - works for single texture, for multitexture.
 #include "Textures.h"
 #include "Material.h"
 
+#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
+     /* printf ("textureUnit %d texture %d\n",aaa,bbb);  */ \
+    glActiveTexture(GL_TEXTURE0+aaa); \
+    glBindTexture(GL_TEXTURE_2D,bbb); }
+
+
 
 ///* variables for keeping track of status */
 //static int currentTextureUnit = 99;
 //struct multiTexParams *textureParameterStack[MAX_MULTITEXTURE];
 //void *textureParameterStack[MAX_MULTITEXTURE];
-typedef struct pRenderTextures{
-/* variables for keeping track of status */
-int currentTextureUnit;// = 99;
+//typedef struct pRenderTextures{
+///* variables for keeping track of status */
+//int currentTextureUnit;// = 99;
+//
+//}* ppRenderTextures;
 
-}* ppRenderTextures;
 void *RenderTextures_constructor(){
 	void *v = malloc(sizeof(struct pRenderTextures));
 	memset(v,0,sizeof(struct pRenderTextures));
@@ -103,73 +110,178 @@ printf ("skipping setupTexGen\n");
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
 
-static int setActiveTexture (int c, GLfloat thisTransparency) 
+#ifdef OLDCODE
+OLDCODEstatic int setActiveTexture (int c, GLfloat thisTransparency) 
+OLDCODE{
+OLDCODE        struct multiTexParams *paramPtr;
+OLDCODE	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
+OLDCODE	ppRenderTextures p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppRenderTextures)tg->RenderTextures.prv;
+OLDCODE
+OLDCODE	if (tg->display.rdr_caps.av_multitexture) {
+OLDCODE	    
+OLDCODE	    if (c != p->currentTextureUnit) {
+OLDCODE		  SET_TEXTURE_UNIT(c);
+OLDCODE			if(0){
+OLDCODE				GLint loc;
+OLDCODE				GLint x;
+OLDCODE				GLint useTex;
+OLDCODE				s_shader_capabilities_t *csp;
+OLDCODE				csp = getAppearanceProperties()->currentShaderProperties; 
+OLDCODE				switch(c){
+OLDCODE					case 0:
+OLDCODE							loc = csp->Texture0; break;
+OLDCODE					case 1:
+OLDCODE							loc = csp->Texture1; break;
+OLDCODE					case 2:
+OLDCODE							loc = csp->Texture2; break;
+OLDCODE					case 3:
+OLDCODE							loc = csp->Texture3; break;
+OLDCODE					default:
+OLDCODE							loc = csp->Texture0; break;
+OLDCODE				}
+OLDCODE				useTex = csp->useTex;
+OLDCODE				glActiveTexture(GL_TEXTURE0+c);
+OLDCODE			     //glUniform1i(loc+c, c); 
+OLDCODE				glUniform1i(loc,c);
+OLDCODE			 if( useTex > -1){ 
+OLDCODE				float fw_useTex[4]; 
+OLDCODE				int jj; 
+OLDCODE				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; 
+OLDCODE				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
+OLDCODE			  } 
+OLDCODE			}
+OLDCODE		  p->currentTextureUnit = c;
+OLDCODE	    }
+OLDCODE
+OLDCODE	} else {
+OLDCODE
+OLDCODE	    // this should be already set
+OLDCODE	    p->currentTextureUnit = 0;
+OLDCODE	
+OLDCODE	    #if defined(IPHONE) || defined(GLES2)
+OLDCODE		/* printf ("forcing texture unit to zero and sending in uniform for shader \n"); */
+OLDCODE		SET_TEXTURE_UNIT(0);
+OLDCODE	    #endif
+OLDCODE	}
+OLDCODE
+OLDCODE	/* ENABLE_TEXTURES */
+OLDCODE	#ifndef SHADERS_2011
+OLDCODE	FW_GL_ENABLE(GL_TEXTURE_2D);
+OLDCODE	#endif
+OLDCODE
+OLDCODE
+OLDCODE	/* is this a MultiTexture, or just a "normal" single texture?  When we
+OLDCODE	   bind_image, we store a pointer for the texture parameters. It is
+OLDCODE	   NULL, possibly different for MultiTextures */
+OLDCODE
+OLDCODE	if (tg->RenderTextures.textureParameterStack[c] == NULL) {
+OLDCODE		#ifdef TEXVERBOSE
+OLDCODE		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
+OLDCODE		#endif
+OLDCODE
+OLDCODE                /* should we set the coloUr to 1,1,1,1 so that the material does not show
+OLDCODE                   through a RGB texture?? */
+OLDCODE                /* only do for the first texture if MultiTexturing */
+OLDCODE                if (c == 0) {
+OLDCODE			#ifdef TEXVERBOSE
+OLDCODE			printf ("setActiveTexture - firsttexture  \n"); 
+OLDCODE			#endif
+OLDCODE
+OLDCODE			/* flit in the Material transparency here */
+OLDCODE			allones[3] = thisTransparency;
+OLDCODE			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+OLDCODE                }
+OLDCODE
+OLDCODE
+OLDCODE#ifndef SHADERS_2011
+OLDCODE		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+OLDCODE#endif /* SHADERS_2011 */
+OLDCODE
+OLDCODE	} else {
+OLDCODE		paramPtr = (struct multiTexParams *)tg->RenderTextures.textureParameterStack[c];
+OLDCODE
+OLDCODE		/* is this texture unit active? ie is mode something other than "OFF"? */
+OLDCODE		if (paramPtr->texture_env_mode != 0) {
+OLDCODE
+OLDCODE#if defined(IPHONE) || defined (_ANDROID) || defined(GLES2)
+OLDCODE//printf ("skipping the texenvi - assume replace color and add in shader\n");
+OLDCODE#else
+OLDCODE		switch (paramPtr->texture_env_mode) {
+OLDCODE			case GL_MODULATE:
+OLDCODE				FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+OLDCODE				break;
+OLDCODE			case GL_REPLACE:
+OLDCODE				FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+OLDCODE				break;
+OLDCODE
+OLDCODE			default:	
+OLDCODE			
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
+OLDCODE
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
+OLDCODE
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
+OLDCODE
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
+OLDCODE
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
+OLDCODE			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
+OLDCODE
+OLDCODE			/* do we need these for this mode? */
+OLDCODE			if (paramPtr->source1_alpha != 0) 
+OLDCODE				FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
+OLDCODE			if (paramPtr->operand1_alpha != 0) 
+OLDCODE				FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
+OLDCODE
+OLDCODE			}
+OLDCODE#endif
+OLDCODE
+OLDCODE
+OLDCODE		} else {
+OLDCODE			FW_GL_DISABLE(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
+OLDCODE			return FALSE;
+OLDCODE		}
+OLDCODE	}
+OLDCODE
+OLDCODE
+OLDCODE	PRINT_GL_ERROR_IF_ANY("");
+OLDCODE
+OLDCODE	return TRUE;
+OLDCODE}
+#endif //OLDCODE
+
+static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, GLint *texMode) 
 {
-        struct multiTexParams *paramPtr;
-	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	ppRenderTextures p;
 	ttglobal tg = gglobal();
-	p = (ppRenderTextures)tg->RenderTextures.prv;
 
-	if (tg->display.rdr_caps.av_multitexture) {
-	    
-	    if (c != p->currentTextureUnit) {
-		  SET_TEXTURE_UNIT(c);
-			if(0){
-				GLint loc;
-				GLint x;
-				GLint useTex;
-				s_shader_capabilities_t *csp;
-				csp = getAppearanceProperties()->currentShaderProperties; 
-				switch(c){
-					case 0:
-							loc = csp->Texture0; break;
-					case 1:
-							loc = csp->Texture1; break;
-					case 2:
-							loc = csp->Texture2; break;
-					case 3:
-							loc = csp->Texture3; break;
-					default:
-							loc = csp->Texture0; break;
-				}
-				useTex = csp->useTex;
-				glActiveTexture(GL_TEXTURE0+c);
-			     //glUniform1i(loc+c, c); 
-				glUniform1i(loc,c);
-			 if( useTex > -1){ 
-				float fw_useTex[4]; 
-				int jj; 
-				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; 
-				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
-			  } 
-			}
-		  p->currentTextureUnit = c;
-	    }
-
-	} else {
-
-	    // this should be already set
-	    p->currentTextureUnit = 0;
-	
-	    #if defined(IPHONE) || defined(GLES2)
-		/* printf ("forcing texture unit to zero and sending in uniform for shader \n"); */
-		SET_TEXTURE_UNIT(0);
-	    #endif
-	}
-
-	/* ENABLE_TEXTURES */
-	#ifndef SHADERS_2011
-	FW_GL_ENABLE(GL_TEXTURE_2D);
-	#endif
-
-
+    /* which texture unit are we working on? */
+    
+    /* tie each fw_TextureX uniform into the correct texture unit */
+    
+    // here we assign the texture unit to a specific number. NOTE: in the current code, this will ALWAYS
+    // be [0] = 0, [1] = 1; etc.
+    texUnit[c] = c;
+    
+    
+#ifdef TEXVERBOSE
+    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform %d\n",c,boundTextureStack[c],
+        getAppearanceProperties()->currentShaderProperties->Texture_unit_array[c]);
+#endif
+    
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
 	   bind_image, we store a pointer for the texture parameters. It is
 	   NULL, possibly different for MultiTextures */
 
-	if (tg->RenderTextures.textureParameterStack[c] == NULL) {
-		#ifdef TEXVERBOSE
+	if (tg->RenderTextures.textureParameterStack[c]->multitex_mode == INT_ID_UNDEFINED) {
+        
+    #ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
 		#endif
 
@@ -180,64 +292,17 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 			#ifdef TEXVERBOSE
 			printf ("setActiveTexture - firsttexture  \n"); 
 			#endif
-
-			/* flit in the Material transparency here */
-			allones[3] = thisTransparency;
-			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+                    texMode[c]= GL_MODULATE;
+                } else {
+                    texMode[c]=GL_ADD;
                 }
 
 
-#ifndef SHADERS_2011
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-#endif /* SHADERS_2011 */
-
 	} else {
-		paramPtr = (struct multiTexParams *)tg->RenderTextures.textureParameterStack[c];
-
-		/* is this texture unit active? ie is mode something other than "OFF"? */
-		if (paramPtr->texture_env_mode != 0) {
-
-#if defined(IPHONE) || defined(GLES2)
-//printf ("skipping the texenvi - assume replace color and add in shader\n");
-#else
-		switch (paramPtr->texture_env_mode) {
-			case GL_MODULATE:
-				FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				break;
-			case GL_REPLACE:
-				FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-				break;
-
-			default:	
-			
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
-
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
-
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
-
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
-
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
-
-			/* do we need these for this mode? */
-			if (paramPtr->source1_alpha != 0) 
-				FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
-			if (paramPtr->operand1_alpha != 0) 
-				FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
-
-			}
-#endif
-
-
+        //printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source);
+		if (tg->RenderTextures.textureParameterStack[c]->multitex_source != MTMODE_OFF) {
 		} else {
-			FW_GL_DISABLE(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
+			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;
 		}
 	}
@@ -367,83 +432,190 @@ void textureDraw_end(void) {
 
 /***********************************************************************************/
 
-
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
-	ttglobal tg = gglobal();
+    int i;
+    GLint texUnit[MAX_MULTITEXTURE];
+    GLint texMode[MAX_MULTITEXTURE];
+ttglobal tg = gglobal();
+
 	#ifdef TEXVERBOSE
-	printf ("passedInGenTex, using passed in genTex\n");
+	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",textureStackTop);
 	#endif 
  
 	if (genTex->VA_arrays != NULL) {
-		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+       // printf ("passedInGenTex, A\n");
+		for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
+            //printf ("passedInGenTex, c= %d\n",c);
 			/* are we ok with this texture yet? */
 			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-				if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
-        				if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
-					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+                //printf ("passedInGenTex, B\n");
+				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
+                    //printf ("passedInGenTex, C\n");
+                    if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+                    SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
+                   
+                    FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
+                    sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
 				}
 			}
 		}
 	} else {
-
-		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+        //printf ("passedInGenTex, B\n");
+		for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
+            //printf ("passedInGenTex, c=%d\n",c);
 			/* are we ok with this texture yet? */
 			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-				if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+                //printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
+				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
+                    //printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
         				if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
+                    SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
+                    
 					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
 						genTex->TC_type,
 						genTex->TC_stride,
 						genTex->TC_pointer);
-					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+					sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
 				}
 			}
 		}
 	}
+    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
+        //printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i]->multitex_mode);
+    }
+    
+    
 	PRINT_GL_ERROR_IF_ANY("");
-	return;
 }
-
 
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	int c;
+    int i;
+    GLint texUnit[MAX_MULTITEXTURE];
+    GLint texMode[MAX_MULTITEXTURE];
 	ttglobal tg = gglobal();
+    
 	#ifdef TEXVERBOSE
 	printf ("have a NODE_TextureCoordinate\n");
 	printf ("and this texture has %d points we have texture stacking depth of %d\n",myTCnode->point.n,tg->RenderFuncs.textureStackTop);
 	#endif
 
 	/* render the TextureCoordinate node for every texture in this node */
-	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+
+	COMPILE_TCNODE;
+
+	for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
 		/* printf ("haveTexCoord, rendering node... \n"); */
 		render_node ((void *)myTCnode);
 		/* are we ok with this texture yet? */
-		/* printf ("haveTexCoord, boundTextureStack[c] = %d\n",boundTextureStack[c]); */
+		//printf ("haveTexCoord, boundTextureStack[c] = %d VBO %d\n",tg->RenderFuncs.boundTextureStack[c], myTCnode->__VBO);
 		if (tg->RenderFuncs.boundTextureStack[c] !=0) {
 
-			if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 	       			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-				if (myTCnode->__VBO != 0) {
-                                	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
-					passedInGenTex(&mtf);
-				} else {
-					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
-					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-				}
+                    if (myTCnode->__VBO != 0) {
+                        struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+                        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
+                        passedInGenTex(&mtf);
+                    } else {
+                        SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
+  
+                        FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
+                        sendClientStateToGPU (TRUE,GL_TEXTURE_COORD_ARRAY);
+                    }
 			}
 		}
-	}
+	}    
+    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i]->multitex_mode);
+    }
+
 	PRINT_GL_ERROR_IF_ANY("");
 }
+#ifdef OLDCODE
+OLDCODEstatic void passedInGenTex(struct textureVertexInfo *genTex) {
+OLDCODE	int c;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	#ifdef TEXVERBOSE
+OLDCODE	printf ("passedInGenTex, using passed in genTex\n");
+OLDCODE	#endif 
+OLDCODE 
+OLDCODE	if (genTex->VA_arrays != NULL) {
+OLDCODE		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+OLDCODE			/* are we ok with this texture yet? */
+OLDCODE			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
+OLDCODE				if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+OLDCODE        				if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+OLDCODE					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
+OLDCODE					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
+OLDCODE					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+OLDCODE				}
+OLDCODE			}
+OLDCODE		}
+OLDCODE	} else {
+OLDCODE
+OLDCODE		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+OLDCODE			/* are we ok with this texture yet? */
+OLDCODE			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
+OLDCODE				if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+OLDCODE        				if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+OLDCODE					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
+OLDCODE					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
+OLDCODE						genTex->TC_type,
+OLDCODE						genTex->TC_stride,
+OLDCODE						genTex->TC_pointer);
+OLDCODE					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+OLDCODE				}
+OLDCODE			}
+OLDCODE		}
+OLDCODE	}
+OLDCODE	PRINT_GL_ERROR_IF_ANY("");
+OLDCODE	return;
+OLDCODE}
+OLDCODE
+OLDCODE
+OLDCODEstatic void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
+OLDCODE	int c;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	#ifdef TEXVERBOSE
+OLDCODE	printf ("have a NODE_TextureCoordinate\n");
+OLDCODE	printf ("and this texture has %d points we have texture stacking depth of %d\n",myTCnode->point.n,tg->RenderFuncs.textureStackTop);
+OLDCODE	#endif
+OLDCODE
+OLDCODE	/* render the TextureCoordinate node for every texture in this node */
+OLDCODE	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+OLDCODE		/* printf ("haveTexCoord, rendering node... \n"); */
+OLDCODE		render_node ((void *)myTCnode);
+OLDCODE		/* are we ok with this texture yet? */
+OLDCODE		/* printf ("haveTexCoord, boundTextureStack[c] = %d\n",boundTextureStack[c]); */
+OLDCODE		if (tg->RenderFuncs.boundTextureStack[c] !=0) {
+OLDCODE
+OLDCODE			if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+OLDCODE	       			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+OLDCODE				if (myTCnode->__VBO != 0) {
+OLDCODE                                	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+OLDCODE                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
+OLDCODE					passedInGenTex(&mtf);
+OLDCODE				} else {
+OLDCODE					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
+OLDCODE					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
+OLDCODE					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
+OLDCODE				}
+OLDCODE			}
+OLDCODE		}
+OLDCODE	}
+OLDCODE	PRINT_GL_ERROR_IF_ANY("");
+OLDCODE}
+#endif //OLDCODE
 
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 	int c;
+    GLint texUnit[MAX_MULTITEXTURE];
+    GLint texMode[MAX_MULTITEXTURE];
 	struct X3D_TextureCoordinate *myTCnode;
 	ttglobal tg = gglobal();
 	myTCnode = (struct X3D_TextureCoordinate *) myMTCnode; /* for now, in case of errors, this is set to an invalid value */
@@ -466,7 +638,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 				render_node (X3D_NODE(myTCnode));
 				/* are we ok with this texture yet? */
 				if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-					if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+					if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
         					if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
 						FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
 						FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
@@ -485,7 +657,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 		}
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-			if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
         			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
 
 				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,gglobal()->RenderFuncs.boundTextureStack[c]);
@@ -503,6 +675,9 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 	int c;
+
+    GLint texUnit[MAX_MULTITEXTURE];
+    GLint texMode[MAX_MULTITEXTURE];
 	ttglobal tg = gglobal();
 	#ifdef TEXVERBOSE
 	printf ("have a NODE_TextureCoordinateGenerator\n");
@@ -513,7 +688,7 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 		render_node ((void *)myTCnode);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-			if (setActiveTexture(c,getAppearanceProperties()->transparency)) {
+			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 	       			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
 				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
 

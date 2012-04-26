@@ -1,5 +1,5 @@
 /*
-  $Id: fieldSet.c,v 1.71 2012/04/14 22:46:32 dug9 Exp $
+  $Id: fieldSet.c,v 1.72 2012/04/26 16:36:24 crc_canada Exp $
 
   FreeWRL support library.
   VRML/X3D fields manipulation.
@@ -1011,6 +1011,9 @@ DEF_FINDFIELD(COMPONENTS)
 DEF_FINDFIELD(FIELDTYPES)
 DEF_FINDFIELD(X3DSPECIAL)
 DEF_FINDFIELD(GEOSPATIAL)
+DEF_FINDFIELD(MULTITEXTUREMODE);
+DEF_FINDFIELD(MULTITEXTURESOURCE);
+DEF_FINDFIELD(MULTITEXTUREFUNCTION);
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
