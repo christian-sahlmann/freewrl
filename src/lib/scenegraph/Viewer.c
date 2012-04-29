@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.84 2012/04/18 22:58:29 dug9 Exp $
+$Id: Viewer.c,v 1.85 2012/04/29 22:52:15 dug9 Exp $
 
 CProto ???
 
@@ -365,6 +365,8 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_EXAMINE:
 	case VIEWER_WALK:
 	case VIEWER_EXFLY:
+	case VIEWER_TPLANE:
+	case VIEWER_RPLANE:
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
@@ -880,6 +882,71 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 		}
  	}
 }
+void handle_tplane(const int mev, const unsigned int button, float x, float y) {
+	/* handle_walk with 3button mouse, RMB, can do X,Y in plane, but not rotation
+	   for touch screen with one finger, we want a nav mode called InPlane to 
+	   do the X,Y shifts and rotation in the plane of the camera screen 
+	   (about camera-axis/Z)
+	*/
+	X3D_Viewer_InPlane *inplane;
+	double frameRateAdjustment;
+	struct point_XYZ xyz;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)gglobal()->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; /* lets say 20FPS is our speed benchmark for developing tuning parameters */
+	else
+		frameRateAdjustment = 1.0;
+
+	if (mev == ButtonPress) {
+		inplane->x = x;
+		inplane->y = y;
+	} else if (mev == MotionNotify) {
+		xyz.x = -(x - inplane->x);
+		xyz.y = y - inplane->y;
+		xyz.z = 0.0;
+		xyz.x = .15 * xsign_quadratic(xyz.x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		xyz.y = .15 * xsign_quadratic(xyz.y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+
+		increment_pos(&xyz);
+		inplane->x = x;
+		inplane->y = y;
+		//CALCULATE_EXAMINE_DISTANCE
+ 	}
+}
+void handle_rplane(const int mev, const unsigned int button, float x, float y) {
+	/* handle_walk with 3button mouse, RMB, can do X,Y in plane, but not rotation
+	   for touch screen with one finger, we want a nav mode called InPlane to 
+	   do the X,Y shifts and rotation in the plane of the camera screen 
+	   (about camera-axis/Z)
+	*/
+	X3D_Viewer_InPlane *inplane;
+	Quaternion nq, q_v;
+	double xx,yy;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)gglobal()->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+
+	xx = x - .5;
+	yy = .5 - y;
+	if (mev == ButtonPress) {
+		inplane->x = xx;
+		inplane->y = yy;
+	} else if (mev == MotionNotify) {
+		double drot = atan2(yy,xx) - atan2(inplane->y,inplane->x); 
+		//printf("y=%lf x=%lf inplane-y=%lf inplanex=%lf\n",yy,xx,inplane->y,inplane->x);
+		quaternion_set(&q_v, &(p->Viewer.Quat));
+		vrmlrot_to_quaternion(&nq, 0.0, 0.0, 1.0, drot);
+		quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
+		inplane->x = xx;
+		inplane->y = yy;
+		//CALCULATE_EXAMINE_DISTANCE
+ 	}
+}
 
 /************************************************************************************/
 
@@ -906,6 +973,12 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	case VIEWER_EXFLY:
 		break;
 	case VIEWER_FLY:
+		break;
+	case VIEWER_TPLANE:
+		handle_tplane(mev,button,((float) x),((float)y));
+		break;
+	case VIEWER_RPLANE:
+		handle_rplane(mev,button,((float) x),((float)y));
 		break;
 	case VIEWER_YAWPITCHZOOM:
 		handle_yawpitchzoom(mev,button,((float) x),((float)y));

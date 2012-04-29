@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.48 2012/03/31 19:15:16 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.49 2012/04/29 22:52:14 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -139,7 +139,9 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_WALK 2
 #define VIEWER_EXFLY 3
 #define VIEWER_FLY 4
-#define VIEWER_YAWPITCHZOOM 5
+#define VIEWER_TPLANE 5
+#define VIEWER_RPLANE 6
+#define VIEWER_YAWPITCHZOOM 7
 
 void setStereoBufferStyle(int);
 
