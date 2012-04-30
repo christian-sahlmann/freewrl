@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.110 2012/04/30 19:04:23 crc_canada Exp $
+  $Id: Textures.c,v 1.111 2012/04/30 20:18:07 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1802,7 +1802,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+			if (param != NULL) 
+				memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
 	
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
