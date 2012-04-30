@@ -203,7 +203,7 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	}RasterFont;
 	struct tRenderTextures{
-		struct multiTexParams* textureParameterStack[MAX_MULTITEXTURE];
+		struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
 		void *prv;
 	}RenderTextures;
 	struct tTextures{

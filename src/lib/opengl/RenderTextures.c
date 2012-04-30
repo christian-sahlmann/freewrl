@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.44 2012/04/26 16:36:23 crc_canada Exp $
+$Id: RenderTextures.c,v 1.45 2012/04/30 19:04:23 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -279,7 +279,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	   bind_image, we store a pointer for the texture parameters. It is
 	   NULL, possibly different for MultiTextures */
 
-	if (tg->RenderTextures.textureParameterStack[c]->multitex_mode == INT_ID_UNDEFINED) {
+	if (tg->RenderTextures.textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
         
     #ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
@@ -300,7 +300,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 	} else {
         //printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source);
-		if (tg->RenderTextures.textureParameterStack[c]->multitex_source != MTMODE_OFF) {
+		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;
@@ -484,7 +484,7 @@ ttglobal tg = gglobal();
     for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
         //printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
         glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i]->multitex_mode);
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
     }
     
     
@@ -531,7 +531,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	}    
     for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
         glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i]->multitex_mode);
+        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
     }
 
 	PRINT_GL_ERROR_IF_ANY("");
