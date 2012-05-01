@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.111 2012/04/30 20:18:07 crc_canada Exp $
+  $Id: Textures.c,v 1.112 2012/05/01 16:12:10 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -68,43 +68,19 @@
 #endif
 
 
-/* each block of allocated code contains this... */
-struct textureTableStruct {
-	struct textureTableStruct * next;
-	textureTableIndexStruct_s entry[32];
-};
-//struct textureTableStruct* readTextureTable = NULL;
-//
-//static int nextFreeTexture = 0;
-//char *workingOnFileName = NULL;
 static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
 textureTableIndexStruct_s *getTableIndex(int i);
-//textureTableIndexStruct_s* loadThisTexture;
-//
-///* current index into loadparams that texture thread is working on */
-//int currentlyWorkingOn = -1;
-//
-//int textureInProcess = -1;
-
-///* for texture remapping in TextureCoordinate nodes */
-//GLuint	*global_tcin;
-//int	global_tcin_count;
-//void 	*global_tcin_lastParent;
-//GLuint defaultBlankTexture;
 
 typedef struct pTextures{
-	struct textureTableStruct* readTextureTable;// = NULL;
-
-	int nextFreeTexture;// = 0;
+	struct Vector *activeTextureTable;
 	textureTableIndexStruct_s* loadThisTexture;
 
 	/* current index into loadparams that texture thread is working on */
 	int currentlyWorkingOn;// = -1;
-
 	int textureInProcess;// = -1;
-
-
 }* ppTextures;
+
+
 void *Textures_constructor(){
 	void *v = malloc(sizeof(struct pTextures));
 	memset(v,0,sizeof(struct pTextures));
@@ -112,27 +88,17 @@ void *Textures_constructor(){
 }
 void Textures_init(struct tTextures *t){
 	//public
-	/* for texture remapping in TextureCoordinate nodes */
-	//t->global_tcin;
-	//t->global_tcin_count;
-	//t->global_tcin_lastParent;
-	//t->defaultBlankTexture;
 
 	//private
 	t->prv = Textures_constructor();
 	{
 		ppTextures p = (ppTextures)t->prv;
-		p->readTextureTable = NULL;
-
-		p->nextFreeTexture = 0;
-		//p->loadThisTexture;
+		p->activeTextureTable = NULL;
 
 		/* current index into loadparams that texture thread is working on */
 		p->currentlyWorkingOn = -1;
 
 		p->textureInProcess = -1;
-
-
 	}
 }
 
@@ -281,29 +247,6 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 	GLubyte *prevImage = NULL;
 	GLubyte *newImage = NULL;
 	
-#ifdef OLDCODE
-	/* do we need to ensure GL_RGBA for formats? */
-	/* OpenGL-ES 2.0 only supports RGBA, so lets flip bytes. Note that we do not need to do this in OpenGL 2.x, but,
-	   might as well keep it consistent */
-
-	/* printf ("myTexImage2D, GL_RGBA %d, format %d, internalformat %d\n",GL_RGBA,format,internalformat); */
-	if (format == GL_BGRA) {
-		int i;
-		GLubyte *mp = pixels;
-		/* printf ("converting to GL_RGBA from GL_BGRA\n"); */
-		for (i=0; i<(width*height); i++) {
-			GLubyte tmp;
-			tmp = mp[0]; /* Blue */
-			mp[0] = mp[2]; /* copy Red to Blue */
-			mp[2] = tmp;
-			mp += 4;
-		}
-		/* bytes flipped; it now is a GL_RGBA image */
-		format = GL_RGBA;
-	}
-		
-#endif //OLDCODE
-
 	/* first, base image */
 	FW_GL_TEXIMAGE2D(target,level,internalformat,width,height,border,format,type,pixels);
 
@@ -360,9 +303,9 @@ int isTextureAlpha(int texno) {
 	/* no, have not even started looking at this */
 	/* if (texno == 0) return FALSE; */
 
-//printf ("isTexal, returning FASLE\n"); return FALSE;
-
 	ti = getTableIndex(texno);
+	if (ti==NULL) return FALSE;
+
 	if (ti->status==TEX_LOADED) {
 		return ti->hasAlpha;
 	}
@@ -439,32 +382,39 @@ void releaseTexture(struct X3D_Node *node) {
 }
 
 
-/* find ourselves - given an index, return the struct */
 textureTableIndexStruct_s *getTableIndex(int indx) {
-	int count;
-	int whichBlock;
-	int whichEntry;
-	struct textureTableStruct * currentBlock;
 	ppTextures p = (ppTextures)gglobal()->Textures.prv;
 
-	whichBlock = (indx & 0xffe0) >> 5;
-	whichEntry = indx & 0x1f;
+#ifdef VERBOSE
+{char line[200];
+sprintf (line,"getTableIndex, looking for %d",indx);
+ConsoleMessage (line);}
+#endif
+	if (indx < 0) {
+		ConsoleMessage ("getTableIndex, texture <0 requested");
+		return NULL;
+	}
 
-#ifdef TEXVERBOSE
-	printf ("getTableIndex locating table entry %d\n",indx);
-		printf ("whichBlock = %d, wichEntry = %d ",whichBlock, whichEntry);
+	if (p->activeTextureTable ==NULL ) {
+		ConsoleMessage ("NULL sizing errror in getTableIndex");
+		return NULL;
+	}
+
+
+	if (indx >= vector_size(p->activeTextureTable)) {
+		ConsoleMessage ("sizing errror in getTableIndex");
+		return NULL;
+	}
+
+
+#ifdef VERBOSE
+{char line[200];
+printf ("getTableIndex - valid request\n");
+sprintf (line,"getTableIndex, for %d, size %d",indx, vector_size(p->activeTextureTable));
+ConsoleMessage (line);}
 #endif
 
-	currentBlock = p->readTextureTable;
-	for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
-
-#ifdef TEXVERBOSE
-	printf ("getTableIndex, going to return %d\n", (int) (&(currentBlock->entry[whichEntry])));
-	printf ("textureTableIndexStruct, sgn0 is %d, sgn1 is %d\n",
-		(int) currentBlock->entry[0].scenegraphNode,
-		(int) currentBlock->entry[1].scenegraphNode);
-#endif
-	return &(currentBlock->entry[whichEntry]);
+	return vector_get(textureTableIndexStruct_s *, p->activeTextureTable, indx);
 }
 
 /* is this node a texture node? if so, lets keep track of its textures. */
@@ -472,13 +422,6 @@ textureTableIndexStruct_s *getTableIndex(int indx) {
 void registerTexture(struct X3D_Node *tmp) {
 	struct X3D_ImageTexture *it;
 
-	struct textureTableStruct * listRunner;
-	struct textureTableStruct * newStruct;
-	struct textureTableStruct * currentBlock;
-	int count;
-	int whichBlock;
-	int whichEntry;
-	ppTextures p = (ppTextures)gglobal()->Textures.prv;
 
 	it = (struct X3D_ImageTexture *) tmp;
 	/* printf ("registerTexture, found a %s\n",stringNodeType(it->_nodeType));  */
@@ -490,90 +433,70 @@ void registerTexture(struct X3D_Node *tmp) {
 */ 
 		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
 
-		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
-		/* I need to know the texture "url" here... */
+		// for the index, stored in the X3D node.
+		int textureNumber;
 
-		if ((p->nextFreeTexture & 0x1f) == 0) {
+		// new texture table entry 
+		textureTableIndexStruct_s * newTexture = MALLOC (textureTableIndexStruct_s *,sizeof (textureTableIndexStruct_s));
 
-			newStruct = MALLOC (struct textureTableStruct*, sizeof (struct textureTableStruct));
-			
-			/* zero out the fields in this new block */
-			for (count = 0; count < 32; count ++) {
-				/* newStruct->entry[count].nodeType = 0; */
-				newStruct->entry[count].status = TEX_NOTLOADED;
-				newStruct->entry[count].OpenGLTexture = TEXTURE_INVALID;
-				newStruct->entry[count].frames = 0;
-				newStruct->entry[count].scenegraphNode = NULL;
-				newStruct->entry[count].filename = NULL;
-				newStruct->entry[count].nodeType = 0;
-				newStruct->entry[count].texdata = NULL;
-			}
-			
-			newStruct->next = NULL;
-			
-			/* link this one in */
-			listRunner = p->readTextureTable;
-			if (listRunner == NULL) p->readTextureTable = newStruct;
-			else {
-				while (listRunner->next != NULL) 
-					listRunner = listRunner->next;
-				listRunner->next = newStruct;
-			}
+		ppTextures p = (ppTextures)gglobal()->Textures.prv;
+
+		if (p->activeTextureTable == NULL) {
+			p->activeTextureTable =newVector(textureTableIndexStruct_s *, 16);
 		}
 
-		/* record the info for this texture. */
-		whichBlock = (p->nextFreeTexture & 0xffe0) >> 5;
-		whichEntry = p->nextFreeTexture & 0x1f;
+		// keep track of which texture this one is.
+		textureNumber = vector_size(p->activeTextureTable);
 
-		currentBlock = p->readTextureTable;
-		for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
+		{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
+
+		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
+		/* I need to know the texture "url" here... */
 
 		switch (it->_nodeType) {
 		/* save this index in the scene graph node */
 		case NODE_ImageTexture:
-			it->__textureTableIndex = p->nextFreeTexture;
+			it->__textureTableIndex = textureNumber;
 			break;
 		case NODE_PixelTexture: {
 			struct X3D_PixelTexture *pt;
 			pt = (struct X3D_PixelTexture *) tmp;
-			pt->__textureTableIndex = p->nextFreeTexture;
+			pt->__textureTableIndex = textureNumber;
 			break; }
 		case NODE_MovieTexture: {
 			struct X3D_MovieTexture *mt;
 			mt = (struct X3D_MovieTexture *) tmp;
-			mt->__textureTableIndex = p->nextFreeTexture;
+			mt->__textureTableIndex = textureNumber;
 			break; }
 		case NODE_VRML1_Texture2: {
 			struct X3D_VRML1_Texture2 *v1t;
 			v1t = (struct X3D_VRML1_Texture2 *) tmp;
-			v1t->__textureTableIndex = p->nextFreeTexture;
+			v1t->__textureTableIndex = textureNumber;
 			break; }
 /* JAS still to implement 
 		case NODE_GeneratedCubeMapTexture: {
 			struct X3D_GeneratedCubeMapTexture *v1t;
 			v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = nextFreeTexture;
+			v1t->__textureTableIndex = textureNumber; 
 			break;
 		}
 */
 		case NODE_ImageCubeMapTexture: {
 			struct X3D_ImageCubeMapTexture *v1t;
 			v1t = (struct X3D_ImageCubeMapTexture *) tmp;
-			v1t->__textureTableIndex = p->nextFreeTexture;
+			v1t->__textureTableIndex = textureNumber;
 			break;
 		}
 		}
 
-		currentBlock->entry[whichEntry].nodeType = it->_nodeType;
 		/* set the scenegraphNode here */
-		currentBlock->entry[whichEntry].scenegraphNode = X3D_NODE(tmp);
-#ifdef TEXVERBOSE
-		printf ("registerNode, sgn0 is %d, sgn1 is %d\n",
-			(int) currentBlock->entry[0].scenegraphNode,
-			(int) currentBlock->entry[1].scenegraphNode);
-#endif
-		/* now, lets increment for the next texture... */
-		p->nextFreeTexture += 1;
+		newTexture->nodeType = it->_nodeType;
+		newTexture->scenegraphNode = X3D_NODE(tmp);
+
+		// save this to our texture table
+		vector_pushBack(textureTableIndexStruct_s *, p->activeTextureTable, newTexture);
+	} else {
+		//ConsoleMessage ("registerTexture, ignoring this node");
 	}
 }
 
@@ -783,223 +706,6 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
     new_bind_image (X3D_NODE(node), param);
 	return;
 }
-
-#ifdef OLDCODE
-OLDCODEvoid loadMultiTexture (struct X3D_MultiTexture *node) {
-OLDCODE	int count;
-OLDCODE	int max;
-OLDCODE	struct multiTexParams *paramPtr;
-OLDCODE
-OLDCODE	char *param;
-OLDCODE
-OLDCODE	struct X3D_ImageTexture *nt;
-OLDCODE
-OLDCODE#ifdef TEXVERBOSE
-OLDCODE	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
-OLDCODE			node->texture.n,
-OLDCODE			(int) node->texture.p[0], (int) node->texture.p[1]);
-OLDCODE	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
-OLDCODE#endif
-OLDCODE	
-OLDCODE	/* new node, or node paramaters changed */
-OLDCODE        if (NODE_NEEDS_COMPILING) {
-OLDCODE	    /*  have to regen the shape*/
-OLDCODE	    MARK_NODE_COMPILED;
-OLDCODE
-OLDCODE		/* alloc fields, if required - only do this once, even if node changes */
-OLDCODE		if (node->__params == 0) {
-OLDCODE			/* printf ("loadMulti, MALLOCing for params\n"); */
-OLDCODE			node->__params = MALLOC (void *, sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
-OLDCODE			paramPtr = (struct multiTexParams*) node->__params;
-OLDCODE
-OLDCODE			/* set defaults for these fields */
-OLDCODE			for (count = 0; count < gglobal()->display.rdr_caps.texture_units; count++) {
-OLDCODE				paramPtr->texture_env_mode  = GL_MODULATE; 
-OLDCODE				paramPtr->combine_rgb = GL_MODULATE;
-OLDCODE				paramPtr->source0_rgb = GL_TEXTURE;
-OLDCODE				paramPtr->operand0_rgb = GL_SRC_COLOR;
-OLDCODE				paramPtr->source1_rgb = GL_PREVIOUS;
-OLDCODE				paramPtr->operand1_rgb = GL_SRC_COLOR;
-OLDCODE				paramPtr->combine_alpha = GL_REPLACE;
-OLDCODE				paramPtr->source0_alpha = GL_TEXTURE;
-OLDCODE				paramPtr->operand0_alpha = GL_SRC_ALPHA;
-OLDCODE				paramPtr->source1_alpha = 0;
-OLDCODE				paramPtr->operand1_alpha = 0;
-OLDCODE				/*
-OLDCODE				paramPtr->source1_alpha = GL_PREVIOUS;
-OLDCODE				paramPtr->operand1_alpha = GL_SRC_ALPHA;
-OLDCODE				*/
-OLDCODE				paramPtr->rgb_scale = 1;
-OLDCODE				paramPtr->alpha_scale = 1;
-OLDCODE				paramPtr++;
-OLDCODE			}
-OLDCODE		}
-OLDCODE
-OLDCODE		/* how many textures can we use? no sense scanning those we cant use */
-OLDCODE		max = node->mode.n; 
-OLDCODE		if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
-OLDCODE
-OLDCODE		/* go through the params, and change string name into a GLint */
-OLDCODE		paramPtr = (struct multiTexParams*) node->__params;
-OLDCODE		for (count = 0; count < max; count++) {
-OLDCODE			param = node->mode.p[count]->strptr;
-OLDCODE			/* printf ("param %d is %s len %d\n",count, param, xx); */
-OLDCODE
-OLDCODE		        if (strcmp("MODULATE2X",param)==0) { 
-OLDCODE				paramPtr->texture_env_mode  = GL_COMBINE; 
-OLDCODE                                paramPtr->rgb_scale = 2;
-OLDCODE                                paramPtr->alpha_scale = 2; } 
-OLDCODE
-OLDCODE		        else if (strcmp("MODULATE4X",param)==0) {
-OLDCODE				paramPtr->texture_env_mode  = GL_COMBINE; 
-OLDCODE                                paramPtr->rgb_scale = 4;
-OLDCODE                                paramPtr->alpha_scale = 4; } 
-OLDCODE		        else if (strcmp("ADDSMOOTH",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_ADD;}
-OLDCODE/* 
-OLDCODE#define GL_ZERO                           0
-OLDCODE#define GL_ONE                            1
-OLDCODE#define GL_SRC_COLOR                      0x0300
-OLDCODE#define GL_ONE_MINUS_SRC_COLOR            0x0301
-OLDCODE#define GL_SRC_ALPHA                      0x0302
-OLDCODE#define GL_ONE_MINUS_SRC_ALPHA            0x0303
-OLDCODE#define GL_DST_ALPHA                      0x0304
-OLDCODE#define GL_ONE_MINUS_DST_ALPHA            0x0305
-OLDCODE
-OLDCODE*/
-OLDCODE		        else if (strcmp("BLENDDIFFUSEALPHA",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE		        else if (strcmp("BLENDCURRENTALPHA",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE		        else if (strcmp("MODULATEALPHA_ADDCOLOR",param)==0) { 
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE		        else if (strcmp("MODULATEINVALPHA_ADDCOLOR",param)==0) { 
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE		        else if (strcmp("MODULATEINVCOLOR_ADDALPHA",param)==0) { 
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE		        else if (strcmp("SELECTARG1",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;
-OLDCODE				paramPtr->combine_rgb = GL_TEXTURE0;}
-OLDCODE		        else if (strcmp("SELECTARG2",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;
-OLDCODE				paramPtr->combine_rgb = GL_TEXTURE1;}
-OLDCODE		        else if (strcmp("DOTPRODUCT3",param)==0) {  
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_DOT3_RGB;}
-OLDCODE/* */
-OLDCODE		        else if (strcmp("MODULATE",param)==0) {
-OLDCODE				/* defaults */}
-OLDCODE
-OLDCODE		        else if (strcmp("REPLACE",param)==0) {
-OLDCODE				paramPtr->texture_env_mode = GL_REPLACE;}
-OLDCODE
-OLDCODE		        else if (strcmp("SUBTRACT",param)==0) {
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE				paramPtr->combine_rgb = GL_SUBTRACT;}
-OLDCODE
-OLDCODE		        else if (strcmp("ADDSIGNED2X",param)==0) {
-OLDCODE				paramPtr->rgb_scale = 2;
-OLDCODE				paramPtr->alpha_scale = 2;
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE; 
-OLDCODE				paramPtr->combine_rgb = GL_ADD_SIGNED;}
-OLDCODE
-OLDCODE		        else if (strcmp("ADDSIGNED",param)==0) {
-OLDCODE				paramPtr->texture_env_mode = GL_COMBINE; 
-OLDCODE				paramPtr->combine_rgb = GL_ADD_SIGNED;}
-OLDCODE
-OLDCODE
-OLDCODE		        else if (strcmp("ADD",param)==0) {
-OLDCODE					paramPtr->texture_env_mode = GL_COMBINE;
-OLDCODE					paramPtr->combine_rgb = GL_ADD; }
-OLDCODE
-OLDCODE
-OLDCODE		        else if (strcmp("OFF",param)==0) { 
-OLDCODE					paramPtr->texture_env_mode = 0; } 
-OLDCODE
-OLDCODE			else {
-OLDCODE				ConsoleMessage ("MultiTexture - invalid param or not supported yet- \"%s\"\n",param);
-OLDCODE			}
-OLDCODE
-OLDCODE			/* printf ("paramPtr for %d is %d\n",count,*paramPtr);  */
-OLDCODE			paramPtr++;
-OLDCODE		}
-OLDCODE
-OLDCODE	/* coparamPtrile the sources */
-OLDCODE/*
-OLDCODE""
-OLDCODE"DIFFUSE"
-OLDCODE"SPECULAR"
-OLDCODE"FACTOR"
-OLDCODE*/
-OLDCODE	/* coparamPtrile the functions */
-OLDCODE/*""
-OLDCODE"COMPLEMENT"
-OLDCODE"ALPHAREPLICATE"
-OLDCODE*/
-OLDCODE
-OLDCODE	}
-OLDCODE
-OLDCODE	/* ok, normally the scene graph contains function pointers. What we have
-OLDCODE	   here is a set of pointers to datastructures of (hopefully!)
-OLDCODE	   types like X3D_ImageTexture, X3D_PixelTexture, and X3D_MovieTexture.
-OLDCODE
-OLDCODE	*/
-OLDCODE
-OLDCODE	/* how many textures can we use? */
-OLDCODE	max = node->texture.n; 
-OLDCODE	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
-OLDCODE
-OLDCODE	/* go through and get all of the textures */
-OLDCODE	paramPtr = (struct multiTexParams *) node->__params;
-OLDCODE
-OLDCODE	for (count=0; count < max; count++) {
-OLDCODE#ifdef TEXVERBOSE
-OLDCODE		printf ("loadMultiTexture, working on texture %d\n",count);
-OLDCODE#endif
-OLDCODE
-OLDCODE		/* get the texture */
-OLDCODE		nt = X3D_IMAGETEXTURE(node->texture.p[count]);
-OLDCODE
-OLDCODE		switch (nt->_nodeType) {
-OLDCODE			case NODE_PixelTexture:
-OLDCODE			case NODE_ImageTexture : 
-OLDCODE			case NODE_MovieTexture:
-OLDCODE			case NODE_VRML1_Texture2:
-OLDCODE			case NODE_ImageCubeMapTexture:
-OLDCODE/* JAS still to implement
-OLDCODE			case NODE_GeneratedCubeMapTexture:
-OLDCODE*/
-OLDCODE				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-OLDCODE				loadTextureNode (X3D_NODE(nt), paramPtr);
-OLDCODE				break;
-OLDCODE			case NODE_MultiTexture:
-OLDCODE				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
-OLDCODE				break;
-OLDCODE			default:
-OLDCODE				printf ("MultiTexture - unknown sub texture type %d\n",
-OLDCODE						nt->_nodeType);
-OLDCODE		}
-OLDCODE
-OLDCODE		/* now, lets increment textureStackTop. The current texture will be
-OLDCODE		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
-OLDCODE		   for "normal" textures; at least 1 for MultiTextures. */
-OLDCODE
-OLDCODE        	gglobal()->RenderFuncs.textureStackTop++;
-OLDCODE		paramPtr++;
-OLDCODE
-OLDCODE#ifdef TEXVERBOSE
-OLDCODE		printf ("loadMultiTexture, finished with texture %d\n",count);
-OLDCODE#endif
-OLDCODE	}
-OLDCODE}
-#endif //OLDCODE
-
 
 static void compileMultiTexture (struct X3D_MultiTexture *node) {
     struct multiTexParams *paramPtr;
@@ -1411,13 +1117,6 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 	if (getAppearanceProperties()->cubeFace != 0) {
 		unsigned char *dest = me->texdata;
-#ifdef OLDCODE
-OLDCODE		#if defined(IPHONE) || defined(_ANDROID)
-OLDCODE		uint32 *sp, *dp; /* uint32 not defined on iphone?? */
-OLDCODE		#else
-OLDCODE		uint32 *sp, *dp;
-OLDCODE		#endif
-#endif // OLDCODE
         uint32 *sp, *dp;
 
 		int cx;
@@ -1459,15 +1158,6 @@ OLDCODE		#endif
 
 		/* flip the image around */
 		dest = MALLOC (unsigned char *, 4*rx*ry);
-#ifdef OLDCODE
-OLDCODE		#if defined(IPHONE) || defined(_ANDROID)
-OLDCODE		dp = (uint32*) dest;
-OLDCODE		sp = (uint32 *)me->texdata;
-OLDCODE		#else
-OLDCODE		dp = (uint32 *) dest;
-OLDCODE		sp = (uint32 *) me->texdata;
-OLDCODE		#endif
-#endif /* OLDCODE */
 		dp = (uint32 *) dest;
 		sp = (uint32 *) me->texdata;        
 
