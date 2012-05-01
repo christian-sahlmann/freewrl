@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.85 2012/04/29 22:52:15 dug9 Exp $
+$Id: Viewer.c,v 1.86 2012/05/01 14:35:38 dug9 Exp $
 
 CProto ???
 
@@ -184,6 +184,7 @@ X3D_Viewer *Viewer()
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
+static void handle_tick_fly2(void);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
@@ -367,6 +368,8 @@ void fwl_set_viewer_type(const int type) {
 	case VIEWER_EXFLY:
 	case VIEWER_TPLANE:
 	case VIEWER_RPLANE:
+	case VIEWER_TILT:
+	case VIEWER_FLY2:
 	case VIEWER_YAWPITCHZOOM:
 	case VIEWER_FLY:
 		p->Viewer.type = type;
@@ -882,6 +885,108 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 		}
  	}
 }
+/* fly2, tilt, tplane, rplane form a set that replaces keyboard fly for 
+	touch devices. Collision / gravity only differentiates WALK, and treats all 
+	other modes the same as fly.
+	When FLY mode is set from the scene, the front end (or statusbarHud)
+	switches to FLY2 which navigates similar to walk mode except with 
+	(default) no gravity and a (default) spherical collision volume.
+*/
+void viewer_lastQ_set(Quaternion *lastQ);
+void handle_fly2(const int mev, const unsigned int button, float x, float y) {
+	/* there's a handle_tick_fly2() so handle_fly2() must turn on/off the
+		tick action based on mev (mouse up/down/move)
+	*/
+	ttglobal tg;
+	ppViewer p;
+	X3D_Viewer_InPlane *inplane;
+	struct point_XYZ xyz;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+	
+	if (mev == ButtonPress) {
+		inplane->x = x;
+		inplane->y = y;
+		inplane->xx = x;
+		inplane->yy = y;
+		inplane->on = 1;
+	} else if (mev == MotionNotify) {
+		inplane->xx = x;
+		inplane->yy = y;
+	} else if (mev == ButtonRelease ) {
+		inplane->on = 0;
+	}
+	
+}
+
+void handle_tick_fly2() {
+	ttglobal tg;
+	ppViewer p;
+	X3D_Viewer_InPlane *inplane;
+	double frameRateAdjustment, xx, yy, zz, rot;
+	struct point_XYZ xyz;
+	Quaternion q, nq;
+	tg = gglobal();
+	p = (ppViewer)tg->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+
+	if( tg->Mainloop.BrowserFPS > 0)
+		frameRateAdjustment = 20.0 / tg->Mainloop.BrowserFPS; 
+	else
+		frameRateAdjustment = 1.0;
+	
+	if (inplane->on) {
+		xx = inplane->xx - inplane->x;
+		yy = inplane->yy - inplane->y;
+		zz = xsign_quadratic(yy,.05,5.0,0.0)*p->Viewer.speed * frameRateAdjustment;
+		zz *= 0.15;
+		xyz.x = 0.0;
+		xyz.y = 0.0;
+		xyz.z = zz;
+
+		rot = xsign_quadratic(xx,0.1,0.5,0.0)*frameRateAdjustment;
+		//printf("rot=%lf zz=%lf\n",rot,zz);
+		memcpy(&q,&p->Viewer.Quat,sizeof(Quaternion));
+		vrmlrot_to_quaternion (&nq,0.0,1.0,0.0,0.4*rot);
+		viewer_lastQ_set(&nq); //wall penetration - last avatar pose is stored before updating
+		quaternion_multiply(&(p->Viewer.Quat), &q, &nq); //Quat = walk->RD * Quat
+		//does the Z gets transformed by the quat?
+		increment_pos(&xyz);
+		//inplane->x = x;
+		//inplane->y = y;
+		//CALCULATE_EXAMINE_DISTANCE
+ 	}
+	
+}
+void handle_tilt(const int mev, const unsigned int button, float x, float y) {
+	/* a vertical drag tilts the camera
+	*/
+	X3D_Viewer_InPlane *inplane;
+	Quaternion nq, q_v;
+	double xx,yy;
+	ppViewer p;
+	ttglobal tg = gglobal();
+	p = (ppViewer)gglobal()->Viewer.prv;
+	inplane = &p->Viewer.inplane;
+
+	xx = x - .5;
+	yy = .5 - y;
+	if (mev == ButtonPress) {
+		inplane->x = xx;
+		inplane->y = yy;
+	} else if (mev == MotionNotify) {
+		double drot = atan2(yy,.5) - atan2(inplane->y,.5); 
+		//printf("y=%lf x=%lf inplane-y=%lf inplanex=%lf\n",yy,xx,inplane->y,inplane->x);
+		quaternion_set(&q_v, &(p->Viewer.Quat));
+		vrmlrot_to_quaternion(&nq, 1.0, 0.0, 0.0, drot);
+		quaternion_multiply(&(p->Viewer.Quat), &nq, &q_v);
+		inplane->x = xx;
+		inplane->y = yy;
+		//CALCULATE_EXAMINE_DISTANCE
+ 	}
+}
+
 void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	/* handle_walk with 3button mouse, RMB, can do X,Y in plane, but not rotation
 	   for touch screen with one finger, we want a nav mode called InPlane to 
@@ -889,7 +994,7 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	   (about camera-axis/Z)
 	*/
 	X3D_Viewer_InPlane *inplane;
-	double frameRateAdjustment;
+	double frameRateAdjustment,xx,yy;
 	struct point_XYZ xyz;
 	ppViewer p;
 	ttglobal tg = gglobal();
@@ -901,19 +1006,23 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	else
 		frameRateAdjustment = 1.0;
 
+	xx = x - .5;
+	yy = .5 - y;
 	if (mev == ButtonPress) {
-		inplane->x = x;
-		inplane->y = y;
+		inplane->x = xx;
+		inplane->y = yy;
 	} else if (mev == MotionNotify) {
-		xyz.x = -(x - inplane->x);
-		xyz.y = y - inplane->y;
+		//xyz.x = -(x - inplane->x);
+		//xyz.y = y - inplane->y;
+		xyz.x = -(xx - inplane->x);
+		xyz.y = -(yy - inplane->y);
 		xyz.z = 0.0;
 		xyz.x = .15 * xsign_quadratic(xyz.x,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 		xyz.y = .15 * xsign_quadratic(xyz.y,5.0,10.0,0.0)*p->Viewer.speed * frameRateAdjustment;
 
 		increment_pos(&xyz);
-		inplane->x = x;
-		inplane->y = y;
+		inplane->x = xx;
+		inplane->y = yy;
 		//CALCULATE_EXAMINE_DISTANCE
  	}
 }
@@ -973,6 +1082,12 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	case VIEWER_EXFLY:
 		break;
 	case VIEWER_FLY:
+		break;
+	case VIEWER_FLY2:
+		handle_fly2(mev,button,((float) x),((float)y));
+		break;
+	case VIEWER_TILT:
+		handle_tilt(mev,button,((float) x),((float)y));
 		break;
 	case VIEWER_TPLANE:
 		handle_tplane(mev,button,((float) x),((float)y));
@@ -1504,6 +1619,9 @@ handle_tick()
 		break;
 	case VIEWER_FLY:
 		handle_tick_fly();
+		break;
+	case VIEWER_FLY2:
+		handle_tick_fly2();
 		break;
 	case VIEWER_YAWPITCHZOOM:
 		break;

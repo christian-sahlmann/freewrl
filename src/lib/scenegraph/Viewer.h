@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.49 2012/04/29 22:52:15 dug9 Exp $
+$Id: Viewer.h,v 1.50 2012/05/01 14:35:38 dug9 Exp $
 
 Viewer ???
 
@@ -184,6 +184,8 @@ typedef struct viewer_ypz {
 
 typedef struct viewer_inplane {
 	float x,y;
+	float xx,yy;
+	int on;
 } X3D_Viewer_InPlane;
 
 typedef struct key {
@@ -234,7 +236,7 @@ typedef struct viewer {
 	int iprog[2]; /*which shader program for left vp,right vp 0-5 */
 	/* */
 	unsigned int buffer;
-	int oktypes[7];		/* boolean for types being acceptable. */
+	int oktypes[16];		/* boolean for types being acceptable. */
 	X3D_Viewer_Walk walk;
 	X3D_Viewer_Examine examine;
 	X3D_Viewer_Fly fly;
