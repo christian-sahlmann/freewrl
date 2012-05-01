@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.68 2011/10/27 18:51:32 crc_canada Exp $
+$Id: Bindable.c,v 1.69 2012/05/01 14:32:44 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -106,7 +106,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<7; i++) viewer->oktypes[i] = FALSE;
+	for (i=0; i<16; i++) viewer->oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
