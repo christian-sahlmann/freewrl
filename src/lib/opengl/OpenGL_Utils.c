@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.235 2012/04/26 17:07:13 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.236 2012/05/03 15:27:35 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -293,8 +293,10 @@ static void shaderErrorLog(GLuint myShader, char *which) {
         #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
 #define MAX_INFO_LOG_SIZE 512
                 GLchar infoLog[MAX_INFO_LOG_SIZE];
+		char outline[MAX_INFO_LOG_SIZE*2];
                 glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
-                ConsoleMessage ("problem with %s shader: %s",which, infoLog);
+		sprintf(outline,"problem with %s shader: %s",which, infoLog);
+                ConsoleMessage (outline);
         #else
                 ConsoleMessage ("Problem compiling shader");
         #endif
@@ -409,7 +411,7 @@ varying vec4 v_front_colour;\
 uniform sampler2D fw_Texture_unit0; \
 uniform sampler2D fw_Texture_unit1; \
 uniform sampler2D fw_Texture_unit2; \
-/* \
+/* REMOVE these as shader compile takes long \
 uniform sampler2D fw_Texture_unit3; \
 uniform sampler2D fw_Texture_unit4; \
 uniform sampler2D fw_Texture_unit5; \
@@ -419,7 +421,7 @@ uniform sampler2D fw_Texture_unit7; \
 uniform int fw_Texture_mode0; \
 uniform int fw_Texture_mode1; \
 uniform int fw_Texture_mode2; \
-/* \
+/* REMOVE these as shader compile takes long \
 uniform int fw_Texture_mode3; \
 uniform int fw_Texture_mode4; \
 uniform int fw_Texture_mode5; \
@@ -429,11 +431,13 @@ uniform int fw_Texture_mode7; \
 \
  uniform int textureCount;\
 vec4 finalColCalc(in vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \
-/* \
-    if (mode==MTMODE_OFF) { return vec4(prevColour);} \
-    if (mode==MTMODE_REPLACE) {return vec4(texture2D(tex, texcoord));}\
-    if (mode==MTMODE_MODULATE) { \
-*/ \
+        vec4 texel = texture2D(tex,texcoord); \
+	vec4 rv = vec4(1.,0.,1.,1.);  \
+\
+    if (mode==MTMODE_OFF) { rv = vec4(prevColour);} \
+    else if (mode==MTMODE_REPLACE) {rv = vec4(texture2D(tex, texcoord));}\
+    else if (mode==MTMODE_MODULATE) { \
+\
         vec3 ct,cf; \
         vec4 texel; \
         float at,af; \
@@ -441,55 +445,50 @@ vec4 finalColCalc(in vec4 prevColour, in int mode, in sampler2D tex, in vec2 tex
         cf = prevColour.rgb; \
         af = prevColour.a; \
         \
-        texel = texture2D(tex,texcoord); \
         ct = texel.rgb; \
         at = texel.a; \
-        return vec4(ct*cf, at*af); \
-/* \
-    }\
-    if (mode==MTMODE_MODULATE2X) { \
+        rv = vec4(ct*cf, at*af); \
+\
+    } \
+    else if (mode==MTMODE_MODULATE2X) { \
         vec3 ct,cf; \
-        vec4 texel; \
         float at,af; \
         \
         cf = prevColour.rgb; \
         af = prevColour.a; \
         \
-        texel = texture2D(tex,texcoord); \
         ct = texel.rgb; \
         at = texel.a; \
-        return vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.)); \
+        rv = vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.)); \
     }\
-    if (mode==MTMODE_MODULATE4X) { \
+    else if (mode==MTMODE_MODULATE4X) { \
         vec3 ct,cf; \
-        vec4 texel; \
         float at,af; \
         \
         cf = prevColour.rgb; \
         af = prevColour.a; \
         \
-        texel = texture2D(tex,texcoord); \
         ct = texel.rgb; \
         at = texel.a; \
-        return vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.)); \
+        rv = vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.)); \
     }\
-    if (mode== MTMODE_ADDSIGNED) {\
-        return vec4 (prevColour + texture2D(tex, texcoord) - vec4 (0.5, 0.5, 0.5, -.5)); \
+    else if (mode== MTMODE_ADDSIGNED) {\
+        rv = vec4 (prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5)); \
     } \
-    if (mode== MTMODE_ADDSIGNED2X) {\
-        return vec4 ((prevColour + texture2D(tex, texcoord) - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.)); \
+    else if (mode== MTMODE_ADDSIGNED2X) {\
+        rv = vec4 ((prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.)); \
     } \
-    if (mode== MTMODE_ADD) {\
-        return vec4 (prevColour + texture2D(tex, texcoord)); \
+    else if (mode== MTMODE_ADD) {\
+        rv= vec4 (prevColour + texel); \
     } \
-    if (mode== MTMODE_SUBTRACT) {\
-        return vec4 (prevColour - texture2D(tex, texcoord)); \
+   else if (mode== MTMODE_SUBTRACT) {\
+        rv = vec4 (prevColour - texel); \
     } \
-    if (mode==MTMODE_ADDSMOOTH) { \
-         return vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texture2D(tex,texcoord)); \
-    }\
-    return vec4 (prevColour * texture2D(tex, texcoord)); \
-*/ \
+    else if (mode==MTMODE_ADDSMOOTH) { \
+         rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel); \
+    } \
+    return rv; \
+\
 } \
 \
 void main () { \
@@ -500,7 +499,7 @@ finalColour = v_front_colour; \
  if(textureCount>=1) {finalColour=finalColCalc(finalColour,fw_Texture_mode0,fw_Texture_unit0,v_texC);} \
  if(textureCount>=2) {finalColour=finalColCalc(finalColour,fw_Texture_mode1,fw_Texture_unit1,v_texC);} \
  if(textureCount>=3) {finalColour=finalColCalc(finalColour,fw_Texture_mode2,fw_Texture_unit2,v_texC);} \
-/* \
+/* REMOVE these as shader compile takes long \
  if(textureCount>=4) {finalColour=finalColCalc(finalColour,fw_Texture_mode3,fw_Texture_unit3,v_texC);} \
  if(textureCount>=5) {finalColour=finalColCalc(finalColour,fw_Texture_mode4,fw_Texture_unit4,v_texC);} \
  if(textureCount>=6) {finalColour=finalColCalc(finalColour,fw_Texture_mode5,fw_Texture_unit5,v_texC);} \
@@ -2742,34 +2741,28 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 }
 
 
-static void printCompilingShader() {
-/*
-printf ("compiling shader: ");
+static void printCompilingShader(shader_type_t whichOne) {
+ConsoleMessage ("compiling shader: ");
 switch (whichOne) {
-case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
-case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
-case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
-case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
-case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
-case noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
-case noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
-case noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
-case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
-case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
-case oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
-case oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
-case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
-case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
-case complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
-case complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
-case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
-case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
-case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
-case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
-*/
-
-
+	case backgroundSphereShader: ConsoleMessage ("backgroundSphereShader"); break;
+	case backgroundTextureBoxShader: ConsoleMessage ("backgroundTextureBoxShader"); break;
+	case noMaterialNoAppearanceShader: ConsoleMessage ("noMaterialNoAppearanceShader"); break;
+	case noTexOneMaterialShader: ConsoleMessage ("noTexOneMaterialShader"); break;
+	case noTexTwoMaterialShader: ConsoleMessage ("noTexTwoMaterialShader"); break;
+	case oneTexOneMaterialShader: ConsoleMessage ("oneTexOneMaterialShader"); break;
+	case oneTexTwoMaterialShader: ConsoleMessage ("oneTexTwoMaterialShader"); break;
+	case complexTexOneMaterialShader: ConsoleMessage ("complexTexOneMaterialShader"); break;
+	case complexTexTwoMaterialShader: ConsoleMessage ("complexTexTwoMaterialShader"); break;
+	case noTexTwoMaterialColourShader: ConsoleMessage ("noTexTwoMaterialColourShader"); break;
+	case noTexOneMaterialColourShader: ConsoleMessage ("noTexOneMaterialColourShader"); break;
+	case oneTexTwoMaterialColourShader: ConsoleMessage ("oneTexTwoMaterialColourShader"); break;
+	case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader"); break;
+	case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader"); break;
+	case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader"); break;
+	case multiTexShader: ConsoleMessage ("multiTexShader"); break;
 }
+}
+
 
 
 /* read in shaders and place the resulting shader program in the "whichShader" field if success. */
@@ -2787,6 +2780,9 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *compileFlags;
 	char *vertexSource[2];
 	char  *fragmentSource[2];
+
+	printCompilingShader(whichOne);
+
 
 	/* pointerize this */
 	myShader = &(gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne]);
@@ -3200,6 +3196,9 @@ bool fwl_initialize_GL()
 
 	/* lines, points, no colour node, get colour from material */
 	getGenericShader(linePointNoColorNodeShader);
+
+	/* multi texture shader */
+	getGenericShader(multiTexShader);
 
 	#endif /* SHADERS_2011 */
 
