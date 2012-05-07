@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.98 2012/04/26 17:07:13 crc_canada Exp $
+$Id: Component_Shape.c,v 1.99 2012/05/07 14:53:16 crc_canada Exp $
 
 X3D Shape Component
 
@@ -852,6 +852,7 @@ static void printChoosingShader(shader_type_t whichOne) {
 
 /* find info on the appearance of this Shape and create a shader */
 void compile_Shape (struct X3D_Shape *node) {
+#ifdef SHADERS_2011
 	int whichAppearanceShader = -1;
 	int whichShapeColorShader = -1;
 	int isUnlitGeometry = -1;
@@ -944,179 +945,16 @@ void compile_Shape (struct X3D_Shape *node) {
     }
     }
 
-/*printf ("compile_Shape forcing to use noMaterialNoAppearanceShader\n");
-node->_shaderTableEntry = noMaterialNoAppearanceShader;
+    
+	#ifdef VERBOSE
+	printChoosingShader(node->_shaderTableEntry);
+	#endif //VERBOSE
+    
 
-    node->_shaderTableEntry = multiTexShader;
-    */
-    
-    
-#ifdef VERBOSE
-    printChoosingShader(node->_shaderTableEntry);
-#endif //VERBOSE
-    
+#endif //SHADERS_2011
+
 	MARK_NODE_COMPILED
 }
-#ifdef OLDCODE
-OLDCODE
-OLDCODEvoid compile_Shape (struct X3D_Shape *node) {
-OLDCODE#ifdef SHADERS_2011
-OLDCODE
-OLDCODE	int whichGeometryShader = -1;
-OLDCODE	int whichAppearanceShader = -1;
-OLDCODE	int whichShapeColorShader = -1;
-OLDCODE	int isUnlitGeometry = -1;
-OLDCODE
-OLDCODE	whichGeometryShader = getGeometryShader(node->geometry);
-OLDCODE	whichShapeColorShader = getShapeColourShader(node->geometry);
-OLDCODE	whichAppearanceShader = getAppearanceShader(node->appearance);
-OLDCODE	isUnlitGeometry = getIfLinePoints(node->geometry);
-OLDCODE
-OLDCODE
-OLDCODE
-OLDCODE	/* choose the shader. Note that we just "or" the results together */
-OLDCODE
-OLDCODE	switch (whichGeometryShader | whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
-OLDCODE
-OLDCODE	/* SECTION 1 - Spheres CAN NOT have colour nodes, we can ignore the ColourShader field */
-OLDCODE	case SPHERE_GEOM_SHADER | NO_APPEARANCE_SHADER:
-OLDCODE		node->_shaderTableEntry = noMaterialNoAppearanceSphereShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case SPHERE_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexOneMaterialSphereShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case SPHERE_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexTwoMaterialSphereShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
-OLDCODE	case SPHERE_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
-OLDCODE		node->_shaderTableEntry = oneTexOneMaterialSphereShader;
-OLDCODE		break;	
-OLDCODE
-OLDCODE
-OLDCODE
-OLDCODE	/* SECTION 2 - No Geom Shaders; No Color node in Shape */
-OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = noMaterialNoAppearanceShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexTwoMaterialShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexOneMaterialShader;
-OLDCODE		break;	
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = oneTexTwoMaterialShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = oneTexOneMaterialShader;
-OLDCODE		break;	
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE	case NO_GEOM_SHADER | COMPLEX_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = complexTexOneMaterialShader;
-OLDCODE		break;	
-OLDCODE
-OLDCODE	
-OLDCODE
-OLDCODE	/* SECTION 3 - No Geom Shaders, HAVE Color node in shape */
-OLDCODE
-OLDCODE	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
-OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE		node->_shaderTableEntry = linePointColorNodeShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	
-OLDCODE	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
-OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-OLDCODE		node->_shaderTableEntry = linePointNoColorNodeShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = backgroundSphereShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexTwoMaterialColourShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = noTexOneMaterialColourShader;
-OLDCODE		break;	
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
-OLDCODE		break;
-OLDCODE
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-OLDCODE		node->_shaderTableEntry = oneTexOneMaterialColourShader;
-OLDCODE		break;	
-OLDCODE	
-OLDCODE
-OLDCODE	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
-OLDCODE	}
-OLDCODE/*
-OLDCODEprintf ("forcing to use noMaterialNoAppearanceShader\n");
-OLDCODEnode->_shaderTableEntry = noMaterialNoAppearanceShader;
-OLDCODE*/
-OLDCODE
-OLDCODE/* debug */
-OLDCODE
-OLDCODE	if(1){
-OLDCODEprintf ("shape using shader: ");
-OLDCODEswitch (node->_shaderTableEntry) {
-OLDCODEcase backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
-OLDCODEcase backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
-OLDCODEcase noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
-OLDCODEcase noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
-OLDCODEcase noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
-OLDCODEcase noMaterialNoAppearanceSphereShader: printf ("noMaterialNoAppearanceSphereShader\n"); break;
-OLDCODEcase noTexOneMaterialSphereShader: printf ("noTexOneMaterialSphereShader\n"); break;
-OLDCODEcase noTexTwoMaterialSphereShader: printf ("noTexTwoMaterialSphereShader\n"); break;
-OLDCODEcase oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
-OLDCODEcase oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
-OLDCODEcase oneTexOneMaterialSphereShader: printf ("oneTexOneMaterialSphereShader\n"); break;
-OLDCODEcase oneTexTwoMaterialSphereShader: printf ("oneTexTwoMaterialSphereShader\n"); break;
-OLDCODEcase complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
-OLDCODEcase complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
-OLDCODEcase complexTexOneMaterialSphereShader: printf ("complexTexOneMaterialSphereShader\n"); break;
-OLDCODEcase complexTexTwoMaterialSphereShader: printf ("complexTexTwoMaterialSphereShader\n"); break;
-OLDCODEcase noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
-OLDCODEcase noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
-OLDCODEcase oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
-OLDCODEcase oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
-OLDCODEcase linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
-OLDCODEcase linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
-OLDCODEdefault: {printf ("no ascii equiv\n");}
-OLDCODE}
-OLDCODE	}
-OLDCODE
-OLDCODE
-OLDCODE	#endif /* SHADERS_2011 */
-OLDCODE
-OLDCODE
-OLDCODE	MARK_NODE_COMPILED
-OLDCODE}
-#endif //OLDCODE
 
 
 #ifdef SHADERS_2011
