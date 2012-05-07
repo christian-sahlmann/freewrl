@@ -543,14 +543,28 @@ else
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[seamonkey-plugin])
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[firefox-plugin])
               AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[mozilla-plugin])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[=],[0.27.1])
-              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk],[<],[0.27]) 
-              # npapi-sdk = 0.27 is undefined on whether NPN_GetMIMEDescription returns const or not; avoid that version
+              AC_MY_CHECK_MODULE(MOZILLA_PLUGIN,[npapi-sdk])
 
               if test x$found_MOZILLA_PLUGIN = xno; then
                   AC_MSG_WARN([Unable to find an appropriate browser plugin framework, not building plugin])
                   MAYBE_PLUGIN=
               else
+                  # Check if using a legacy NPAPI or a new one
+                  AC_MSG_CHECKING([for whether NP_GetMIMEDescription is declared const])
+                  oCFLAGS=$CFLAGS
+                  CFLAGS=$CFLAGS" "$MOZILLA_PLUGIN_CFLAGS
+                  AC_TRY_CPP([
+                    #include <npfunctions.h>
+                    const char* NP_GetMIMEDescription ()
+                    {return (char*) "yap!";}
+                  ],[],[
+                    AC_MSG_RESULT(yes)
+                  ],[
+                    AC_MSG_RESULT(no)
+                    MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DLEGACY_NPAPI"
+                  ])
+                  CFLAGS=$oCFLAGS
+
                   # If Mozilla plugin is to be compiled we have to define MOZ_X11
                   MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DMOZ_X11"
                   AC_MSG_NOTICE([Using $found_MOZILLA_PLUGIN for Mozilla plugin library])
