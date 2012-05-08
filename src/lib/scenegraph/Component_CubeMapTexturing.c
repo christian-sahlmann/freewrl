@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.31 2012/03/30 17:23:16 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.32 2012/05/08 15:59:50 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -43,7 +43,10 @@ X3D Cubemap Texturing Component
 #include "../input/EAIHelpers.h"
 /* #include <GL/glext.h> should be in display.h */
 #include "../vrml_parser/CParseGeneral.h" /* for union anyVrml */
-#include "../world_script/JScript.h" /* for uint32 typedef */
+
+#ifndef HAVE_UINT32
+# define uint32 uint32_t
+#endif
 
 
 /* testing */
@@ -73,7 +76,6 @@ X3D Cubemap Texturing Component
  ****************************************************************************/
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
-#if !(defined(IPHONE) || defined(_ANRDOID))
 	int count;
 	struct X3D_Node *thistex = 0;
 
@@ -110,7 +112,6 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			} 
 		}
 	}
-#endif /* IPHONE */
 }
 
 /****************************************************************************
@@ -168,9 +169,9 @@ struct DdsLoadInfo loadInfoIndex8 = {
   false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
 };
 #endif
-bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
-#if !(defined(IPHONE) || defined(_ANRDOID) || defined(GLES2))
 
+
+bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
 	char *buffer;
 	unsigned long fileLen;
@@ -220,10 +221,13 @@ struct DdsLoadInfo * li;
 		printf ("matched :DDS :\n");
 
 
+/*
 printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
   xSize = hdr.dwWidth;
   ySize = hdr.dwHeight;
 printf ("size %d, %d\n",xSize, ySize);
+*/
+
 /*
   assert( !(xSize & (xSize-1)) );
   assert( !(ySize & (ySize-1)) );
@@ -395,9 +399,6 @@ printf ("put in the dummy file here, and call it quits\n");
 	}
 	FREE_IF_NZ(buffer);
 	return FALSE;
-#else
-    return FALSE;
-#endif /* IPHONE */
 }
 
 
@@ -469,7 +470,6 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 /* textures - we have got a png (jpeg, etc) file with a cubemap in it; eg, see:
 	http://en.wikipedia.org/wiki/Cube_mapping
 */
-#if !defined(IPHONE) && !defined(_ANDROID)
 	/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
 static int offsets[]={
 	1,2,	/* right 	*/
@@ -478,7 +478,6 @@ static int offsets[]={
 	0,1,	/* bottom	*/
 	1,1,	/* back		*/
 	1,3};	/* front	*/
-#endif //IPHONE ANDROID
 
 /* or:
 	--	Top	--	--
@@ -488,7 +487,6 @@ static int offsets[]={
 
 /* fill in the 6 PixelTextures from the data in the texture */
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
-	#if !defined(IPHONE) && !defined(_ANDROID)
 	int size;
 	int count;
 
@@ -561,6 +559,5 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
-#endif /* IPHONE */
 }
 

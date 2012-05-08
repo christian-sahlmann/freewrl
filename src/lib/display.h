@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.143 2012/05/07 15:14:55 istakenv Exp $
+  $Id: display.h,v 1.144 2012/05/08 15:59:50 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -92,30 +92,29 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-
 #if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(GLES2) /* not aqua and not win32, ie linux */
-#ifdef HAVE_GLEW_H
-#include <GL/glew.h>
-#ifdef GLEW_MX
-GLEWContext * glewGetContext();
-#endif
-#else
-#ifndef AQUA
-#if !defined(_ANDROID) && !defined(GLES2)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#include <GL/glx.h>
-#else
-/* ANDROID NDK */
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+	#ifdef HAVE_GLEW_H
+		#include <GL/glew.h>
+		#ifdef GLEW_MX
+			GLEWContext * glewGetContext();
+		#endif
+	#else
+		#ifndef AQUA
+			#if !defined(GLES2)
+				#include <GL/gl.h>
+				#include <GL/glu.h>
+				#include <GL/glext.h>
+				#include <GL/glx.h>
+			#else
+				/* GLES2 */
+				#include <GLES2/gl2.h>
+				#include <GLES2/gl2ext.h>
 
-//JAS typedef char GLchar;
+				//JAS typedef char GLchar;
 
-#endif /*ANDROID_NDK*/
-#endif
-#endif
+			#endif /*ANDROID_NDK*/
+		#endif
+	#endif
 #endif
 
 #ifdef FAKE_GLES2
@@ -366,8 +365,6 @@ int fv_create_main_window(int argc, char *argv[]);
 bool fv_create_GLcontext();
 bool fv_bind_GLcontext();
 /* end of "virtual" functions */
-
-/* OLDCODE: bool fwl_initialize_GL(); is now in lib header */
 
 /* OpenGL renderer capabilities */
 
@@ -761,18 +758,7 @@ void resetGeometry();
 	#endif
 
 	#if defined (TARGET_AQUA)
-#ifdef OLDCODE
-OLDCODE		#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD) 
-OLDCODE			#define FW_GL_SWAPBUFFERS { \
-OLDCODE				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
-OLDCODE				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
-OLDCODE		#else
-OLDCODE			#define FW_GL_SWAPBUFFERS /* do nothing */
-OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
-#else
 			#define FW_GL_SWAPBUFFERS /* do nothing */
-#endif
-
 	#endif
 
 #if KEEP_X11_INLIB
@@ -783,7 +769,7 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_SWAPBUFFERS /* nothing */
 #endif
 	
-	#if defined( _ANDROID ) || defined(GLES2)
+	#if defined(GLES2)
 		#define FW_GL_SWAPBUFFERS /* nothing */
 	#endif
 
@@ -895,7 +881,7 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#if defined(IPHONE) || defined(GLES2)
+#if defined(GLES2)
 	/* ES 2.0 - set the sampler */
 	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); 
  //    glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0+aaa, aaa); 
@@ -906,39 +892,47 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	//	glUniform4f(getAppearanceProperties()->currentShaderProperties->useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
 	//  } 
 	// }
-#define SET_TEXTURE_UNIT(c) \
-			if(1){ \
-				GLint loc; \
-				GLint x; \
-				GLint useTex; \
-				s_shader_capabilities_t *csp; \
-				csp = getAppearanceProperties()->currentShaderProperties; \
-				switch(c){ \
-					case 0: \
-							loc = csp->Texture0; break; \
-					case 1: \
-							loc = csp->Texture1; break; \
-					case 2: \
-							loc = csp->Texture2; break; \
-					case 3: \
-							loc = csp->Texture3; break; \
-					default: \
-							loc = csp->Texture0; break; \
-				} \
-				useTex = csp->useTex; \
-				glActiveTexture(GL_TEXTURE0+c); \
-			     /*glUniform1i(loc+c, c); */ \
-				glUniform1i(loc,c); \
-			 if( useTex > -1){  \
-				float fw_useTex[4];  \
-				int jj;  \
-				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; \
-				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
-			  } \
-			}
-#else
+#ifdef OLDCODE
+OLDCODE
+OLDCODEThe texture binding has been changed by John Stewart to handle multitextures.
+OLDCODE
+OLDCODE#define SET_TEXTURE_UNIT(c) \
+OLDCODE			if(1){ \
+OLDCODE				GLint loc; \
+OLDCODE				GLint x; \
+OLDCODE				GLint useTex; \
+OLDCODE				s_shader_capabilities_t *csp; \
+OLDCODE				csp = getAppearanceProperties()->currentShaderProperties; \
+OLDCODE				switch(c){ \
+OLDCODE					case 0: \
+OLDCODE							loc = csp->Texture0; break; \
+OLDCODE					case 1: \
+OLDCODE							loc = csp->Texture1; break; \
+OLDCODE					case 2: \
+OLDCODE							loc = csp->Texture2; break; \
+OLDCODE					case 3: \
+OLDCODE							loc = csp->Texture3; break; \
+OLDCODE					default: \
+OLDCODE							loc = csp->Texture0; break; \
+OLDCODE				} \
+OLDCODE				useTex = csp->useTex; \
+OLDCODE				glActiveTexture(GL_TEXTURE0+c); \
+OLDCODE			     /*glUniform1i(loc+c, c); */ \
+OLDCODE				glUniform1i(loc,c); \
+OLDCODE			 if( useTex > -1){  \
+OLDCODE				float fw_useTex[4];  \
+OLDCODE				int jj;  \
+OLDCODE				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; \
+OLDCODE				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
+OLDCODE			  } \
+OLDCODE			}
+OLDCODE#else
+OLDCODE	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+OLDCODE#endif
+#endif //OLDCODE
+#endif //GLES2
+
 	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-#endif
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)
@@ -950,7 +944,6 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
 
 
-int usingAnaglyph2();
 /* color functions subject to draw-gray anaglyph >>  */
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);
 void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x);
@@ -960,6 +953,7 @@ void fwglColor4f(float r,float g, float b, float a);
 void fwglColor4fv(float *rgba);
 void fwglColor3d(double r, double g, double b);
 void fwglColor3f(float r, float g, float b);
+int usingAnaglyph2(void);
 	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
 
 	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc);

@@ -55,7 +55,7 @@ void Component_Picking_init(struct tComponent_Picking *t);
 void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
 
-#if defined(HAVE_GLU_TESS) //!(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+#if defined(HAVE_GLU_TESS)
 void Component_Text_init(struct tComponent_Text *t);
 #endif
 
@@ -143,7 +143,7 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 #endif
 	Component_Shape_init(&iglobal->Component_Shape);
 	Component_Sound_init(&iglobal->Component_Sound);
-#if defined(HAVE_GLU_TESS) //!(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+#if defined(HAVE_GLU_TESS)
 	Component_Text_init(&iglobal->Component_Text);
 #endif
 	Component_VRML1_init(&iglobal->Component_VRML1);

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.240 2012/04/24 17:52:53 crc_canada Exp $
+  $Id: MainLoop.c,v 1.241 2012/05/08 15:59:50 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1862,7 +1862,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 #endif /* KEEP_X11_INLIB */
 
-	#if defined(HAVE_GLU_TESS) //!(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+	#if defined(HAVE_GLU_TESS)
 	new_tessellation();
 	#endif /* IPHONE */
 	

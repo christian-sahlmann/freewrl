@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.34 2012/03/07 17:08:52 dug9 Exp $
+$Id: GenPolyRep.c,v 1.35 2012/05/08 15:59:50 crc_canada Exp $
 
 ???
 
@@ -567,7 +567,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int vert_ind = 0;
 	int calc_normind = 0;
 
-#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+#if defined(HAVE_GLU_TESS) 
 	struct SFVec3f *c1;
 #endif
     
@@ -593,7 +593,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int	*faceok = NULL;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
 	int	*pointfaces = NULL;
 
-#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+#if defined(HAVE_GLU_TESS)
 	GLDOUBLE tess_v[3];             /*param.to FW_GLU_TESS_VERTEX()*/
 #endif
     
@@ -1003,7 +1003,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			/* If we have concave, tesselate! */
 			if (!convex) {
-				#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+				#if defined(HAVE_GLU_TESS) 
 				FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
 				#endif /* IPHONE - no tessellation yet */
 			} else {
@@ -1015,7 +1015,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			while (i != -1) {
 				if (!convex) {
-					#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+					#if defined(HAVE_GLU_TESS) 
 					int ind;
 					int foundContour = FALSE;
 					/* printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord); */
@@ -1067,7 +1067,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			}
 
 			if (!convex) {
-				#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+				#if defined(HAVE_GLU_TESS) 
 				FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
@@ -2283,7 +2283,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	} else
 	    if(beginCap || endCap) {
-#if defined(HAVE_GLU_TESS) //!defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+#if defined(HAVE_GLU_TESS) 
 		/* polygons might be concave-> do tessellation			*/
 		/* XXX - no textures yet - Linux Tesselators give me enough headaches;
 		   lets wait until they are all ok before trying texture mapping */

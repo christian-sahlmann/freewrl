@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.37 2012/03/05 19:56:03 dug9 Exp $
+$Id: Component_Geometry2D.c,v 1.38 2012/05/08 15:59:50 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -389,13 +389,13 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+#if !defined(GLES2)
 		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
 #endif
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 		if (node->__simpleDisk) {FW_GL_DRAWARRAYS (GL_TRIANGLE_FAN, 0, node->__numPoints);}
-#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+#if !defined(GLES2)
 		else 			{FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, node->__numPoints); }
 #endif
 
@@ -475,7 +475,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-#if defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
+#if defined(GLES2)
 printf ("render_TriangleSet2D, this should be VBOd\n");
 #else
 		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
