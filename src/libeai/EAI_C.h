@@ -24,7 +24,7 @@
 #define __EAI_C_HEADERS__
 #include <sys/types.h>
 #include <stdint.h>
-#include <EAIHeaders.h>
+#include "EAIHeaders.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -40,9 +40,9 @@
 #include <math.h>
 #include <stddef.h>
 
-#include <X3DNode.h>
+#include "X3DNode.h"
 
-#include <GeneratedHeaders.h>
+#include "GeneratedHeaders.h"
 
 /* copied from ../CFuncs/ */
 typedef size_t indexT;
