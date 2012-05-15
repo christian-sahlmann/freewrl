@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.50 2012/05/08 15:59:50 crc_canada Exp $
+$Id: Component_Text.c,v 1.51 2012/05/15 23:09:10 crc_canada Exp $
 
 X3D Text Component
 
@@ -50,6 +50,21 @@ X3D Text Component
 #include "Component_Shape.h"
 #include "../scenegraph/Tess.h"
 
+
+#ifdef _ANDROID
+
+// Android UI sends in file descriptors and open file for fonts.
+// files are in the assets folder; we assume that the fd is open and fseek'd properly.
+
+FILE *androidFontFile = NULL;
+int fileLen= -1;
+
+void fwg_AndroidFontFile(FILE *myFile,int len) {
+	androidFontFile = myFile;
+	fileLen = len;
+}
+
+#endif //ANDROID
 
 #if !defined(HAVE_GLU_TESS) 
 void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
@@ -540,8 +555,46 @@ int FW_init_face()
     int err;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
+#ifdef _ANDROID
+    unsigned char *fontData;
+        FT_Open_Args myArgs;
+        //
+
+
+
+/*
+FILE *androidFontFile = NULL;
+int fileLen= -1;
+*/
+    if ((fileLen < 0) || (androidFontFile ==NULL)) {
+	ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
+	return FALSE;
+
+    } else {
+	ConsoleMessage("FT_Open_Face looks ok to go");
+	
+	unsigned char *myFileData = malloc (fileLen+1);
+	size_t frv;
+	frv = fread (myFileData, (size_t)fileLen, (size_t)1, androidFontFile);
+        myArgs.flags  = FT_OPEN_MEMORY;
+        myArgs.memory_base = myFileData;
+        myArgs.memory_size = fileLen;
+    }
+
+    err = FT_Open_Face(p->library, &myArgs, 0, &p->font_face[p->myff]);
+        if (err) {
+            char line[2000];
+            sprintf  (line,"FreeWRL - FreeType, can not set char size for font %s\n",p->thisfontname);
+            ConsoleMessage(line);
+            return FALSE;
+        } else {
+            p->font_opened[p->myff] = TRUE;
+        }
+
+#else //ANDROID
     /* load a font face */
     err = FT_New_Face(p->library, p->thisfontname, 0, &p->font_face[p->myff]);
+#endif //ANDROID
 
     if (err) {
         printf ("FreeType - can not use font %s\n",p->thisfontname);
@@ -1119,6 +1172,8 @@ int open_font()
     p->FW_outline_interface.shift = 0;
     p->FW_outline_interface.delta = 0;
 
+#ifndef _ANDROID
+
 #ifndef HAVE_FONTCONFIG
     /* where are the fonts stored? */
     p->font_directory = makeFontDirectory();
@@ -1132,7 +1187,8 @@ int open_font()
 #endif
         return FALSE;
     }
-#endif
+#endif //HAVE_FONTCONFIG
+#endif //ANDROID
 
     /* lets initialize some things */
     for (len = 0; len < num_fonts; len++) {

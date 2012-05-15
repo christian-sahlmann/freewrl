@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.h,v 1.1 2009/12/09 22:30:56 crc_canada Exp $
+$Id: Component_Text.h,v 1.2 2012/05/15 23:09:10 crc_canada Exp $
 
 X3D Text Component
 
@@ -31,5 +31,9 @@ X3D Text Component
 #define __FREEWRL_SCENEGRAPH_TEXT_H__
 
 void render_Text (struct X3D_Text * node);
+
+#ifdef _ANDROID
+void fwg_AndroidFontFile(FILE *myFile,int len);
+#endif //ANDROID
 
 #endif  /* __FREEWRL_SCENEGRAPH_TEXT_H__ */

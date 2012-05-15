@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.241 2012/05/08 15:59:50 crc_canada Exp $
+  $Id: MainLoop.c,v 1.242 2012/05/15 23:09:10 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -771,7 +771,7 @@ void fwl_RenderSceneUpdateScene() {
 }
 
 
-#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(_ANDROID) && !defined(GLES2)
+#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -1231,12 +1231,12 @@ static void render()
 }
 
 
-#if defined (IPHONE) || defined (_ANDROID) || defined(GLES2)
+#if defined(GLES2)
 static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
-#endif // IPHONE and ANDROID
+#endif // GLES2
 
 
 static void setup_viewpoint() {
@@ -1245,7 +1245,7 @@ static void setup_viewpoint() {
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
 
-	#if defined (IPHONE) || defined (_ANDROID) || defined(GLES2)
+	#if defined(GLES2)
     
     // has a change happened? 
     if (Viewer()->screenOrientation != currentViewerLandPort) {
@@ -1297,7 +1297,7 @@ static void setup_viewpoint() {
         FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
         
             
-	#endif // IPHONE, ANDROID screen rotate
+	#endif // screen rotate
 
         viewer_togl(Viewer()->fieldofview);
         render_hier(rootNode(), VF_Viewpoint);
@@ -2046,7 +2046,7 @@ void freewrlDie (const char *format) {
 }
 
 
-#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2) || defined(_ANDROID)
+#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
 
 //int ntouch =0;
 //int currentTouch = -1;

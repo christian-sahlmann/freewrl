@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.95 2012/03/30 17:23:15 crc_canada Exp $
+  $Id: display.c,v 1.96 2012/05/15 23:09:09 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -138,18 +138,24 @@ int fv_display_initialize()
 {
     struct tdisplay* d = &gglobal()->display;
     
+ConsoleMessage("start of Android fv_display_initialize");
+
     //printf ("fv_display_initialize called\n");
     if (d->display_initialized) {
-        printf ("fv_display_initialized re-called for a second time\n");
+        ConsoleMessage ("fv_display_initialized re-called for a second time");
         return TRUE;
     }
     
+ConsoleMessage("1 of Android fv_display_initialize");
+
     //memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
     
     if (!fwl_initialize_GL()) {
         return FALSE;
     }
     
+ConsoleMessage("2 of Android fv_display_initialize");
+
     /* Display full initialized :P cool ! */
     d->display_initialized = TRUE;
    
