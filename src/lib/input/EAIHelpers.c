@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.53 2012/03/30 17:23:16 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.54 2012/05/17 02:38:56 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -791,7 +791,6 @@ char *eaiPrintCommand (char command) {
 		case GETNODEDEFNAME: return ("GETNODEDEFNAME");
 		case GETROUTES: return ("GETROUTES");
 		case GETNODETYPE: return ("GETNODETYPE");
-		case MIDIINFO: return ("MIDIINFO");
 		default:{} ;
 	}
 	return "unknown command...";

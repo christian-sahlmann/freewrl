@@ -52,7 +52,6 @@ void closeFreeWRL();
 void terminateFreeWRL();
 int ConsoleMessage(const char *fmt, ...);
 void create_EAI();
-void create_MIDIEAI();
 void doQuit();
 bool Anchor_ReplaceWorld();
 #define VIEWER_NONE 0

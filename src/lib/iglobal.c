@@ -19,11 +19,19 @@ void internalc_init(struct tinternalc* ic);
 void io_http_init(struct tio_http* t);
 void threads_init(struct tthreads* t);
 void convert1To2_init(struct tconvert1To2* t);
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
 void Snapshot_init(struct tSnapshot *);
+#endif
+
 void EAI_C_CommonFunctions_init(struct tEAI_C_CommonFunctions*);
 void EAIEventsIn_init(struct tEAIEventsIn* t);
 void EAIHelpers_init(struct tEAIHelpers* t);
+
+#if !defined(EXCLUDE_EAI)
 void EAIServ_init(struct tEAIServ* t);
+#endif
+
 void SensInterps_init(struct tSensInterps *t);
 void ConsoleMessage_init(struct tConsoleMessage *t);
 void Mainloop_init(struct tMainloop *t);
@@ -111,11 +119,18 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	//resources_init
 	threads_init(&iglobal->threads);
 	convert1To2_init(&iglobal->convert1To2);
+
+	#if !defined(FRONTEND_DOES_SNAPSHOTS)
 	Snapshot_init(&iglobal->Snapshot);
+	#endif
+
+#if !defined(EXCLUDE_EAI)
 	EAI_C_CommonFunctions_init(&iglobal->EAI_C_CommonFunctions);
 	EAIEventsIn_init(&iglobal->EAIEventsIn);
 	EAIHelpers_init(&iglobal->EAIHelpers);
 	EAIServ_init(&iglobal->EAIServ);
+#endif //EXCLUDE_EAI
+
 	SensInterps_init(&iglobal->SensInterps);
 	ConsoleMessage_init(&iglobal->ConsoleMessage);
 	Mainloop_init(&iglobal->Mainloop);

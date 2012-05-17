@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.51 2011/08/01 17:06:47 dug9 Exp $
+  $Id: resources.c,v 1.52 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -425,6 +425,10 @@ bool resource_fetch(resource_item_t *res)
 				*pound = '\0';
 			}
 				
+#if defined(FRONTEND_GETS_FILES)
+ConsoleMessage ("ERROR, should not be here in rest_file");
+#else
+
 			if (do_file_exists(res->parsed_request)) {
 				if (do_file_readable(res->parsed_request)) {
 					res->status = ress_downloaded;
@@ -442,6 +446,8 @@ bool resource_fetch(resource_item_t *res)
 				res->status = ress_failed;
 				ERROR_MSG("resource_fetch: can't find file: %s\n", res->parsed_request);
 			}
+#endif //FRONTEND_GETS_FILES
+
 			break;
 		default:
 			/* error */

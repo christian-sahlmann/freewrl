@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.73 2012/03/31 19:15:16 dug9 Exp $
+  $Id: main.c,v 1.74 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -277,12 +277,14 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
 	}
 
+#if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (fwl_getp_eai()) {
 		fwl_create_EAI();
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
 	}
+#endif
 
 
 	/* Initialize parser */

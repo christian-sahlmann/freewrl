@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.82 2012/03/30 17:23:16 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.83 2012/05/17 02:38:56 crc_canada Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -123,6 +123,8 @@ struct X3D_Anchor* get_EAIEventsIn_AnchorNode()
 	ppEAIEventsIn p = (ppEAIEventsIn)gglobal()->EAIEventsIn.prv;
 	return (struct X3D_Anchor*)&p->EAI_AnchorNode;
 }
+
+#if !defined(EXCLUDE_EAI)
 void EAI_parse_commands () {
 	/* char buf[EAIREADSIZE];*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
@@ -329,29 +331,6 @@ void EAI_parse_commands () {
 				}
 				break;
 				}
-#ifdef OLDCODE
-OLDCODE			case MIDIINFO: {
-OLDCODE				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-OLDCODE				/* if we do not have a string yet, we have to do this...*/
-OLDCODE				while (EOT == NULL) {
-OLDCODE					tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer,&tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIlistenfd);
-OLDCODE					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-OLDCODE				}
-OLDCODE
-OLDCODE				*EOT = 0; /* take off the EOT marker*/
-OLDCODE				ReWireRegisterMIDI(&EAI_BUFFER_CUR);
-OLDCODE
-OLDCODE				/* finish this for now - note the pointer math. */
-OLDCODE				bufPtr = (int) (EOT+3-tg->EAIServ.EAIbuffer);
-OLDCODE				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
-OLDCODE				break;
-OLDCODE				}
-OLDCODE			case MIDICONTROL: {
-OLDCODE				/* sprintf (outBuffer,"RE\n%f\n%d\n%d",TickTime(),count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
-OLDCODE				ReWireMIDIControl(&EAI_BUFFER_CUR);
-OLDCODE				break;
-OLDCODE				}
-#endif // OLDCODE
 			case CREATEVU:
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
@@ -668,22 +647,10 @@ OLDCODE				}
 
 			}
 
-		/* send the response - events don't send a reply */
-		/* and, Anchors send a different reply (loadURLS) */
-#ifdef OLDCODE
-OLDCODE		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
-OLDCODE			if (command != LOADURL) outBufferCat("\nRE_EOT");
-OLDCODE			if (command != MIDIINFO)
-OLDCODE				EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
-OLDCODE			else
-OLDCODE				EAI_send_string(th->outBuffer, tg->EAIServ.EAIMIDIlistenfd);
-OLDCODE		}
-#else
 		if (command != SENDEVENT)  {
 			if (command != LOADURL) outBufferCat("\nRE_EOT");
 			EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
 		}
-#endif
 
 		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */
 		/* skip to the next command */
@@ -1026,6 +993,10 @@ static void makeFIELDDEFret(int myptr, int repno) {
 }
 
 
+#endif //EXCLUDE_EAI
+
+
+
 /* EAI, replaceWorld. */
 void EAI_RW(char *str) {
 	struct X3D_Node *newNode;
@@ -1050,6 +1021,7 @@ void EAI_RW(char *str) {
 	}
 }
 
+#if !defined(EXCLUDE_EAI)
 
 void createLoadURL(char *bufptr) {
 	#define strbrk " :loadURLStringBreak:"
@@ -1126,4 +1098,4 @@ void EAI_Anchor_Response (int resp) {
 	p->waiting_for_anchor = FALSE;
 }
 
-
+#endif //EXCLUDE_EAI

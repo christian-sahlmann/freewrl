@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.242 2012/05/15 23:09:10 crc_canada Exp $
+  $Id: MainLoop.c,v 1.243 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -742,10 +742,12 @@ void fwl_RenderSceneUpdateScene() {
 			setArrowCursor();
 
 
+	#if !defined(FRONTEND_DOES_SNAPSHOTS)
         /* handle snapshots */
         if (tg->Snapshot.doSnapshot) {
                 Snapshot();
         }
+	#endif //FRONTEND_DOES_SNAPSHOTS
 
         /* do OcclusionCulling, etc */
         OcclusionCulling();
@@ -764,9 +766,13 @@ void fwl_RenderSceneUpdateScene() {
                 /* Javascript events processed */
                 process_eventsProcessed();
 
+		#if !defined(EXCLUDE_EAI)
                 /* EAI */
                 handle_EAI();
-		handle_MIDIEAI();
+		#ifdef OLDCODE
+		OLDCODE handle_MIDIEAI();
+		#endif //OLDCODE
+		#endif //EXCLUDE_EAI
         }
 }
 
@@ -1372,8 +1378,12 @@ void fwl_do_keyPress(const char kp, int type) {
                                 case 'c': { toggle_collision(); break;}
                                 case 'v': {fwl_Next_ViewPoint(); break;}
                                 case 'b': {fwl_Prev_ViewPoint(); break;}
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
                                 case 's': {fwl_toggleSnapshot(); break;}
-								case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
+				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
+#endif //FRONTEND_DOES_SNAPSHOTS
+
                                 default: 
 #ifdef _MSC_VER
 									break;

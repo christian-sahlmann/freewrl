@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: internal.h,v 1.55 2011/08/02 21:30:12 dug9 Exp $
+$Id: internal.h,v 1.56 2012/05/17 02:38:56 crc_canada Exp $
 
 ???
 
@@ -292,12 +292,6 @@ int DEBUG_MSG(const char *fmt, ...)
 #define DEBUG_STREAM_POLY(...) DEBUG_(PRINTF("STREAM_POLY: " __VA_ARGS__))
 #else
 #define DEBUG_STREAM_POLY(...)
-#endif
-
-#ifdef MIDIVERBOSE
-#define DEBUG_MIDI(...) DEBUG_(PRINTF("MIDI: " __VA_ARGS__))
-#else
-#define DEBUG_MIDI(...)
 #endif
 
 #ifdef OCCLUSIONVERBOSE

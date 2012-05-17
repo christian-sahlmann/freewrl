@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.237 2012/05/08 15:59:50 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.238 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3694,10 +3694,12 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 
 
+	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
 	       	shutdown_EAI();
 	}
+	#endif //EXCLUDE_EAI
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");

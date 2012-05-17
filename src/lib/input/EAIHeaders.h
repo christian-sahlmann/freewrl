@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.17 2011/06/04 19:05:42 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.18 2012/05/17 02:38:56 crc_canada Exp $
 
 EAI and java CLASS invocation
 
@@ -78,7 +78,6 @@ char *eaiPrintCommand (char command);
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
 #define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */
 #define EAIBASESOCKET   9877		/* socket number to start at */
-#define MIDIPORTOFFSET 5		/* offset for midi EAI port to start at */
 
 
 /* these are commands accepted from the EAI client */
@@ -117,11 +116,6 @@ char *eaiPrintCommand (char command);
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
-#define MIDIINFO  	'l'
-#ifdef OLDCODE
-OLDCODE #define MIDICONTROL  	'm'
-#endif // OLDCODE
-
 #define DUMPSCENE  	'n'
 
 
@@ -182,22 +176,4 @@ int createUDPSocket();
 int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd);
 void EAI_send_string (char *str, int listenfd);
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
-//extern int EAIlistenfd;
-//extern int EAIsockfd;
-//extern int EAIport;
-//extern int EAIwanted;
-//extern int EAIbufsize;
-//extern int EAIMIDIlistenfd;
-//extern int EAIMIDIsockfd;
-//extern int EAIMIDIwanted;
-//extern char *EAIbuffer;
-//extern int EAIbufcount;
-//extern char EAIListenerData[EAIREADSIZE];
-
-#define MIDI_CONTROLLER_UNUSED 4
-#define MIDI_CONTROLLER_FADER 1
-#define MIDI_CONTROLLER_KEYPRESS 2
-#define MIDI_CONTROLLER_UNKNOWN 999
-
-
 #endif /* __FREEWRL_EAI_H__ */

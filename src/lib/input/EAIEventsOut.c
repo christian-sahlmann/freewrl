@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.14 2011/06/10 00:27:17 dug9 Exp $
+$Id: EAIEventsOut.c,v 1.15 2012/05/17 02:38:56 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -41,6 +41,8 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../input/EAIHeaders.h"
 #include "../world_script/fieldGet.h"
 
+
+#if !defined(EXCLUDE_EAI)
 
 /*****************************************************************
 *
@@ -116,4 +118,4 @@ void EAIListener () {
 	EAI_send_string(buf,tg->EAIServ.EAIlistenfd);
 }
 
-
+#endif //EXCLUDE_EAI

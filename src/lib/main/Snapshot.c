@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Snapshot.c,v 1.24 2011/10/09 23:38:51 roelofs Exp $
+$Id: Snapshot.c,v 1.25 2012/05/17 02:38:56 crc_canada Exp $
 
 CProto ???
 
@@ -29,6 +29,9 @@ CProto ???
 
 
 #include <config.h>
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -646,3 +649,5 @@ void Snapshot () {
 	#endif
 }
 #endif /*ifdef win32*/
+
+#endif //FRONTEND_DOES_SNAPSHOTS

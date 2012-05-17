@@ -18,10 +18,8 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-// JAS - OLDCODE #ifndef REWIRE
 #include "config.h"
 #include "system.h"
-// JAS - OLDCODE #endif
 #include "EAI_C.h"
 #include <stdio.h>
 #ifndef WIN32
@@ -42,10 +40,6 @@ void X3D_initialize(char *hostname) {
 	int loopCount;
 	int constat;
 
-#ifdef OLDCODE
-OLDCODE	int isMidi = 0;
-#endif // OLDCODE
-
 	loopCount = 0;
 	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		usleep (100000);
@@ -57,12 +51,6 @@ OLDCODE	int isMidi = 0;
 	}
 
 	usleep (10000);	/* let remote end settle down to this interruption */
-#ifdef OLDCODE
-OLDCODE	if (!strcmp(hostname, "MIDI")) {
-OLDCODE		isMidi = 1;
-OLDCODE		hostname = "localhost";
-OLDCODE	}
-#endif // OLDCODE
 
 	if (strlen(hostname) == 0) hostname = "localhost";
 
@@ -77,15 +65,7 @@ OLDCODE	}
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
 
-#ifdef OLDCODE
-OLDCODE	if (isMidi) {
-OLDCODE		serv_addr.sin_port = htons(EAIBASESOCKET + MIDIPORTOFFSET);
-OLDCODE	} else {
-OLDCODE		serv_addr.sin_port = htons(EAIBASESOCKET);
-OLDCODE	}
-#else
 		serv_addr.sin_port = htons(EAIBASESOCKET);
-#endif
 
 	loopCount = 0;
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {

@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.45 2012/03/30 17:23:16 crc_canada Exp $
+  $Id: io_files.c,v 1.46 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include <config.h>
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -49,19 +50,6 @@
 #include "input/InputFunctions.h"
 #include "plugin/pluginUtils.h"
 #include "plugin/PluginSocket.h"
-
-
-#ifdef SWAMPTEA 
-static int assetSuccessCount=0;
-
-
-/* SWAMPTEA - return the assetSuccessCount */
-int freewrlAssetReturnCount(void) {
-        return assetSuccessCount;
-}
-
-#endif // SWAMPTEA
-
 
 /* Internal function prototypes */
 void append_openned_file(s_list_t *list, const char *filename, int fd, char *text);
@@ -153,14 +141,14 @@ char *get_current_dir()
 			size_t ll;
 			ll = strlen(cwd);
 #ifdef OLDCODE
-#ifdef _MSC_VER
-			{
-				size_t jj;
-				for( jj=0;jj<ll;jj++)
-					if(cwd[jj] == '\\' ) cwd[jj] = '/';
-			}
-#endif
-#endif
+OLDCODE #ifdef _MSC_VER
+OLDCODE 			{
+OLDCODE 				size_t jj;
+OLDCODE 				for( jj=0;jj<ll;jj++)
+OLDCODE 					if(cwd[jj] == '\\' ) cwd[jj] = '/';
+OLDCODE 			}
+OLDCODE #endif
+#endif //OLDCODE
 			cwd = strBackslash2fore(cwd);
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
@@ -184,6 +172,7 @@ char *get_current_dir()
 */
 
 
+#if !defined(FRONTEND_GETS_FILES)
 /**
  *   do_file_exists: asserts that the given file exists.
  */
@@ -227,6 +216,7 @@ bool do_dir_exists(const char *dir)
 	}
 	return FALSE;
 }
+#endif //FRONTEND_GETS_FILES
 
 /**
  *   of_dump: print the structure.
@@ -256,6 +246,8 @@ static openned_file_t* create_openned_file(const char *filename, int fd, int dat
 	of->dataSize = dataSize;
 	return of;
 }
+
+#if !defined(FRONTEND_GETS_FILES)
 
 /**
  * (internal)   load_file_mmap: implement load_file with mmap.
@@ -290,6 +282,7 @@ static void* load_file_mmap(const char *filename)
 	return create_openned_file(filename, fd, text);
 }
 #endif
+
 
 /**
  * (internal)   load_file_read: implement load_file with read.
@@ -368,6 +361,7 @@ static openned_file_t* load_file_read(const char *filename)
 
 	return create_openned_file(filename, fd, ss.st_size+1, text);
 }
+#endif //FRONTEND_GETS_FILES
 
 #ifdef FRONTEND_GETS_FILES
 static char *fileText = NULL;
@@ -424,14 +418,6 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
-
-#ifdef SWAMPTEA
-               /* we have success in the following numbers: */
-                assetSuccessCount++;
-#endif //SWAMPTEA
-
-
-
 	}
 
 	SEND_FILE_SIGNAL
@@ -439,27 +425,29 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 }
 
-void fwg_frontEndReturningLocalFile(char *localfile, int iret) {
-	char *consoleBuffer;
-	consoleBuffer = MALLOC(char *, 200+strlen(localfile));
-	MUTEX_LOCK_FILE_RETRIEVAL
-	sprintf(consoleBuffer ,"frontend got localfile=[%s] iret=%d\n",localfile,iret);
-	fwl_StringConsoleMessage(consoleBuffer);
-	fileName = NULL; /* not freed as only passed by pointer */
-	frontend_return_status = 1;
-	if(iret == -1) frontend_return_status = -1;
-	localFile = strBackslash2fore(strdup(localfile));
-	/* got the file, send along a message */
-	SEND_FILE_SIGNAL
-	fwl_StringConsoleMessage("after signal\n");
-	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-	fwl_StringConsoleMessage("after unlock\n");
-}
+#ifdef OLDCODE
+OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {
+OLDCODE 	char *consoleBuffer;
+OLDCODE 	consoleBuffer = MALLOC(char *, 200+strlen(localfile));
+OLDCODE 	MUTEX_LOCK_FILE_RETRIEVAL
+OLDCODE 	sprintf(consoleBuffer ,"frontend got localfile=[%s] iret=%d\n",localfile,iret);
+OLDCODE 	fwl_StringConsoleMessage(consoleBuffer);
+OLDCODE 	fileName = NULL; /* not freed as only passed by pointer */
+OLDCODE 	frontend_return_status = 1;
+OLDCODE 	if(iret == -1) frontend_return_status = -1;
+OLDCODE 	localFile = strBackslash2fore(strdup(localfile));
+OLDCODE 	/* got the file, send along a message */
+OLDCODE 	SEND_FILE_SIGNAL
+OLDCODE 	fwl_StringConsoleMessage("after signal\n");
+OLDCODE 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
+OLDCODE 	fwl_StringConsoleMessage("after unlock\n");
+OLDCODE }
+#endif //OLDCODE
 
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
 void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
-void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
+OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
 #endif
 
 
@@ -490,9 +478,13 @@ openned_file_t* load_file(const char *filename)
 	// printf ("load_file, frontend_return_status %d\n",frontend_return_status);
 	fileName = NULL;
 
-	if(frontend_return_status == 1)
-		return load_file_read(localFile);
-	else if(frontend_return_status == -1)
+#ifdef OLDCODE
+OLDCODE	if(frontend_return_status == 1)
+OLDCODE		return load_file_read(localFile);
+OLDCODE	else 
+#endif //OLDCODE
+
+	if(frontend_return_status == -1)
 		return NULL;
 	else
 		return create_openned_file(filename, -1, fileSize, fileText);

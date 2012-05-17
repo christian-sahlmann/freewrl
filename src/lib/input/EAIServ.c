@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.26 2011/07/09 01:06:01 dug9 Exp $
+$Id: EAIServ.c,v 1.27 2012/05/17 02:38:56 crc_canada Exp $
 
 Implement EAI server functionality for FreeWRL.
 
@@ -30,6 +30,8 @@ Implement EAI server functionality for FreeWRL.
 
 
 #include <config.h>
+
+#if !defined(EXCLUDE_EAI)
 #include <system.h>
 #include <system_net.h>
 
@@ -80,25 +82,6 @@ Implement EAI server functionality for FreeWRL.
 /*									*/
 /************************************************************************/
 
-//static pthread_mutex_t eaibufferlock = PTHREAD_MUTEX_INITIALIZER;
-//
-//int EAIport = 9877;				/* port we are connecting to*/
-//int EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
-//int EAIinitialized = FALSE;		/* are we running?*/
-//int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
-//int EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
-//char EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
-//
-///* socket stuff */
-//int 	EAIsockfd = -1;			/* main TCP socket fd*/
-//int	EAIlistenfd = -1;			/* listen to this one for an incoming connection*/
-//int 	EAIMIDIsockfd = -1;		/* main TCP socket for MIDI EAI communication */
-//int	EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
-//fd_set rfds2;
-//struct timeval tv2;
-//
-//
-//struct sockaddr_in	servaddr, cliaddr;
 unsigned char loopFlags = 0;
 
 enum theLoopFlags {
@@ -107,41 +90,29 @@ enum theLoopFlags {
 		NO_RETVAL_CHANGE    = 0x4
 };
 
-///* EAI input buffer */
-//char *EAIbuffer;
-//int EAIbufcount;				/* pointer into buffer*/
-//int EAIbufsize;				/* current size in bytes of input buffer*/
-//
-//int EAIwanted = FALSE;                       /* do we want EAI?*/
-//int EAIMIDIwanted = FALSE; 			/* do we want midi EAI? */
-
-
 typedef struct pEAIServ{
 	pthread_mutex_t eaibufferlock;// = PTHREAD_MUTEX_INITIALIZER;
 
 	int EAIport;// = 9877;				/* port we are connecting to*/
-	int EAIMIDIInitialized;// = FALSE; 	/* is MIDI eai running? */
 	int EAIinitialized;// = FALSE;		/* are we running?*/
 	int EAIfailed;// = FALSE;			/* did we not succeed in opening interface?*/
-	int EAIMIDIfailed;// = FALSE;		/* did we not succeed in opening the MIDI interface? */
 
 	/* socket stuff */
 	int 	EAIsockfd;// = -1;			/* main TCP socket fd*/
-	int 	EAIMIDIsockfd;// = -1;		/* main TCP socket for MIDI EAI communication */
 	fd_set rfds2;
 	struct timeval tv2;
 
 	struct sockaddr_in	servaddr, cliaddr;
 	unsigned char loopFlags;// = 0;
 
-	//int	EAIlistenfd;// = -1;			/* listen to this one for an incoming connection*/
-	///* EAI input buffer */
-	//char *EAIbuffer;
-	//int EAIbufcount;				/* pointer into buffer*/
-	//int EAIbufsize;				/* current size in bytes of input buffer*/
-
 	int EAIwanted;// = FALSE;                       /* do we want EAI?*/
-	int EAIMIDIwanted;// = FALSE; 			/* do we want midi EAI? */
+
+#ifdef OLDCODE
+OLDCODE	int EAIMIDIInitialized;// = FALSE; 	/* is MIDI eai running? */
+OLDCODE	int EAIMIDIwanted;// = FALSE; 			/* do we want midi EAI? */
+OLDCODE	int EAIMIDIfailed;// = FALSE;		/* did we not succeed in opening the MIDI interface? */
+OLDCODE	int 	EAIMIDIsockfd;// = -1;		/* main TCP socket for MIDI EAI communication */
+#endif //OLDCODE
 }* ppEAIServ;
 
 
@@ -155,40 +126,32 @@ void *EAIServ_constructor()
 void EAIServ_init(struct tEAIServ* t){
 	//public
 	t->EAIlistenfd = -1;			/* listen to this one for an incoming connection*/
-	t->EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
+
+#ifdef OLDCODE
+OLDCODE	t->EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
+#endif //OLDCODE
 
 	//private
 	t->prv = EAIServ_constructor();
 	{
 		ppEAIServ p = (ppEAIServ)t->prv;
-//p->eaibufferlock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_init(&(p->eaibufferlock), NULL);
 
 p->EAIport = 9877;				/* port we are connecting to*/
-p->EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
 p->EAIinitialized = FALSE;		/* are we running?*/
 p->EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
-p->EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
-//p->EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
 
 /* socket stuff */
 p->EAIsockfd = -1;			/* main TCP socket fd*/
-p->EAIMIDIsockfd = -1;		/* main TCP socket for MIDI EAI communication */
-//p->EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
-//fd_set rfds2;
-//struct timeval tv2;
-
-
-//struct sockaddr_in	servaddr, cliaddr;
 p->loopFlags = 0;
 
-/* EAI input buffer */
-//p->EAIbuffer;
-//p->EAIbufcount;				/* pointer into buffer*/
-//p->EAIbufsize;				/* current size in bytes of input buffer*/
-
 p->EAIwanted = FALSE;                       /* do we want EAI?*/
-p->EAIMIDIwanted = FALSE; 			/* do we want midi EAI? */
+#ifdef OLDCODE
+OLDCODEp->EAIMIDIsockfd = -1;		/* main TCP socket for MIDI EAI communication */
+OLDCODEp->EAIMIDIwanted = FALSE; 			/* do we want midi EAI? */
+OLDCODEp->EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
+OLDCODEp->EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
+#endif //OLDCODE
 
 	}
 }
@@ -347,7 +310,10 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* seems like we are up and running now, and waiting for a command */
 		/* and are we using this with EAI? */
 		if (socketincrement==0) p->EAIinitialized = TRUE;
-		else if (socketincrement == MIDIPORTOFFSET) p->EAIMIDIInitialized = TRUE;
+#ifdef OLDCODE
+OLDCODE		else if (socketincrement == MIDIPORTOFFSET) p->EAIMIDIInitialized = TRUE;
+#endif //OLDCODE
+
 	}
 	/* printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
 
@@ -404,25 +370,27 @@ void fwl_create_EAI()
 	}
 }
 
-void create_MIDIEAI() {
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-        if (eaiverbose) {
-        printf ("EAISERVER:create_MIDIEAI called\n");
-        }
-
-        if (p->EAIMIDIwanted)  return;
-
-        p->EAIMIDIwanted = TRUE;
-
-        /* have we already started? */
-        if (!p->EAIMIDIInitialized) {
-                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET,&p->EAIMIDIsockfd,&tg->EAIServ.EAIMIDIlistenfd));
-        }
-}
+#ifdef OLDCODE
+OLDCODEvoid create_MIDIEAI() {
+OLDCODE	int eaiverbose;
+OLDCODE	ppEAIServ p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppEAIServ)tg->EAIServ.prv;
+OLDCODE	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+OLDCODE        if (eaiverbose) {
+OLDCODE        printf ("EAISERVER:create_MIDIEAI called\n");
+OLDCODE        }
+OLDCODE
+OLDCODE        if (p->EAIMIDIwanted)  return;
+OLDCODE
+OLDCODE        p->EAIMIDIwanted = TRUE;
+OLDCODE
+OLDCODE        /* have we already started? */
+OLDCODE        if (!p->EAIMIDIInitialized) {
+OLDCODE                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET,&p->EAIMIDIsockfd,&tg->EAIServ.EAIMIDIlistenfd));
+OLDCODE        }
+OLDCODE}
+#endif //OLDCODE
 
 
 /* possibly we have an incoming EAI request from the client */
@@ -461,38 +429,40 @@ void handle_EAI () {
 	EBUFFUNLOCK;
 }
 
-void handle_MIDIEAI() {
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-
-        if (!p->EAIMIDIwanted) return;
-        if (!p->EAIMIDIInitialized) {
-                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET, &p->EAIMIDIsockfd, &tg->EAIServ.EAIMIDIlistenfd));
-                return;
-        }
-
-        if (tg->EAIServ.EAIMIDIlistenfd < 0) return;
-
-        tg->EAIServ.EAIbufcount = 0;
-
-	EBUFFLOCK;
-
-        tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer, &tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIMIDIlistenfd);
-        /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
-
-        /* make this into a C string */
-        tg->EAIServ.EAIbuffer[tg->EAIServ.EAIbufcount] = 0;
-        if (eaiverbose) printf ("handle_EAI-- Data is :%s:\n",tg->EAIServ.EAIbuffer);
-
-        /* any command read in? */
-        if (tg->EAIServ.EAIbufcount > 1)
-                EAI_parse_commands ();
-
-	EBUFFUNLOCK;
-}
+#ifdef OLDCODE
+OLDCODEvoid handle_MIDIEAI() {
+OLDCODE	int eaiverbose;
+OLDCODE	ppEAIServ p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppEAIServ)tg->EAIServ.prv;
+OLDCODE	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+OLDCODE
+OLDCODE        if (!p->EAIMIDIwanted) return;
+OLDCODE        if (!p->EAIMIDIInitialized) {
+OLDCODE                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET, &p->EAIMIDIsockfd, &tg->EAIServ.EAIMIDIlistenfd));
+OLDCODE                return;
+OLDCODE        }
+OLDCODE
+OLDCODE        if (tg->EAIServ.EAIMIDIlistenfd < 0) return;
+OLDCODE
+OLDCODE        tg->EAIServ.EAIbufcount = 0;
+OLDCODE
+OLDCODE	EBUFFLOCK;
+OLDCODE
+OLDCODE        tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer, &tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIMIDIlistenfd);
+OLDCODE        /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
+OLDCODE
+OLDCODE        /* make this into a C string */
+OLDCODE        tg->EAIServ.EAIbuffer[tg->EAIServ.EAIbufcount] = 0;
+OLDCODE        if (eaiverbose) printf ("handle_EAI-- Data is :%s:\n",tg->EAIServ.EAIbuffer);
+OLDCODE
+OLDCODE        /* any command read in? */
+OLDCODE        if (tg->EAIServ.EAIbufcount > 1)
+OLDCODE                EAI_parse_commands ();
+OLDCODE
+OLDCODE	EBUFFUNLOCK;
+OLDCODE}
+#endif //OLDCODE
 
 
 
@@ -613,3 +583,5 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	return (bf);
 }
 
+
+#endif //EXCLUDE_EAI

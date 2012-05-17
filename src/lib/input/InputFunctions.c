@@ -1,5 +1,5 @@
 /*
-  $Id: InputFunctions.c,v 1.19 2011/07/31 19:52:52 dug9 Exp $
+  $Id: InputFunctions.c,v 1.20 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   Input functions (EAI, mouse, keyboard, ...).
@@ -67,6 +67,7 @@ char * stripLocalFileName (char * origName)
 	return origName;
 }
 
+#if !defined(_ANDROID)
 char* makeFontDirectory()
 {
 	char *tmp;
@@ -90,7 +91,7 @@ char* makeFontDirectory()
 	/* No directory found */
 	return NULL;
 }
-
+#endif //ANDROID
 
 /* sscanf replacements */
 void scanUnsignedIntoValue(char *sp, size_t *rv) {

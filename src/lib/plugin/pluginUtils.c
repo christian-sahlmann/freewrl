@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.55 2012/03/05 19:56:03 dug9 Exp $
+  $Id: pluginUtils.c,v 1.56 2012/05/17 02:38:56 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -184,10 +184,13 @@ static void startNewHTMLWindow(char *url) {
 #endif
 }
 
+
+
 ///* we keep polling here, if we are loading a url...*/
 //static int waitingForURLtoLoad = FALSE;
 //static resource_item_t *plugin_res = NULL; 	/* If this res is valid, then we can replace root_res with it */
 
+#if !defined(FRONTEND_GETS_FILES)
 static int urlLoadingStatus() {
 	pppluginUtils p = (pppluginUtils)gglobal()->pluginUtils.prv;
 
@@ -210,6 +213,7 @@ static int urlLoadingStatus() {
 
 	return p->waitingForURLtoLoad;
 }
+#endif //FRONTEND_GETS_FILES
 
 
 
@@ -226,8 +230,10 @@ int doBrowserAction()
 	ttglobal tg = gglobal();
 	p = (pppluginUtils)tg->pluginUtils.prv;
 	
+#if !defined(FRONTEND_GETS_FILES)
 	/* are we in the process of polling for a new X3D URL to load? */
 	if (p->waitingForURLtoLoad) return urlLoadingStatus();
+#endif //FRONTEND_GETS_FILES
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
 	/* OSX frontend and now plugin for loading up a new url does:
