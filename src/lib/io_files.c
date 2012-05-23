@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.46 2012/05/17 02:38:56 crc_canada Exp $
+  $Id: io_files.c,v 1.47 2012/05/23 20:12:34 istakenv Exp $
 
   FreeWRL support library.
   IO with files.
@@ -447,7 +447,7 @@ OLDCODE }
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
 void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
-OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
+/*OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}*/
 #endif
 
 
