@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Texturing.c,v 1.24 2011/06/30 15:13:21 crc_canada Exp $
+$Id: Component_Texturing.c,v 1.25 2012/05/24 19:12:48 istakenv Exp $
 
 X3D Texturing Component
 
@@ -97,8 +97,8 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	ttglobal tg = gglobal();
 
 	#ifdef TEXVERBOSE
-	printf ("rendering TextureCoordinate node __compiledpoint %d\n",node->__compiledpoint);
-	printf ("tcin %d tcin_count %d oldpoint.n %d\n",global_tcin, global_tcin_count, node->point.n);
+	printf ("rendering TextureCoordinate node __compiledpoint %p\n",node->__compiledpoint);
+	printf ("tcin %d tcin_count %d oldpoint.n %d\n",tg->Textures.global_tcin, tg->Textures.global_tcin_count, node->point.n);
 	#endif
 
 	/* is node the statusbar? we should *always* have a global_tcin textureIndex */
@@ -154,7 +154,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		
 			
 		#ifdef TEXVERBOSE
-		for (i=0; i<global_tcin_count; i++) {
+		for (i=0; i<tg->Textures.global_tcin_count; i++) {
 			nFp = node->__compiledpoint.p[i];
 			printf ("checking... %d %f %f\n",i,nFp.c[0], nFp.c[1]);
 		}
@@ -175,13 +175,13 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 debugging code
 
 printf ("textureCoordinate, filling in buffer...\n");
-printf ("global_tcin_count %d\n",global_tcin_count);
+printf ("global_tcin_count %d\n",tg->Textures.global_tcin_count);
 printf ("node cp.n %d\n",node->__compiledpoint.n);
 {
 int i;
 float *tp = node->__compiledpoint.p;
 printf ("TC:\n");
-for (i=0; i< global_tcin_count; i++) {
+for (i=0; i< tg->Textures.global_tcin_count; i++) {
 printf ("       %d: %4.3f ",i,*tp); tp++; printf ("%4.3f\n",*tp); tp++;
 
 }
