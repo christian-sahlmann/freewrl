@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.57 2011/06/30 15:13:21 crc_canada Exp $
+$Id: Polyrep.c,v 1.58 2012/05/24 19:16:10 istakenv Exp $
 
 ???
 
@@ -793,7 +793,7 @@ void render_polyrep(void *node) {
 
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(renderedNodePtr->_nodeType)); 
-	printf ("ntri %d\n",r->ntri);
+	printf ("ntri %d\n",pr->ntri);
 	#endif
 
 	if (pr->ntri==0) {
