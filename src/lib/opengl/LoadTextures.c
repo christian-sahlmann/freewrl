@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.78 2012/04/30 20:18:07 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.79 2012/05/24 20:37:59 istakenv Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -132,7 +132,8 @@ void texture_dump_list()
 {
 #ifdef TEXVERBOSE
 	DEBUG_MSG("TEXTURE: wait queue\n");
-	ml_foreach(texture_list, texture_dump_entry(ml_elem(__l)));
+	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv
+	ml_foreach(p->texture_list, texture_dump_entry(ml_elem(__l)));
 	DEBUG_MSG("TEXTURE: end wait queue\n");
 #endif
 }
