@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.112 2012/05/01 16:12:10 crc_canada Exp $
+  $Id: Textures.c,v 1.113 2012/05/24 20:28:11 istakenv Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -335,9 +335,9 @@ int fwl_isTextureParsing() {
 
 	/* return currentlyWorkingOn>=0; */
 #ifdef TEXVERBOSE 
-    if (textureInProcess > 0) {
+    if (p->textureInProcess > 0) {
 	printf("call to fwl_isTextureParsing %d, returning %d\n",
-	       textureInProcess,textureInProcess > 0);
+	       p->textureInProcess,p->textureInProcess > 0);
     }
 #endif
 	return p->textureInProcess >0;
@@ -362,7 +362,7 @@ void releaseTexture(struct X3D_Node *node) {
 #ifdef TEXVERBOSE
 	printf ("releaseTexture, calling getTableIndex\n");
 	ti = getTableIndex(tableIndex);
-	printf ("releaseTexture, ti %u, ti->status %d\n",(int) ti,ti->status);
+	printf ("releaseTexture, ti %p, ti->status %d\n",ti,ti->status);
 	ti->status = TEX_NOTLOADED;
 
 	if (ti->OpenGLTexture != TEXTURE_INVALID) {
@@ -856,7 +856,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
         paramPtr++;
 
 #ifdef TEXVERBOSE
-        printf ("loadMultiTexture, textureStackTop %d\n",textureStackTop);
+        printf ("loadMultiTexture, textureStackTop %d\n",gglobal()->RenderFuncs.textureStackTop);
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
@@ -955,8 +955,8 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
 #ifdef TEXVERBOSE
-		printf ("just glGend texture for block %d is %u, type %s\n",
-			(int) me, me->OpenGLTexture,stringNodeType(me->nodeType));
+		printf ("just glGend texture for block %p is %u, type %s\n",
+			me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
 
 

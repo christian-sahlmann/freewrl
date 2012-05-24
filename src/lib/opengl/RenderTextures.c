@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.46 2012/05/01 16:12:10 crc_canada Exp $
+$Id: RenderTextures.c,v 1.47 2012/05/24 20:28:11 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -125,8 +125,8 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
     
     
 #ifdef TEXVERBOSE
-    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform %d\n",c,boundTextureStack[c],
-        getAppearanceProperties()->currentShaderProperties->Texture_unit_array[c]);
+    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform %d\n",c,tg->RenderFuncs.boundTextureStack[c],
+        getAppearanceProperties()->currentShaderProperties->TextureUnit[c]);
 #endif
     
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
@@ -135,7 +135,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 	if (tg->RenderTextures.textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
         
-    #ifdef TEXVERBOSE
+		#ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
 		#endif
 
@@ -171,7 +171,8 @@ void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) 
 	struct X3D_TextureCoordinate *myTCnode = NULL;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",gglobal()->RenderFuncs.textureStackTop,boundTextureStack[0]);
+	printf ("textureDraw_start, textureStackTop %d texture[0] 
+%d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
 	printf ("	texC %p, genTex %p\n",texC,genTex);
 	#endif
 
@@ -294,7 +295,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 ttglobal tg = gglobal();
 
 	#ifdef TEXVERBOSE
-	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",textureStackTop);
+	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
 	#endif 
  
 	if (genTex->VA_arrays != NULL) {
