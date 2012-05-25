@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.50 2012/05/25 18:50:44 istakenv Exp $
+$Id: RenderTextures.c,v 1.51 2012/05/25 19:14:32 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -394,18 +394,25 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 			}
 		}
 	}    
-    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
-    }
+
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
+	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
+	        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
+	        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
+	    }
+	#ifdef TEXVERBOSE
+	} else {
+		printf (" currentShaderProperties is NULL, skipping glUniform1i calls\n",tg->RenderFuncs.textureStackTop);
+	#endif
+	}
 
 	PRINT_GL_ERROR_IF_ANY("");
 }
 
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 	int c;
-    GLint texUnit[MAX_MULTITEXTURE];
-    GLint texMode[MAX_MULTITEXTURE];
+	GLint texUnit[MAX_MULTITEXTURE];
+	GLint texMode[MAX_MULTITEXTURE];
 	struct X3D_TextureCoordinate *myTCnode;
 	ttglobal tg = gglobal();
 	myTCnode = (struct X3D_TextureCoordinate *) myMTCnode; /* for now, in case of errors, this is set to an invalid value */
@@ -466,8 +473,8 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 	int c;
 
-    GLint texUnit[MAX_MULTITEXTURE];
-    GLint texMode[MAX_MULTITEXTURE];
+	GLint texUnit[MAX_MULTITEXTURE];
+	GLint texMode[MAX_MULTITEXTURE];
 	ttglobal tg = gglobal();
 	#ifdef TEXVERBOSE
 	printf ("have a NODE_TextureCoordinateGenerator\n");
