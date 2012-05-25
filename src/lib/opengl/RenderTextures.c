@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.48 2012/05/24 20:32:00 istakenv Exp $
+$Id: RenderTextures.c,v 1.49 2012/05/25 18:36:10 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -125,8 +125,12 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
     
     
 #ifdef TEXVERBOSE
+   if (getAppearanceProperties()->currentShaderProperties != NULL) {
     printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform %d\n",c,tg->RenderFuncs.boundTextureStack[c],
         getAppearanceProperties()->currentShaderProperties->TextureUnit[c]);
+   } else {
+    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform [NULL--No Shader]\n",c,tg->RenderFuncs.boundTextureStack[c]);
+   }
 #endif
     
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
