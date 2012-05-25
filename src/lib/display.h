@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.144 2012/05/08 15:59:50 crc_canada Exp $
+  $Id: display.h,v 1.145 2012/05/25 19:35:35 istakenv Exp $
 
   FreeWRL support library.
 
@@ -45,7 +45,11 @@ Functions:
 
 /* this is platform-dependent but there is no default so set one here */
 #ifndef MAX_MULTITEXTURE
+#ifdef SHADERS_2011
 #define MAX_MULTITEXTURE 4
+#else
+#define MAX_MULTITEXTURE 1
+#endif
 #endif
 
 /* for generic GLES2 ie from desktop simulator */
