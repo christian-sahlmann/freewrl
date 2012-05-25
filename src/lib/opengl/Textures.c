@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.113 2012/05/24 20:28:11 istakenv Exp $
+  $Id: Textures.c,v 1.114 2012/05/25 19:44:21 istakenv Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -803,14 +803,19 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
     if (max > MAX_MULTITEXTURE) max = MAX_MULTITEXTURE;
     
     /* do this before we get here - it is the max number of textures */
-    if (getAppearanceProperties()->currentShaderProperties->textureCount != -1) {
+    if (getAppearanceProperties()->currentShaderProperties != NULL) {
+      if (getAppearanceProperties()->currentShaderProperties->textureCount != -1) {
 #ifdef TEXVERBOSE
         printf ("loadMultiTexture, setting the textureCount to %d\n",max);
 #endif
 
         glUniform1i(getAppearanceProperties()->currentShaderProperties->textureCount, max);
-    }
-    
+      }
+#ifdef TEXVERBOSE
+    } else {
+        printf("loadMultiTexture, could not set textureCount to %d because currentShaderProperties is NULL\n",max);
+#endif
+    }    
     
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
