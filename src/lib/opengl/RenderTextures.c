@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.49 2012/05/25 18:36:10 istakenv Exp $
+$Id: RenderTextures.c,v 1.50 2012/05/25 18:50:44 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -292,10 +292,10 @@ void textureDraw_end(void) {
 
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
-    int i;
-    GLint texUnit[MAX_MULTITEXTURE];
-    GLint texMode[MAX_MULTITEXTURE];
-ttglobal tg = gglobal();
+	int i;
+	GLint texUnit[MAX_MULTITEXTURE];
+	GLint texMode[MAX_MULTITEXTURE];
+	ttglobal tg = gglobal();
 
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
@@ -339,11 +339,18 @@ ttglobal tg = gglobal();
 			}
 		}
 	}
-    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-        //printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
-    }
+
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
+	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
+        	//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
+		glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
+		glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
+	    }
+	#ifdef TEXVERBOSE
+	} else {
+		printf (" NOT sending in %d i+tu+mode because currentShaderProperties is NULL\n",tg->RenderFuncs.textureStackTop);
+	#endif
+	}
     
     
 	PRINT_GL_ERROR_IF_ANY("");
