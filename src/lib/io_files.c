@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.47 2012/05/23 20:12:34 istakenv Exp $
+  $Id: io_files.c,v 1.48 2012/05/28 20:15:36 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -224,10 +224,10 @@ bool do_dir_exists(const char *dir)
 void of_dump(openned_file_t *of)
 {
 	static char first_ten[11];
-	if (of->data) {
-		strncpy(first_ten, of->data, 10);
+	if (of->fileData) {
+		strncpy(first_ten, of->fileData, 10);
 	}
-	printf("{%s, %d, %d, %s%s}\n", of->filename, of->fd, of->dataSize, (of->data ? first_ten : "(null)"), (of->data ? "..." : ""));
+	printf("{%s, %d, %d, %s%s}\n", of->fileFileName, of->fileDescriptor, of->fileDataSize, (of->fileData ? first_ten : "(null)"), (of->fileData ? "..." : ""));
 }
 
 /**
@@ -240,10 +240,10 @@ static openned_file_t* create_openned_file(const char *filename, int fd, int dat
 	openned_file_t *of;
 
 	of = XALLOC(openned_file_t);
-	of->filename = filename;
-	of->fd = fd;
-	of->data = data;
-	of->dataSize = dataSize;
+	of->fileFileName = filename;
+	of->fileDescriptor = fd;
+	of->fileData = data;
+	of->fileDataSize = dataSize;
 	return of;
 }
 

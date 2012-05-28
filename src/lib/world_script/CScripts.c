@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.49 2011/06/10 01:42:16 dug9 Exp $
+$Id: CScripts.c,v 1.50 2012/05/28 20:15:36 crc_canada Exp $
 
 ???
 
@@ -458,14 +458,14 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
-			 	p->buffer = STRDUP(of->data);
+			 	p->buffer = STRDUP(of->fileData);
 			 	/* JAS printf("**** Shader:\n%s\n", buffer); 
 				printf ("*** Shader: doing the quick return here\n"); */
 				return TRUE;
 			} else {
 				/* a Script */
 			 	/* printf("**** Script:\n%s\n", buffer); */
-			 	rv = script_initCode(me, of->data);
+			 	rv = script_initCode(me, of->fileData);
 			}
 		 }
 	 }

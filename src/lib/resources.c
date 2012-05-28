@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.52 2012/05/17 02:38:56 crc_canada Exp $
+  $Id: resources.c,v 1.53 2012/05/28 20:15:36 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -497,7 +497,7 @@ bool resource_load(resource_item_t *res)
 		// printf ("XXXXX load_file, of filename %s, fd %d, dataSize %d, data %p\n",of->filename, of->fd, of->dataSize, of->data);
 
 		if (of) {
-			if (of->data) {
+			if (of->fileData) {
 
 			res->status = ress_loaded;
 			res->openned_files = ml_append( (s_list_t *) res->openned_files,
@@ -618,7 +618,7 @@ void resource_identify_type(resource_item_t *res)
 			}
 			/* might this be a gzipped input file? */
 			possiblyUnzip(of);
-			test_it = of->data;
+			test_it = of->fileData;
 			break;
 		}
 
@@ -653,7 +653,7 @@ char *resource_get_text(resource_item_t *res)
 		s_list_t *l = (s_list_t *) res->openned_files;
 		openned_file_t *of = l->elem;
 		if (of) {
-			return of->data;
+			return of->fileData;
 		}
 	}
 	return NULL;
@@ -826,7 +826,7 @@ void resource_dump(resource_item_t *res)
 
 	of = (s_list_t *) res->openned_files;
 	if (of) {
-		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->filename));
+		ml_foreach(of, PRINTF("%s ", (char *) ((openned_file_t *)ml_elem(__l))->fileFileName));
 	} else {
 		PRINTF("none");
 	}

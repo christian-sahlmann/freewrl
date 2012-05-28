@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.80 2012/05/24 20:40:10 istakenv Exp $
+  $Id: LoadTextures.c,v 1.81 2012/05/28 20:15:36 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -568,12 +568,12 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	int i;
 
 	openned_file_t *myFile = load_file (filename);
-	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->data, myFile->dataSize); */
+	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); */
 
 
 
 	/* if we got null for data, lets assume that there was not a file there */
-	if (myFile->data == NULL) {
+	if (myFile->fileData == NULL) {
 		return FALSE;
 	} else {
 
@@ -584,13 +584,13 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		JSAMPARRAY buffer;
 
 /*
-sprintf (myline,"load_texture_from_file, setting source to memory, size %d",myFile->dataSize);
+sprintf (myline,"load_texture_from_file, setting source to memory, size %d",myFile->fileDataSize);
 ConsoleMessage (myline);
 */
 
   		cinfo.err = jpeg_std_error(&jerr);
 		jpeg_create_decompress(&cinfo);
-		jpeg_memory_src(&cinfo, (const char *)myFile->data,myFile->dataSize);
+		jpeg_memory_src(&cinfo, (const char *)myFile->fileData,myFile->fileDataSize);
 
 		/* reading the image header which contains image information */
 		jpeg_read_header( &cinfo, TRUE );
@@ -762,15 +762,15 @@ ConsoleMessage(myline);
 
 #ifdef FRONTEND_GETS_FILES
 	openned_file_t *myFile = load_file (filename);
-	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->data, myFile->dataSize); */
+	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); */
 
 
 	/* if we got null for data, lets assume that there was not a file there */
-	if (myFile->data == NULL) {
+	if (myFile->fileData == NULL) {
 		sourceRef = NULL;
 		image = NULL;
 	} else {
-		CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->data,myFile->dataSize);
+		CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->fileData,myFile->fileDataSize);
 		sourceRef = CGImageSourceCreateWithData(localData,NULL);
 		CFRelease(localData);
 	}

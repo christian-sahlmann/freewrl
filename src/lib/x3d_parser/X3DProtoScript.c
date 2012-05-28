@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.79 2011/10/08 22:24:20 dug9 Exp $
+$Id: X3DProtoScript.c,v 1.80 2012/05/28 20:15:36 crc_canada Exp $
 
 ???
 
@@ -2212,7 +2212,7 @@ void endExternProtoDeclare(void) {
 					openned_file_t *of;
 					l = res->openned_files;
 					of = ml_elem(l);
-					buffer = of->data;
+					buffer = of->fileData;
 /* 				pound = strchr(buffer, '#'); */
 /* 				embedEXTERNPROTO(me, myName, buffer, pound); */
 				/*	printf("**** X3D EXTERNPROTO:\n%s\n", buffer); */
