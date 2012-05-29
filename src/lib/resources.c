@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.54 2012/05/29 16:31:55 istakenv Exp $
+  $Id: resources.c,v 1.55 2012/05/29 16:44:17 istakenv Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -1090,7 +1090,7 @@ static void possiblyUnzip (openned_file_t *of) {
 		/* read in the unzipped text... */
 		newFile = load_file((const char *) tempname);
 
-		if (newFile->data == NULL) {
+		if (newFile->fileData == NULL) {
 			ConsoleMessage ("problem re-reading gunzipped text file");
 			return;
 		}
