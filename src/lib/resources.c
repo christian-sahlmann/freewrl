@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.53 2012/05/28 20:15:36 crc_canada Exp $
+  $Id: resources.c,v 1.54 2012/05/29 16:31:55 istakenv Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -494,7 +494,7 @@ bool resource_load(resource_item_t *res)
 
 		// of should never be null....
 
-		// printf ("XXXXX load_file, of filename %s, fd %d, dataSize %d, data %p\n",of->filename, of->fd, of->dataSize, of->data);
+		// printf ("XXXXX load_file, of filename %s, fd %d, dataSize %d, data %p\n",of->fileFileName, of->fileDescriptor, of->fileDataSize, of->fileData);
 
 		if (of) {
 			if (of->fileData) {
@@ -1054,10 +1054,10 @@ void removeFilenameFromPath (char *path) {
 /* is this a gzipped file? if so, unzip the text and replace the original with this. */
 static void possiblyUnzip (openned_file_t *of) {
 #if !(defined(IPHONE) || defined(_ANDROID))
-	if (of->data == NULL) return;
-	if (of->data[0] == '\0') return;
-	if (of->data[1] == '\0') return;
-        if (((unsigned char) of->data[0] == 0x1f) && ((unsigned char) of->data[1] == 0x8b)) {
+	if (of->fileData == NULL) return;
+	if (of->fileData[0] == '\0') return;
+	if (of->fileData[1] == '\0') return;
+        if (((unsigned char) of->fileData[0] == 0x1f) && ((unsigned char) of->fileData[1] == 0x8b)) {
 		#define GZIP_BUFF_SIZE 2048
 
 		gzFile *source;
@@ -1072,11 +1072,11 @@ static void possiblyUnzip (openned_file_t *of) {
                 sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); 
 
 		/* read in the text, unzip it, write it out again */
-		source = gzopen(of->filename,"rb");
+		source = gzopen(of->fileFileName,"rb");
 		dest = fopen(tempname,"wb");
 
 		if (!source || !source) {
-			ConsoleMessage ("unable to unzip this file: %s\n",of->filename);
+			ConsoleMessage ("unable to unzip this file: %s\n",of->fileFileName);
 			printf ("wow - problem\n");
 		}
 
@@ -1096,8 +1096,10 @@ static void possiblyUnzip (openned_file_t *of) {
 		}
 
 		/* replace the old text with the unzipped; and clean up */
-		FREE_IF_NZ(of->data);
-		of->data = newFile->data;
+		FREE_IF_NZ(of->fileData);
+		of->fileData = newFile->fileData;
+/* seems odd that we wouldn't need to also update the fileDataSize, like so:
+		of->fileDataSize = newFile->fileDataSize; */
 		FREE_IF_NZ(newFile);
 		unlink (tempname);
 	}
