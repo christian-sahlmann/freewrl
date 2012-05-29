@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.51 2012/05/25 19:14:32 istakenv Exp $
+$Id: RenderTextures.c,v 1.52 2012/05/29 17:14:04 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -46,11 +46,16 @@ texture enabling - works for single texture, for multitexture.
 #include "Textures.h"
 #include "Material.h"
 
+#ifdef TEXVERBOSE
 #define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-     /* printf ("textureUnit %d texture %d\n",aaa,bbb);  */ \
+    printf ("textureUnit %d texture %d\n",aaa,bbb); \
     glActiveTexture(GL_TEXTURE0+aaa); \
     glBindTexture(GL_TEXTURE_2D,bbb); }
-
+#else
+#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
+    glActiveTexture(GL_TEXTURE0+aaa); \
+    glBindTexture(GL_TEXTURE_2D,bbb); }
+#endif
 
 
 ///* variables for keeping track of status */
