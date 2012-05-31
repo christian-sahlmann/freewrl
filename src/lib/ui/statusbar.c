@@ -1,5 +1,5 @@
 /*
-  $Id: statusbar.c,v 1.35 2011/06/10 19:10:05 couannette Exp $
+  $Id: statusbar.c,v 1.36 2012/05/31 18:44:44 crc_canada Exp $
 
 */
 
@@ -51,6 +51,8 @@
 #include "../scenegraph/Viewer.h"
 
 #include "../opengl/RasterFont.h"
+
+#if !defined(AQUA)
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
@@ -136,3 +138,5 @@ void drawStatusBar()
 	}
 #endif
 }
+
+#endif //AQUA

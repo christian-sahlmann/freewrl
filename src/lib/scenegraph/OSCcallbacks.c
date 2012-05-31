@@ -1,6 +1,6 @@
 #include <config.h>
 
-#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2)
+#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2) && !defined(AQUA)
 
 /* DJTRACK_OSCSENSORS */
 

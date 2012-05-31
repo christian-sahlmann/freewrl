@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarStub.c,v 1.2 2011/06/10 19:10:05 couannette Exp $
+  $Id: statusbarStub.c,v 1.3 2012/05/31 18:44:44 crc_canada Exp $
 
 */
 
@@ -22,8 +22,9 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include <config.h>
 
-
+#if !defined(AQUA)
 void kill_status (void) {
 }
 void update_status(char* msg)
@@ -43,3 +44,5 @@ int handleStatusbarHud(int mev, int* clipplane)
 void drawStatusBar()
 {
 }
+
+#endif //AQUA

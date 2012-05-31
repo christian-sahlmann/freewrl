@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.48 2012/05/28 20:15:36 crc_canada Exp $
+  $Id: io_files.c,v 1.49 2012/05/31 18:44:44 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -196,6 +196,8 @@ bool do_file_readable(const char *filename)
 	return FALSE;
 }
 
+#endif //FRONTEND_GETS_FILES
+
 /**
  *   do_dir_exists: asserts that the given directory exists.
  */
@@ -216,7 +218,7 @@ bool do_dir_exists(const char *dir)
 	}
 	return FALSE;
 }
-#endif //FRONTEND_GETS_FILES
+
 
 /**
  *   of_dump: print the structure.

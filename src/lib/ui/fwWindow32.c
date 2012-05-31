@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.39 2011/07/30 19:50:38 dug9 Exp $
+  $Id: fwWindow32.c,v 1.40 2012/05/31 18:44:44 crc_canada Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 
 #include <system.h>
 #include <display.h>

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: system.h,v 1.28 2011/07/09 01:06:01 dug9 Exp $
+$Id: system.h,v 1.29 2012/05/31 18:44:44 crc_canada Exp $
 
 FreeWRL support library.
 Internal header: system dependencies.
@@ -48,7 +48,7 @@ Internal header: system dependencies.
 
 
 /* do we have JavaScript? */
-#if defined(IPHONE) || defined(_ANDROID)
+#if defined(IPHONE) || defined(_ANDROID) || defined (AQUA)
 	#undef HAVE_JAVASCRIPT
 #else
 	/* Everything has JavaScript */

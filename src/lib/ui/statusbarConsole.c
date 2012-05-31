@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.8 2011/06/10 19:10:05 couannette Exp $
+  $Id: statusbarConsole.c,v 1.9 2012/05/31 18:44:44 crc_canada Exp $
 
 */
 
@@ -28,7 +28,7 @@
 #include <display.h>
 #include <internal.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 
 #include <libFreeWRL.h>
 #include <list.h>
