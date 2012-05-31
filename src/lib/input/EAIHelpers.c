@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHelpers.c,v 1.54 2012/05/17 02:38:56 crc_canada Exp $
+$Id: EAIHelpers.c,v 1.55 2012/05/31 19:06:42 crc_canada Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -271,7 +271,7 @@ struct X3D_Node *getEAINodeFromTable(int index, int field) {
 
 	if (me==NULL) {
 		printf ("internal EAI error - requesting %d, highest node %d\n",
-			index,vector_size(p->EAINodeIndex) /* lastNodeRequested */);
+			index,vectorSize(p->EAINodeIndex) /* lastNodeRequested */);
 		return NULL;
 	}
 
@@ -317,7 +317,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	}
 
 	/* ok, index zero of the EAINodeIndex is invalid, so we look at 1 to (size) -1 */
-	for (ctr=1; ctr<=vector_size(p->EAINodeIndex)-1; ctr++) {
+	for (ctr=1; ctr<=vectorSize(p->EAINodeIndex)-1; ctr++) {
 		struct EAINodeIndexStruct *me;
 
 		me = vector_get(struct EAINodeIndexStruct *, p->EAINodeIndex, ctr);
@@ -343,7 +343,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 		
 		vector_pushBack(struct EAINodeIndexStruct *, p->EAINodeIndex, newp);
 
-		mynindex = vector_size(p->EAINodeIndex) -1;
+		mynindex = vectorSize(p->EAINodeIndex) -1;
 
 		if (eaiverbose) printf ("registerEAINodeForAccess returning index %d nt %s, internal type %d\n",mynindex,
 				stringNodeType(myn->_nodeType),newp->nodeType);
@@ -491,7 +491,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	/* is this a valid C node? if so, lets just get the info... */
-	if ((cNode == 0) || (cNode > vector_size(p->EAINodeIndex) /* lastNodeRequested */)) {
+	if ((cNode == 0) || (cNode > vectorSize(p->EAINodeIndex) /* lastNodeRequested */)) {
 		printf ("THIS IS AN ERROR! CNode is zero!!!\n");
 		*cNodePtr = 0; *fieldOffset = 0; *dataLen = 0; *typeString = 0; *scripttype=0; *accessType=KW_eventIn;
 		return;
@@ -574,7 +574,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 			myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
 			myScriptType = EAI_NODETYPE_SCRIPT;
 
-        		for (i = 0; i !=  vector_size(myScript->fields); ++i) {
+        		for (i = 0; i !=  vectorSize(myScript->fields); ++i) {
         		        struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, myScript->fields, i);
 				
 				if (eaiverbose)
@@ -648,7 +648,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	printf ("end of GetType, now, EAI node type %d\n",me->nodeType);
 	*/
 
-	*fieldOffset = vector_size(me->nodeParams)-1; 	/* the entry into this field array for this node */
+	*fieldOffset = vectorSize(me->nodeParams)-1; 	/* the entry into this field array for this node */
 	*dataLen = (int) newp->datalen;	/* data len */
 	*typeString = newp->typeString; /* data type in EAI type */
 	*scripttype =newp->scripttype;

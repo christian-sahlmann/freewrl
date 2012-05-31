@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.46 2012/05/28 20:15:36 crc_canada Exp $
+$Id: CParseLexer.c,v 1.47 2012/05/31 19:06:42 crc_canada Exp $
 
 ???
 
@@ -206,7 +206,7 @@ void lexer_destroyIdVector(struct Vector* v)
 {
  int i;
  ASSERT(v);
- for(i=0; i!=vector_size(v); ++i)
+ for(i=0; i!=vectorSize(v); ++i)
   FREE_IF_NZ (vector_get(char*, v, i));
  deleteVector(char*, v);
 }
@@ -251,7 +251,7 @@ static void lexer_scopeOut_(Stack* s)
  int i;
  ASSERT(!stack_empty(s));
 
- for(i=0; i!=vector_size(stack_top(struct Vector*, s)); ++i)
+ for(i=0; i!=vectorSize(stack_top(struct Vector*, s)); ++i)
   FREE_IF_NZ (vector_get(char*, stack_top(struct Vector*, s), i));
  deleteVector(char*, stack_top(struct Vector*, s));
  stack_pop(struct Vector*, s);
@@ -262,10 +262,10 @@ void lexer_scopeIn(struct VRMLLexer* me)
 {
 /* printf ("lexer_scopeIn, not doing push anymore \n"); */
  lexer_scopeIn_(&me->userNodeNames);
-  /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vector_size(me->userNodeTypesVec)); */
+  /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vectorSize(me->userNodeTypesVec)); */
  /* Remember the number of PROTOs that were defined when we first entered this scope.  This is the 
     number of PROTOs that must be defined when we leave this scope.  Keep this number on the userNodeTypesStack */
- stack_push(int, me->userNodeTypesStack, vector_size(me->userNodeTypesVec));
+ stack_push(int, me->userNodeTypesStack, vectorSize(me->userNodeTypesVec));
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
@@ -286,8 +286,8 @@ void lexer_scopeOut(struct VRMLLexer* me)
    the scopeOut  */
 void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 {
- /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vector_size(me->userNodeTypesVec), stack_top(int, userNodeTypesStack)); */
- while(vector_size(me->userNodeTypesVec)>stack_top(int, me->userNodeTypesStack))
+ /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vectorSize(me->userNodeTypesVec), stack_top(int, userNodeTypesStack)); */
+ while(vectorSize(me->userNodeTypesVec)>stack_top(int, me->userNodeTypesStack))
  {
   /* Free the last element added to the vector */
   FREE_IF_NZ (vector_back(char*, me->userNodeTypesVec));
@@ -374,7 +374,7 @@ int lexer_string2id(const char* str, const struct Vector* v)
 
 /* printf ("lexer_string2id looking for %s vector %u\n",str,v); */
  int i;
- for(i=0; i!=vector_size(v); ++i) {
+ for(i=0; i!=vectorSize(v); ++i) {
 	/* printf ("lexer_string2id, comparing %s to %s\n",str,vector_get(const char*, v, i)); */
   if(!strcmp(str, vector_get(const char*, v, i)))
    return i;
@@ -465,7 +465,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, int* retB, int* retU,
   return found;
 
 /*
- for(i=0; i!=vector_size(user); ++i) { 
+ for(i=0; i!=vectorSize(user); ++i) { 
 	printf ("special_ID_string, user %d is %s\n",
 		i, vector_get(char*, user, i));
 }
@@ -476,10 +476,10 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, int* retB, int* retU,
  /* Look for the ID in the passed user array.  If it is found, return the index to the ID in retU */
  /* JAS - COUNT DOWN from last entered to first; this makes duplicates use the latest entry. */
  /* use an index to see when we go from 0 to -1; int can not do this, as it is unsigned */
- /* was : for(i=0; i!=vector_size(user); ++i) { */
+ /* was : for(i=0; i!=vectorSize(user); ++i) { */
 
 
-for (ind= (int)vector_size(user)-1; ind>=0; ind--) {
+for (ind= (int)vectorSize(user)-1; ind>=0; ind--) {
 
 	/* convert an int into an int */
 	i = (int) ind;
@@ -528,7 +528,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL mul
 	/* If multiple definition possible? Look if the ID's already there */
 	if(multi) {
 		int i;
-		for(i=0; i!=vector_size(vec); ++i) {
+		for(i=0; i!=vectorSize(vec); ++i) {
 
 		#ifdef CPARSERVERBOSE
 		printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i));
@@ -544,7 +544,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL mul
 		/* is this already defined? */
 		if (gglobal()->internalc.global_strictParsing) {
 			int i;
-			for(i=0; i!=vector_size(vec); ++i) {
+			for(i=0; i!=vectorSize(vec); ++i) {
 				if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
 					ConsoleMessage ("warning, duplicate ID (%s at %u), using last DEF",me->curID,i);
 				}	
@@ -555,7 +555,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL mul
 
 	/* Define the id */
 	/* Add this ID to the passed vector of IDs */
-	*ret=vector_size(vec);
+	*ret=vectorSize(vec);
 	#ifdef CPARSERVERBOSE
 		printf("lexer_defineID: adding %s to vector %p\n", me->curID, vec);
 	#endif
@@ -618,7 +618,7 @@ BOOL lexer_event(struct VRMLLexer* me,
 
  /* Get a pointer to the data in the vector of user defined event names */
  userArr=&vector_get(const char*, uarr, 0);
- userCnt=vector_size(uarr);
+ userCnt=vectorSize(uarr);
 
  /* Strip off set_ or _changed from current token.  Then look through the EVENT_IN/EVENT_OUT array for the eventname (current token).  
     If it is found, return the index of the eventname. Also looks through fields of the routedNode to check if fieldname is valid for that node 
@@ -647,7 +647,7 @@ BOOL lexer_event(struct VRMLLexer* me,
 
  /* Get a pointer to the event names in the vector of user defined exposed fields */
  userArr=&vector_get(const char*, me->user_inputOutput, 0);
- userCnt=vector_size(me->user_inputOutput);
+ userCnt=vectorSize(me->user_inputOutput);
 
  /* findRoutedFieldInEXPOSED_FIELD calls findRoutedFieldInARR(node, field, fromTo, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, 0) */
  /* Strip off set_ or _changed from current token.  Then look through the EXPOSED_FIELD array for the eventname (current token). 
@@ -702,7 +702,7 @@ BOOL lexer_field(struct VRMLLexer* me,
 
   /* Get a pointer to the entries in the user_initializeOnly vector */
  userArr=&vector_get(const char*, me->user_initializeOnly, 0);
- userCnt=vector_size(me->user_initializeOnly);
+ userCnt=vectorSize(me->user_initializeOnly);
 
 #ifdef CPARSERVERBOSE
  printf("lexer_field: looking for %s\n", me->curID);
@@ -723,7 +723,7 @@ BOOL lexer_field(struct VRMLLexer* me,
 
   /* Get a pointer to the entries in the user_inputOutput vector */
  userArr=&vector_get(const char*, me->user_inputOutput, 0);
- userCnt=vector_size(me->user_inputOutput);
+ userCnt=vectorSize(me->user_inputOutput);
   
   /* findFieldInEXPOSED_FIELD #defined to findFieldInARR(field, EXPOSED_FIELD, EXPOSED_FIELD_COUNT) */
   /* look through the EXPOSED_FIELD array for the fieldname (current token).  If it is found, return the index of the fieldname.  */
@@ -768,16 +768,16 @@ const char* lexer_stringUser_fieldName(struct VRMLLexer* me, int name, int mode)
  switch(mode)
  {
   case PKW_initializeOnly:
-   if (name>vector_size(me->user_initializeOnly)) return OOB_RETURN_VAL;
+   if (name>vectorSize(me->user_initializeOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_initializeOnly(me, name);
   case PKW_inputOutput:
-   if (name>vector_size(me->user_inputOutput)) return OOB_RETURN_VAL;
+   if (name>vectorSize(me->user_inputOutput)) return OOB_RETURN_VAL;
    return lexer_stringUser_inputOutput(me, name);
   case PKW_inputOnly:
-   if (name>vector_size(me->user_inputOnly)) return OOB_RETURN_VAL;
+   if (name>vectorSize(me->user_inputOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_inputOnly(me, name);
   case PKW_outputOnly:
-   if (name>vector_size(me->user_outputOnly)) return OOB_RETURN_VAL;
+   if (name>vectorSize(me->user_outputOnly)) return OOB_RETURN_VAL;
    return lexer_stringUser_outputOnly(me, name);
  }
  ASSERT(FALSE);
@@ -1251,7 +1251,7 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
                 vector_pushBack(vrmlStringT, vec, val);
         }
 
-        ret->n=vector_size(vec);
+        ret->n=vectorSize(vec);
         ret->p=vector_releaseData(vrmlStringT, vec);
 
         deleteVector(vrmlStringT, vec);

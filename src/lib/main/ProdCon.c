@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.98 2012/05/28 20:15:36 crc_canada Exp $
+  $Id: ProdCon.c,v 1.99 2012/05/31 19:06:42 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -495,10 +495,10 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	
 	shouldBind = FALSE;
-	origFogNodes = vector_size(p->fogNodes);
-	origBackgroundNodes = vector_size(p->backgroundNodes);
-	origNavigationNodes = vector_size(p->navigationNodes);
-	origViewpointNodes = vector_size(t->viewpointNodes);
+	origFogNodes = vectorSize(p->fogNodes);
+	origBackgroundNodes = vectorSize(p->backgroundNodes);
+	origNavigationNodes = vectorSize(p->navigationNodes);
+	origViewpointNodes = vectorSize(t->viewpointNodes);
 
 	/* save the current URL so that any local-url gets are relative to this */
 	pushInputResource(res);
@@ -564,26 +564,26 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 	
 		if (shouldBind) {
-			if (vector_size(p->fogNodes) > 0) {
-				for (i=origFogNodes; i < vector_size(p->fogNodes); ++i) 
+			if (vectorSize(p->fogNodes) > 0) {
+				for (i=origFogNodes; i < vectorSize(p->fogNodes); ++i) 
 					send_bind_to(vector_get(struct X3D_Node*,p->fogNodes,i), 0); 
 					/* Initialize binding info */
 				t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
 			}
-			if (vector_size(p->backgroundNodes) > 0) {
-				for (i=origBackgroundNodes; i < vector_size(p->backgroundNodes); ++i) 
+			if (vectorSize(p->backgroundNodes) > 0) {
+				for (i=origBackgroundNodes; i < vectorSize(p->backgroundNodes); ++i) 
 					send_bind_to(vector_get(struct X3D_Node*,p->backgroundNodes,i), 0); 
 					/* Initialize binding info */
 				t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
 			}
-			if (vector_size(p->navigationNodes) > 0) {
-				for (i=origNavigationNodes; i < vector_size(p->navigationNodes); ++i) 
+			if (vectorSize(p->navigationNodes) > 0) {
+				for (i=origNavigationNodes; i < vectorSize(p->navigationNodes); ++i) 
 					send_bind_to(vector_get(struct X3D_Node*,p->navigationNodes,i), 0); 
 					/* Initialize binding info */
 				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 			}
-			if (vector_size(t->viewpointNodes) > 0) {
-				for (i=origViewpointNodes; i < vector_size(t->viewpointNodes); ++i) 
+			if (vectorSize(t->viewpointNodes) > 0) {
+				for (i=origViewpointNodes; i < vectorSize(t->viewpointNodes); ++i) 
 					send_bind_to(vector_get(struct X3D_Node*,t->viewpointNodes,i), 0); 
 					/* Initialize binding info */
 				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);

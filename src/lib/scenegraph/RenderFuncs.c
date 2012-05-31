@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.122 2012/04/23 18:56:24 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.123 2012/05/31 19:06:42 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -845,7 +845,7 @@ void update_node(struct X3D_Node *node) {
 		return;
 	}
 
-	for (i = 0; i < vector_size(node->_parentVector); i++) {
+	for (i = 0; i < vectorSize(node->_parentVector); i++) {
 		struct X3D_Node *n = vector_get(struct X3D_Node *, node->_parentVector,i);
 		if(n == node) {
 			fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
@@ -1119,13 +1119,13 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 #endif
 
 	pi = -1;
-	for (i=0; i<vector_size(child->_parentVector); i++) {
+	for (i=0; i<vectorSize(child->_parentVector); i++) {
 		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
 		if (n==parent) pi = i;
 	}
 
 	if (pi >=0) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vector_size(child->_parentVector)-1);
+		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
 
 		/* get the last entry, and overwrite the entry found */
 		vector_set(struct X3D_Node*, child->_parentVector, pi,n);

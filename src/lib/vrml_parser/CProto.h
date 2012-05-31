@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.h,v 1.16 2011/06/09 18:10:32 dug9 Exp $
+$Id: CProto.h,v 1.17 2012/05/31 19:06:42 crc_canada Exp $
 
 CProto.h - this is the object representing a PROTO definition and being
 capable of instantiating it.
@@ -175,7 +175,7 @@ struct ProtoDefinition
 
 /* Get fields by indices */
 #define protoDefinition_getFieldCount(me) \
- vector_size((me)->iface)
+ vectorSize((me)->iface)
 #define protoDefinition_getFieldByNum(me, i) \
  vector_get(struct ProtoFieldDecl*, (me)->iface, i)
 

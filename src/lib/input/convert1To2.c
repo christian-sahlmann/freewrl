@@ -272,7 +272,7 @@ void tokenizeVRML1_(char *pb) {
         struct ProtoElementPointer* ele;
 
         /* go through each part of this deconstructedProtoBody, and see what needs doing... */
-        p->protoElementCount = vector_size(p->deconstructedProtoBody);
+        p->protoElementCount = vectorSize(p->deconstructedProtoBody);
         i = 0;
 	
 		p->written = fprintf (p->fp,"#VRML V2.0 utf8\n");

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.238 2012/05/17 02:38:56 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.239 2012/05/31 19:06:42 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3064,7 +3064,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = cnp; 
 	/* backgroundPlane goes between the farthest geometry, and the farPlane */
-	if (vector_size(tg->Bindable.background_stack)!= 0) {
+	if (vectorSize(tg->Bindable.background_stack)!= 0) {
 		viewer->farPlane = cfp * 10.0;
 		viewer->backgroundPlane = cfp*5.0;
 	} else {
@@ -4009,7 +4009,7 @@ void zeroVisibilityFlag(void) {
 #define SIBLING_SENSITIVE(thistype) \
 			/* make Sensitive */ \
 			if (((struct X3D_##thistype *)node)->enabled) { \
-				nParents = vector_size((struct X3D_##thistype *)node->_parentVector); \
+				nParents = vectorSize((struct X3D_##thistype *)node->_parentVector); \
 				parentVector = (((struct X3D_##thistype *)node)->_parentVector); \
 			}  
 
@@ -4076,7 +4076,7 @@ void zeroVisibilityFlag(void) {
 /* do NOT send this up the scenegraph! */
 #define LOCAL_LIGHT_PARENT_FLAG \
 { int i; \
-	for (i = 0; i < vector_size(node->_parentVector); i++) { \
+	for (i = 0; i < vectorSize(node->_parentVector); i++) { \
 		struct X3D_Node *n = vector_get(struct X3D_Node*, node->_parentVector, i); \
 		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
 	} \
@@ -4605,7 +4605,7 @@ X3D_GROUP(node)->removeChildren.n);
 	if (loadInlines != NULL) {
 		indexT ind;
 
-		for (ind=0; ind<vector_size(loadInlines); ind++) {
+		for (ind=0; ind<vectorSize(loadInlines); ind++) {
 			struct X3D_Inline *node;
 			node=vector_get(struct X3D_Inline*, loadInlines,ind);
 			load_Inline (node);
@@ -4614,7 +4614,7 @@ X3D_GROUP(node)->removeChildren.n);
 	}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (vector_size(tg->Bindable.viewpoint_stack) > 0) {
+	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
 		update_renderFlag(vector_back(struct X3D_Node*, 
 			tg->Bindable.viewpoint_stack), VF_Viewpoint);
 		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
@@ -4753,7 +4753,7 @@ static void killNode (int index) {
 
 	#ifdef VERBOSE
 	printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
-	printf (" number of parents %d ", vector_size(structptr->_parentVector);
+	printf (" number of parents %d ", vectorSize(structptr->_parentVector);
 	printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
 	#endif
 

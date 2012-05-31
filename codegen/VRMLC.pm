@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.65 2012/04/26 16:36:23 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.66 2012/05/31 19:06:42 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,10 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.66  2012/05/31 19:06:42  crc_canada
+# gcc on OSX issue - vector_size is in gcc; our code changed internal
+# vector_size to vectorSize in all files.
+#
 # Revision 1.65  2012/04/26 16:36:23  crc_canada
 # Android changes - preparing for MultiTexturing
 #
@@ -1687,8 +1691,8 @@ sub gen {
 		push @genFuncs2, "			struct X3D_$node *tmp;\n";
 		push @genFuncs2, "			tmp = (struct X3D_$node *) node;\n";
 		if($node eq "PointPickSensor") {
-			push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t_nparents (int) %d\\n\",vector_size(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
-			push @genFuncs2, "\t\t\tfor (i=0; i<vector_size(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
+			push @genFuncs2, "\t\t\tspacer fprintf (fp,\"\\t_nparents (int) %d\\n\",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */\n";
+			push @genFuncs2, "\t\t\tfor (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,\"    %d: %p\\n\",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }\n";
 		}
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 

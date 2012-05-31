@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.80 2012/05/28 20:15:36 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.81 2012/05/31 19:06:42 crc_canada Exp $
 
 ???
 
@@ -278,7 +278,7 @@ static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, ch
         
 #define LOOK_FOR_FIELD_IN(whicharr) \
         userArr=&vector_get(const char*, myLexer->user_##whicharr, 0); \
-        userCnt=vector_size(myLexer->user_##whicharr);\
+        userCnt=vectorSize(myLexer->user_##whicharr);\
         retUO=findFieldInARR(fieldName, userArr, userCnt);\
         if (retUO != ID_UNDEFINED) { \
 		return PKW_##whicharr; \
@@ -412,7 +412,7 @@ static void generateRoute (struct VRMLLexer *myLexer, struct ScriptFieldDecl* pr
 
 #define REPLACE_CONNECT_VALUE(value,type) \
 			/* now, we have a match, replace (or push) this onto the params */ \
-				for (nodeind=0; nodeind<vector_size(tos); nodeind++) \
+				for (nodeind=0; nodeind<vectorSize(tos); nodeind++) \
 			{ \
 				nvp = vector_get(struct nameValuePairs*, tos,nodeind); \
 				/* printf ("      nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);*/  \
@@ -537,7 +537,7 @@ void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	matched = FALSE;
 	myObj = p->PROTONames[p->currentProtoInstance[p->curProtoInsStackInd]].fieldDefs; 
 	//myObj = PROTONames[curProtoInsStackInd].fieldDefs; 
-	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+	for (ind=0; ind<vectorSize(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
 		/*  printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue); */
@@ -598,7 +598,7 @@ void parseConnect(struct VRMLLexer *myLexer, char **atts, struct Vector *tos) {
 	
 	myObj = p->PROTONames[p->currentProtoInstance[p->curProtoInsStackInd]].fieldDefs; 
 	//myObj = PROTONames[curProtoInsStackInd].fieldDefs; 
-	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+	for (ind=0; ind<vectorSize(myObj->fields); ind++) { 
 		struct ScriptFieldDecl* field; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
 		/* printf ("ind %d name %s value %s\n", ind, fieldDecl_getShaderScriptName(field->fieldDecl),  field->ASCIIvalue);  */
@@ -940,10 +940,10 @@ static void verifyExternAndProtoFields(void) {
 	extProF = p->PROTONames[extPro].fieldDefs;
 	curProF = p->PROTONames[curPro].fieldDefs;
 
-        for (curInd=0; curInd<vector_size(curProF->fields); curInd++) { 
+        for (curInd=0; curInd<vectorSize(curProF->fields); curInd++) { 
 		int matched=FALSE;
                 curField = vector_get(struct ScriptFieldDecl*, curProF->fields, curInd); 
-        	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
+        	for (extInd=0; extInd<vectorSize(extProF->fields); extInd++) { 
                 	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
 			if ((fieldDecl_getAccessType(curField->fieldDecl) == 
 				fieldDecl_getAccessType(extField->fieldDecl))  &&
@@ -962,7 +962,7 @@ static void verifyExternAndProtoFields(void) {
 	}
 
 	/* do we have any ExternProtoDeclare fields that are NOT matched by the ProtoDeclare? */
-       	for (extInd=0; extInd<vector_size(extProF->fields); extInd++) { 
+       	for (extInd=0; extInd<vectorSize(extProF->fields); extInd++) { 
                	extField = vector_get(struct ScriptFieldDecl*, extProF->fields, extInd); 
 		if (fieldDecl_getShaderScriptName(extField->fieldDecl) != NULL) {
 			ConsoleMessage ("<ExternProtoDeclare> field :%s: not matched in embedded Proto",
@@ -1187,8 +1187,8 @@ void parseProtoInstance (char **atts) {
 
 	#define MAKE_PROTO_COPY_FIELDS \
 	myObj = PROTONames[currentProtoInstance[curProtoInsStackInd]].fieldDefs; \
-	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); \
-	for (ind=0; ind<vector_size(myObj->fields); ind++) { \
+	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vectorSize(myObj->fields)); \
+	for (ind=0; ind<vectorSize(myObj->fields); ind++) { \
 		int i; struct ScriptFieldDecl* field; char *fv; \
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); \
 		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ \
@@ -1364,8 +1364,8 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 //MAKE_PROTO_COPY_FIELDS macro >>>>>
 	//#define MAKE_PROTO_COPY_FIELDS 
 	myObj = p->PROTONames[p->currentProtoInstance[p->curProtoInsStackInd]].fieldDefs; 
-	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vector_size(myObj->fields)); 
-	for (ind=0; ind<vector_size(myObj->fields); ind++) { 
+	fdl += fprintf (fileDescriptor, "<!--\nProtoInterface fields has %d fields -->\n",vectorSize(myObj->fields)); 
+	for (ind=0; ind<vectorSize(myObj->fields); ind++) { 
 		int i; struct ScriptFieldDecl* field; char *fv; 
 		field = vector_get(struct ScriptFieldDecl*, myObj->fields, ind); 
 		fv = field->ASCIIvalue;   /* pointer to ProtoDef value - might be replaced in loop below */ 

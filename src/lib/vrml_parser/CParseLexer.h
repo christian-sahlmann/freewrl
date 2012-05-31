@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.h,v 1.12 2010/03/02 16:51:29 crc_canada Exp $
+$Id: CParseLexer.h,v 1.13 2012/05/31 19:06:42 crc_canada Exp $
 
 Lexer (input of terminal symbols) for CParse
 
@@ -78,7 +78,7 @@ void lexer_destroyIdStack(Stack*);
 
 /* Count of elements to pop off the PROTO vector for scope-out */
 #define lexer_getProtoPopCnt(me) \
- (vector_size(me->userNodeTypesVec)-stack_top(int, me->userNodeTypesStack))
+ (vectorSize(me->userNodeTypesVec)-stack_top(int, me->userNodeTypesStack))
 
 /* Set input */
 void lexer_fromString (struct VRMLLexer *, char *);

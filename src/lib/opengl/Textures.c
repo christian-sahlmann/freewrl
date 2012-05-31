@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.114 2012/05/25 19:44:21 istakenv Exp $
+  $Id: Textures.c,v 1.115 2012/05/31 19:06:42 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -401,7 +401,7 @@ ConsoleMessage (line);}
 	}
 
 
-	if (indx >= vector_size(p->activeTextureTable)) {
+	if (indx >= vectorSize(p->activeTextureTable)) {
 		ConsoleMessage ("sizing errror in getTableIndex");
 		return NULL;
 	}
@@ -410,7 +410,7 @@ ConsoleMessage (line);}
 #ifdef VERBOSE
 {char line[200];
 printf ("getTableIndex - valid request\n");
-sprintf (line,"getTableIndex, for %d, size %d",indx, vector_size(p->activeTextureTable));
+sprintf (line,"getTableIndex, for %d, size %d",indx, vectorSize(p->activeTextureTable));
 ConsoleMessage (line);}
 #endif
 
@@ -446,7 +446,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		}
 
 		// keep track of which texture this one is.
-		textureNumber = vector_size(p->activeTextureTable);
+		textureNumber = vectorSize(p->activeTextureTable);
 
 		{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
 

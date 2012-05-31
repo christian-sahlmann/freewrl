@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.99 2011/10/08 20:33:39 dug9 Exp $
+$Id: X3DParser.c,v 1.100 2012/05/31 19:06:42 crc_canada Exp $
 
 ???
 
@@ -376,7 +376,7 @@ char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
 	/* printf ("X3DParser_getNameFromNode, DEFedNodes not null\n"); */
 
 	/* go through the DEFed nodes and match the node pointers */
-	for (ind=0; ind<vector_size(stack_top(struct Vector*, p->DEFedNodes)); ind++) {
+	for (ind=0; ind<vectorSize(stack_top(struct Vector*, p->DEFedNodes)); ind++) {
 		node=vector_get(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes),ind);
 		
 		/* did we have a match? */
@@ -411,7 +411,7 @@ void kill_X3DDefs(void) {
 	p->childAttributes = NULL;
 
 	if (p->DEFedNodes != NULL) {
-		for (i=0; i<vector_size(p->DEFedNodes); i++) {
+		for (i=0; i<vectorSize(p->DEFedNodes); i++) {
 			struct Vector * myele = vector_get (struct Vector*, p->DEFedNodes, i);
 
 			/* we DO NOT delete individual elements of this vector, as they are pointers
@@ -459,16 +459,16 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	printf ("DEF returns id of %d for %s\n",ind,name);
 #endif
 
-	ASSERT(ind<=vector_size(stack_top(struct Vector*, p->DEFedNodes)));
+	ASSERT(ind<=vectorSize(stack_top(struct Vector*, p->DEFedNodes)));
 
 #ifdef X3DPARSERVERBOSE
-	printf ("so, in DEFNameIndex, we have ind %d, vector_size %d\n",ind,vector_size(stack_top(struct Vector*, DEFedNodes)));
+	printf ("so, in DEFNameIndex, we have ind %d, vectorSize %d\n",ind,vectorSize(stack_top(struct Vector*, DEFedNodes)));
 #endif
 
-	if(ind==vector_size(stack_top(struct Vector*, p->DEFedNodes))) {
+	if(ind==vectorSize(stack_top(struct Vector*, p->DEFedNodes))) {
 		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes), node);
 	}
-	ASSERT(ind<vector_size(stack_top(struct Vector*, p->DEFedNodes)));
+	ASSERT(ind<vectorSize(stack_top(struct Vector*, p->DEFedNodes)));
 
 	/* if we did not find this node, just return */
 	if (ind == ID_UNDEFINED) {return NULL; }
@@ -1491,7 +1491,7 @@ static void parseAttributes(void) {
 	thisNode = tg->X3DParser.parentStack[tg->X3DParser.parentIndex];
 	 /* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
 	if(p->childAttributes[tg->X3DParser.parentIndex])
-	for (ind=0; ind<vector_size(p->childAttributes[tg->X3DParser.parentIndex]); ind++) {
+	for (ind=0; ind<vectorSize(p->childAttributes[tg->X3DParser.parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, p->childAttributes[tg->X3DParser.parentIndex],ind);
 		 /* printf ("	nvp %ld, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue); */
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.58 2012/03/05 19:56:03 dug9 Exp $
+$Id: Component_ProgrammableShaders.c,v 1.59 2012/05/31 19:06:42 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -523,7 +523,7 @@ void getField_ToShader(int num) {
 /*
 	printf ("Shader_Script has node of %u ",myObj->ShaderScriptNode);
 	printf ("of type %s ",stringNodeType(myObj->ShaderScriptNode->_nodeType));
-	printf ("and has %d as a vector size ",vector_size(myObj->fields));
+	printf ("and has %d as a vector size ",vectorSize(myObj->fields));
 	if (myObj->loaded) printf ("locked and loaded "); else printf ("needs loading, I guess ");
 	printf ("\n");
 */
@@ -551,7 +551,7 @@ void getField_ToShader(int num) {
 	case NODE_ShaderProgram: 
 		/* printf ("ShaderProgram- the parent ProgramShader holds the ids\n"); */
 		if ((X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector != NULL) &&
-		    (vector_size(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector) > 0)) {
+		    (vectorSize(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector) > 0)) {
 			/* assume only one parent here? */
 			currentShader = (GLuint) X3D_PROGRAMSHADER(vector_get(struct X3D_Node *,
 				X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector,0))->__shaderIDS.p[0];
@@ -563,8 +563,8 @@ void getField_ToShader(int num) {
 	}
 
 
-	/* printf ("going through fields.... have %d fields\n",vector_size(myObj->fields)); */
-	for(i=0; i!=vector_size(myObj->fields); ++i) {
+	/* printf ("going through fields.... have %d fields\n",vectorSize(myObj->fields)); */
+	for(i=0; i!=vectorSize(myObj->fields); ++i) {
 		GLint shaderVariable;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
@@ -727,7 +727,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	#ifdef SHADERVERBOSE
 	printf ("Shader_Script has node of %u ",me->ShaderScriptNode);
 	printf ("of type %s ",stringNodeType(me->ShaderScriptNode->_nodeType));
-	printf ("and has %d as a vector size ",vector_size(me->fields));
+	printf ("and has %d as a vector size ",vectorSize(me->fields));
 	if (me->loaded) printf ("locked and loaded "); else printf ("needs loading, I guess ");
 	printf ("\n");
 	#endif
@@ -753,7 +753,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	if (me->loaded) ConsoleMessage ("ShaderProgram is flagged as being loaded, hmmm");
 
 
-	for(i=0; i!=vector_size(me->fields); ++i) {
+	for(i=0; i!=vectorSize(me->fields); ++i) {
 		GLint myVar;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;

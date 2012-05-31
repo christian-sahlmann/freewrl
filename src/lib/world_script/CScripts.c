@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CScripts.c,v 1.50 2012/05/28 20:15:36 crc_canada Exp $
+$Id: CScripts.c,v 1.51 2012/05/31 19:06:42 crc_canada Exp $
 
 ???
 
@@ -316,7 +316,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 void deleteScript(struct Shader_Script* me)
 {
  size_t i;
- for(i=0; i!=vector_size(me->fields); ++i)
+ for(i=0; i!=vectorSize(me->fields); ++i)
   deleteScriptFieldDecl(vector_get(struct ScriptFieldDecl*, me->fields, i));
  deleteVector(struct ScriptFieldDecl*, me->fields);
  
@@ -333,7 +333,7 @@ struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, c
  size_t i;
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
- for(i=0; i!=vector_size(me->fields); ++i)
+ for(i=0; i!=vectorSize(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
   if(strcmp(name,fieldDecl_getShaderScriptName(curField->fieldDecl)) == 0)
@@ -346,7 +346,7 @@ struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, c
 struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, indexT mod)
 {
  size_t i;
- for(i=0; i!=vector_size(me->fields); ++i)
+ for(i=0; i!=vectorSize(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
   if(scriptFieldDecl_isField(curField, n, mod))
@@ -368,10 +368,10 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 #ifdef CPARSERVERBOSE
 	{
 		size_t i;
-		for(i=0; i!=vector_size(me->fields); ++i) {
+		for(i=0; i!=vectorSize(me->fields); ++i) {
 			struct ScriptFieldDecl* curField=
 				vector_get(struct ScriptFieldDecl*, me->fields, i);
-			printf ("script_addField, now have field %d of %d, ASCIIname %s:",i,vector_size(me->fields),fieldDecl_getShaderScriptName(curField->fieldDecl));
+			printf ("script_addField, now have field %d of %d, ASCIIname %s:",i,vectorSize(me->fields),fieldDecl_getShaderScriptName(curField->fieldDecl));
 			printf ("\n");
 		}
 

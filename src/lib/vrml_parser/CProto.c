@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.53 2011/06/09 18:10:32 dug9 Exp $
+$Id: CProto.c,v 1.54 2012/05/31 19:06:42 crc_canada Exp $
 
 CProto ???
 
@@ -248,9 +248,9 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 {
  /* TODO:  O(log(n)) by sorting */
  size_t i;
- /* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface));  */
+ /* printf ("protoDefinition_getField; sizeof iface %d\n",vectorSize(me->iface));  */
  if (!me) return NULL; /* error here, can not go through fields */
- for(i=0; i!=vector_size(me->iface); ++i)
+ for(i=0; i!=vectorSize(me->iface); ++i)
  {
   struct ProtoFieldDecl* f=vector_get(struct ProtoFieldDecl*, me->iface, i);
   if(f->name==ind && f->mode==mode) {
@@ -275,9 +275,9 @@ static struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struc
 
 	/* printf("protoDefinition_copy: copying %u to %u\n", me, ret);  */
 	/* Copy interface */
-	ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
+	ret->iface=newVector(struct ProtoFieldDecl*, vectorSize(me->iface));
 	ASSERT(ret->iface);
-	for(i=0; i!=vector_size(me->iface); ++i)
+	for(i=0; i!=vectorSize(me->iface); ++i)
 		vector_pushBack(struct ProtoFieldDecl*, ret->iface,
 	protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
@@ -457,7 +457,7 @@ static struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X
 	script_initCodeFromMFUri(X3D_SCRIPT(ret2)->__scriptObj, &X3D_SCRIPT(ret2)->url);
 
 	/* Add in the fields defined for the old script into the new script */
-	for (i = 0; i !=  vector_size(old_script->fields); ++i) {
+	for (i = 0; i !=  vectorSize(old_script->fields); ++i) {
 		struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, old_script->fields, i);
 		struct ScriptFieldDecl* newfield = scriptFieldDecl_copy(lex, sfield);
 		if (fieldDecl_getAccessType(sfield->fieldDecl) == PKW_initializeOnly) {
@@ -467,9 +467,9 @@ static struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X
 
 		/* Update the pointers in the proto expansion's field interface list for each field interface that has script destinations 
 		   so that the script destinations point to the new script */
-        	for (k=0; k != vector_size(new->iface); ++k) {
+        	for (k=0; k != vectorSize(new->iface); ++k) {
         	        struct ProtoFieldDecl* newdecl = vector_get(struct ProtoFieldDecl*, new->iface, k);
-        	        for (j=0; j!= vector_size(newdecl->scriptDests); j++) {
+        	        for (j=0; j!= vectorSize(newdecl->scriptDests); j++) {
         	                struct ScriptFieldInstanceInfo* sfieldinfo = vector_get(struct ScriptFieldInstanceInfo*, newdecl->scriptDests, j);
         	                if (sfieldinfo->script == old_script) {
         	                        sfieldinfo->script = new_script;
@@ -523,7 +523,7 @@ static struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct 
 	#endif
 
   /* Copy scriptfield dests */
-  for (i=0; i!=vector_size(me->scriptDests); ++i) {
+  for (i=0; i!=vectorSize(me->scriptDests); ++i) {
    	struct ScriptFieldInstanceInfo* temp;
    	struct ScriptFieldInstanceInfo* temp2;
 	vector_pushBack(struct ScriptFieldInstanceInfo*, ret->scriptDests, scriptFieldInstanceInfo_copy(vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i)));
@@ -606,7 +606,7 @@ static struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node*
  if(!me->data[pos])
   return NULL;
 
- for(i=0; i!=vector_size(me->data[pos]); ++i)
+ for(i=0; i!=vectorSize(me->data[pos]); ++i)
  {
   struct PointerHashEntry* entry=
    &vector_get(struct PointerHashEntry, me->data[pos], i);
@@ -858,7 +858,7 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 	/* start off with the initializeOnly fieldType */
 	userArr=&vector_get(const char*, me->user_initializeOnly, 0);
-	userCnt=vector_size(me->user_initializeOnly);
+	userCnt=vectorSize(me->user_initializeOnly);
 	retUO=findFieldInARR(thisID, userArr, userCnt);
 	if (retUO != ID_UNDEFINED) {
 		/* we found the string in the parser fieldType, lets see if it is here... */
@@ -869,7 +869,7 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 	/* look in the inputOutput fields... */
 	userArr=&vector_get(const char*, me->user_inputOutput, 0);
-	userCnt=vector_size(me->user_inputOutput);
+	userCnt=vectorSize(me->user_inputOutput);
 	retUO=findFieldInARR(thisID, userArr, userCnt);
 	if (retUO != ID_UNDEFINED) {
 		/* we found the string in the parser fieldType, lets see if it is here... */
@@ -880,7 +880,7 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 	/* possibly we will get lucky with the inputOnly fields?? */
 	userArr=&vector_get(const char*, me->user_inputOnly, 0);
-	userCnt=vector_size(me->user_inputOnly);
+	userCnt=vectorSize(me->user_inputOnly);
 	retUO=findFieldInARR(thisID, userArr, userCnt);
 	if (retUO != ID_UNDEFINED) {
 		/* we found the string in the parser fieldType, lets see if it is here... */
@@ -891,7 +891,7 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 	/* boy, lets hope that this is an outputOnly field... */
 	userArr=&vector_get(const char*, me->user_outputOnly, 0);
-	userCnt=vector_size(me->user_outputOnly);
+	userCnt=vectorSize(me->user_outputOnly);
 	retUO=findFieldInARR(thisID, userArr, userCnt);
 	if (retUO != ID_UNDEFINED) { 
 		ret=protoDefinition_getField(thisProto,retUO,PKW_outputOnly);
@@ -953,7 +953,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 			if (ele->isKEYWORD == KW_IS) {
 				/* printf ("tokenizeProtoBody, found IS at element %d\n",index); */
 
-				index  = (int) vector_size(me->deconstructedProtoBody) -1; /* remember, 0->(x-1), not 1->x */
+				index  = (int) vectorSize(me->deconstructedProtoBody) -1; /* remember, 0->(x-1), not 1->x */
 				/* printf ("rewinding, starting at %d\n",index); */
 				/* printf ("tokenizeProtoBody, found an IS, lets go back... we currently have %d\n",index); */
 				if (index>0) {
@@ -1074,7 +1074,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
         struct ProtoElementPointer* tempEle;
 
         /* go through each part of this deconstructedProtoBody, and see what needs doing... */
-        protoElementCount = vector_size(me->deconstructedProtoBody);
+        protoElementCount = vectorSize(me->deconstructedProtoBody);
         i = 0;
         while (i < protoElementCount) {
                 /* get the current element */
@@ -1335,7 +1335,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
 	if ((*thisProto)->deconstructedProtoBody == NULL) return ""; /* nothing to do! */
 
-	protoElementCount = vector_size((*thisProto)->deconstructedProtoBody);
+	protoElementCount = vectorSize((*thisProto)->deconstructedProtoBody);
 
 	#ifdef CPROTOVERBOSE
 		printf ("protoExpand - protoEpementCount %d\n",protoElementCount);
@@ -1567,7 +1567,7 @@ BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto,
 
         	/* It also has to be in the DEFedNodes stack */
         	ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
-        		ret<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+        		ret<vectorSize(stack_top(struct Vector*, me->DEFedNodes)));
 
         	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
         	*Node = vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ret);
@@ -1623,9 +1623,9 @@ int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd) {
 	vector_pushBack (struct protoInsert*,p->protoDefVec, npd);	
 
 	/* printf ("newProtoDefinitionPointer, have vrmlpd %u and xmlpd %d\n",vrmlpd,xmlpd);
-	printf ("newProtoDefinitionPointer, returning %d\n",(int)(vector_size(protoDefVec)-1)); */
+	printf ("newProtoDefinitionPointer, returning %d\n",(int)(vectorSize(protoDefVec)-1)); */
 
-	return (int) (vector_size(p->protoDefVec)-1);
+	return (int) (vectorSize(p->protoDefVec)-1);
 }
 
 struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
@@ -1637,8 +1637,8 @@ struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 
 	/* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
 	if (mpd == INT_ID_UNDEFINED) return NULL;
-	if (mpd >= vector_size(p->protoDefVec)) {
-		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vector_size(p->protoDefVec));
+	if (mpd >= vectorSize(p->protoDefVec)) {
+		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vectorSize(p->protoDefVec));
 		return NULL;
 	}
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */

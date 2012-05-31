@@ -65,16 +65,16 @@ void vector_ensureSpace_(int, struct Vector*);
         ((type*)((struct Vector *)  (me))->data)[element]=value
 
 /* Size of vector */
-#define vector_size(me) \
+#define vectorSize(me) \
  (((struct Vector*)me)->n)
 
 /* Back of a vector */
 #define vector_back(type, me) \
- vector_get(type, me, vector_size(me)-1)
+ vector_get(type, me, vectorSize(me)-1)
 
 /* Is the vector empty? */
 #define vector_empty(me) \
- (!vector_size(me))
+ (!vectorSize(me))
 
 /* Shrink the vector to minimum required space. */
 void vector_shrink_(int, struct Vector*);
@@ -98,7 +98,7 @@ void vector_shrink_(int, struct Vector*);
  }
 #define vector_popBackN(type, me, popn) \
  { \
-  ASSERT(popn<=vector_size(me)); \
+  ASSERT(popn<=vectorSize(me)); \
   ((struct Vector*)me)->n-=popn; \
  }
 
@@ -128,7 +128,7 @@ typedef struct Vector Stack;
 
 /* Top of stack */
 #define stack_top(type, me) \
- vector_get(type, me, vector_size(me)-1)
+ vector_get(type, me, vectorSize(me)-1)
 
 /* Is the stack empty? */
 #define stack_empty(me) \

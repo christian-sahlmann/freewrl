@@ -1,7 +1,7 @@
 /*
   =INSERT_TEMPLATE_HERE=
 
-  $Id: CParseParser.c,v 1.76 2011/06/09 17:51:03 dug9 Exp $
+  $Id: CParseParser.c,v 1.77 2012/05/31 19:06:42 crc_canada Exp $
 
   ???
 
@@ -878,8 +878,8 @@ static BOOL parser_protoStatement(struct VRMLParser* me)
     obj=newProtoDefinition();
 
     /* save the name, if we can get it - it will be the last name on the list, because we will have JUST parsed it. */
-    if (vector_size(me->lexer->userNodeTypesVec) != ID_UNDEFINED) {
-	obj->protoName = STRDUP(vector_get(const char*, me->lexer->userNodeTypesVec, vector_size(me->lexer->userNodeTypesVec)-1));
+    if (vectorSize(me->lexer->userNodeTypesVec) != ID_UNDEFINED) {
+	obj->protoName = STRDUP(vector_get(const char*, me->lexer->userNodeTypesVec, vectorSize(me->lexer->userNodeTypesVec)-1));
     } else {
 	printf ("warning - have proto but no name, so just copying a default string in\n");
 	obj->protoName = STRDUP("noProtoNameDefined");
@@ -895,7 +895,7 @@ static BOOL parser_protoStatement(struct VRMLParser* me)
     }
 
     ASSERT(me->PROTOs);
-    /*  ASSERT(name==vector_size(me->PROTOs)); */
+    /*  ASSERT(name==vectorSize(me->PROTOs)); */
 
     /* Add the empty ProtoDefinition structure we just created onto the PROTOs stack */
     vector_pushBack(struct ProtoDefinition*, me->PROTOs, obj);
@@ -1276,7 +1276,7 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
   } \
   /* Check that there are DEFedNodes in the DEFedNodes vector, and that the index given for this node is valid */ \
   ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) && \
-   pre##NodeIndex<vector_size(stack_top(struct Vector*, me->DEFedNodes))); \
+   pre##NodeIndex<vectorSize(stack_top(struct Vector*, me->DEFedNodes))); \
   /* Get the X3D_Node structure for the DEFed node we just looked up in the userNodeNames list */ \
   pre##Node=vector_get(struct X3D_Node*, \
    stack_top(struct Vector*, me->DEFedNodes), \
@@ -1711,11 +1711,11 @@ static vrmlNodeT parse_KW_DEF(struct VRMLParser *me) {
     ASSERT(!stack_empty(me->DEFedNodes));
 
     /* Did we just add the name to the userNodeNames vector?  If so, then the node hasn't yet been added to the DEFedNodes vector, so add it */
-    ASSERT(ind<=vector_size(stack_top(struct Vector*, me->DEFedNodes)));
-    if(ind==vector_size(stack_top(struct Vector*, me->DEFedNodes))) {
+    ASSERT(ind<=vectorSize(stack_top(struct Vector*, me->DEFedNodes)));
+    if(ind==vectorSize(stack_top(struct Vector*, me->DEFedNodes))) {
         vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), NULL);
     }
-    ASSERT(ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+    ASSERT(ind<vectorSize(stack_top(struct Vector*, me->DEFedNodes)));
 
 
     /* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
@@ -1760,7 +1760,7 @@ static vrmlNodeT parse_KW_USE(struct VRMLParser *me) {
 
     /* It also has to be in the DEFedNodes stack */
     ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
-           ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+           ind<vectorSize(stack_top(struct Vector*, me->DEFedNodes)));
 
     #ifdef CPARSERVERBOSE
     printf ("parser_KW_USE, returning vector %u\n", vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind));
@@ -1894,7 +1894,7 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
            this PROTO must be valid. */
         ASSERT(nodeTypeU!=ID_UNDEFINED);
         ASSERT(me->PROTOs);
-        ASSERT(nodeTypeU<vector_size(me->PROTOs));
+        ASSERT(nodeTypeU<vectorSize(me->PROTOs));
                 
         if (me->curPROTO == NULL) {
 	    int newProtoTextLen = 0;
@@ -2582,7 +2582,7 @@ if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
         } \
   }\
   rv = (struct Multi_##type*) ret; \
-  rv->n=vector_size(vec); \
+  rv->n=vectorSize(vec); \
   rv->p=vector_releaseData(vrml##type##T, vec); \
   \
   deleteVector(vrml##type##T, vec); \

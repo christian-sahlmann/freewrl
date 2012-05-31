@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.83 2012/04/17 21:32:13 dug9 Exp $
+$Id: CRoutes.c,v 1.84 2012/05/31 19:06:42 crc_canada Exp $
 
 ???
 
@@ -1162,10 +1162,10 @@ static void actually_do_CRoutes_Register() {
 	if (p->routesToRegister == NULL) return; /* should never get here, but... */
 
 #ifdef CRVERBOSE
-	printf ("actually_do_CRoutes_Register, vector size %d\n",vector_size(p->routesToRegister));
+	printf ("actually_do_CRoutes_Register, vector size %d\n",vectorSize(p->routesToRegister));
 #endif
 
-	for (ind=0; ind<vector_size(p->routesToRegister); ind++ ) {
+	for (ind=0; ind<vectorSize(p->routesToRegister); ind++ ) {
 		struct CR_RegStruct *newEntry;
 
 		newEntry = vector_get(struct CR_RegStruct *, p->routesToRegister, ind);

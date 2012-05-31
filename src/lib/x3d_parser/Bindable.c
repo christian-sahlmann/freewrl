@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.69 2012/05/01 14:32:44 dug9 Exp $
+$Id: Bindable.c,v 1.70 2012/05/31 19:06:42 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -353,7 +353,7 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 		}
 
 		/* unbind the one below, unless it is same node */
-		if (vector_size(thisStack)>0) {
+		if (vectorSize(thisStack)>0) {
 			struct X3D_Node* oldTOS;
 
 			oldTOS = vector_back(struct X3D_Node *,thisStack);
@@ -382,7 +382,7 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 		MARK_EVENT (node, (unsigned int) isboundofst(node));
 
 		/* are we top of stack? */
-		if (vector_size(thisStack)>0) {
+		if (vectorSize(thisStack)>0) {
 			struct X3D_Node* oldTOS;
 
 			oldTOS = vector_back(struct X3D_Node *,thisStack);
@@ -402,7 +402,7 @@ printf ("oldTOS, isBound %d, setBindPtr %d\n",*(offsetPointer_deref(int*, oldTOS
 				/* get myself off of the stack */
 				vector_popBack(struct X3D_Node *,thisStack);
 
-				if (vector_size(thisStack)>0) {
+				if (vectorSize(thisStack)>0) {
 					/* get the older one back */
 					oldTOS = vector_back(struct X3D_Node *,thisStack);
 
@@ -862,7 +862,7 @@ void render_Background (struct X3D_Background *node) {
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
-	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -939,7 +939,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
-	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
 }
 
 
@@ -961,7 +961,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -1032,5 +1032,5 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
-	if (vector_size(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
 }

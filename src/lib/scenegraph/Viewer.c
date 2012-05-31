@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.86 2012/05/01 14:35:38 dug9 Exp $
+$Id: Viewer.c,v 1.87 2012/05/31 19:06:42 crc_canada Exp $
 
 CProto ???
 
@@ -385,7 +385,7 @@ void fwl_set_viewer_type(const int type) {
 
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (vector_size(tg->Bindable.navigation_stack) >0)
+	if (vectorSize(tg->Bindable.navigation_stack) >0)
 		if (p->Viewer.oktypes[type]==FALSE) {
 			setMenuButton_navModes(p->Viewer.type);
 			return;
