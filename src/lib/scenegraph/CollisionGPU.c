@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CollisionGPU.c,v 1.22 2011/10/24 21:04:24 crc_canada Exp $
+$Id: CollisionGPU.c,v 1.23 2012/06/01 18:31:08 crc_canada Exp $
 
 Render the children of nodes.
 
@@ -328,12 +328,12 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 	size_t wg_size;
 	size_t kernel_wg_size;
 
-	#ifdef DEBUG
+	#ifdef GPU_DEBUG
 	cl_ulong longish;
 	size_t xyz;
 	char rvstring[1000];
 	int gpu;
-	#endif // DEBUG
+	#endif // GPU_DEBUG
 
 
 
@@ -462,8 +462,7 @@ printf ("initme->context %p\n",initme->context);
 	// Find the work group size
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &wg_size, &rvlen);
 
-	#undef DEBUG
-	#ifdef DEBUG
+	#ifdef GPU_DEBUG
 	// debugging information
 	rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
 	printf ("CL_PLATFORM_PROFILE :%s:\n",rvstring);
@@ -487,7 +486,7 @@ printf ("initme->context %p\n",initme->context);
 	printf ("CL_DEVICE_LOCAL_MEM_SIZE %ld\n",longish);
 
 
-	#endif //DEBUG
+	#endif //GPU_DEBUG
 
 
 	initme->program = clCreateProgramWithSource(initme->context, 1, (const char **) &kp, NULL, &err);
@@ -533,7 +532,7 @@ printf ("initme->context %p\n",initme->context);
 	if (kernel_wg_size < wg_size) wg_size = kernel_wg_size;
 	initme->workgroup_size = wg_size;
 
-	#ifdef DEBUG
+	#ifdef GPU_DEBUG
 	printf ("MAX_WORK_GROUP_SIZE %d\n",kernel_wg_size);
 	printf ("We are going to set our workgroup size to %d\n",wg_size);
 
@@ -544,7 +543,7 @@ printf ("initme->context %p\n",initme->context);
 3. Get minimum of two values and use that value as your optimal workGroupSize
 */
 
-	#endif // DEBUG
+	#endif // GPU_DEBUG
 
 	printf ("kernel built\n");
 

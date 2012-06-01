@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.83 2012/05/08 15:59:50 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.84 2012/06/01 18:31:08 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -194,9 +194,11 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
+#ifndef SHADERS_2011
 	struct SFVec3f *pt;
 	float a1, a2;
 	struct SFVec3f *tmpptr;
+#endif //SHADERS_2011
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
