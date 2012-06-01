@@ -32,10 +32,18 @@
 **
 */
 
+//JAS 2012 - this file is "included", should not be automatically included in
+//an automated build process, so have added the #ifdef IN_PRIORITY_QUEUE here and in
+//priorityq.c
+
+#ifdef IN_PRIORITY_QUEUE
+
 #include <stddef.h>
 #include <assert.h>
 #include "priorityq-heap.h"
 #include "memalloc.h"
+
+
 
 #define INIT_SIZE	32
 
@@ -250,3 +258,6 @@ void pqDelete( PriorityQ *pq, PQhandle hCurr )
   h[hCurr].node = pq->freeList;
   pq->freeList = hCurr;
 }
+
+#endif //IN_PRIORITY_QUEUE
+

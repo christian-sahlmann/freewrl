@@ -40,7 +40,15 @@
 
 /* Include all the code for the regular heap-based queue here. */
 
+//JAS 2012 - this file is "included", should not be automatically included in
+//an automated build process, so have added the #ifdef IN_PRIORITY_QUEUE here and in
+//priorityq-heap.c
+
+
+#define IN_PRIORITY_QUEUE
 #include "priorityq-heap.c"
+#undef IN_PRIORITY_QUEUE
+
 
 /* Now redefine all the function names to map to their "Sort" versions. */
 

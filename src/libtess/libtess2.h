@@ -32,8 +32,13 @@
 #ifndef __libtess2_h__
 #define __libtess2_h__
 
-#include <GLES2/gl2.h>
-#define GLdouble double //GLdouble not defined in GL ES or GL ES 2
+#ifdef GLES2
+    #include <GLES2/gl2.h>
+    #define GLdouble double //GLdouble not defined in GL ES or GL ES 2
+#else
+    #include <GL/gl.h>
+    #include <limits.h>		/* LONG_MAX */
+#endif //GLES2
 
 #ifndef GLAPIENTRY
 #if defined(_MSC_VER) || defined(__MINGW32__)
