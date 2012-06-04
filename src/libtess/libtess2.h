@@ -32,6 +32,8 @@
 #ifndef __libtess2_h__
 #define __libtess2_h__
 
+#include <config.h>
+
 #ifdef GLES2
     #include <GLES2/gl2.h>
     #define GLdouble double //GLdouble not defined in GL ES or GL ES 2
