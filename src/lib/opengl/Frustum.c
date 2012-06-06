@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Frustum.c,v 1.48 2012/06/06 15:22:07 istakenv Exp $
+$Id: Frustum.c,v 1.49 2012/06/06 15:23:00 istakenv Exp $
 
 ???
 
@@ -512,14 +512,12 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	me->EXTENT_MAX_Z = maxz; me->EXTENT_MIN_Z = minz;
 
 	if (me->_parentVector == NULL) {
-		#ifdef FRUSTUMVERBOSE
 		printf ("setExtent, parentVector NULL for node %p type %s\n",
 			me,stringNodeType(me->_nodeType));
-		#endif
 		return;
 	}
 
-	for (c=0; c<vector_size(me->_parentVector); c++) {
+	for (c=0; c<vectorSize(me->_parentVector); c++) {
 		shapeParent = vector_get(struct X3D_Node *, me->_parentVector,c);
 	
 		/* record this for ME for sorting purposes for sorting children fields */
@@ -534,7 +532,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
 		#endif
 
-		for (d=0; d<vector_size(shapeParent->_parentVector); d++) {
+		for (d=0; d<vectorSize(shapeParent->_parentVector); d++) {
 			geomParent = vector_get(struct X3D_Node *, shapeParent->_parentVector,d);
 
 			#ifdef FRUSTUMVERBOSE
@@ -635,7 +633,7 @@ void propagateExtent(struct X3D_Node *me) {
 			me->EXTENT_MAX_X, me->EXTENT_MIN_X,
 			me->EXTENT_MAX_Y, me->EXTENT_MIN_Y,
 			me->EXTENT_MAX_Z, me->EXTENT_MIN_Z,
-			me, vector_size(me->parentVector));
+			me, vectorSize(me->parentVector));
 	#endif
 
 
@@ -657,7 +655,7 @@ void propagateExtent(struct X3D_Node *me) {
 	FRUSTUM_TRANS(HAnimSite);
 	FRUSTUM_TRANS(HAnimJoint);
 
-	for (i=0; i<vector_size(me->_parentVector); i++) {
+	for (i=0; i<vectorSize(me->_parentVector); i++) {
 		geomParent = vector_get(struct X3D_Node *, me->_parentVector, i);
 
 		/* do we propagate for this parent? */
