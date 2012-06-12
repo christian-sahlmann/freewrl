@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.99 2012/05/07 14:53:16 crc_canada Exp $
+$Id: Component_Shape.c,v 1.100 2012/06/12 17:24:48 crc_canada Exp $
 
 X3D Shape Component
 
@@ -45,7 +45,6 @@ X3D Shape Component
 #include "Component_ProgrammableShaders.h"
 #include "Component_Shape.h"
 #include "RenderFuncs.h"
-
 
 
 typedef struct pComponent_Shape{
@@ -804,25 +803,25 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 #ifdef VERBOSE
 static void printChoosingShader(shader_type_t whichOne) {
     
-    printf ("choose shader: ");
+    ConsoleMessage ("choose shader: ");
     switch (whichOne) {
-        case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
-        case backgroundTextureBoxShader: printf ("backgroundTextureBoxShader\n"); break;
-        case noTexOneMaterialShader: printf ("noTexOneMaterialShader\n"); break;
-        case noMaterialNoAppearanceShader: printf ("noMaterialNoAppearanceShader\n"); break;
-        case noTexTwoMaterialShader: printf ("noTexTwoMaterialShader\n"); break;
-        case oneTexOneMaterialShader: printf ("oneTexOneMaterialShader\n"); break;
-        case oneTexTwoMaterialShader: printf ("oneTexTwoMaterialShader\n"); break;
-        case complexTexOneMaterialShader: printf ("complexTexOneMaterialShader\n"); break;
-        case complexTexTwoMaterialShader: printf ("complexTexTwoMaterialShader\n"); break;
-        case noTexTwoMaterialColourShader: printf ("noTexTwoMaterialColourShader\n"); break;
-        case noTexOneMaterialColourShader: printf ("noTexOneMaterialColourShader\n"); break;
-        case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); break;
-        case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
-        case multiTexShader: printf ("multiTexShader\n"); break;
-        case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
-        case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
-        default : printf ("shader node unidentified");
+        case backgroundSphereShader: ConsoleMessage ("backgroundSphereShader\n"); break;
+        case backgroundTextureBoxShader: ConsoleMessage ("backgroundTextureBoxShader\n"); break;
+        case noTexOneMaterialShader: ConsoleMessage ("noTexOneMaterialShader\n"); break;
+        case noMaterialNoAppearanceShader: ConsoleMessage ("noMaterialNoAppearanceShader\n"); break;
+        case noTexTwoMaterialShader: ConsoleMessage ("noTexTwoMaterialShader\n"); break;
+        case oneTexOneMaterialShader: ConsoleMessage ("oneTexOneMaterialShader\n"); break;
+        case oneTexTwoMaterialShader: ConsoleMessage ("oneTexTwoMaterialShader\n"); break;
+        case complexTexOneMaterialShader: ConsoleMessage ("complexTexOneMaterialShader\n"); break;
+        case complexTexTwoMaterialShader: ConsoleMessage ("complexTexTwoMaterialShader\n"); break;
+        case noTexTwoMaterialColourShader: ConsoleMessage ("noTexTwoMaterialColourShader\n"); break;
+        case noTexOneMaterialColourShader: ConsoleMessage ("noTexOneMaterialColourShader\n"); break;
+        case oneTexTwoMaterialColourShader: ConsoleMessage ("oneTexTwoMaterialColourShader\n"); break;
+        case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader\n"); break;
+        case multiTexShader: ConsoleMessage ("multiTexShader\n"); break;
+        case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader\n"); break;
+        case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader\n"); break;
+        default : ConsoleMessage ("shader node unidentified");
     }
     
 }
@@ -857,6 +856,8 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichShapeColorShader = -1;
 	int isUnlitGeometry = -1;
     
+ConsoleMessage("compile_Shape called");
+
 	whichShapeColorShader = getShapeColourShader(node->geometry);
 	whichAppearanceShader = getAppearanceShader(node->appearance);
 	isUnlitGeometry = getIfLinePoints(node->geometry);
@@ -946,6 +947,7 @@ void compile_Shape (struct X3D_Shape *node) {
     }
 
     
+	printChoosingShader(node->_shaderTableEntry);
 	#ifdef VERBOSE
 	printChoosingShader(node->_shaderTableEntry);
 	#endif //VERBOSE

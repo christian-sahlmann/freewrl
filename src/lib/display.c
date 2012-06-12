@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.96 2012/05/15 23:09:09 crc_canada Exp $
+  $Id: display.c,v 1.97 2012/06/12 17:24:47 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -45,41 +45,6 @@
 #endif
 
 
-//bool display_initialized = FALSE;
-//
-//int win_height = 0; /* window */
-//int win_width = 0;
-//long int winToEmbedInto = -1;
-//int fullscreen = FALSE;
-//int view_height = 0; /* viewport */
-//int view_width = 0;
-//
-//int screenWidth = 0; /* screen */
-//int screenHeight = 0;
-//
-//double screenRatio = 1.5;
-//
-//char *window_title = NULL;
-//
-//int mouse_x;
-//int mouse_y;
-//
-//int show_mouse;
-//
-//int xPos = 0;
-//int yPos = 0;
-//
-//int shutterGlasses = 0; /* stereo shutter glasses */
-//int quadbuff_stereo_mode = 0;
-//
-
-// JAS - no longer need this one s_renderer_capabilities_t rdr_caps;
-
-//
-//
-//GLenum _global_gl_err;
-
-
 #if defined (TARGET_AQUA)
 /* display part specific to Mac */
 
@@ -123,6 +88,7 @@ d->quadbuff_stereo_mode = 0;
 memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
 d->myFps = (float) 0.0;
 
+ConsoleMessage("display_init");
 //private
 } 
 
@@ -148,8 +114,6 @@ ConsoleMessage("start of Android fv_display_initialize");
     
 ConsoleMessage("1 of Android fv_display_initialize");
 
-    //memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
-    
     if (!fwl_initialize_GL()) {
         return FALSE;
     }
@@ -311,6 +275,8 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
 bool initialize_rdr_caps()
 {
 	s_renderer_capabilities_t rdr_caps;
+
+ConsoleMessage("initialize_rdr_caps called");
 
 #ifdef HAVE_LIBGLEW
 

@@ -195,6 +195,9 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
 {
+
+ConsoleMessage ("iglobal_destructor called");
+
 	/* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
 	FREE_IF_NZ(tg->CursorDraw.prv);

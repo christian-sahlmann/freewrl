@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.244 2012/05/31 19:06:42 crc_canada Exp $
+  $Id: MainLoop.c,v 1.245 2012/06/12 17:24:48 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -356,28 +356,73 @@ static void stopDisplayThread()
 #define SIGTERM SIG_TERM
 #endif
 
-#if defined (_ANDROID)
-	/* no pthread_cancel on Android?? */
-	#define pthread_cancel(aaa)
-#endif //ANDROID
+
+// stops the Texture loading thread - will either pthread_cancel or will send SIGUSR2 to 
+// the thread, depending on platform.
 
 static void stopLoadThread()
 {
 	ttglobal tg = gglobal();
 	if (!TEST_NULL_THREAD(tg->threads.loadThread)) {
-		pthread_cancel(tg->threads.loadThread);
+
+		#if defined(HAVE_PTHREAD_CANCEL)
+			pthread_cancel(tg->threads.loadThread);
+	 	#else
+
+		{	
+			int status; 
+			char me[200]; 
+			sprintf(me,"faking pthread cancel on thread %x",tg->threads.loadThread); 
+			ConsoleMessage(me); 
+			if ((status = pthread_kill(tg->threads.loadThread, SIGUSR2)) != 0) {
+				ConsoleMessage("issue stopping thread");
+			}
+		} 
+		#endif //HAVE_PTHREAD_CANCEL
+
+
+ConsoleMessage("called pthread cancel in stopLoadingThread");
+
 		pthread_join(tg->threads.loadThread,NULL);
 		ZERO_THREAD(tg->threads.loadThread);
 	}
+ConsoleMessage ("exiting stopLoadThread");
+
+
 }
+
+
+// stops the source parsing thread - will either pthread_cancel or will send SIGUSR2 to 
+// the thread, depending on platform.
+
 static void stopPCThread()
 {
 	ttglobal tg = gglobal();
+ConsoleMessage ("starting stopPCThread");
+
 	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
-		pthread_cancel(tg->threads.PCthread);
+ConsoleMessage("calling pthread cancel in PCthread");
+
+		#if defined(HAVE_PTHREAD_CANCEL)
+			pthread_cancel(tg->threads.PCthread);
+	 	#else
+
+		{	
+			int status; 
+			char me[200]; 
+			sprintf(me,"faking pthread cancel on thread %x",tg->threads.PCthread); 
+			ConsoleMessage(me); 
+			if ((status = pthread_kill(tg->threads.PCthread, SIGUSR2)) != 0) {
+				ConsoleMessage("issue stopping thread");
+			}
+		} 
+	#endif //HAVE_PTHREAD_CANCEL
+
+ConsoleMessage("called pthread cancel in PCthread");
 		pthread_join(tg->threads.PCthread,NULL);
 		ZERO_THREAD(tg->threads.PCthread);
 	}
+ConsoleMessage ("exiting stopPCThread");
 }
 
 //static double waitsec;
@@ -493,6 +538,8 @@ void fwl_RenderSceneUpdateScene() {
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
                 /* ConsoleMessage("fps %f tris %d\n",p->BrowserFPS,p->trisThisLoop);   */
+{char line[200]; sprintf (line,"fps %f tris %d rootChildren %d",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop,rootNode()->children.n); ConsoleMessage(line); }
+print_viewer();
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
 
@@ -1975,40 +2022,26 @@ void outOfMemory(const char *msg) {
         usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }
-///* quit key pressed, or Plugin sends SIGQUIT */
-//void fwl_doQuit()
-//{
-//    stopDisplayThread();
-//
-//    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-//
-//    /* set geometry to normal size from fullscreen */
-//#ifndef AQUA
-//    if (newResetGeometry != NULL) newResetGeometry();
-//#endif
-//
-//    /* kill any remaining children */
-//    killErrantChildren();
-//    
-//#ifdef DEBUG_MALLOC
-//    void scanMallocTableOnQuit(void);
-//    scanMallocTableOnQuit();
-//#endif
-//	/* tested on win32 console program July9,2011 seems OK */
-//	iglobal_destructor(gglobal());
-//   exit(EXIT_SUCCESS);
-//}
 void fwl_doQuitInstance()
 {
-    stopDisplayThread();
+ConsoleMessage("fwl_doQuitInstance called");
+
+#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
+    	stopDisplayThread();
+#endif
+
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
+ConsoleMessage("calling stopLoadThread");
 	stopLoadThread();
+ConsoleMessage("calling stopOCThread");
 	stopPCThread();
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
     if (newResetGeometry != NULL) newResetGeometry();
 #endif
+
+ConsoleMessage("calling killErrantChildren");
 
     /* kill any remaining children */
     killErrantChildren();
@@ -2020,7 +2053,12 @@ void fwl_doQuitInstance()
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
     //exit(EXIT_SUCCESS);
+ConsoleMessage ("fwl_doQuitInstance exiting");
+
+
 }
+
+
 /* quit key pressed, or Plugin sends SIGQUIT */
 void fwl_doQuit()
 {

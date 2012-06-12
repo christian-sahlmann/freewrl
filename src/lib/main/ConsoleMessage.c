@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.26 2011/08/04 16:15:53 dug9 Exp $
+$Id: ConsoleMessage.c,v 1.27 2012/06/12 17:24:48 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -122,7 +122,7 @@ void ConsoleMessage_init(struct tConsoleMessage *t){
 #if defined(_ANDROID)
 #include <jni.h>
 #include <android/log.h>
-#define  LOG_TAG    "WRL-"
+#define  LOG_TAG    "FreeWRL-ConsoleMessage"
 #endif
 
 /* >>> statusbar hud */

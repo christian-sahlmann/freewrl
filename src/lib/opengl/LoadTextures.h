@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: LoadTextures.h,v 1.12 2011/06/03 16:01:15 dug9 Exp $
+$Id: LoadTextures.h,v 1.13 2012/06/12 17:24:48 crc_canada Exp $
 
  */
 
@@ -29,10 +29,7 @@ $Id: LoadTextures.h,v 1.12 2011/06/03 16:01:15 dug9 Exp $
 #define __FREEWRL_LOAD_TEXTURES_H__
 
 
-//extern int TextureParsing;
-//extern int TextureThreadInitialized;
 void send_texture_to_loader(textureTableIndexStruct_s *entry);
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
-
 
 #endif /* __FREEWRL_LOAD_TEXTURES_H__ */

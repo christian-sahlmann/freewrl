@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.99 2012/05/31 19:06:42 crc_canada Exp $
+  $Id: ProdCon.c,v 1.100 2012/06/12 17:24:48 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -786,6 +786,21 @@ static bool parser_process_res(s_list_t *item)
     return retval;
 }
 
+#if !defined(HAVE_PTHREAD_CANCEL)
+void Parser_thread_exit_handler(int sig)
+{
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("parserThread exiting");
+    pthread_exit(0);
+}
+#endif //HAVE_PTHREAD_CANCEL
+
+
 /**
  *   _inputParseThread: parser (loader) thread.
  */
@@ -793,6 +808,18 @@ static bool parser_process_res(s_list_t *item)
 void _inputParseThread(void)
 {
 	ENTER_THREAD("input parser");
+
+        #if !defined (HAVE_PTHREAD_CANCEL)
+        struct sigaction actions;
+        int rc;
+        memset(&actions, 0, sizeof(actions));
+        sigemptyset(&actions.sa_mask);
+        actions.sa_flags = 0;
+        actions.sa_handler = Parser_thread_exit_handler;
+        rc = sigaction(SIGUSR2,&actions,NULL);
+ConsoleMessage ("for parserThread, have defined exit handler");
+        #endif //HAVE_PTHREAD_CANCEL
+
 	{
 		ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
         bool result;

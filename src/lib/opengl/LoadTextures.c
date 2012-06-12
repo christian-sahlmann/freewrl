@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.81 2012/05/28 20:15:36 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.82 2012/06/12 17:24:48 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -1100,9 +1100,37 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 /**
  *   _textureThread: work on textures, until the end of time.
  */
+
+
+#if !defined(HAVE_PTHREAD_CANCEL)
+void Texture_thread_exit_handler(int sig)
+{ 
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    pthread_exit(0);
+}
+#endif //HAVE_PTHREAD_CANCEL
+
 void _textureThread()
 {
 	ENTER_THREAD("texture loading");
+
+	#if !defined (HAVE_PTHREAD_CANCEL)
+	struct sigaction actions;
+	int rc;
+	memset(&actions, 0, sizeof(actions)); 
+	sigemptyset(&actions.sa_mask);
+	actions.sa_flags = 0; 
+	actions.sa_handler = Texture_thread_exit_handler;
+	rc = sigaction(SIGUSR2,&actions,NULL);
+ConsoleMessage ("for textureThread, have defined exit handler");
+	#endif //HAVE_PTHREAD_CANCEL
+
 	{
 
 		ppLoadTextures p;
