@@ -1,16 +1,4 @@
 #include <internal.h> //needed for opengl_utils.h included in iglobal.h
-//#include <config.h>
-//#include <system.h>
-//#include <system_threads.h>
-//#include <internal.h>
-//#include <display.h>
-//#include <threads.h>
-//#include <libFreeWRL.h>
-//
-//#include "vrml_parser/Structs.h"
-//#include "opengl/Textures.h"
-//#include "opengl/RasterFont.h"
-//#include "opengl/OpenGL_Utils.h"
 #include <iglobal.h>
 
 
@@ -110,8 +98,6 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	memset(iglobal,0,sizeof(struct iiglobal)); //set to zero/null by default
 
 
-	ConsoleMessage ("iglobal_constructor called");
-
 	//call initializer for each sub-struct
 	display_init(&iglobal->display);
 	internalc_init(&iglobal->internalc);
@@ -195,8 +181,6 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 void remove_iglobal_from_table(ttglobal tg);
 void iglobal_destructor(ttglobal tg)
 {
-
-ConsoleMessage ("iglobal_destructor called");
 
 	/* you should have stopped any worker threads for this instance */
 	//call individual destructors in reverse order to constructor
@@ -298,7 +282,7 @@ void fwl_clearCurrentHandle()
 }
 void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
-	ConsoleMessage ("set_thread2global called");
+	//ConsoleMessage ("set_thread2global called");
 
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.100 2012/06/12 17:24:48 crc_canada Exp $
+$Id: Component_Shape.c,v 1.101 2012/06/12 19:52:31 crc_canada Exp $
 
 X3D Shape Component
 
@@ -799,8 +799,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 }
 
 
-#define VERBOSE
-#ifdef VERBOSE
+#ifdef SHAPE_VERBOSE
 static void printChoosingShader(shader_type_t whichOne) {
     
     ConsoleMessage ("choose shader: ");
@@ -825,7 +824,7 @@ static void printChoosingShader(shader_type_t whichOne) {
     }
     
 }
-#endif //VERBOSE
+#endif //SHAPE_VERBOSE
 
 /* find info on the appearance of this Shape and create a shader */
 /* 
@@ -856,8 +855,6 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichShapeColorShader = -1;
 	int isUnlitGeometry = -1;
     
-ConsoleMessage("compile_Shape called");
-
 	whichShapeColorShader = getShapeColourShader(node->geometry);
 	whichAppearanceShader = getAppearanceShader(node->appearance);
 	isUnlitGeometry = getIfLinePoints(node->geometry);
@@ -947,10 +944,9 @@ ConsoleMessage("compile_Shape called");
     }
 
     
+	#ifdef SHAPE_VERBOSE
 	printChoosingShader(node->_shaderTableEntry);
-	#ifdef VERBOSE
-	printChoosingShader(node->_shaderTableEntry);
-	#endif //VERBOSE
+	#endif //SHAPE_VERBOSE
     
 
 #endif //SHADERS_2011
@@ -1115,7 +1111,7 @@ void child_Shape (struct X3D_Shape *node) {
 	RENDER_MATERIAL_SUBNODES(node->appearance);
 
 	/* do the appearance here */
-#ifdef SHAPEVERBOSE
+#ifdef SHAPE_VERBOSE
 	printf ("child_Shape, material_oneSided %u, tg->RenderFuncs.textureStackTop %d\n",material_oneSided,textureStackTop);
 	{int i; for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
 		printf ("boundTextureStack[%d] is texture %d\n",i,boundTextureStack[i]);

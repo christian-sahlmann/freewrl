@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.97 2012/06/12 17:24:47 crc_canada Exp $
+  $Id: display.c,v 1.98 2012/06/12 19:52:31 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -88,7 +88,6 @@ d->quadbuff_stereo_mode = 0;
 memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
 d->myFps = (float) 0.0;
 
-ConsoleMessage("display_init");
 //private
 } 
 
@@ -104,22 +103,16 @@ int fv_display_initialize()
 {
     struct tdisplay* d = &gglobal()->display;
     
-ConsoleMessage("start of Android fv_display_initialize");
-
     //printf ("fv_display_initialize called\n");
     if (d->display_initialized) {
-        ConsoleMessage ("fv_display_initialized re-called for a second time");
+        //ConsoleMessage ("fv_display_initialized re-called for a second time");
         return TRUE;
     }
     
-ConsoleMessage("1 of Android fv_display_initialize");
-
     if (!fwl_initialize_GL()) {
         return FALSE;
     }
     
-ConsoleMessage("2 of Android fv_display_initialize");
-
     /* Display full initialized :P cool ! */
     d->display_initialized = TRUE;
    
@@ -275,8 +268,6 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
 bool initialize_rdr_caps()
 {
 	s_renderer_capabilities_t rdr_caps;
-
-ConsoleMessage("initialize_rdr_caps called");
 
 #ifdef HAVE_LIBGLEW
 

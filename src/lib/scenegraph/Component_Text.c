@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.51 2012/05/15 23:09:10 crc_canada Exp $
+$Id: Component_Text.c,v 1.52 2012/06/12 19:52:31 crc_canada Exp $
 
 X3D Text Component
 
@@ -571,7 +571,7 @@ int fileLen= -1;
 	return FALSE;
 
     } else {
-	ConsoleMessage("FT_Open_Face looks ok to go");
+	// ConsoleMessage("FT_Open_Face looks ok to go");
 	
 	unsigned char *myFileData = malloc (fileLen+1);
 	size_t frv;

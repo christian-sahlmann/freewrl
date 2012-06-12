@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.245 2012/06/12 17:24:48 crc_canada Exp $
+  $Id: MainLoop.c,v 1.246 2012/06/12 19:52:31 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -380,15 +380,9 @@ static void stopLoadThread()
 		} 
 		#endif //HAVE_PTHREAD_CANCEL
 
-
-ConsoleMessage("called pthread cancel in stopLoadingThread");
-
 		pthread_join(tg->threads.loadThread,NULL);
 		ZERO_THREAD(tg->threads.loadThread);
 	}
-ConsoleMessage ("exiting stopLoadThread");
-
-
 }
 
 
@@ -398,11 +392,8 @@ ConsoleMessage ("exiting stopLoadThread");
 static void stopPCThread()
 {
 	ttglobal tg = gglobal();
-ConsoleMessage ("starting stopPCThread");
 
 	if (!TEST_NULL_THREAD(tg->threads.PCthread)) {
-ConsoleMessage("calling pthread cancel in PCthread");
-
 		#if defined(HAVE_PTHREAD_CANCEL)
 			pthread_cancel(tg->threads.PCthread);
 	 	#else
@@ -418,11 +409,9 @@ ConsoleMessage("calling pthread cancel in PCthread");
 		} 
 	#endif //HAVE_PTHREAD_CANCEL
 
-ConsoleMessage("called pthread cancel in PCthread");
 		pthread_join(tg->threads.PCthread,NULL);
 		ZERO_THREAD(tg->threads.PCthread);
 	}
-ConsoleMessage ("exiting stopPCThread");
 }
 
 //static double waitsec;
@@ -538,8 +527,6 @@ void fwl_RenderSceneUpdateScene() {
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
                 /* ConsoleMessage("fps %f tris %d\n",p->BrowserFPS,p->trisThisLoop);   */
-{char line[200]; sprintf (line,"fps %f tris %d rootChildren %d",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop,rootNode()->children.n); ConsoleMessage(line); }
-print_viewer();
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
 
@@ -1982,8 +1969,10 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
-if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
-if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
+	/* JAS 
+		if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
+		if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
+	*/
 
         ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
@@ -2024,24 +2013,19 @@ void outOfMemory(const char *msg) {
 }
 void fwl_doQuitInstance()
 {
-ConsoleMessage("fwl_doQuitInstance called");
 
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
     	stopDisplayThread();
 #endif
 
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
-ConsoleMessage("calling stopLoadThread");
 	stopLoadThread();
-ConsoleMessage("calling stopOCThread");
 	stopPCThread();
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
     if (newResetGeometry != NULL) newResetGeometry();
 #endif
-
-ConsoleMessage("calling killErrantChildren");
 
     /* kill any remaining children */
     killErrantChildren();
@@ -2052,10 +2036,6 @@ ConsoleMessage("calling killErrantChildren");
 #endif
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
-    //exit(EXIT_SUCCESS);
-ConsoleMessage ("fwl_doQuitInstance exiting");
-
-
 }
 
 

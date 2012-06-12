@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.240 2012/06/12 17:24:48 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.241 2012/06/12 19:52:31 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2741,6 +2741,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 }
 
 
+#ifdef VERBOSE
 static void printCompilingShader(shader_type_t whichOne) {
 ConsoleMessage ("compiling shader: ");
 switch (whichOne) {
@@ -2762,6 +2763,7 @@ switch (whichOne) {
 	case multiTexShader: ConsoleMessage ("multiTexShader"); break;
 }
 }
+#endif //VERBOSE
 
 
 
@@ -2781,7 +2783,9 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *vertexSource[2];
 	char  *fragmentSource[2];
 
+	#ifdef VERBOSE
 	printCompilingShader(whichOne);
+	#endif //VERBOSE
 
 
 	/* pointerize this */
@@ -2789,7 +2793,6 @@ static void getGenericShader(shader_type_t whichOne) {
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
 
-{char me[300]; sprintf(me,"getGenericShader, pointer %p myprog %d",myShader,myProg); ConsoleMessage (me);}
 	/* assume the worst... */
 	(*myShader).compiledOK = FALSE;
 	
@@ -3628,9 +3631,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
-	ConsoleMessage("start kill_oldWorld");
-
-
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
 #ifdef _MSC_VER
@@ -3644,7 +3644,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 #endif
 
 	/* get rid of sensor events */
-ConsoleMessage("kill_oldWorld, calling resetSensorEvents");
 	resetSensorEvents();
 
 
@@ -3658,20 +3657,15 @@ ConsoleMessage("kill_oldWorld, calling resetSensorEvents");
 
 	gglobal()->resources.root_res = NULL;
 
-ConsoleMessage("kill_oldWorld, calling markForDispose");
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode()->children.n; i++) {
 		markForDispose(rootNode()->children.p[i], TRUE);
 	}
 
-{char line[300]; sprintf(line,"Group has %d children",rootNode()->children.n); ConsoleMessage(line); }
-{char line[300]; int x; for (x=0; x<rootNode()->children.n; x++) {
-	sprintf(line,"%d is %s",x,stringNodeType(X3D_NODE(rootNode()->children.p[x])->_nodeType)); ConsoleMessage(line); }}
 	/* stop rendering */
 	rootNode()->children.n = 0;
 
 	/* close the Console Message system, if required. */
-ConsoleMessage("kill_oldWorld, calling closeConsoleMessage");
 	closeConsoleMessage();
 
 	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
@@ -3680,28 +3674,18 @@ ConsoleMessage("kill_oldWorld, calling closeConsoleMessage");
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
 
-ConsoleMessage("kill_oldWorld, calling EAI_killBindables");
-
 	/* kill DEFS, handles */
 	EAI_killBindables();
-ConsoleMessage("kill_oldWorld, calling killBindables");
 	kill_bindables();
-ConsoleMessage("kill_oldWorld, calling killKSNL");
 	killKeySensorNodeList();
 
 
 	/* stop routing */
 	kill_routing();
 
-ConsoleMessage("kill_oldWorld, calling killstatus");
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
-	/* free textures */
-/*
-	kill_openGLTextures();
-*/
-	
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
@@ -3720,23 +3704,17 @@ ConsoleMessage("kill_oldWorld, calling killstatus");
 		Sound_toserver(mystring);
 	#endif
 
-ConsoleMessage("kill_oldWorld, before globalParser");
-
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		//globalParser = NULL;
 		gglobal()->CParse.globalParser = NULL;
 	}
-ConsoleMessage("kill_oldWorld, before kill_X3DDefs");
 	kill_X3DDefs();
 
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
-#ifdef ZIGGY
-#endif //ZIGGY
-ConsoleMessage("kill_oldWorld, done");
 }
 
 
@@ -3759,22 +3737,15 @@ void fwl_Android_reloadAssets(void) {
 
 		/* tell each node to update itself */
 		node->_change ++;
-#define LOOK_AT_EACH_NODE_ON_SURFACE_CREATED
-#ifdef LOOK_AT_EACH_NODE_ON_SURFACE_CREATED
 		switch (node->_nodeType) {
-/*
-			case NODE_Shape: {
-				ConsoleMessage ("Shape - ");
-
-				node->_change ++;
-				break;
-
-			}
-*/
 			case NODE_Sphere: {
 				struct X3D_Sphere *me = (struct X3D_Sphere *)node;
 				ConsoleMessage ("Sphere - zeroing VBO");
 				me->_sideVBO = 0;
+				me->__SphereIndxVBO = 0;
+				FREE_IF_NZ(me->__points.p);
+				me->__points.p = NULL;
+				me->__points.n = 0;
 				node->_change ++;
 				break;
 
@@ -3789,8 +3760,6 @@ void fwl_Android_reloadAssets(void) {
 			default: {
 			}
 		}
-#endif
-
         }
         UNLOCK_MEMORYTABLE
 

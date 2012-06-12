@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.82 2012/06/12 17:24:48 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.83 2012/06/12 19:52:31 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -1105,13 +1105,7 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 #if !defined(HAVE_PTHREAD_CANCEL)
 void Texture_thread_exit_handler(int sig)
 { 
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
-    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("Texture_thread_exit_handler: textureThread exiting - maybe should cleanup?");
     pthread_exit(0);
 }
 #endif //HAVE_PTHREAD_CANCEL

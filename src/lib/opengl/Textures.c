@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.115 2012/05/31 19:06:42 crc_canada Exp $
+  $Id: Textures.c,v 1.116 2012/06/12 19:52:31 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -448,7 +448,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		// keep track of which texture this one is.
 		textureNumber = vectorSize(p->activeTextureTable);
 
-		{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
+		//{char line[200]; sprintf (line,"registerTexture textureNumber %d",textureNumber); ConsoleMessage(line);}
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d\n", it->_nodeType);
 		/* I need to know the texture "url" here... */

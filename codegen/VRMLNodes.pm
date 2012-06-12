@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.61 2011/06/04 19:05:42 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.62 2012/06/12 19:52:31 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -646,6 +646,7 @@ package VRML::NodeType;
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__points =>[MFVec3f,[],initializeOnly, 0],
 		_sideVBO =>[SFInt32, 0, initializeOnly, 0], 
+		__SphereIndxVBO =>[SFInt32, 0, initializeOnly, 0], 
  	},"X3DGeometryNode"),
 
 

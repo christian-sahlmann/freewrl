@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.84 2012/06/01 18:31:08 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.85 2012/06/12 19:52:31 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -58,8 +58,6 @@ struct MyVertex
    struct SFVec3f norm;     //Normal
    struct SFVec2f tc;         //Texcoord0
  };
-
-static GLuint SphereIndxVBO = 0;
 
 typedef struct pComponent_Geometry3D{
 	int junk; //filler, no variables unless/untill vbos done
@@ -846,8 +844,12 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	/*  MALLOC memory (if possible)*/
 	/*  2 vertexes per points. (+1, to loop around and close structure)*/
-	if (!node->__points.p) ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f) * SPHDIV * (SPHDIV+1) * 2);
-	else ptr = node->__points.p;
+	if (!node->__points.p) {
+		// malloc points. We seem to never need the ".n" size param, but initialize it
+		// anyway to keep things clean and even.
+		ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f) * SPHDIV * (SPHDIV+1) * 2);
+		node->__points.n = SPHDIV * (SPHDIV+1) * 2;
+	} else ptr = node->__points.p;
 
 	pts = ptr;
 	count = 0;
@@ -907,13 +909,13 @@ void compile_Sphere (struct X3D_Sphere *node) {
  		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
 
-		if (SphereIndxVBO == 0) {
+		if (node->__SphereIndxVBO == 0) {
 			ushort pindices[TRISINSPHERE*2];
 			ushort *pind = pindices;
 			int row;
 			int indx;
 
-			glGenBuffers(1,&SphereIndxVBO);
+			glGenBuffers(1,&node->__SphereIndxVBO);
 			//for (count=0; count<TRISINSPHERE*2; count++) pindices[count]=0;
 			for (row=0; row<SPHDIV; row++) {
 				indx=42*row;
@@ -929,7 +931,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 					indx+=2;
 				}
 			}
- 			FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+ 			FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
  			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
 		}
 
@@ -1010,7 +1012,7 @@ void render_Sphere (struct X3D_Sphere *node) {
                 mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(NULL,&mtf);
 
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, SphereIndxVBO);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
 		
 		FW_GL_DRAWELEMENTS (GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, (int *)BUFFER_OFFSET(0));   //The starting point of the IBO
 
