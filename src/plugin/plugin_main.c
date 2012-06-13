@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: plugin_main.c,v 1.23 2012/06/13 17:14:45 istakenv Exp $
+   $Id: plugin_main.c,v 1.24 2012/06/13 17:45:43 istakenv Exp $
    
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -684,7 +684,7 @@ NPP_GetMIMEDescription(void)
                 "model/x3d+binary:x3db:FreeWRL X3D Browser"
                 ;
 
-        PRINT("NPP_GetMIMEDescription: %s\n", mime_types);
+        print (NULL, "NPP_GetMIMEDescription: %s\n", mime_types);
         return (char *) mime_types;
 }
 
