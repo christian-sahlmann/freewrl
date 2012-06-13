@@ -552,8 +552,9 @@ else
                   # Check if using a legacy NPAPI or a new one
                   AC_MSG_CHECKING([for whether NP_GetMIMEDescription is declared const])
                   oCFLAGS=$CFLAGS
+                  AC_LANG_PUSH(C)
                   CFLAGS=$CFLAGS" "$MOZILLA_PLUGIN_CFLAGS
-                  AC_TRY_CPP([
+                  AC_TRY_COMPILE([
                     #include <npfunctions.h>
                     const char* NP_GetMIMEDescription ()
                     {return (char*) "yap!";}
@@ -563,6 +564,7 @@ else
                     AC_MSG_RESULT(no)
                     MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS -DLEGACY_NPAPI"
                   ])
+                  AC_LANG_POP()
                   CFLAGS=$oCFLAGS
 
                   # If Mozilla plugin is to be compiled we have to define MOZ_X11
