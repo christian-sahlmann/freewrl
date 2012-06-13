@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*-
 
-   $Id: plugin_main.c,v 1.22 2012/03/10 14:01:32 couannette Exp $
+   $Id: plugin_main.c,v 1.23 2012/06/13 17:14:45 istakenv Exp $
    
    FreeWRL plugin for Mozilla compatible browsers.
    Works in Firefox 1.x - 3.0 on Linux.
@@ -668,7 +668,12 @@ int Run (NPP instance)
 
 /*******************************************************************************
  ******************************************************************************/
-const char* NPP_GetMIMEDescription(void)
+#ifdef LEGACY_NPAPI
+char *
+#else
+const char *
+#endif
+NPP_GetMIMEDescription(void)
 {
         static const char mime_types[] =
                 "x-world/x-vrml:wrl:FreeWRL VRML Browser;"
@@ -679,7 +684,7 @@ const char* NPP_GetMIMEDescription(void)
                 "model/x3d+binary:x3db:FreeWRL X3D Browser"
                 ;
 
-        print (NULL, "NPP_GetMIMEDescription: %s\n", mime_types);
+        PRINT("NPP_GetMIMEDescription: %s\n", mime_types);
         return (char *) mime_types;
 }
 
