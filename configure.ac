@@ -192,6 +192,7 @@ case "$os_type" in
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
         ;;
      *)
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[>=],[1.9])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[xulrunner-js],[>=],[1.8])
