@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.39 2012/03/05 19:56:03 dug9 Exp $
+$Id: SensInterps.c,v 1.40 2012/06/18 17:41:43 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1411,7 +1411,10 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		setAnchorsAnchor( node );
-		FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		#ifdef OLDCODE
+		OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		#endif // OLDCODE
+
 		tg->RenderFuncs.BrowserAction = TRUE;
 	}
 }

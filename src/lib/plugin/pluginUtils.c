@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.57 2012/05/31 19:06:42 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.58 2012/06/18 17:41:43 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -235,13 +235,6 @@ int doBrowserAction()
 	if (p->waitingForURLtoLoad) return urlLoadingStatus();
 #endif //FRONTEND_GETS_FILES
 
-	/* is this an Anchor (thus Multi-URL call) or a single url call? */
-	/* OSX frontend and now plugin for loading up a new url does:
-	       setAnchorsAnchor( NULL );
-	        FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-	        tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
-	*/
-
 	if (AnchorsAnchor() != NULL) {
 
 		Anchor_url = AnchorsAnchor()->url;
@@ -351,24 +344,26 @@ int doBrowserAction()
 
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
-		if (tg->RenderFuncs.OSX_replace_world_from_console == NULL) {
-			/* this is just a simple "clean out the old world" */
-			#ifndef AQUA
-			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-			#endif
-			return FALSE;
-		} else {
-			
-			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-
-			/* we want to clean out the old world AND load a new one in */
-			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
-
-			send_resource_to_parser_async(p->plugin_res);
-
-			p->waitingForURLtoLoad = TRUE;
-			return TRUE; /* keep the browser ticking along here */
-		}
+#ifdef OLDCODE
+OLDCODE		if (tg->RenderFuncs.OSX_replace_world_from_console == NULL) {
+OLDCODE			/* this is just a simple "clean out the old world" */
+OLDCODE			#ifndef AQUA
+OLDCODE			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+OLDCODE			#endif
+OLDCODE			return FALSE;
+OLDCODE		} else {
+OLDCODE			
+OLDCODE			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+OLDCODE
+OLDCODE			/* we want to clean out the old world AND load a new one in */
+OLDCODE			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
+OLDCODE
+OLDCODE			send_resource_to_parser_async(p->plugin_res);
+OLDCODE
+OLDCODE			p->waitingForURLtoLoad = TRUE;
+OLDCODE			return TRUE; /* keep the browser ticking along here */
+OLDCODE		}
+#endif //OLDCODE
 	}
 
 	return FALSE; /* we are done the action */

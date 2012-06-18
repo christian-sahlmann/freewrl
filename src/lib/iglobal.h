@@ -272,8 +272,11 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}Component_VRML1;
 	struct tRenderFuncs{
-		char *OSX_last_world_url_for_reload;
-		char *OSX_replace_world_from_console;
+		#ifdef OLDCODE
+		OLDCODE char *OSX_last_world_url_for_reload;
+		OLDCODE char *OSX_replace_world_from_console;
+		#endif //OLDCODE
+
 		/* Any action for the Browser to do? */
 		int BrowserAction;// = FALSE;
 		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */

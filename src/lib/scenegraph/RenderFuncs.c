@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.123 2012/05/31 19:06:42 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.124 2012/06/18 17:41:43 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -102,7 +102,10 @@ void *RenderFuncs_constructor(){
 }
 void RenderFuncs_init(struct tRenderFuncs *t){
 	//public
-	t->OSX_replace_world_from_console = NULL;
+	#ifdef OLDCODE
+OLDCODE	t->OSX_replace_world_from_console = NULL;
+	#endif //OLDCODE
+
 	t->BrowserAction = FALSE;
 	//	t->hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 	///* used to save rayhit and hyperhit for later use by C functions */
@@ -709,8 +712,6 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->AnchorsAnchor = anchor;
 }
-
-//char *OSX_replace_world_from_console = NULL;
 
 
 //static struct currayhit rayph;

@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.246 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: MainLoop.c,v 1.247 2012/06/18 17:41:43 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2343,23 +2343,29 @@ void fwl_init_EaiVerbose() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
-	ttglobal tg = gglobal();
-	printf ("replaceWorldneeded called - file %s\n",str); 
-	setAnchorsAnchor( NULL );
-	FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
-	tg->RenderFuncs.BrowserAction = TRUE;
-	FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
-	tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
+	ConsoleMessage ("replaceWorldNeeded called");
+
+#ifdef OLDCODE
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	printf ("replaceWorldneeded called - file %s\n",str); 
+OLDCODE	setAnchorsAnchor( NULL );
+OLDCODE	FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+OLDCODE	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
+OLDCODE	tg->RenderFuncs.BrowserAction = TRUE;
+OLDCODE	FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
+OLDCODE	tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
+#endif //OLDCODE
 }
 void fwl_reload()
 {
-	char *oldworld;
-	ttglobal tg = gglobal();
-
-	oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
-	fwl_replaceWorldNeeded(oldworld);
-	FREE_IF_NZ(oldworld);
+#ifdef OLDCODE
+OLDCODE	char *oldworld;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE
+OLDCODE	oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
+OLDCODE	fwl_replaceWorldNeeded(oldworld);
+OLDCODE	FREE_IF_NZ(oldworld);
+#endif
 }
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
@@ -2376,7 +2382,9 @@ void stopRenderingLoop(void) {
 
         setAnchorsAnchor( NULL );
         tg->RenderFuncs.BrowserAction = TRUE;
-        FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+	#ifdef OLDCODE
+        OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+	#endif //OLDCODE
 	// printf ("stopRenderingLoop finished\n");
 }
 

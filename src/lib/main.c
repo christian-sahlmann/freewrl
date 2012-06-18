@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.74 2012/05/17 02:38:56 crc_canada Exp $
+  $Id: main.c,v 1.75 2012/06/18 17:41:43 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -134,12 +134,14 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	exit(1);
    }
 
-	/* Give the main argument to the resource handler */
-	if (initialURL != NULL) {
-		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(initialURL);
-	} else {
-		ConsoleMessage ("fwl_OSX_initializeParameters is NULL!");
-	}
+#ifdef OLDCODE
+OLDCODE	/* Give the main argument to the resource handler */
+OLDCODE	if (initialURL != NULL) {
+OLDCODE		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(initialURL);
+OLDCODE	} else {
+OLDCODE		ConsoleMessage ("fwl_OSX_initializeParameters is NULL!");
+OLDCODE	}
+#endif //OLDCODE
 
 
     /* Give the main argument to the resource handler */
@@ -332,11 +334,15 @@ void fwl_startFreeWRL(const char *url)
 	printf ("fwl_startFreeWRL called\n");
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
-		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(url);
+#ifdef OLDCODE
+OLDCODE		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(url);
+#endif //OLDCODE
 		fwl_resource_push_single_request(url);
 		DEBUG_MSG("request sent to parser thread, main thread joining display thread...\n");
 	} else {
-		tg->RenderFuncs.OSX_last_world_url_for_reload = NULL;
+#ifdef OLDCODE
+OLDCODE		tg->RenderFuncs.OSX_last_world_url_for_reload = NULL;
+#endif //OLDCODE
 		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
 	}
 #ifndef GLES2
