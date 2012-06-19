@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.247 2012/06/18 17:41:43 crc_canada Exp $
+  $Id: MainLoop.c,v 1.248 2012/06/19 15:08:05 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2339,6 +2339,116 @@ void fwl_init_EaiVerbose() {
         //eaiverbose = TRUE;
 		gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
 }
+
+#if defined (_ANDROID)
+
+
+void fwl_Android_replaceWorldNeeded() {
+	ConsoleMessage ("remove old world, but leave threads intact");
+	rootNode()->children.n = 0;
+
+
+
+	int i;
+	#ifndef AQUA
+        char mystring[20];
+	#endif
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+
+#ifdef ZIGGY
+#ifdef VERBOSE
+	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
+#ifdef _MSC_VER
+	if (pthread_self().p != gglobal()->threads.DispThrd.p ) {
+#else
+	if (pthread_self() != gglobal()->threads.DispThrd) {
+#endif
+		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
+		return;
+	}
+#endif
+
+#endif //ZIGGY
+
+	/* get rid of sensor events */
+	resetSensorEvents();
+
+
+	/* make the root_res equal NULL - this throws away all old resource info */
+	/*
+		if (gglobal()->resources.root_res != NULL) {
+			printf ("root_res %p has the following...\n",gglobal()->resources.root_res);
+			resource_dump(gglobal()->resources.root_res);
+		}else {printf ("root_res is null, no need to dump\n");}
+	*/
+
+	gglobal()->resources.root_res = NULL;
+
+	/* mark all rootNode children for Dispose */
+	for (i=0; i<rootNode()->children.n; i++) {
+		markForDispose(rootNode()->children.p[i], TRUE);
+	}
+
+	/* stop rendering */
+	rootNode()->children.n = 0;
+
+	/* close the Console Message system, if required. */
+	closeConsoleMessage();
+
+	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+	zeroOcclusion();
+
+	/* clock events - stop them from ticking */
+	kill_clockEvents();
+
+	/* kill DEFS, handles */
+	EAI_killBindables();
+	kill_bindables();
+	killKeySensorNodeList();
+
+
+	/* stop routing */
+	kill_routing();
+
+	/* tell the statusbar that it needs to reinitialize */
+	kill_status();
+
+	/* free scripts */
+	#ifdef HAVE_JAVASCRIPT
+	kill_javascript();
+	#endif
+
+
+	#if !defined(EXCLUDE_EAI)
+	/* free EAI */
+	if (kill_EAI) {
+	       	shutdown_EAI();
+	}
+	#endif //EXCLUDE_EAI
+
+	#ifndef AQUA
+		sprintf (mystring, "QUIT");
+		Sound_toserver(mystring);
+	#endif
+
+#ifdef ZIGGY
+	/* reset any VRML Parser data */
+	if (globalParser != NULL) {
+		parser_destroyData(globalParser);
+		//globalParser = NULL;
+		gglobal()->CParse.globalParser = NULL;
+	}
+#endif //ZIGGY
+
+	kill_X3DDefs();
+
+	/* tell statusbar that we have none */
+	viewer_default();
+	setMenuStatus("NONE");
+}
+#endif
+
+
 
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
