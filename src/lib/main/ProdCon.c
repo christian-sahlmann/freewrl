@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.101 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: ProdCon.c,v 1.102 2012/06/20 17:25:57 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -311,7 +311,12 @@ void EAI_killBindables (void) {
 	ttglobal tg = gglobal();
 	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
+{char me[200]; sprintf (me,"EAI_KB 1 %p %p\n",tg,p);ConsoleMessage(me);}
+
 	WAIT_WHILE_PARSER_BUSY;
+
+//ConsoleMessage("EAI_KB 2");
+
 	complete=0;
 	p->psp.comp = &complete;
 	p->psp.type = ZEROBINDABLES;
@@ -325,13 +330,25 @@ void EAI_killBindables (void) {
 
 	/* send data to a parser */
 	SEND_TO_PARSER;
+
+ConsoleMessage("EAI_KB 3");
+
 	UNLOCK;
+
+ConsoleMessage("EAI_KB 4");
+
 
 	/* wait for data */
 	WAIT_WHILE_PARSER_BUSY;
 
+
+ConsoleMessage("EAI_KB 5");
+
 	/* grab data */
 	UNLOCK;
+
+ConsoleMessage("EAI_KB 6");
+
 }
 
 /* interface for creating VRML for EAI */
@@ -849,12 +866,64 @@ ConsoleMessage ("for parserThread, have defined exit handler");
 	}
 }
 
+static void unbind_node(struct X3D_Node* node) {
+char me[200];
+
+	switch (node->_nodeType) {
+		case NODE_Viewpoint:
+			X3D_VIEWPOINT(node)->isBound = 0;
+			break;
+		case NODE_OrthoViewpoint:
+			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
+			break;
+		case NODE_GeoViewpoint:
+			X3D_GEOVIEWPOINT(node)->isBound = 0;
+			break;
+		case NODE_Background:
+			X3D_BACKGROUND(node)->isBound = 0;
+			break;
+		case NODE_TextureBackground:
+			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
+			break;
+		case NODE_NavigationInfo:
+			X3D_NAVIGATIONINFO(node)->isBound = 0;
+			break;
+		case NODE_Fog:
+			X3D_FOG(node)->isBound = 0;
+			break;
+		default: {
+			/* do nothing with this node */
+			return;
+		}                                                
+	}
+}
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
+#define KILL_BINDABLE(zzz) \
+	{ int i; for (i=0; i<vectorSize(zzz); i++) { \
+		struct X3D_Node* me = vector_get(struct X3D_Node*,zzz,i); \
+		unbind_node(me); \
+	} \
+	deleteVector(struct X3D_Node *,zzz); \
+	zzz = newVector(struct X3D_Node *,8); \
+	/*causes segfault, do not do this zzz = NULL;*/ \
+	}
+
 
 void kill_bindables (void) {
 	ppProdCon p;
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
+
+	int i;
+
+ConsoleMessage("kill_bindables called");
+
+	KILL_BINDABLE(t->viewpointNodes);
+	KILL_BINDABLE(p->backgroundNodes);
+	KILL_BINDABLE(p->navigationNodes);
+	KILL_BINDABLE(p->fogNodes);
+	
+
 
 	/* XXX MEMORY LEAK HERE
 	FREE_IF_NZ(p->fognodes);
@@ -862,6 +931,7 @@ void kill_bindables (void) {
 	FREE_IF_NZ(p->navnodes);
 	FREE_IF_NZ(t->viewpointnodes);
 	*/
+ConsoleMessage("done kill_bindables called");
 }
 
 

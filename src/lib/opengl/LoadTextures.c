@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.83 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.84 2012/06/20 17:25:57 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -568,7 +568,11 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	int i;
 
 	openned_file_t *myFile = load_file (filename);
-	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); */
+
+{char me[300]; 
+	sprintf (me, "texture_load_from_file - got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); 
+ConsoleMessage(me);
+}
 
 
 
@@ -583,10 +587,19 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		struct jpeg_error_mgr jerr;
 		JSAMPARRAY buffer;
 
-/*
+
 sprintf (myline,"load_texture_from_file, setting source to memory, size %d",myFile->fileDataSize);
 ConsoleMessage (myline);
-*/
+if (myFile->fileDataSize>2) {
+	sprintf (myline,"load_texture_from_file, bytes 0,1 %x %x",myFile->fileData[0],myFile->fileData[1]);
+ConsoleMessage(myline);
+		if (((myFile->fileData[0])!=0xFF) || ((myFile->fileData[1])!=0xd8)) {
+			ConsoleMessage("not a JPEG file");
+			return FALSE;
+		}
+
+}
+
 
   		cinfo.err = jpeg_std_error(&jerr);
 		jpeg_create_decompress(&cinfo);
@@ -594,12 +607,12 @@ ConsoleMessage (myline);
 
 		/* reading the image header which contains image information */
 		jpeg_read_header( &cinfo, TRUE );
-/*
+
 ConsoleMessage ("load_texture_from_file, read header, here is the results:");
-sprintf(myline, "JPEG File width and height: %d pixels and %d pixels, components per pixel: %d, Color space: %d",
+sprintf(myline, "load_texture_from_file: JPEG File width and height: %d pixels and %d pixels, components per pixel: %d, Color space: %d",
 		cinfo.image_width, cinfo.image_height, cinfo.num_components, cinfo.jpeg_color_space );
 ConsoleMessage(myline);
-*/
+
 
 		/* Start decompression jpeg here */
 		jpeg_start_decompress( &cinfo );

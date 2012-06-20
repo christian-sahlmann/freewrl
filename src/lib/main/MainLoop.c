@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.248 2012/06/19 15:08:05 crc_canada Exp $
+  $Id: MainLoop.c,v 1.249 2012/06/20 17:25:57 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2011,6 +2011,31 @@ void outOfMemory(const char *msg) {
         usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }
+
+#if defined (_ANDROID)
+
+// we are loading a new file, or just not visible anymore
+void fwl_Android_doQuitInstance()
+{
+
+    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
+	stopLoadThread();
+	stopPCThread();
+
+    /* set geometry to normal size from fullscreen */
+    if (newResetGeometry != NULL) newResetGeometry();
+
+    /* kill any remaining children */
+    killErrantChildren();
+    
+#ifdef DEBUG_MALLOC
+    void scanMallocTableOnQuit(void);
+    scanMallocTableOnQuit();
+#endif
+	/* tested on win32 console program July9,2011 seems OK */
+	iglobal_destructor(gglobal());
+}
+#else
 void fwl_doQuitInstance()
 {
 
@@ -2036,15 +2061,22 @@ void fwl_doQuitInstance()
 #endif
 	/* tested on win32 console program July9,2011 seems OK */
 	iglobal_destructor(gglobal());
+
 }
+#endif //ANDROID
 
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void fwl_doQuit()
 {
+#if defined(_ANDROID)
+	fwl_Android_doQuitInstance();
+#else //ANDROID
 	fwl_doQuitInstance();
+#endif //ANDROID
     exit(EXIT_SUCCESS);
 }
+
 void close_internetHandles();
 int iglobal_instance_count();
 void fwl_closeGlobals()
@@ -2302,7 +2334,6 @@ void setIsPlugin() {
                 fgets(tmppath, 512, tmpfile);
         }
         BrowserFullPath = STRDUP(tmppath);      
-ConsoleMessage ("setIsPlugin, BrowserFullPath :%s:");
         fclose(tmpfile);
         //system("rm /tmp/freewrl_filename");   
         tmpfile = fopen("/tmp/after", "w");
@@ -2342,7 +2373,6 @@ void fwl_init_EaiVerbose() {
 
 #if defined (_ANDROID)
 
-
 void fwl_Android_replaceWorldNeeded() {
 	ConsoleMessage ("remove old world, but leave threads intact");
 	rootNode()->children.n = 0;
@@ -2355,34 +2385,27 @@ void fwl_Android_replaceWorldNeeded() {
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
-#ifdef ZIGGY
-#ifdef VERBOSE
-	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
-#ifdef _MSC_VER
-	if (pthread_self().p != gglobal()->threads.DispThrd.p ) {
-#else
-	if (pthread_self() != gglobal()->threads.DispThrd) {
-#endif
-		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
-		return;
-	}
-#endif
-
-#endif //ZIGGY
-
 	/* get rid of sensor events */
 	resetSensorEvents();
 
 
 	/* make the root_res equal NULL - this throws away all old resource info */
-	/*
-		if (gglobal()->resources.root_res != NULL) {
-			printf ("root_res %p has the following...\n",gglobal()->resources.root_res);
-			resource_dump(gglobal()->resources.root_res);
-		}else {printf ("root_res is null, no need to dump\n");}
-	*/
 
+{char me[200];
+sprintf(me,"in fwl_Android_replaceWorldNeeded, root_res %p\n",gglobal()->resources.root_res);
+ConsoleMessage(me);
+}
 	gglobal()->resources.root_res = NULL;
+
+	Android_reset_viewer_to_defaults();
+                struct tProdCon *t = &gglobal()->ProdCon;
+{char me[200]; sprintf(me,"fwl_Android_replaceWorldNeeded,curboundvpno %d",t->currboundvpno); ConsoleMessage(me); }
+
+
+                                        send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
+
+
+
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode()->children.n; i++) {
@@ -2402,7 +2425,10 @@ void fwl_Android_replaceWorldNeeded() {
 	kill_clockEvents();
 
 	/* kill DEFS, handles */
-	EAI_killBindables();
+	//if we do this here, we have a problem, as the parser is already killed and cleaned up.
+	//EAI_killBindables();
+
+
 	kill_bindables();
 	killKeySensorNodeList();
 
@@ -2418,7 +2444,6 @@ void fwl_Android_replaceWorldNeeded() {
 	kill_javascript();
 	#endif
 
-
 	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
@@ -2431,14 +2456,13 @@ void fwl_Android_replaceWorldNeeded() {
 		Sound_toserver(mystring);
 	#endif
 
-#ifdef ZIGGY
+
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
 		parser_destroyData(globalParser);
 		//globalParser = NULL;
 		gglobal()->CParse.globalParser = NULL;
 	}
-#endif //ZIGGY
 
 	kill_X3DDefs();
 
@@ -2449,34 +2473,37 @@ void fwl_Android_replaceWorldNeeded() {
 #endif
 
 
+#if !defined(_ANDROID)
+
+// JAS - Do not know if these are still required.
 
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
 	ConsoleMessage ("replaceWorldNeeded called");
 
-#ifdef OLDCODE
-OLDCODE	ttglobal tg = gglobal();
-OLDCODE	printf ("replaceWorldneeded called - file %s\n",str); 
-OLDCODE	setAnchorsAnchor( NULL );
-OLDCODE	FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-OLDCODE	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
-OLDCODE	tg->RenderFuncs.BrowserAction = TRUE;
-OLDCODE	FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
-OLDCODE	tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
-#endif //OLDCODE
+ttglobal tg = gglobal();
+setAnchorsAnchor( NULL );
+FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
+tg->RenderFuncs.BrowserAction = TRUE;
+FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
+tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
 }
+
+
 void fwl_reload()
 {
-#ifdef OLDCODE
-OLDCODE	char *oldworld;
-OLDCODE	ttglobal tg = gglobal();
-OLDCODE
-OLDCODE	oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
-OLDCODE	fwl_replaceWorldNeeded(oldworld);
-OLDCODE	FREE_IF_NZ(oldworld);
-#endif
+char *oldworld;
+ttglobal tg = gglobal();
+
+oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
+fwl_replaceWorldNeeded(oldworld);
+FREE_IF_NZ(oldworld);
 }
+
+#endif //NOT _ANDROID
+
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {

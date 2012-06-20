@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.241 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.242 2012/06/20 17:25:57 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3624,6 +3624,107 @@ void kill_rendering() {
    ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
+#if defined (_ANDROID)
+
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
+	int i;
+	#ifndef AQUA
+        char mystring[20];
+	#endif
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+
+#ifdef VERBOSE
+	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
+#ifdef _MSC_VER
+	if (pthread_self().p != gglobal()->threads.DispThrd.p ) {
+#else
+	if (pthread_self() != gglobal()->threads.DispThrd) {
+#endif
+		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
+		return;
+	}
+#endif
+
+	/* get rid of sensor events */
+	resetSensorEvents();
+
+	/* make the root_res equal NULL - this throws away all old resource info */
+	/*
+		if (gglobal()->resources.root_res != NULL) {
+			printf ("root_res %p has the following...\n",gglobal()->resources.root_res);
+			resource_dump(gglobal()->resources.root_res);
+		}else {printf ("root_res is null, no need to dump\n");}
+	*/
+
+	gglobal()->resources.root_res = NULL;
+
+	/* mark all rootNode children for Dispose */
+	for (i=0; i<rootNode()->children.n; i++) {
+		markForDispose(rootNode()->children.p[i], TRUE);
+	}
+
+
+	/* stop rendering */
+	rootNode()->children.n = 0;
+
+	/* close the Console Message system, if required. */
+	closeConsoleMessage();
+
+	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+	zeroOcclusion();
+
+
+	/* clock events - stop them from ticking */
+	kill_clockEvents();
+
+	/* kill DEFS, handles */
+	// the parser thread is dead by now... EAI_killBindables();
+
+	kill_bindables();
+
+	killKeySensorNodeList();
+
+	/* stop routing */
+	kill_routing();
+
+	/* tell the statusbar that it needs to reinitialize */
+	kill_status();
+
+	/* free scripts */
+	#ifdef HAVE_JAVASCRIPT
+	kill_javascript();
+	#endif
+
+
+	#if !defined(EXCLUDE_EAI)
+	/* free EAI */
+	if (kill_EAI) {
+	       	shutdown_EAI();
+	}
+	#endif //EXCLUDE_EAI
+
+	#ifndef AQUA
+		sprintf (mystring, "QUIT");
+		Sound_toserver(mystring);
+	#endif
+
+
+	/* reset any VRML Parser data */
+	if (globalParser != NULL) {
+		parser_destroyData(globalParser);
+		//globalParser = NULL;
+		gglobal()->CParse.globalParser = NULL;
+	}
+
+	kill_X3DDefs();
+
+	/* tell statusbar that we have none */
+	viewer_default();
+
+	setMenuStatus("NONE");
+}
+#else //ANDROID
+
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
 	#ifndef AQUA
@@ -3674,6 +3775,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
 
+
 	/* kill DEFS, handles */
 	EAI_killBindables();
 	kill_bindables();
@@ -3686,23 +3788,27 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
+	/* free textures */
+/*
+	kill_openGLTextures();
+*/
+	
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
 	#endif
 
 
-	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
 	       	shutdown_EAI();
 	}
-	#endif //EXCLUDE_EAI
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");
 		Sound_toserver(mystring);
 	#endif
+
 
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
@@ -3716,6 +3822,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	viewer_default();
 	setMenuStatus("NONE");
 }
+#endif //ANDROID
+
 
 
 #if  defined (_ANDROID)

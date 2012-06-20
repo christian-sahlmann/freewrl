@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.87 2012/05/31 19:06:42 crc_canada Exp $
+$Id: Viewer.c,v 1.88 2012/06/20 17:25:57 crc_canada Exp $
 
 CProto ???
 
@@ -44,20 +44,6 @@ CProto ???
 #include "Viewer.h"
 
 
-//static int examineCounter = 5;
-//
-//static int viewer_initialized = FALSE;
-//static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
-//static X3D_Viewer_Examine viewer_examine = { {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-//static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-//static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0f, 0.0f };
-//
-//static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
-//
-//static FILE *exfly_in_file;
-
-
-//int StereoInitializedOnce = 0;
 static void init_stereodefaults(X3D_Viewer *Viewer)
 {
 		/* must call this before getting values from command line in options.c */
@@ -2251,6 +2237,7 @@ void slerp_viewpoint()
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
+
 	if(p->Viewer.SLERPing2 && p->vp2rnSaved) {
 		if(p->Viewer.SLERPing2justStarted)
 		{
@@ -2533,3 +2520,18 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	resolve_pos();
 }
 
+// Android - we are loading in a new file while keeping the system sane.
+void Android_reset_viewer_to_defaults() {
+	ConsoleMessage("********** Android_reset_viewer_to_defaults");
+        // reset the viewer to initial mode.
+        ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+        p->viewer_initialized = FALSE;
+
+	{char me[200]; sprintf(me,"Viewer.prv %p",gglobal()->Viewer.prv); ConsoleMessage(me);}
+	if (p->viewer_initialized) ConsoleMessage("VIEWER INIT TRUE"); else ConsoleMessage("VIEWER INIT FALSE");
+
+
+	viewer_default();
+	p->Viewer.SLERPing2 = FALSE;
+	p->Viewer.SLERPing = FALSE;
+}
