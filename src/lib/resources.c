@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.55 2012/05/29 16:44:17 istakenv Exp $
+  $Id: resources.c,v 1.56 2012/06/25 22:26:32 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -1069,7 +1069,7 @@ static void possiblyUnzip (openned_file_t *of) {
 		char tempname[1000];
 
 		/* make a temporary name for the gunzipped file */
-                sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); 
+                sprintf (tempname, "%s",tempnam(gglobal()->Mainloop.tmpFileLocation,"freewrl_tmp")); 
 
 		/* read in the text, unzip it, write it out again */
 		source = gzopen(of->fileFileName,"rb");

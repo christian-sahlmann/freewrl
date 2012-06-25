@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.251 2012/06/25 17:38:07 crc_canada Exp $
+  $Id: MainLoop.c,v 1.252 2012/06/25 22:26:32 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -194,6 +194,9 @@ void Mainloop_init(struct tMainloop *t){
 	//t->currentX[20];
 	//t->currentY[20];                 /*  current mouse position.*/
 	t->clipPlane = 0;
+
+	t->tmpFileLocation = MALLOC (char *,5);
+	strcpy(t->tmpFileLocation,"/tmp");
 
 	//private
 	t->prv = Mainloop_constructor();
@@ -2075,6 +2078,17 @@ void fwl_doQuit()
 	fwl_doQuitInstance();
 #endif //ANDROID
     exit(EXIT_SUCCESS);
+}
+
+// tmp files are on a per-invocation basis on Android, and possibly other locations.
+// note that the "tempnam" function will accept NULL as the directory on many platforms,
+// so this function does not really need to be called on many platforms.
+fwl_tmpFileLocation(char *tmpFileLocation) {
+	if (tmpFileLocation == NULL) return;
+	ttglobal tg = gglobal();
+	FREE_IF_NZ(tg->Mainloop.tmpFileLocation);
+	tg->Mainloop.tmpFileLocation = MALLOC(char *,strlen(tmpFileLocation)+1);
+	strcpy(tg->Mainloop.tmpFileLocation,tmpFileLocation);
 }
 
 void close_internetHandles();

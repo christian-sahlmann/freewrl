@@ -1,5 +1,5 @@
 /*
-  $Id: io_http.c,v 1.20 2012/03/05 19:56:03 dug9 Exp $
+  $Id: io_http.c,v 1.21 2012/06/25 22:26:31 crc_canada Exp $
 
   FreeWRL support library.
   IO with HTTP protocol.
@@ -196,7 +196,7 @@ char* download_url_curl(resource_item_t *res)
     if (res->temp_dir) {
 	    temp = STRDUP(res->temp_dir);
     } else {
-	    temp = tempnam("/tmp", "freewrl_download_curl_XXXXXXXX");
+	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_curl_XXXXXXXX");
 	    if (!temp) {
 		    PERROR_MSG("download_url_curl: can't create temporary name.\n");
 		    return NULL;	
@@ -302,7 +302,7 @@ char* download_url_WinInet(resource_item_t *res)
 			if (res->temp_dir) {
 				temp = STRDUP(res->temp_dir);
 			} else {
-				temp = tempnam("/tmp", "freewrl_download_XXXXXXXX");
+				temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_XXXXXXXX");
 				if (!temp) {
 					PERROR_MSG("download_url: can't create temporary name.\n");
 					return NULL;	
@@ -368,7 +368,7 @@ char* download_url_wget(resource_item_t *res)
     if (res->temp_dir) {
 	    temp = STRDUP(res->temp_dir);
     } else {
-	    temp = tempnam("/tmp", "freewrl_download_wget_XXXXXXXX");
+	    temp = tempnam(gglobal()->Mainloop.tmpFileLocation, "freewrl_download_wget_XXXXXXXX");
 	    if (!temp) {
 		    PERROR_MSG("download_url_wget: can't create temporary name.\n");
 		    return NULL;

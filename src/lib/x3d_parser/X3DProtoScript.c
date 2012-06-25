@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DProtoScript.c,v 1.81 2012/05/31 19:06:42 crc_canada Exp $
+$Id: X3DProtoScript.c,v 1.82 2012/06/25 22:26:32 crc_canada Exp $
 
 ???
 
@@ -240,10 +240,10 @@ static void registerProto(const char *name, const char *url) {
 	CPD.isExternProto = (url != NULL);
 
 	if (!CPD.isExternProto) 
-		CPD.fileName = TEMPNAM("/tmp","freewrl_proto"); 
+		CPD.fileName = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"freewrl_proto"); 
 	else 
 #ifdef _MSC_VER
-		CPD.fileName= TEMPNAM("/tmp","freewrl_proto"); //tmpnam(NULL); 
+		CPD.fileName = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"freewrl_proto"); 
 #else
 		CPD.fileName=NULL;
 #endif
@@ -1286,7 +1286,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 	endIS = NULL;
 	curProtoPtr=  NULL;
 	myObj = NULL;
-	tmpf = tempnam("/tmp","freewrl_proto");
+	tmpf = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"freewrl_proto");
 	fdl = 0;
 
 	/* we tie a unique number to the currentProto */

@@ -170,6 +170,7 @@ OLDCODE		int	EAIMIDIlistenfd;// = -1;		/* listen on this socket for an incoming 
 		int clipPlane;// = 0;
 		int currentX[20], currentY[20];                 /*  current mouse position.*/
 		void *prv;
+		char *tmpFileLocation;
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

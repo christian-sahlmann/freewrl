@@ -41,13 +41,6 @@
 #include "../vrml_parser/CProto.h"
 
 
-//static int estimatedBodyLen = -1;
-//static struct Vector *deconstructedProtoBody = NULL;
-//
-//static int protoElementCount = ID_UNDEFINED;
-//static char tempname[1000];
-//static FILE *fp;
-//static int written = 0;
 typedef struct pconvert1To2{
 	int estimatedBodyLen;// = -1;
 	struct Vector *deconstructedProtoBody;// = NULL;
@@ -75,8 +68,6 @@ void convert1To2_init(struct tconvert1To2* t)
 	p->deconstructedProtoBody = NULL;
 
 	p->protoElementCount = ID_UNDEFINED;
-	//t->tempname[1000];
-	//t->fp;
 	p->written = 0;
 }
 
@@ -318,10 +309,12 @@ void tokenizeVRML1_(char *pb) {
 
 char *convert1To2 (const char *inp)
 {
+	ttglobal tg = gglobal();
+
 	char *retval = NULL;
 	char *dinp, *tptr;
 	size_t readSizeThrowAway;
-	ppconvert1To2 p = gglobal()->convert1To2.prv;
+	ppconvert1To2 p = tg->convert1To2.prv;
 
 	/* sanitize input but copy data before altering it */
 	dinp = tptr = strdup(inp);
@@ -335,7 +328,12 @@ char *convert1To2 (const char *inp)
 	retval = NULL;
 
 	/* FIXME: make use of new API */
-	retval = tempnam("/tmp","freewrl_tmp");
+
+	
+
+	retval = TEMPNAM(tg->Mainloop.tmpFileLocation,"freewrl_tmp");
+		
+
 	sprintf (p->tempname, "%s",retval);
 	free(retval); retval = NULL;
 	p->fp = fopen (p->tempname,"w");
