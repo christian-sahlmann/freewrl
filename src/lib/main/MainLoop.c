@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.249 2012/06/20 17:25:57 crc_canada Exp $
+  $Id: MainLoop.c,v 1.250 2012/06/25 16:20:03 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2482,24 +2482,29 @@ void fwl_replaceWorldNeeded(char* str)
 {
 	ConsoleMessage ("replaceWorldNeeded called");
 
-ttglobal tg = gglobal();
-setAnchorsAnchor( NULL );
-FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
-tg->RenderFuncs.BrowserAction = TRUE;
-FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
-tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
+#ifdef OLDCODE
+OLDCODE ttglobal tg = gglobal();
+OLDCODE setAnchorsAnchor( NULL );
+OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+OLDCODE tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
+OLDCODE tg->RenderFuncs.BrowserAction = TRUE;
+OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
+OLDCODE tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
+#endif //OLDCODE
 }
 
 
 void fwl_reload()
 {
-char *oldworld;
-ttglobal tg = gglobal();
-
-oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
-fwl_replaceWorldNeeded(oldworld);
-FREE_IF_NZ(oldworld);
+	ConsoleMessage("fwl_reload called");
+#ifdef OLDCODE
+OLDCODE char *oldworld;
+OLDCODE ttglobal tg = gglobal();
+OLDCODE 
+OLDCODE oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
+OLDCODE fwl_replaceWorldNeeded(oldworld);
+OLDCODE FREE_IF_NZ(oldworld);
+#endif //OLDCODE
 }
 
 #endif //NOT _ANDROID

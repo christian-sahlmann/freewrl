@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CProto.c,v 1.54 2012/05/31 19:06:42 crc_canada Exp $
+$Id: CProto.c,v 1.55 2012/06/25 16:20:03 crc_canada Exp $
 
 CProto ???
 
@@ -1285,13 +1285,13 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 		sprintf (tempRoutename, "%s",tempnam("/tmp","freewrl_tmp")); \
 		pexfile = fopen (tempname,"w"); \
 		routefile = fopen (tempRoutename,"w"); \
-		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening temp file!"); return "";}}
+		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening PROTO temp file for write!"); return "";}}
 
 	#define	OPEN_PROTO_EXPAND_FILE_READ { \
 		/* file name already in the "tempname" file */ \
 		pexfile = fopen (tempname,"r"); \
 		routefile = fopen (tempRoutename,"r"); \
-		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening temp file!"); return "";}}
+		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening PROTO temp file for read!"); return "";}}
 
 
 	#define	CLOSE_PROTO_EXPAND_FILE {fclose (pexfile); fclose (routefile);}
