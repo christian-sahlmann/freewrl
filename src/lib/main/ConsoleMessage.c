@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.27 2012/06/12 17:24:48 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.28 2012/06/25 14:33:14 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -76,6 +76,13 @@ typedef struct pConsoleMessage{
 	int setTargetMotif;// = 0;
 	int setHaveMscVer;// = 0;
 	int setTargetAndroid;// = 0;
+
+#if defined (_ANDROID)
+#define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 20
+	int androidFreeSlot;
+	char * androidMessageSlot[MAX_ANDROID_CONSOLE_MESSAGE_SLOTS];
+	
+#endif //ANDROID
 
 #ifdef _MSC_VER
 	HANDLE hStdErr; // = NULL;
@@ -416,11 +423,66 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 //FILE* consolefile;
 
 
+#if defined (_ANDROID)
+static void android_save_log(char *thislog) {
+	ttglobal tg = gglobal();
+	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	int cur;
+	int i;
+
+	// sanity check the string, otherwise dalvik can croak if invalid chars
+	for (i=0; i<strlen(thislog); i++) {
+		thislog[i] = thislog[i]&0x7f;
+	}
+
+	p->androidFreeSlot++;
+	if (p->androidFreeSlot>MAX_ANDROID_CONSOLE_MESSAGE_SLOTS) p->androidFreeSlot=0; 
+	cur=p->androidFreeSlot;
+
+	if (p->androidMessageSlot[cur] != NULL) free (p->androidMessageSlot[cur]);
+	p->androidMessageSlot[cur] = thislog;
+}
+
+char *android_get_last_message() {
+	ttglobal tg = gglobal();
+	if (!tg) return "NO GGLOBAL - NO MESSAGES";
+	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	return p->androidMessageSlot[p->androidFreeSlot];
+}
+
+#endif //ANDROID
+
 
 int ConsoleMessage0(const char *fmt, va_list args)  
 {
 #if defined(_ANDROID)
-	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,fmt,args);
+
+	int retval;
+	ppConsoleMessage p;
+	ttglobal tg = gglobal0();
+	char *buffer;
+
+	if(tg) {
+	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,"logging, tg exists",args);
+	} else {
+	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,"logging, tg NOT exists",args);
+	}
+
+        char *cp;
+        u_int nalloc;
+        int r;
+
+        r = vasprintf(&cp, fmt, args);
+	__android_log_print(ANDROID_LOG_INFO,"FreeWRLTest",cp,NULL);
+
+	// save log file for FreeWRL on-screen log printer
+	if (tg) {
+		android_save_log(cp);
+	} else {
+		free(cp);
+	}
+
+
 	return 1;
 #else
 	int retval;

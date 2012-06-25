@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.9 2012/05/28 20:15:36 crc_canada Exp $
+  $Id: io_files.h,v 1.10 2012/06/25 14:33:14 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -28,7 +28,8 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
-void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 
 /* Path manipulation */
@@ -46,6 +47,9 @@ typedef struct openned_file {
 	int fileDescriptor;
 	int fileDataSize;
 	char *fileData;
+	int imageHeight;
+	int imageWidth;
+	bool imageAlpha;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

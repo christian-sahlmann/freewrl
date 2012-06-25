@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.51 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: io_files.c,v 1.52 2012/06/25 14:33:14 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -229,7 +229,7 @@ void of_dump(openned_file_t *of)
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
  */
-static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data)
+static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data, int imageHeight, int imageWidth, bool imageAlpha)
 {
 	openned_file_t *of;
 
@@ -238,6 +238,9 @@ static openned_file_t* create_openned_file(const char *filename, int fd, int dat
 	of->fileDescriptor = fd;
 	of->fileData = data;
 	of->fileDataSize = dataSize;
+	of->imageHeight = imageHeight;
+	of->imageWidth = imageWidth;
+	of->imageAlpha = imageAlpha;
 	return of;
 }
 
@@ -273,7 +276,7 @@ static void* load_file_mmap(const char *filename)
 		close(fd);
 		return NULL;
 	}
-	return create_openned_file(filename, fd, text);
+	return create_openned_file(filename, fd, text,0,0,FALSE);
 }
 #endif
 
@@ -353,16 +356,21 @@ static openned_file_t* load_file_read(const char *filename)
 	/* null terminate this string */
 	text[ss.st_size] = '\0';
 
-	return create_openned_file(filename, fd, ss.st_size+1, text);
+	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
 }
 #endif //FRONTEND_GETS_FILES
 
 #ifdef FRONTEND_GETS_FILES
+/* these variables are used on return of data from front end, and are passed on to create_openned_file */
 static char *fileText = NULL;
 static char *fileName = NULL;
 static int frontend_return_status = 0;
 static char *localFile = NULL;
 static int fileSize = 0;
+static int imageWidth;
+static int imageHeight;
+static bool imageAlpha;
+
 
 static pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
@@ -379,11 +387,8 @@ char *fwg_frontEndWantsFileName() {
 	return fileName;
 }
 
-/* the front end will send data back this way... */
-/* it is best to malloc and copy the data here, as that way the front end 
-   can manage its buffers as it sees fit */
+void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int height,bool hasAlpha) {
 
-void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
 	/* did we get data? is "len" not zero?? */
@@ -397,8 +402,11 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 		// printf ("fwg_frontEndReturningData, returning ok\n");
     		/* note the "+1" ....*/
 		fileText = MALLOC (char *, len+1);
-		memcpy (fileText, dataPointer, len);
+		memcpy (fileText, fileData, len);
 		fileSize = len;
+		imageWidth = width;
+		imageHeight = height;
+		imageAlpha = hasAlpha;
     
 	    /* ok - we do not know if this is a binary or a text file,
 	       but because we added 1 to it, we can put a null terminator
@@ -418,25 +426,6 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 }
-
-#ifdef OLDCODE
-OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {
-OLDCODE 	char *consoleBuffer;
-OLDCODE 	consoleBuffer = MALLOC(char *, 200+strlen(localfile));
-OLDCODE 	MUTEX_LOCK_FILE_RETRIEVAL
-OLDCODE 	sprintf(consoleBuffer ,"frontend got localfile=[%s] iret=%d\n",localfile,iret);
-OLDCODE 	fwl_StringConsoleMessage(consoleBuffer);
-OLDCODE 	fileName = NULL; /* not freed as only passed by pointer */
-OLDCODE 	frontend_return_status = 1;
-OLDCODE 	if(iret == -1) frontend_return_status = -1;
-OLDCODE 	localFile = strBackslash2fore(strdup(localfile));
-OLDCODE 	/* got the file, send along a message */
-OLDCODE 	SEND_FILE_SIGNAL
-OLDCODE 	fwl_StringConsoleMessage("after signal\n");
-OLDCODE 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
-OLDCODE 	fwl_StringConsoleMessage("after unlock\n");
-OLDCODE }
-#endif //OLDCODE
 
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
@@ -472,16 +461,10 @@ openned_file_t* load_file(const char *filename)
 	// printf ("load_file, frontend_return_status %d\n",frontend_return_status);
 	fileName = NULL;
 
-#ifdef OLDCODE
-OLDCODE	if(frontend_return_status == 1)
-OLDCODE		return load_file_read(localFile);
-OLDCODE	else 
-#endif //OLDCODE
-
 	if(frontend_return_status == -1)
 		return NULL;
 	else
-		return create_openned_file(filename, -1, fileSize, fileText);
+		return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
 #endif
 
 

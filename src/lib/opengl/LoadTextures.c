@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.84 2012/06/20 17:25:57 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.85 2012/06/25 14:33:14 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -384,178 +384,26 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
  */
 char* download_file(char* filename);
 
-#if defined (_ANDROID)
-/* do a load using libjpeg for now */
 
-/*
- * memsrc.c
- *
- * Copyright (C) 1994-1996, Thomas G. Lane.
- * This file is part of the Independent JPEG Group's software.
- * For conditions of distribution and use, see the accompanying README file.
- *
- * This file contains decompression data source routines for the case of
- * reading JPEG data from a memory buffer that is preloaded with the entire
- * JPEG file.  This would not seem especially useful at first sight, but
- * a number of people have asked for it.
- * This is really just a stripped-down version of jdatasrc.c.  Comparison
- * of this code with jdatasrc.c may be helpful in seeing how to make
- * custom source managers for other purposes.
- */
+// sometimes (usually?) we have to flip an image vertically. 
+unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
+	int i,j,ii,rowcount;
+	unsigned char *sourcerow, *destrow;
+	unsigned char * blob;
 
-/* this is not a core library module, so it doesn't define JPEG_INTERNALS */
-#include "jinclude.h"
-#include "jpeglib.h"
-#include "jerror.h"
-
-
-/* Expanded data source object for memory input */
-
-typedef struct {
-  struct jpeg_source_mgr pub;	/* public fields */
-
-  JOCTET eoi_buffer[2];		/* a place to put a dummy EOI */
-} my_source_mgr;
-
-typedef my_source_mgr * my_src_ptr;
-
-
-/*
- * Initialize source --- called by jpeg_read_header
- * before any data is actually read.
- */
-
-METHODDEF(void)
-init_source (j_decompress_ptr cinfo)
-{
-  /* No work, since jpeg_memory_src set up the buffer pointer and count.
-   * Indeed, if we want to read multiple JPEG images from one buffer,
-   * this *must* not do anything to the pointer.
-   */
+	rowcount = width * 4;
+	blob = MALLOC(unsigned char*, height * rowcount);
+	for(i=0;i<height;i++) {
+		ii = height - 1 - i;
+		sourcerow = &input[i*rowcount];
+		destrow = &blob[ii*rowcount];
+		memcpy(destrow,sourcerow,rowcount);
+	}
+	//FREE_IF_NZ(input);
+	return blob;
 }
 
 
-/*
- * Fill the input buffer --- called whenever buffer is emptied.
- *
- * In this application, this routine should never be called; if it is called,
- * the decompressor has overrun the end of the input buffer, implying we
- * supplied an incomplete or corrupt JPEG datastream.  A simple error exit
- * might be the most appropriate response.
- *
- * But what we choose to do in this code is to supply dummy EOI markers
- * in order to force the decompressor to finish processing and supply
- * some sort of output image, no matter how corrupted.
- */
-
-METHODDEF(boolean)
-fill_input_buffer (j_decompress_ptr cinfo)
-{
-  my_src_ptr src = (my_src_ptr) cinfo->src;
-
-  WARNMS(cinfo, JWRN_JPEG_EOF);
-
-  /* Create a fake EOI marker */
-  src->eoi_buffer[0] = (JOCTET) 0xFF;
-  src->eoi_buffer[1] = (JOCTET) JPEG_EOI;
-  src->pub.next_input_byte = src->eoi_buffer;
-  src->pub.bytes_in_buffer = 2;
-
-  return TRUE;
-}
-
-
-/*
- * Skip data --- used to skip over a potentially large amount of
- * uninteresting data (such as an APPn marker).
- *
- * If we overrun the end of the buffer, we let fill_input_buffer deal with
- * it.  An extremely large skip could cause some time-wasting here, but
- * it really isn't supposed to happen ... and the decompressor will never
- * skip more than 64K anyway.
- */
-
-METHODDEF(void)
-skip_input_data (j_decompress_ptr cinfo, long num_bytes)
-{
-  my_src_ptr src = (my_src_ptr) cinfo->src;
-
-  if (num_bytes > 0) {
-    while (num_bytes > (long) src->pub.bytes_in_buffer) {
-      num_bytes -= (long) src->pub.bytes_in_buffer;
-      (void) fill_input_buffer(cinfo);
-      /* note we assume that fill_input_buffer will never return FALSE,
-       * so suspension need not be handled.
-       */
-    }
-    src->pub.next_input_byte += (size_t) num_bytes;
-    src->pub.bytes_in_buffer -= (size_t) num_bytes;
-  }
-}
-
-
-/*
- * An additional method that can be provided by data source modules is the
- * resync_to_restart method for error recovery in the presence of RST markers.
- * For the moment, this source module just uses the default resync method
- * provided by the JPEG library.  That method assumes that no backtracking
- * is possible.
- */
-
-
-/*
- * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.  Often a no-op.
- *
- * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
- * application must deal with any cleanup that should happen even
- * for error exit.
- */
-
-METHODDEF(void)
-term_source (j_decompress_ptr cinfo)
-{
-  /* no work necessary here */
-}
-
-
-/*
- * Prepare for input from a memory buffer.
- */
-
-GLOBAL(void)
-jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
-{
-  my_src_ptr src;
-
-  /* The source object is made permanent so that a series of JPEG images
-   * can be read from a single buffer by calling jpeg_memory_src
-   * only before the first one.
-   * This makes it unsafe to use this manager and a different source
-   * manager serially with the same JPEG object.  Caveat programmer.
-   */
-  if (cinfo->src == NULL) {	/* first time for this JPEG object? */
-    cinfo->src = (struct jpeg_source_mgr *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  SIZEOF(my_source_mgr));
-  }
-
-  src = (my_src_ptr) cinfo->src;
-  src->pub.init_source = init_source;
-  src->pub.fill_input_buffer = fill_input_buffer;
-  src->pub.skip_input_data = skip_input_data;
-  src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  src->pub.term_source = term_source;
-
-  src->pub.next_input_byte = buffer;
-  src->pub.bytes_in_buffer = bufsize;
-}
-
-
-
-
-
-#endif //ANDROID
 
 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
@@ -569,114 +417,26 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 
 	openned_file_t *myFile = load_file (filename);
 
-{char me[300]; 
-	sprintf (me, "texture_load_from_file - got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); 
-ConsoleMessage(me);
-}
-
-
-
 	/* if we got null for data, lets assume that there was not a file there */
 	if (myFile->fileData == NULL) {
 		return FALSE;
 	} else {
+		//this_tex->texdata = MALLOC(unsigned char*,myFile->fileDataSize);
+		//memcpy(this_tex->texdata,myFile->fileData,myFile->fileDataSize);
+/*
+{char me[200]; sprintf(me,"texture_load, %d * %d * 4 = %d, is it %d??",myFile->imageHeight, myFile->imageWidth,
+			myFile->imageHeight*myFile->imageWidth*4, myFile->fileDataSize);
+ConsoleMessage(me);}
+*/
 
-		char myline[2000];
-		int width, height, bytes_per_pixel;
-		struct jpeg_decompress_struct cinfo;
-		struct jpeg_error_mgr jerr;
-		JSAMPARRAY buffer;
+		this_tex->texdata = flipImageVertically(myFile->fileData, myFile->imageHeight, myFile->imageWidth); 
 
-
-sprintf (myline,"load_texture_from_file, setting source to memory, size %d",myFile->fileDataSize);
-ConsoleMessage (myline);
-if (myFile->fileDataSize>2) {
-	sprintf (myline,"load_texture_from_file, bytes 0,1 %x %x",myFile->fileData[0],myFile->fileData[1]);
-ConsoleMessage(myline);
-		if (((myFile->fileData[0])!=0xFF) || ((myFile->fileData[1])!=0xd8)) {
-			ConsoleMessage("not a JPEG file");
-			return FALSE;
-		}
-
-}
-
-
-  		cinfo.err = jpeg_std_error(&jerr);
-		jpeg_create_decompress(&cinfo);
-		jpeg_memory_src(&cinfo, (const char *)myFile->fileData,myFile->fileDataSize);
-
-		/* reading the image header which contains image information */
-		jpeg_read_header( &cinfo, TRUE );
-
-ConsoleMessage ("load_texture_from_file, read header, here is the results:");
-sprintf(myline, "load_texture_from_file: JPEG File width and height: %d pixels and %d pixels, components per pixel: %d, Color space: %d",
-		cinfo.image_width, cinfo.image_height, cinfo.num_components, cinfo.jpeg_color_space );
-ConsoleMessage(myline);
-
-
-		/* Start decompression jpeg here */
-		jpeg_start_decompress( &cinfo );
-
-		/* save image dimension information */
-		width = cinfo.image_width;
-		height = cinfo.image_height;
-		bytes_per_pixel = cinfo.num_components;
-
-		/* allocate memory to hold the uncompressed image */
-		image = MALLOC (unsigned char*, width*height*4 );
-
-		/* store actual filename, status, ... */
 		this_tex->filename = filename;
-		this_tex->hasAlpha = FALSE;
-		this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
-
+		this_tex->hasAlpha = myFile->imageAlpha;
 		this_tex->frames = 1;
-		this_tex->x = width;
-		this_tex->y = height;
+		this_tex->x = myFile->imageWidth;
+		this_tex->y = myFile->imageHeight;
 
-		/* jpeg decompressor buffer */
-		buffer = (*cinfo.mem->alloc_sarray)
-			((j_common_ptr) &cinfo, JPOOL_IMAGE, cinfo.output_width * cinfo.output_components, 1);
-
-		/* go through image, line by line */
-		while (cinfo.output_scanline < cinfo.output_height) {
-
-		/* images have to be flipped vertically */
-		imagePtr = offsetPointer_deref(unsigned char*, image, (cinfo.output_height - cinfo.output_scanline - 1) * 4 * cinfo.output_width);
-
-		jpeg_read_scanlines(&cinfo,buffer,1);
-		for (i = 0; i < cinfo.output_width; i++) {
-			switch (cinfo.output_components) {
-				case 3:
-					*imagePtr = buffer[0][i*3+0];imagePtr ++;
-					*imagePtr = buffer[0][i*3+1];imagePtr ++;
-					*imagePtr = buffer[0][i*3+2];imagePtr ++;
-					*imagePtr = 0xff; imagePtr ++;
-					break;
-
-				case 4:
-					*imagePtr = buffer[0][i*3+0];imagePtr ++;
-					*imagePtr = buffer[0][i*3+1];imagePtr ++;
-					*imagePtr = buffer[0][i*3+2];imagePtr ++;
-					*imagePtr = buffer[0][i*3+3];imagePtr ++;
-					break;
-
-				default:
-					*imagePtr = 0xff; imagePtr++;
-					*imagePtr = 0x00; imagePtr++;
-					*imagePtr = 0x00; imagePtr++;
-					*imagePtr = 0xff; imagePtr++;
-			}
-
-		}
-		}
-
-		jpeg_finish_decompress (&cinfo);
-
-		/* save the decompressed data here */
-		this_tex->texdata = image;
-
-		jpeg_destroy_compress(&cinfo);
 		return TRUE;
 	}
 
@@ -738,8 +498,6 @@ ConsoleMessage(myline);
     /* store actual filename, status, ... */
     this_tex->filename = filename;
     this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
-    this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
-
     this_tex->frames = 1;
     this_tex->x = imlib_image_get_width();
     this_tex->y = imlib_image_get_height();
@@ -898,8 +656,6 @@ ConsoleMessage(myline);
 		if (data != NULL) {
 			this_tex->filename = filename;
 			this_tex->hasAlpha = hasAlpha;
-			this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
-	
 			this_tex->frames = 1;
 			this_tex->x = image_width;
 			this_tex->y = image_height;

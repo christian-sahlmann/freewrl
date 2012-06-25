@@ -15,20 +15,18 @@ extern "C"
 #include "opengl/textures.h"
 /*
 struct textureTableIndexStruct {
-	void*	scenegraphNode;
-	int			nodeType;
-	int	imageType;
-	int 	status;
-	int 	hasAlpha;
-	int	OpenGLTexture;
-	int	frames;
-	char    *filename;
-        int x;
-        int y;
-        unsigned char *texdata;
-	// JAS char *pixelData; 
-        int Src;
-        int Trc;
+	struct X3D_Node*	scenegraphNode;
+	int    nodeType;
+	int    status;
+	int    hasAlpha;
+	GLuint OpenGLTexture;
+	int    frames;
+	char   *filename;
+    int    x;
+    int    y;
+    unsigned char *texdata;
+    GLint  Src;
+    GLint  Trc;
 };
 */
 static ULONG_PTR gdiplusToken;
