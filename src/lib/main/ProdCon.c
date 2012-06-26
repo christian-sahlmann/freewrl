@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.102 2012/06/20 17:25:57 crc_canada Exp $
+  $Id: ProdCon.c,v 1.103 2012/06/26 18:33:15 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -311,11 +311,7 @@ void EAI_killBindables (void) {
 	ttglobal tg = gglobal();
 	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
-{char me[200]; sprintf (me,"EAI_KB 1 %p %p\n",tg,p);ConsoleMessage(me);}
-
 	WAIT_WHILE_PARSER_BUSY;
-
-//ConsoleMessage("EAI_KB 2");
 
 	complete=0;
 	p->psp.comp = &complete;
@@ -331,24 +327,13 @@ void EAI_killBindables (void) {
 	/* send data to a parser */
 	SEND_TO_PARSER;
 
-ConsoleMessage("EAI_KB 3");
-
 	UNLOCK;
-
-ConsoleMessage("EAI_KB 4");
-
 
 	/* wait for data */
 	WAIT_WHILE_PARSER_BUSY;
 
-
-ConsoleMessage("EAI_KB 5");
-
 	/* grab data */
 	UNLOCK;
-
-ConsoleMessage("EAI_KB 6");
-
 }
 
 /* interface for creating VRML for EAI */
@@ -916,8 +901,6 @@ void kill_bindables (void) {
 
 	int i;
 
-ConsoleMessage("kill_bindables called");
-
 	KILL_BINDABLE(t->viewpointNodes);
 	KILL_BINDABLE(p->backgroundNodes);
 	KILL_BINDABLE(p->navigationNodes);
@@ -931,7 +914,6 @@ ConsoleMessage("kill_bindables called");
 	FREE_IF_NZ(p->navnodes);
 	FREE_IF_NZ(t->viewpointnodes);
 	*/
-ConsoleMessage("done kill_bindables called");
 }
 
 

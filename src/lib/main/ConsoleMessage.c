@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.28 2012/06/25 14:33:14 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.29 2012/06/26 18:33:15 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -443,11 +443,20 @@ static void android_save_log(char *thislog) {
 	p->androidMessageSlot[cur] = thislog;
 }
 
-char *android_get_last_message() {
+char *android_get_last_message(int whichOne) {
 	ttglobal tg = gglobal();
+	int whm;
+
 	if (!tg) return "NO GGLOBAL - NO MESSAGES";
 	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
-	return p->androidMessageSlot[p->androidFreeSlot];
+	
+	// which one?
+	whm = p->androidFreeSlot - whichOne;
+	if (whm < 0) whm = MAX_ANDROID_CONSOLE_MESSAGE_SLOTS-1;
+
+	if (p->androidMessageSlot[whm] == NULL) return "";
+
+	return p->androidMessageSlot[whm];
 }
 
 #endif //ANDROID
@@ -461,19 +470,12 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	ppConsoleMessage p;
 	ttglobal tg = gglobal0();
 	char *buffer;
-
-	if(tg) {
-	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,"logging, tg exists",args);
-	} else {
-	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,"logging, tg NOT exists",args);
-	}
-
         char *cp;
         u_int nalloc;
         int r;
 
         r = vasprintf(&cp, fmt, args);
-	__android_log_print(ANDROID_LOG_INFO,"FreeWRLTest",cp,NULL);
+	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,cp,NULL);
 
 	// save log file for FreeWRL on-screen log printer
 	if (tg) {
