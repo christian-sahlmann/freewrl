@@ -154,6 +154,9 @@ if test "x$acx_pthread_ok" = xyes; then
                                 uses a non-standard name on your system.])
         fi
 
+	# Detect if pthread_cancel exists and set HAVE_PTHREAD_CANCEL if it dies
+	AC_REPLACE_FUNCS([pthread_cancel])
+
         AC_MSG_CHECKING([if more special flags are required for pthreads])
         flag=no
         case "${host_cpu}-${host_os}" in
