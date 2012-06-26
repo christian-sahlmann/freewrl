@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.52 2012/06/25 14:33:14 crc_canada Exp $
+  $Id: io_files.c,v 1.53 2012/06/26 20:43:37 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -461,11 +461,9 @@ openned_file_t* load_file(const char *filename)
 	// printf ("load_file, frontend_return_status %d\n",frontend_return_status);
 	fileName = NULL;
 
-	if(frontend_return_status == -1)
-		return NULL;
-	else
-		return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
-#endif
+	if(frontend_return_status == -1) return NULL;
+	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+#else //FRONTEND_GETS_FILES 
 
 
 #if defined(FW_USE_MMAP)
@@ -482,6 +480,7 @@ openned_file_t* load_file(const char *filename)
 #endif
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
+#endif //FRONTEND_GETS_FILES
 }
 
 

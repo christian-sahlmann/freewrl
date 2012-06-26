@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.100 2012/05/31 19:06:42 crc_canada Exp $
+$Id: X3DParser.c,v 1.101 2012/06/26 20:43:37 crc_canada Exp $
 
 ???
 
@@ -1745,7 +1745,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 
 	if(atts)
 		for (i = 0; atts[i]; i += 2) {
-			atts[i+1] = fixAmp(atts[i+1]);
+			atts[i+1] = fixAmp((char *)atts[i+1]);
 		}
 	
 	/* are we storing a PROTO body?? */
