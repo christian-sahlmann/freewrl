@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.h,v 1.25 2011/06/11 19:26:36 dug9 Exp $
+$Id: X3DParser.h,v 1.26 2012/06/26 21:02:33 crc_canada Exp $
 
 X3D parser functions.
 
@@ -68,16 +68,20 @@ struct nameValuePairs {
         } else ConsoleMessage ("X3DParser, line %d stack overflow",LINE);
 #else
 #define DECREMENT_PARENTINDEX \
-        if (parentIndex > 0) { parentIndex--; printf("Decrementing parentIndex to %d %s %d\n",parentIndex,__FILE__,__LINE__);} else { ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); }
+        if (gglobal()->X3DParser.parentIndex > 0) { \
+		gglobal()->X3DParser.parentIndex--; \
+		printf("Decrementing parentIndex to %d %s %d\n",gglobal()->X3DParser.parentIndex,__FILE__,__LINE__); \
+	} else { \
+		ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__); \
+	}
 
 #define INCREMENT_PARENTINDEX \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-				printf("Incrementing parentIndex to %d %s %d\n",parentIndex,__FILE__,__LINE__); \
-                parentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+        if (gglobal()->X3DParser.parentIndex < (PARENTSTACKSIZE-2))  { \
+                gglobal()->X3DParser.parentIndex++; \
+				printf("Incrementing parentIndex to %d %s %d\n",gglobal()->X3DParser.parentIndex,__FILE__,__LINE__); \
+                gglobal()->X3DParser.parentStack[gglobal()->X3DParser.parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("X3DParser, line %d stack overflow",LINE);
 #endif
-
 
 int freewrl_XML_GetCurrentLineNumber();
 #define LINE freewrl_XML_GetCurrentLineNumber()
