@@ -1,12 +1,12 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.27 2012/05/17 02:38:56 crc_canada Exp $
+$Id: EAIServ.c,v 1.28 2012/06/30 22:09:44 davejoubert Exp $
 
-Implement EAI server functionality for FreeWRL.
+Implement Socket server functionality for FreeWRL.
+This is currently (Jun 2012) used by the EAI and the MIDI routines
 
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -27,25 +27,22 @@ Implement EAI server functionality for FreeWRL.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
-
 #if !defined(EXCLUDE_EAI)
 #include <system.h>
 #include <system_net.h>
 
 /*JAS  - get this compiling on osx 10.4 ppc ==> system_net.h */
 
-#include <display.h>
+/* #include <display.h> */
 #include <internal.h>
-
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" 
-#include "../main/headers.h"
+/* !! This stuff is private. You should only use the functions defined in libFreeWRL.h
+ * or the constants defined in SCKHeaders.h
+ */
 
-#include "EAIHeaders.h"
+#include "SCKHeaders.h"
 
 /************************************************************************/
 /*									*/
@@ -58,29 +55,18 @@ Implement EAI server functionality for FreeWRL.
 /*	Nodes that are registered for listening to, send async		*/
 /*	messages.							*/
 /*									*/
-/*	very simple example:						*/
-/*		move a transform; Java code:				*/
-/*									*/
-/*		EventInMFNode addChildren;				*/
-/*		EventInSFVec3f newpos;					*/
-/*		try { root = browser.getNode("ROOT"); }			*/
-/*		catch (InvalidNodeException e) { ... }			*/
-/*									*/
-/*		newpos=(EventInSFVec3f)root.getEventIn("translation");	*/
-/*		val[0] = 1.0; val[1] = 1.0; val[2] = 1.0;		*/
-/*		newpos.setValue(val);					*/
-/*									*/
-/*		Three EAI commands sent:				*/
-/*			1) GetNode ROOT					*/
-/*				returns a node identifier		*/
-/*			2) GetType (nodeID) translation			*/
-/*				returns posn in memory, length,		*/
-/*				and data type				*/
-/*									*/
-/*			3) SendEvent posn-in-memory, len, data		*/
-/*				returns nothing - assumed to work.	*/
-/*									*/
 /************************************************************************/
+
+/* static pthread_mutex_t sckbufferlock = PTHREAD_MUTEX_INITIALIZER; */
+
+/* State */
+int service_connected[MAX_SERVICE_CHANNELS] ;
+int service_failed[MAX_SERVICE_CHANNELS] ;
+int service_onclose[MAX_SERVICE_CHANNELS] ;
+int service_wanted[MAX_SERVICE_CHANNELS] ;
+int service_verbose[MAX_SERVICE_CHANNELS] ;
+int  service_status[MAX_SERVICE_CHANNELS] ;
+/* More defined in fwlio_RxTx_control as static ints */
 
 unsigned char loopFlags = 0;
 
@@ -90,86 +76,262 @@ enum theLoopFlags {
 		NO_RETVAL_CHANGE    = 0x4
 };
 
-typedef struct pEAIServ{
-	pthread_mutex_t eaibufferlock;// = PTHREAD_MUTEX_INITIALIZER;
-
-	int EAIport;// = 9877;				/* port we are connecting to*/
-	int EAIinitialized;// = FALSE;		/* are we running?*/
-	int EAIfailed;// = FALSE;			/* did we not succeed in opening interface?*/
-
-	/* socket stuff */
-	int 	EAIsockfd;// = -1;			/* main TCP socket fd*/
-	fd_set rfds2;
-	struct timeval tv2;
-
-	struct sockaddr_in	servaddr, cliaddr;
-	unsigned char loopFlags;// = 0;
-
-	int EAIwanted;// = FALSE;                       /* do we want EAI?*/
-
-#ifdef OLDCODE
-OLDCODE	int EAIMIDIInitialized;// = FALSE; 	/* is MIDI eai running? */
-OLDCODE	int EAIMIDIwanted;// = FALSE; 			/* do we want midi EAI? */
-OLDCODE	int EAIMIDIfailed;// = FALSE;		/* did we not succeed in opening the MIDI interface? */
-OLDCODE	int 	EAIMIDIsockfd;// = -1;		/* main TCP socket for MIDI EAI communication */
-#endif //OLDCODE
-}* ppEAIServ;
-
-
-
-void *EAIServ_constructor()
-{
-	void *v = malloc(sizeof(struct pEAIServ));
-	memset(v,0,sizeof(struct pEAIServ));
-	return v;
-}
-void EAIServ_init(struct tEAIServ* t){
-	//public
-	t->EAIlistenfd = -1;			/* listen to this one for an incoming connection*/
-
-#ifdef OLDCODE
-OLDCODE	t->EAIMIDIlistenfd = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
-#endif //OLDCODE
-
-	//private
-	t->prv = EAIServ_constructor();
-	{
-		ppEAIServ p = (ppEAIServ)t->prv;
-pthread_mutex_init(&(p->eaibufferlock), NULL);
-
-p->EAIport = 9877;				/* port we are connecting to*/
-p->EAIinitialized = FALSE;		/* are we running?*/
-p->EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
-
 /* socket stuff */
-p->EAIsockfd = -1;			/* main TCP socket fd*/
-p->loopFlags = 0;
+struct sockaddr_in	servaddr, cliaddr;
+#define MAINSOCK_FD 0
+#define CLIENT_FD 1
+int SCK_descriptors[MAX_SERVICE_CHANNELS][2] ;
+int SCK_port[MAX_SERVICE_CHANNELS] ;
 
-p->EAIwanted = FALSE;                       /* do we want EAI?*/
-#ifdef OLDCODE
-OLDCODEp->EAIMIDIsockfd = -1;		/* main TCP socket for MIDI EAI communication */
-OLDCODEp->EAIMIDIwanted = FALSE; 			/* do we want midi EAI? */
-OLDCODEp->EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
-OLDCODEp->EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
-#endif //OLDCODE
+/* Buffer IO */
+char *sock_buffers[MAX_SERVICE_CHANNELS] ;
+int sock_bufcount[MAX_SERVICE_CHANNELS] ;
+int sock_bufsize[MAX_SERVICE_CHANNELS] ;
+fd_set rfds2;
+struct timeval tv2;
+
+/* Low level private functions */
+int privSocketSetup(int channel, int *sockfd, int *listenfd);
+char *privSocketRead(int channel, char *bf, int *bfct, int *bfsz, int *listenfd);
+
+/* **************************************************************
+ * Public top level interface
+ * ************************************************************** */
+
+void create_MIDIEAI() {
+	int result ;
+	result = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_START) ;
+}
+
+int fwlio_RxTx_control(int channel, int action) {
+	static int first_time = 1 ;
+	static int service_status[MAX_SERVICE_CHANNELS] ;
+	static int service_justSink[MAX_SERVICE_CHANNELS] ;
+
+	if (service_verbose[channel] > 1) { 
+		printf ("fwlio_RxTx_control(%d,...) START: called with action code %d\n", channel,action);
+		printf ("fwlio_RxTx_control: service_status[i] = %d\n", service_status[channel]) ;
+		printf ("fwlio_RxTx_control: service_justSink[i] = %d\n", service_justSink[channel]) ;
+		printf ("fwlio_RxTx_control: service_wanted[i] = %d\n", service_wanted[channel]) ;
+		printf ("fwlio_RxTx_control: service_connected[i] = %d\n", service_connected[channel]) ;
+		printf ("fwlio_RxTx_control: service_failed[i] = %d\n", service_failed[channel]) ;
+		printf ("fwlio_RxTx_control: service_onclose[i] = %d\n", service_onclose[channel]) ;
+		printf ("fwlio_RxTx_control: SCK_descriptors[i][0] = %d\n", SCK_descriptors[channel][0]) ;
+		printf ("fwlio_RxTx_control: SCK_descriptors[i][1] = %d\n", SCK_descriptors[channel][1]) ;
+		printf ("fwlio_RxTx_control: SCK_port[i] = %d\n", SCK_port[channel]) ;
+	}
+	if (first_time != 0 ) {
+		int i;
+		for (i=0; i<MAX_SERVICE_CHANNELS; i++) {
+			service_status[i] = RxTx_STOP ;
+			service_justSink[i] = 0 ;
+			service_wanted[i] = FALSE;
+			service_connected[i] = FALSE;
+			service_failed[i] = FALSE;
+			service_onclose[i] = FALSE ;
+			service_verbose[i] = SOCKET_SERVICE_DEFAULT_VERBOSE ;
+			SCK_descriptors[i][0] = -1 ;
+			SCK_descriptors[i][1] = -1 ;
+			SCK_port[i] = -1 ;
+		}
+		SCK_port[CHANNEL_EAI] = EAIBASESOCKET ;
+		SCK_port[CHANNEL_MIDI] = EAIBASESOCKET + MIDIPORTOFFSET ;
+	}
+	first_time = 0 ;
+
+	/*
+	 * In general, this function will just return the original action code, except:
+	 * It will return 0 if the action was not a valid state request,
+	 * It will return N if the control action requires that (for example the state code)
+	 */
+	if( RxTx_STOP == action && service_status[channel] != RxTx_STOP) {
+		if (service_verbose[channel]) { 
+			printf ("Shutting down the socket on logical channel %d\n",channel);
+		}
+
+		if (service_connected[channel] && channel == CHANNEL_EAI) {
+			fwlio_RxTx_sendbuffer(__FILE__,__LINE__,channel, "QUIT\n\n\n");
+		}
+		service_status[channel]=RxTx_STOP;
+	}
+	if( RxTx_START == action) {
+
+		/* already wanted? if so, just return */
+		if (service_wanted[channel] && service_status[channel] != RxTx_STOP) return RxTx_START;
+
+		/* so we know we want EAI */
+		service_wanted[channel] = TRUE;
+
+		/* have we already started? */
+		if (!service_connected[channel]) {
+			int EAIsockfd = -1;	/* main TCP socket fd*/
+			int EAIlistenfd = -1;	/* listen to this one for an incoming connection*/
+			service_failed[channel] = !(privSocketSetup(channel, &EAIsockfd, &EAIlistenfd));
+			if(service_failed[channel]) {
+				return 0;
+			} else {
+				SCK_descriptors[channel][MAINSOCK_FD] = EAIsockfd ;
+				SCK_descriptors[channel][CLIENT_FD] = EAIlistenfd ;
+				service_status[channel] = RxTx_REFRESH;
+			}
+		}
+	}
+	if( RxTx_REFRESH == action) {
+		if (!service_wanted[channel]) return 0;
+		int EAIsockfd =  SCK_descriptors[channel][MAINSOCK_FD] ;
+		int EAIlistenfd = SCK_descriptors[channel][CLIENT_FD] ;
+		if (!service_connected[channel]) {
+			service_failed[channel] = !(privSocketSetup(channel,&EAIsockfd,&EAIlistenfd));
+			if(service_failed[channel]) {
+				return 0;
+			} else {
+				SCK_descriptors[channel][CLIENT_FD] = EAIlistenfd ;
+				service_status[channel] = RxTx_REFRESH;
+			}
+		}
+		if (!service_connected[channel] > 1) {
+			if (service_verbose[channel]) { 
+				printf ("Still no client connection on channel %d\n",channel);
+			}
+			return 0;
+		}
+
+		/* have we closed connection? */
+		if(SCK_descriptors[channel][CLIENT_FD] < 0) return 0;
+
+		int E_SOCK_bufcount = sock_bufcount[channel];
+		int E_SOCK_bufsize = sock_bufsize[channel] ;
+		char *E_SOCK_buffer = sock_buffers[channel] ; 
+
+		/* EBUFFLOCK; */
+		sock_buffers[channel] = privSocketRead(channel,E_SOCK_buffer,&E_SOCK_bufcount, &E_SOCK_bufsize, &EAIlistenfd);
+		if (service_verbose[channel] > 1) {
+			printf ("Buffer(%d) addr %p\n",channel,sock_buffers[channel] );
+		}
+		/* printf ("read, E_SOCK_bufcount %d E_SOCK_bufsize %d\n",E_SOCK_bufcount, E_SOCK_bufsize); */
+		if(service_justSink[channel] == 1) E_SOCK_bufcount = 0;
+		sock_bufcount[channel]  = E_SOCK_bufcount ;
+		sock_bufsize[channel] = E_SOCK_bufsize ;
+
+		/* make this into a C string */
+		sock_buffers[channel][sock_bufcount[channel]] = 0;
+		/* EBUFFUNLOCK; */
+		if (service_verbose[channel] > 0) { 
+			if (sock_bufcount[channel]) {
+				printf ("fwlio_RxTx_control: sock_bufcount[%d] = %d\nData is :%s:\n\n",
+				channel,
+				sock_bufcount[channel],
+				sock_buffers[channel]);
+			}
+		}
+		return sock_bufcount[channel] ;
 
 	}
-}
-void setEAIport(int pnum) {
-	ppEAIServ p = (ppEAIServ)gglobal()->EAIServ.prv;
-        p->EAIport = pnum;
+	if( RxTx_STOP_IF_DISCONNECT == action) {
+		service_onclose[channel] = TRUE ;
+	}
+	if( RxTx_EMPTY == action) {
+		sock_bufcount[channel] = 0;
+		sock_buffers[channel][sock_bufcount[channel]] = 0;
+	}
+	if( RxTx_MOREVERBOSE == action) {
+		service_verbose[channel] += 1 ;
+	}
+	if( RxTx_GET_VERBOSITY == action) {
+		return service_verbose[channel] ;
+	}
+	if( RxTx_SILENT == action) {
+		service_verbose[channel] = 0 ;
+	}
+	if( RxTx_SINK == action) {
+		service_justSink[channel] = 1;
+	}
+	if( RxTx_PENDING == action) {
+		/* we might make this a bit more flexble */
+		if (service_verbose[channel] > 0) { 
+			printf ("fwlio_RxTx_control: sock_bufcount[%d] (addr %p) = %d\n",
+				channel, sock_buffers[channel], sock_bufcount[channel]) ;
+		}
+		return sock_bufcount[channel] ;
+	}
+	if( RxTx_STATE == action) {
+		return service_status[channel] ;
+	}
+	if (service_verbose[channel] > 1) { 
+		printf ("fwlio_RxTx_control() END:\n");
+		printf ("fwlio_RxTx_control: service_status[i] = %d\n", service_status[channel]) ;
+		printf ("fwlio_RxTx_control: service_justSink[i] = %d\n", service_justSink[channel]) ;
+		printf ("fwlio_RxTx_control: service_wanted[i] = %d\n", service_wanted[channel]) ;
+		printf ("fwlio_RxTx_control: service_connected[i] = %d\n", service_connected[channel]) ;
+		printf ("fwlio_RxTx_control: service_failed[i] = %d\n", service_failed[channel]) ;
+		printf ("fwlio_RxTx_control: service_onclose[i] = %d\n", service_onclose[channel]) ;
+		printf ("fwlio_RxTx_control: SCK_descriptors[i][0] = %d\n", SCK_descriptors[channel][0]) ;
+		printf ("fwlio_RxTx_control: SCK_descriptors[i][1] = %d\n", SCK_descriptors[channel][1]) ;
+		printf ("fwlio_RxTx_control: SCK_port[i] = %d\n", SCK_port[channel]) ;
+		printf ("fwlio_RxTx_control: sock_bufcount[%d] (addr %p) = length %d\n\n",
+			channel, sock_buffers[channel], sock_bufcount[channel]) ;
+	}
+
+	return action ;
 }
 
-void setWantEAI(int flag) {
-	ppEAIServ p = (ppEAIServ)gglobal()->EAIServ.prv;
-        p->EAIwanted = TRUE;
+char * fwlio_RxTx_waitfor(int channel, char *str) {
+	return strstr(sock_buffers[channel], str);
 }
 
+char *fwlio_RxTx_getbuffer(int channel) {
 
+	char *tmpStr = MALLOC(char *, sock_bufcount[channel] + 1);
+	if (service_verbose[channel]) {
+		printf ("fwlio_RxTx_getbuffer(%d)\n", channel);
+		printf ("fwlio_RxTx_getbuffer: Copy %d chars in buffer(%d) from addr %p to %p\n",sock_bufcount[channel],channel,sock_buffers[channel] ,tmpStr );
+	}
+
+	if (!tmpStr)
+		return NULL;
+
+	memcpy(tmpStr, sock_buffers[channel], sock_bufcount[channel]);
+	tmpStr[sock_bufcount[channel]] = '\0';
+	memset(sock_buffers[channel], 0, sock_bufcount[channel]);
+	sock_bufcount[channel] = 0 ;
+
+	if (service_verbose[channel]) {
+		printf ("fwlio_RxTx_getbuffer: return %s\n\n",tmpStr );
+	}
+	return tmpStr;
+}
+
+void fwlio_RxTx_sendbuffer(char *fromFile, int fromline, int channel, char *str) {
+	size_t n;
+
+	/* add a trailing newline */
+	strcat (str,"\n");
+
+	if (service_verbose[channel]) {
+		printf ("fwlio_RxTx_sendbuffer(%s,%d,%d,..), sending :\n%s\n(on FD %d)\n",fromFile,fromline,channel,str,SCK_descriptors[channel][CLIENT_FD]);
+	}
+
+#ifdef _MSC_VER
+	n = send(SCK_descriptors[channel][CLIENT_FD], str, (unsigned int) strlen(str),0);
+#else
+	/* n = write (SCK_descriptors[channel][CLIENT_FD], (const void *)str, strlen(str)); */
+	n = write (SCK_descriptors[channel][CLIENT_FD], str, strlen(str));
+#endif	
+	if (service_verbose[channel]) {
+		printf ("fwlio_RxTx_sendbuffer(...%d,..), wrote %d 'chars'\n",channel,(int)n);
+	}
+	if (n<strlen(str)) {
+		printf ("fwlio_RxTx_sendbuffer(...%d,..) write, expected to write %d, actually wrote %d\n",channel,(int)n,(int)strlen(str));
+	}
+}
+
+/* **************************************************************
+ * Private low level funtions
+ * ************************************************************** */
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
 /* EAI will have a socket increment of 0; Java Class invocations will have 1 +	      */
-int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
+int privSocketSetup(int channel, int *ANONsocketfd, int *ANONlistenfd) {
 	int len;
 	const int on=1;
 	int flags;
@@ -178,16 +340,12 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	int err;
 #endif
 
-    struct sockaddr_in      servaddr;
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+        struct sockaddr_in      servaddr;
 
-	if ((p->EAIfailed) &&(socketincrement==0)) return FALSE;
+	/* if ((service_failed[channel]) && (channel==0)) return FALSE; */
+	if ((service_failed[channel])) return FALSE;
 
-    if ((*EAIsockfd) < 0) {
+	if ((*ANONsocketfd) < 0) {
 		/* step 1  - create socket*/
 #ifdef _MSC_VER
 		static int wsaStarted;
@@ -204,8 +362,8 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 				wsaStarted = 1;
 			}
 #endif
-	        if (((*EAIsockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-			printf ("EAIServer: socket error\n");
+	        if (((*ANONsocketfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+			printf ("WRL_Server: socket error\n");
 #ifdef _MSC_VER
 			err = WSAGetLastError();
 			printf("WSAGetLastError =%d\n",err);
@@ -216,32 +374,32 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 			return FALSE;
 		}
 
-		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, &on, (socklen_t) sizeof(on));
+		setsockopt ((*ANONsocketfd), SOL_SOCKET, SO_REUSEADDR, &on, (socklen_t) sizeof(on));
 
 #ifdef _MSC_VER
 		/* int ioctlsocket(SOCKET s,long cmd, u_long* argp);  http://msdn.microsoft.com/en-us/library/ms738573(VS.85).aspx */
 		{
 		unsigned long iMode = 1; /* nonzero is blocking */
-		ioctlsocket((*EAIsockfd), FIONBIO, &iMode);
+		ioctlsocket((*ANONsocketfd), FIONBIO, &iMode);
 		}
 
 #else
-		if ((flags=fcntl((*EAIsockfd),F_GETFL,0)) < 0) {
+		if ((flags=fcntl((*ANONsocketfd),F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		} else {
 			flags |= O_NONBLOCK;
 
-			if (fcntl((*EAIsockfd), F_SETFL, flags) < 0) {
+			if (fcntl((*ANONsocketfd), F_SETFL, flags) < 0) {
 				printf ("EAIServer: trouble setting non-blocking socket\n");
 				loopFlags &= ~NO_EAI_CLASS;
 				return FALSE;
 			}
 		}
 #endif
-		if (eaiverbose) { 
-		printf ("conEAIorCLASS - socket made\n");
+		if (service_verbose[channel]) { 
+			printf ("privSocketSetup - socket made\n");
 		}
 
 
@@ -249,247 +407,109 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	        memset(&servaddr, 0, sizeof(servaddr));
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	        servaddr.sin_port        = htons(p->EAIport+socketincrement);
-		/*printf ("binding to socket %d\n",EAIport+socketincrement);*/
+	        servaddr.sin_port        = htons(SCK_port[channel]);
+		if (service_verbose[channel]) { 
+			printf ("FreeWRL socket server binding to socket on port %d for channel %d\n",SCK_port[channel], channel);
+		}
 
-	        while (bind((*EAIsockfd), (struct sockaddr *) &servaddr, (socklen_t) sizeof(servaddr)) < 0) {
+	        while (bind((*ANONsocketfd), (struct sockaddr *) &servaddr, (socklen_t) sizeof(servaddr)) < 0) {
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 
-		if (eaiverbose) { 
-		printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
+		if (service_verbose[channel]) { 
+			printf ("FreeWRL socket server: bound to socket %d\n",SCK_port[channel]);
 		}
 
 
 		/* step 3 - listen*/
 
-	        if (listen((*EAIsockfd), 1024) < 0) {
-	                printf ("EAIServer: listen error\n");
+	        if (listen((*ANONsocketfd), 1024) < 0) {
+	                printf ("FreeWRL socket server: listen error\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 	}
-
-	if (((*EAIsockfd) >=0) && ((*EAIlistenfd)<0)) {
-		/* step 4 - accept*/
-		len = (int) sizeof(p->cliaddr);
-#ifdef _MSC_VER
-	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &p->cliaddr, (int *)&len)) < 0) {
-#else
-	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &p->cliaddr, (socklen_t *)&len)) < 0) {
-#endif
-			if (eaiverbose) {
-			if (!(loopFlags&NO_CLIENT_CONNECTED)) {
-				printf ("EAISERVER: no client yet\n");
-				loopFlags |= NO_CLIENT_CONNECTED;
+	if (service_verbose[channel]) { 
+		if ( (*ANONsocketfd) >= 0 ) {
+			if (service_verbose[channel] > 1) { 
+				printf("We have a valid socket fd, %d",(*ANONsocketfd)) ;
 			}
+		}
+		if ( (*ANONlistenfd) >= 0 ) {
+			printf(" and we have a client connected fd, %d\n",(*ANONlistenfd)) ;
+		} else {
+			if (service_verbose[channel] > 1) { 
+				printf(" but no client connection (yet)\n") ;
+			}
+		}
+	}
+
+	if (((*ANONsocketfd) >=0 ) && ((*ANONlistenfd)<0)) {
+		/* step 4 - accept*/
+		if (service_verbose[channel]>1) { 
+			printf("We are going to attempt a non-blocking accept()..\n") ;
+		}
+		len = (int) sizeof(cliaddr);
+#ifdef _MSC_VER
+	        if ( ((*ANONlistenfd) = accept((*ANONsocketfd), (struct sockaddr *) &cliaddr, (int *)&len)) < 0) {
+#else
+	        if ( ((*ANONlistenfd) = accept((*ANONsocketfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
+#endif
+			if (service_verbose[channel]>1) {
+				if (!(loopFlags&NO_CLIENT_CONNECTED)) {
+					printf ("FreeWRL socket server: no client yet\n");
+					loopFlags |= NO_CLIENT_CONNECTED;
+				}
 			}
 
 		} else {
 			loopFlags &= ~NO_CLIENT_CONNECTED;
-			if (eaiverbose) {
-				printf ("EAISERVER: no client yet\n");
+			if (service_verbose[channel]) {
+				printf ("FreeWRL socket server: we have a client\n");
 			}
 		}
 	}
 
 
 	/* are we ok, ? */
-	if ((*EAIlistenfd) >=0)  {
-		/* allocate memory for input buffer */
-		tg->EAIServ.EAIbufcount = 0;
-		tg->EAIServ.EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
-		EBUFFLOCK;
-		tg->EAIServ.EAIbuffer = MALLOC(char *, tg->EAIServ.EAIbufsize * sizeof (char));
-		EBUFFUNLOCK;
+	if ((*ANONlistenfd) >=0)  {
+		if(!service_connected[channel]) {
+			SCK_descriptors[channel][1] = (*ANONlistenfd) ;
+			/* allocate memory for input buffer */
+			sock_bufcount[channel] = 0;
+			sock_bufsize[channel] = 2 * EAIREADSIZE; /* initial size*/
+			if (service_verbose[channel]) {
+				printf ("FreeWRL socket server: malloc a buffer,%d\n",sock_bufsize[channel]);
+			}
+			/* EBUFFLOCK; */
+			sock_buffers[channel] = MALLOC(char *, sock_bufsize[channel] * sizeof (char));
+			/* EBUFFUNLOCK; */
 
-		/* zero out the EAIListenerData here, and after every use */
-		memset(&tg->EAIServ.EAIListenerData, 0, sizeof(tg->EAIServ.EAIListenerData));
+			if(channel == CHANNEL_EAI) {
+				if (service_verbose[channel]) {
+					printf("Go and clear the listener node\n") ;
+				}
+				fwl_EAI_clearListenerNode();
+			}
 
-		/* seems like we are up and running now, and waiting for a command */
-		/* and are we using this with EAI? */
-		if (socketincrement==0) p->EAIinitialized = TRUE;
-#ifdef OLDCODE
-OLDCODE		else if (socketincrement == MIDIPORTOFFSET) p->EAIMIDIInitialized = TRUE;
-#endif //OLDCODE
-
+			/* seems like we are up and running now, and waiting for a command */
+			service_connected[channel] = TRUE;
+		} else {
+			printf ("FreeWRL socket server: Why are we in %s,%d? we should not be here!!\n",__FILE__,__LINE__);
+		}
 	}
-	/* printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
+	/* printf ("FreeWRL socket server: privSocketSetup returning TRUE\n");*/
 
-	if (eaiverbose) {
-	if ( !(loopFlags&NO_EAI_CLASS)) {
-		printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
-		loopFlags |= NO_EAI_CLASS;
-	}
+	if (service_verbose[channel]) {
+		if ( !(loopFlags&NO_EAI_CLASS)) {
+			printf ("FreeWRL socket server: privSocketSetup returning TRUE\n");
+			loopFlags |= NO_EAI_CLASS;
+		}
 	}
 
 	return TRUE;
 }
-
-
-/* the user has pressed the "q" key */
-void shutdown_EAI() {
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	if (eaiverbose) { 
-	printf ("shutting down EAI\n");
-	}
-
-	strcpy (tg->EAIServ.EAIListenerData,"QUIT\n\n\n");
-	if (p->EAIinitialized) {
-		EAI_send_string(tg->EAIServ.EAIListenerData,tg->EAIServ.EAIlistenfd);
-	}
-
-}
-
-void fwl_create_EAI()
-{
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-    if (eaiverbose) { 
-	printf ("EAISERVER:create_EAI called\n");
-	}
-
-
-	/* already wanted? if so, just return */
-	if (p->EAIwanted) return;
-
-	/* so we know we want EAI */
-	p->EAIwanted = TRUE;
-
-	/* have we already started? */
-	if (!p->EAIinitialized) {
-		p->EAIfailed = !(conEAIorCLASS(0,&p->EAIsockfd,&tg->EAIServ.EAIlistenfd));
-	}
-}
-
-#ifdef OLDCODE
-OLDCODEvoid create_MIDIEAI() {
-OLDCODE	int eaiverbose;
-OLDCODE	ppEAIServ p;
-OLDCODE	ttglobal tg = gglobal();
-OLDCODE	p = (ppEAIServ)tg->EAIServ.prv;
-OLDCODE	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-OLDCODE        if (eaiverbose) {
-OLDCODE        printf ("EAISERVER:create_MIDIEAI called\n");
-OLDCODE        }
-OLDCODE
-OLDCODE        if (p->EAIMIDIwanted)  return;
-OLDCODE
-OLDCODE        p->EAIMIDIwanted = TRUE;
-OLDCODE
-OLDCODE        /* have we already started? */
-OLDCODE        if (!p->EAIMIDIInitialized) {
-OLDCODE                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET,&p->EAIMIDIsockfd,&tg->EAIServ.EAIMIDIlistenfd));
-OLDCODE        }
-OLDCODE}
-#endif //OLDCODE
-
-
-/* possibly we have an incoming EAI request from the client */
-void handle_EAI () {
-	/* do nothing unless we are wanted */
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	if (!p->EAIwanted) return;
-	if (!p->EAIinitialized) {
-		p->EAIfailed = !(conEAIorCLASS(0,&p->EAIsockfd,&tg->EAIServ.EAIlistenfd));
-		return;
-	}
-
-	/* have we closed connection? */
-	if (tg->EAIServ.EAIlistenfd < 0) return;
-
-	tg->EAIServ.EAIbufcount = 0;
-
-	EBUFFLOCK;
-	tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer,&tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIlistenfd);
-	/* printf ("read, EAIbufcount %d EAIbufsize %d\n",tg->EAIServ.EAIbufcount, tg->EAIServ.EAIbufsize); */
-
-	/* make this into a C string */
-	tg->EAIServ.EAIbuffer[tg->EAIServ.EAIbufcount] = 0;
-	if (eaiverbose) {
-		if (tg->EAIServ.EAIbufcount) printf ("handle_EAI-- Data is :%s:\n",tg->EAIServ.EAIbuffer);
-	}
-
-	/* any command read in? */
-	if (tg->EAIServ.EAIbufcount > 1)
-		EAI_parse_commands ();
-
-	EBUFFUNLOCK;
-}
-
-#ifdef OLDCODE
-OLDCODEvoid handle_MIDIEAI() {
-OLDCODE	int eaiverbose;
-OLDCODE	ppEAIServ p;
-OLDCODE	ttglobal tg = gglobal();
-OLDCODE	p = (ppEAIServ)tg->EAIServ.prv;
-OLDCODE	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-OLDCODE
-OLDCODE        if (!p->EAIMIDIwanted) return;
-OLDCODE        if (!p->EAIMIDIInitialized) {
-OLDCODE                p->EAIMIDIfailed = !(conEAIorCLASS(MIDIPORTOFFSET, &p->EAIMIDIsockfd, &tg->EAIServ.EAIMIDIlistenfd));
-OLDCODE                return;
-OLDCODE        }
-OLDCODE
-OLDCODE        if (tg->EAIServ.EAIMIDIlistenfd < 0) return;
-OLDCODE
-OLDCODE        tg->EAIServ.EAIbufcount = 0;
-OLDCODE
-OLDCODE	EBUFFLOCK;
-OLDCODE
-OLDCODE        tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer, &tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIMIDIlistenfd);
-OLDCODE        /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
-OLDCODE
-OLDCODE        /* make this into a C string */
-OLDCODE        tg->EAIServ.EAIbuffer[tg->EAIServ.EAIbufcount] = 0;
-OLDCODE        if (eaiverbose) printf ("handle_EAI-- Data is :%s:\n",tg->EAIServ.EAIbuffer);
-OLDCODE
-OLDCODE        /* any command read in? */
-OLDCODE        if (tg->EAIServ.EAIbufcount > 1)
-OLDCODE                EAI_parse_commands ();
-OLDCODE
-OLDCODE	EBUFFUNLOCK;
-OLDCODE}
-#endif //OLDCODE
-
-
-
-void EAI_send_string(char *str, int lfd){
-	size_t n;
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
-	/* add a trailing newline */
-	strcat (str,"\n");
-
-	if (eaiverbose) {
-		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
-	}
-
-	/* printf ("EAI_send_string, sending :%s:\n",str); */
-#ifdef _MSC_VER
-	n = send(lfd, str, (unsigned int) strlen(str),0);
-#else
-	n = write (lfd, (const void *)str, strlen(str));
-#endif	
-	if (n<strlen(str)) {
-		if (eaiverbose) {
-		printf ("write, expected to write %d, actually wrote %d\n",(int)n,(int)strlen(str));
-		}
-	}
-	/* printf ("EAI_send_string, wrote %d\n",n); */
-}
-
 
 /* read in from the socket.   pass in -
 	pointer to buffer,
@@ -500,35 +520,32 @@ void EAI_send_string(char *str, int lfd){
  	return the char pointer - it may have been REALLOC'd */
 
 
-char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
+char *privSocketRead(int channel, char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	int retval, oldRetval;
-	int eaiverbose;
-	ppEAIServ p;
-	ttglobal tg = gglobal();
-	p = (ppEAIServ)tg->EAIServ.prv;
-	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	/* if (eaiverbose) printf ("read_EAI_socket, thread %d EAIlistenfd %d buffer addr %d time %lf\n",pthread_self(),*EAIlistenfd,bf,TickTime()); */
+
+	if (service_verbose[channel] > 1) {
+		printf ("privSocketRead (polling), listenfd %d, buffer addr %p\n",(*EAIlistenfd),(void *) bf);
+	}
 	retval = FALSE;
 	do {
-		// JAS int fd;
-		p->tv2.tv_sec = 0;
-		p->tv2.tv_usec = 0;
-		FD_ZERO(&p->rfds2);
-		FD_SET((*EAIlistenfd), &p->rfds2);
+		tv2.tv_sec = 0;
+		tv2.tv_usec = 0;
+		FD_ZERO(&rfds2);
+		FD_SET((*EAIlistenfd), &rfds2);
 
 		oldRetval = retval;
-		retval = select((*EAIlistenfd)+1, &p->rfds2, NULL, NULL, &p->tv2);
-		/* if (eaiverbose) printf ("select retval %d\n",retval); */
+		retval = select((*EAIlistenfd)+1, &rfds2, NULL, NULL, &tv2);
+		if (service_verbose[channel] > 1) printf ("select retval %d\n",retval);
 
 		if (retval != oldRetval) {
 			loopFlags &= NO_RETVAL_CHANGE;
 		}
 
-		if (eaiverbose) {
-		if (!(loopFlags&NO_RETVAL_CHANGE)) {
-			printf ("readEAIsocket--, retval %d\n",retval);
-			loopFlags |= NO_RETVAL_CHANGE;
-		}
+		if (service_verbose[channel] > 1) {
+			if (!(loopFlags&NO_RETVAL_CHANGE)) {
+				printf ("privSocketRead, retval %d\n",retval);
+				loopFlags |= NO_RETVAL_CHANGE;
+			}
 		}
 
 
@@ -539,8 +556,8 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			retval = (int) read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
 #endif
 			if (retval <= 0) {
-				if (eaiverbose) {
-					printf ("read_EAI_socket, client is gone!\n");
+				if (service_verbose[channel]) {
+					printf ("privSocketRead, client is gone!\n");
 				}
 
 				/*perror("READ_EAISOCKET");*/
@@ -553,17 +570,28 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 				close ((*EAIlistenfd));
 #endif
 				(*EAIlistenfd) = -1;
+				SCK_descriptors[channel][0] = -1 ;
+				SCK_descriptors[channel][1] = -1 ;
+				service_status[channel] = RxTx_STOP ;
+				service_wanted[channel] = FALSE;
+				service_connected[channel] = FALSE;
+				service_failed[channel] = FALSE;
 
-				/* And, lets just exit FreeWRL*/
-				printf ("FreeWRL:EAI socket closed, exiting...\n");
-				fwl_doQuit();
+				if(service_onclose[channel] == TRUE) {
+					/* And, lets just exit FreeWRL*/
+					printf ("FreeWRL:EAI socket closed, exiting...\n");
+					fwl_doQuit();
+					return (bf);
+				} else {
+					return (bf);
+				}
 			}
 
-			if (eaiverbose) {
+			if (service_verbose[channel]>1) {
 			    char tmpBuff1[EAIREADSIZE];
 			    strncpy(tmpBuff1,&bf[(*bfct)],retval);
 			    tmpBuff1[retval] = '\0';
-			    printf ("read in from socket %d bytes, max %d bfct %d cmd <%s>\n",
+			    printf ("privSocketRead %d bytes, max %d bfct %d input=<%s>\n",
 				    retval,EAIREADSIZE, *bfct,tmpBuff1);/*, &bf[(*bfct)]);*/
 			}
 
@@ -571,17 +599,21 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			(*bfct) += retval;
 
 			if (((*bfsz) - (*bfct)) <= EAIREADSIZE) {
-				if (eaiverbose) 
-				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %p bfsz %d bfct %d\n",bf,*bfsz, *bfct);  
+				if (service_verbose[channel]) 
+					printf ("privSocketRead: HAVE TO REALLOC INPUT MEMORY:bf %p bfsz %d bfct %d\n",bf,*bfsz, *bfct);  
 				(*bfsz) += EAIREADSIZE;
-				/* printf ("read_EAI_socket: bfsz now %d\n",*bfsz); */
+				if (service_verbose[channel]) 
+					printf ("privSocketRead: bfsz now %d\n",*bfsz);
 				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));
-				/* printf ("read_EAI_socket: REALLOC complete\n"); */
+				if (service_verbose[channel]) 
+					printf ("privSocketRead: REALLOC complete\n");
 			}
+		}
+		if (service_verbose[channel] > 1) {
+			printf ("Buffer addr %p\n",(void *) bf);
 		}
 	} while (retval);
 	return (bf);
 }
-
-
 #endif //EXCLUDE_EAI
+

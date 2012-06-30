@@ -137,18 +137,15 @@ typedef struct iiglobal //InstanceGlobal
 		int outBufferLen;
 		void *prv;
 	} EAIHelpers;
-	struct tEAIServ{
-		int	EAIlistenfd;// = -1;			/* listen to this one for an incoming connection*/
+	struct tEAICore{
 		/* EAI input buffer */
 		char *EAIbuffer;
 		int EAIbufcount;				/* pointer into buffer*/
+		int EAIbufpos;
 		int EAIbufsize;				/* current size in bytes of input buffer*/
 		char EAIListenerData[8192]; //EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
-#ifdef OLDCODE
-OLDCODE		int	EAIMIDIlistenfd;// = -1;		/* listen on this socket for an incoming connection for MIDI EAI */
-#endif //OLDCODE
 		void *prv;
-	} EAIServ;
+	} EAICore;
 	struct tSensInterps{
 		void *prv;
 	} SensInterps;

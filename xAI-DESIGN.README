@@ -1,0 +1,82 @@
+Sat Jun 30 2012 - Dave J
+
+The interface to the EAI has been redesigned, and now works as follows:
+
+A) The receive/transmit mechanism has been generalised, and does not
+share a buffer with the actual EAI routines.
+The external interface is no longer socket specific,
+but only conforms to socket-type behaviour in general,
+ie setup, test buffer, read, reply... test buffer, read, reply
+It is still a polling approach to setup, (ie it does not wait
+for the client to connect) and a polling approach to reading.
+
+B) MainLoop.c explicitly handles the discrete steps,
+....test buffer, read, call the EAI and get a reply, send the reply.......
+MainLoop is also the routine that explicitly checks the situation
+where the input contains more than one command. A well-behaved client
+will only do this under very specific conditions, but MainLoop.c can
+cope with rude clients.
+
+C) In theory the core FreeWRL library can now be used with a 'proper' SAI,
+ie one that does not use a socket, but calls an EAI function returning a string.
+
+You will still need to encapsulate your parameters into a string matching
+the EAI protocol, and unpack the reply, but the current Java/C source libraries
+show you how to do that.
+
+And, you need to be clever, and cater for the following:
+
+Sometimes the reply will be a null string. Do not send the null down a socket,
+because a socket client does not expect a reply in this case.
+
+Async:
+If you set up a ROUTE back to you, the setup phase will reply immediately, but
+the event will happen async. Another Async event is the second portion of the
+reply to a LOADURL request.
+
+LOADURL:
+This does a two-stage reply. The first portion does not contain an END_OF marker
+and the second portion will arrive only after the URL has been loaded, and will
+effectively arrive async. See my sub-note further on.
+
+case CREATEVU:
+case CREATEVS:
+These expect an EOT marker in the string you send. If the markers are not there,
+the EAI core is going to call you back for more data. If you cannot supply the
+data you will be up the proverbial creek. So, do yourself a favour and send the
+whole string. The core code is merely trying to cope with one request split into
+multiple packets.
+
+Async sub-note:
+The issue was handled this way in my Tcl library:
+You specifically need to know at all times whether you are in Sync mode or Async mode.
+Async is the default mode, but the moment you issue an EAI command (that expects
+a reply), you need to switch to Sync mode.
+
+When you are in sync mode, (and effectively blocking for a reply) examine the
+reply for a END_OF marker, and do not leave Sync mode until you have the marker.
+
+If you are in Sync mode and you get an Async packet, examine the string to see
+if is the dangling portion of a reply. If it is not, shove the packet into a
+Async queue, and remain in Sync mode.
+
+When you finished with Sync mode, examine and handle the Async queue.
+
+Always imagine this possible case: You prep everything to create an node that
+has a touchsensor attached to it. You 'enable' the node, say by moving the
+viewpoint or a CREATE, but the node pops up under the user's mouse. Can you
+handle the case where the async event happens before the sync reply?
+Other explicit cases may include creating a bunch of nodes and the user moving
+the cursor over a sensitive node, you removing a node due to a 'over' event, and
+the removal triggering a 'no longer over' event.....
+
+ToDo:
+All the calls to the fwlio_RxTx_* routines are currently hard-coded. What is
+needed is for these calls to be made through a jump-table. That way you can
+cope with with one or more of the following enhancements:
+Putting the RxTx routines in the front-end,
+Replacing the TCP socket code with UDP code,
+Multi-client UDP code (OSC)
+Replacing the TCP socket code with Android event code,
+Forcing the remote client to share an initial security token,
+etc, etc.

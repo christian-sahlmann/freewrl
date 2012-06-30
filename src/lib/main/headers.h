@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.175 2012/05/17 02:38:56 crc_canada Exp $
+$Id: headers.h,v 1.176 2012/06/30 22:09:45 davejoubert Exp $
 
 Global includes.
 
@@ -679,7 +679,6 @@ void removeFilenameFromPath (char *path);
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
 
-void handle_EAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 #define overMark        23425

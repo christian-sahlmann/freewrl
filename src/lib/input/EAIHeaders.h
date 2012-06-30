@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIHeaders.h,v 1.18 2012/05/17 02:38:56 crc_canada Exp $
+$Id: EAIHeaders.h,v 1.19 2012/06/30 22:09:44 davejoubert Exp $
 
 EAI and java CLASS invocation
 
@@ -45,13 +45,14 @@ EAI and java CLASS invocation
 
 //extern int eaiverbose;
 
-void shutdown_EAI(void);
+/* void shutdown_EAI(void); */
 int EAI_GetNode(const char *str);
 struct X3D_Node *EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
 
 /* function prototypes */
 void EAIListener (void);
+/* void EAI_clearListenerNode(void); */
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
@@ -62,23 +63,16 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 									/* from EAI_C_CommonFunctions.c */
 int returnRoutingElementLength(int);					/* from EAI_C_CommonFunctions.c */
 void createLoadURL(char *);						/* from EAIEventsIn.c */
-void EAI_parse_commands(void);						/* from EAIEventsIn.c */
+void EAI_core_commands(void);						/* from EAIEventsIn.c */
 void EAI_Anchor_Response(int);						/* from EAIEventsIn.c */
 
 /* debugging */
 char *eaiPrintCommand (char command);
 
-
+// #define EAIREADSIZE	8192
 #define EAI_NODETYPE_STANDARD   93435
 #define EAI_NODETYPE_PROTO      43534
 #define EAI_NODETYPE_SCRIPT     234425
-
-
-
-#define MAXEAIHOSTNAME	255		/* length of hostname on command line */
-#define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */
-#define EAIBASESOCKET   9877		/* socket number to start at */
-
 
 /* these are commands accepted from the EAI client */
 #define GETNODE		'A'
@@ -116,6 +110,16 @@ char *eaiPrintCommand (char command);
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
+#define MIDIINFO  	'l'
+#define MIDICONTROL  	'm'
+//extern int EAIMIDIlistenfd;
+//extern int EAIMIDIsockfd;
+//extern int EAIMIDIwanted;
+#define MIDI_CONTROLLER_UNUSED 4
+#define MIDI_CONTROLLER_FADER 1
+#define MIDI_CONTROLLER_KEYPRESS 2
+#define MIDI_CONTROLLER_UNKNOWN 999
+
 #define DUMPSCENE  	'n'
 
 
@@ -172,8 +176,24 @@ char *eaiPrintCommand (char command);
 
 
 /* Function Prototype for plugins, Java Class Invocation */
-int createUDPSocket();
-int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd);
-void EAI_send_string (char *str, int listenfd);
-char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
+//	int createUDPSocket();
+//	int privSocketSetup(int socketincrement, int *sockfd, int *listenfd);
+//	* void EAI_send_string (char *str, int listenfd); */
+//	char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
+//	extern int EAIlistenfd;
+//	extern int EAIsockfd;
+//	extern int EAIport;
+//	extern int EAIwanted;
+//	extern int EAIMIDIlistenfd;
+//	extern int EAIMIDIsockfd;
+//	extern int EAIMIDIwanted;
+extern int E_SOCK_bufsize;
+//	extern char *E_SOCK_buffer;
+extern int E_SOCK_bufcount;
+int EAIbufsize;
+char *EAIbuffer;
+//	int EAIbufcount;
+#define EAIREADSIZE 8192
+//	extern char EAIListenerData[EAIREADSIZE];
+
 #endif /* __FREEWRL_EAI_H__ */

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.75 2012/06/18 17:41:43 crc_canada Exp $
+  $Id: main.c,v 1.76 2012/06/30 22:09:44 davejoubert Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -282,7 +282,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (fwl_getp_eai()) {
-		fwl_create_EAI();
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
 	}

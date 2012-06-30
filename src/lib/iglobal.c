@@ -17,7 +17,7 @@ void EAIEventsIn_init(struct tEAIEventsIn* t);
 void EAIHelpers_init(struct tEAIHelpers* t);
 
 #if !defined(EXCLUDE_EAI)
-void EAIServ_init(struct tEAIServ* t);
+void EAICore_init(struct tEAICore* t);
 #endif
 
 void SensInterps_init(struct tSensInterps *t);
@@ -114,7 +114,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	EAI_C_CommonFunctions_init(&iglobal->EAI_C_CommonFunctions);
 	EAIEventsIn_init(&iglobal->EAIEventsIn);
 	EAIHelpers_init(&iglobal->EAIHelpers);
-	EAIServ_init(&iglobal->EAIServ);
+	EAICore_init(&iglobal->EAICore);
 #endif //EXCLUDE_EAI
 
 	SensInterps_init(&iglobal->SensInterps);
@@ -234,7 +234,7 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->Mainloop.prv);
 	FREE_IF_NZ(tg->ConsoleMessage.prv);
 	FREE_IF_NZ(tg->SensInterps.prv);
-	FREE_IF_NZ(tg->EAIServ.prv);
+	FREE_IF_NZ(tg->EAICore.prv);
 	FREE_IF_NZ(tg->EAIHelpers.prv);
 	FREE_IF_NZ(tg->EAIEventsIn.prv);
 	FREE_IF_NZ(tg->EAI_C_CommonFunctions.prv);

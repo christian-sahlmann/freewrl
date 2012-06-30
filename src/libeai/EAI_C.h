@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include "EAIHeaders.h"
+#include "SCKHeaders.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>

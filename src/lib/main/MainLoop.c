@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.252 2012/06/25 22:26:32 crc_canada Exp $
+  $Id: MainLoop.c,v 1.253 2012/06/30 22:09:44 davejoubert Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -804,15 +804,109 @@ void fwl_RenderSceneUpdateScene() {
                 process_eventsProcessed();
 
 		#if !defined(EXCLUDE_EAI)
-                /* EAI */
-                handle_EAI();
-		#ifdef OLDCODE
-		OLDCODE handle_MIDIEAI();
-		#endif //OLDCODE
-		#endif //EXCLUDE_EAI
-        }
-}
+		/*
+		 * Actions are now separate so that file IO is not tightly coupled
+		 * via shared buffers and file descriptors etc. 'The core' now calls
+		 * the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
+		 * funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
+		 *
+		 * Although the MIDI code and the EAI code are basically the same
+		 * and one could compress them into a loop, for the moment keep
+		 * them seperate to serve as a example for any extensions...
+		 */
 
+                /* handle_EAI(); */
+		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
+		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
+			if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_REFRESH) == 0) {
+				/* Nothing to be done, maybe not even running */
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
+				}
+			} else {
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
+				}
+				if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_PENDING) > 0) {
+					if ( socketVerbose != 0 ) {
+						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
+					}
+					char *tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
+					if(tempEAIdata != (char *)NULL) {
+						if ( socketVerbose != 0 ) {
+							printf("%s:%d Something for EAI to do with buffer addr %p\n",__FILE__,__LINE__,tempEAIdata ) ;
+						}
+						/*
+						 * Every incoming command has a reply,
+						 * and the reply is synchronous.
+						 */
+						char * replyData = fwl_EAI_handleBuffer(tempEAIdata);
+						free(tempEAIdata) ;
+						int EAI_StillToDo = 1;
+						do {
+							if(replyData != NULL && strlen(replyData) != 0) {
+								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
+								free(replyData) ;
+								/*
+								 * Note: fwlio_RxTx_sendbuffer() can also be called async
+								 * due to a listener trigger within routing, but it is
+								 * is up to that caller to clean out its own buffers.
+								 */
+							}
+							EAI_StillToDo = fwl_EAI_allDone();
+							if(EAI_StillToDo) {
+								if ( socketVerbose != 0 ) {
+									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
+								}
+								replyData = fwl_EAI_handleRest();
+							}
+						} while(EAI_StillToDo) ;
+					}
+				}
+			}
+			/* handle_MIDI(); */
+			//socketVerbose = fwlio_RxTx_control(CHANNEL_MIDI, RxTx_GET_VERBOSITY)  ;
+			if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_REFRESH) == 0) {
+				/* Nothing to be done, maybe not even running */
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Nothing to be done\n",__FILE__,__LINE__) ;
+				}
+			} else {
+				if ( socketVerbose > 1 ) {
+					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
+				}
+				if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_PENDING) > 0) {
+					if ( socketVerbose != 0 ) {
+						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
+					}
+					char *tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
+					if(tempMIDIdata != (char *)NULL) {
+						if ( socketVerbose != 0 ) {
+							printf("%s:%d Something for MIDI to do with buffer addr %p\n",__FILE__,__LINE__,tempMIDIdata ) ;
+						}
+						char * replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
+						free(tempMIDIdata) ;
+						int EAI_StillToDo = 1;
+						do {
+							if(replyData != NULL && strlen(replyData) != 0) {
+								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_MIDI, replyData) ;
+								free(replyData) ;
+							}
+							EAI_StillToDo = fwl_EAI_allDone();
+							if(EAI_StillToDo) {
+								if ( socketVerbose != 0 ) {
+									printf("%s:%d Something still in EAI buffer? %d\n",__FILE__,__LINE__,EAI_StillToDo ) ;
+								}
+								replyData = fwl_EAI_handleRest();
+							}
+						} while(EAI_StillToDo) ;
+					}
+				}
+			}
+		}
+  		#endif //EXCLUDE_EAI
+          }
+  }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
 void handle_Xevents(XEvent event) {
@@ -2083,7 +2177,7 @@ void fwl_doQuit()
 // tmp files are on a per-invocation basis on Android, and possibly other locations.
 // note that the "tempnam" function will accept NULL as the directory on many platforms,
 // so this function does not really need to be called on many platforms.
-fwl_tmpFileLocation(char *tmpFileLocation) {
+void fwl_tmpFileLocation(char *tmpFileLocation) {
 	if (tmpFileLocation == NULL) return;
 	ttglobal tg = gglobal();
 	FREE_IF_NZ(tg->Mainloop.tmpFileLocation);
@@ -2382,7 +2476,8 @@ void setDisplayed (int state) {
 
 void fwl_init_EaiVerbose() {
         //eaiverbose = TRUE;
-		gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
+	gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
+	fwlio_RxTx_control(CHANNEL_EAI, RxTx_MOREVERBOSE); /* RxTx_SILENT */
 }
 
 #if defined (_ANDROID)
@@ -2461,7 +2556,8 @@ ConsoleMessage(me);
 	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
-	       	shutdown_EAI();
+	       	/* shutdown_EAI(); */
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
 	}
 	#endif //EXCLUDE_EAI
 

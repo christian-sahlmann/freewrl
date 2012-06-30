@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.53 2012/06/26 21:02:33 crc_canada Exp $
+  $Id: libFreeWRL.h,v 1.54 2012/06/30 22:09:44 davejoubert Exp $
 
   FreeWRL library API (public)
 
@@ -234,8 +234,33 @@ void fwl_doQuit();
 void fwl_doQuitInstance();
 void fwl_set_viewer_type(const int type);
 
-void fwl_init_EaiVerbose();
-void fwl_create_EAI();
+#define CHANNEL_EAI 0
+#define CHANNEL_MIDI 1
+
+#define RxTx_STOP 0		/* Shutdown */
+#define RxTx_START 1	/* Start */
+#define RxTx_REFRESH 2	/* Read any pending input into PRIVATE buffer */
+#define RxTx_EMPTY 4	/* Empty the private buffer */
+#define RxTx_MOREVERBOSE 8
+#define RxTx_SILENT 16
+#define RxTx_SINK 32	/* Just throw away any future input */
+#define RxTx_PENDING 64
+#define RxTx_STOP_IF_DISCONNECT 128
+#define RxTx_STATE 32768
+#define RxTx_GET_VERBOSITY 65536
+
+/* The first few functions do I/O */
+int	fwlio_RxTx_control(int channel, int action);
+char *	fwlio_RxTx_getbuffer(int channel) ;
+void	fwlio_RxTx_sendbuffer(char *fromFile, int fromLine, int channel, char *str);
+char *	fwlio_RxTx_waitfor(int channel, char *str);
+
+void	fwl_init_EaiVerbose();
+void	fwl_EAI_clearListenerNode(void);
+char *	fwl_EAI_handleBuffer(char *tempEAIdata);
+int	fwl_EAI_allDone();
+char *	fwl_EAI_handleRest();
+char *	fwl_MIDI_handleBuffer(char *tempEAIdata);
 
 void fwl_set_ScreenDist(const char *optArg);
 void fwl_init_StereoDefaults(void); //don't need to call now March 2012

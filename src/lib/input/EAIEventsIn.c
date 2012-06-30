@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.84 2012/06/25 22:26:32 crc_canada Exp $
+$Id: EAIEventsIn.c,v 1.85 2012/06/30 22:09:44 davejoubert Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -27,6 +27,40 @@ Handle incoming EAI (and java class) events with panache.
 ****************************************************************************/
 
 
+/************************************************************************/
+/*									*/
+/* Design notes:							*/
+/*	FreeWRL is a server, the Java (or whatever) program is a client	*/
+/*									*/
+/*	Commands come in, and get answered to, except for sendEvents;	*/
+/*	for these there is no response (makes system faster)		*/
+/*									*/
+/*	Nodes that are registered for listening to, send async		*/
+/*	messages.							*/
+/*									*/
+/*	very simple example:						*/
+/*		move a transform; Java code:				*/
+/*									*/
+/*		EventInMFNode addChildren;				*/
+/*		EventInSFVec3f newpos;					*/
+/*		try { root = browser.getNode("ROOT"); }			*/
+/*		catch (InvalidNodeException e) { ... }			*/
+/*									*/
+/*		newpos=(EventInSFVec3f)root.getEventIn("translation");	*/
+/*		val[0] = 1.0; val[1] = 1.0; val[2] = 1.0;		*/
+/*		newpos.setValue(val);					*/
+/*									*/
+/*		Three EAI commands sent:				*/
+/*			1) GetNode ROOT					*/
+/*				returns a node identifier		*/
+/*			2) GetType (nodeID) translation			*/
+/*				returns posn in memory, length,		*/
+/*				and data type				*/
+/*									*/
+/*			3) SendEvent posn-in-memory, len, data		*/
+/*				returns nothing - assumed to work.	*/
+/*									*/
+/************************************************************************/
 
 #include <config.h>
 #include <system.h>
@@ -57,10 +91,11 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/CRoutes.h"
 
 #include "EAIHelpers.h"
+#include "EAIHeaders.h"
 
 #include <ctype.h> /* FIXME: config armor */
 
-#define EAI_BUFFER_CUR tg->EAIServ.EAIbuffer[bufPtr]
+#define EAI_BUFFER_CUR tg->EAICore.EAIbuffer[bufPtr]
 
 /* used for loadURL */
 //struct X3D_Anchor EAI_AnchorNode;
@@ -76,7 +111,9 @@ extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in Gener
 
 /******************************************************************************
 *
-* EAI_parse_commands
+* EAI_core_commands should only be called from
+* fwl_EAI_handleBuffer(..) or
+* fwl_MIDI_handleBuffer(..)
 *
 * there can be many commands waiting, so we loop through commands, and return
 * a status of EACH command
@@ -91,7 +128,6 @@ extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in Gener
 * look to the top of this file for the #defines
 *
 *********************************************************************************/
-
 
 typedef struct pEAIEventsIn{
 int oldCount; //=0;
@@ -118,6 +154,33 @@ void EAIEventsIn_init(struct tEAIEventsIn* t)
 	}
 }
 
+/*
+ * This code used to sit in the socket server, but
+ * the EAI buffer is no longer the same as the socket's buffer
+ * The EAI buffer may still need sharing and locking...
+ * Will leave that decision to the experts!!
+ */
+typedef struct pEAICore{
+	pthread_mutex_t eaibufferlock;// = PTHREAD_MUTEX_INITIALIZER;
+}* ppEAICore;
+
+void *EAICore_constructor()
+{
+	void *v = malloc(sizeof(struct pEAICore));
+	memset(v,0,sizeof(struct pEAICore));
+	return v;
+}
+void EAICore_init(struct tEAICore* t){
+	//private
+	t->prv = EAICore_constructor();
+	{
+		ppEAICore p = (ppEAICore)t->prv;
+		pthread_mutex_init(&(p->eaibufferlock), NULL);
+	}
+	//public
+	t->EAIbufsize = EAIREADSIZE ;
+}
+
 struct X3D_Anchor* get_EAIEventsIn_AnchorNode()
 {
 	ppEAIEventsIn p = (ppEAIEventsIn)gglobal()->EAIEventsIn.prv;
@@ -125,7 +188,121 @@ struct X3D_Anchor* get_EAIEventsIn_AnchorNode()
 }
 
 #if !defined(EXCLUDE_EAI)
-void EAI_parse_commands () {
+int fwl_EAI_allDone() {
+	int eaiverbose;
+	int bufPtr;
+	ttglobal tg = gglobal();
+	bufPtr = tg->EAICore.EAIbufpos;
+	int stillToDo = (int)strlen((&EAI_BUFFER_CUR));
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+	if (eaiverbose && stillToDo > 0) {
+		printf ("EAI_allDone still to do: strlen %d str :%s:\n",stillToDo, (&EAI_BUFFER_CUR));
+	}
+	return stillToDo;
+}
+
+char * fwl_EAI_handleRest() {
+	int eaiverbose;
+	int bufPtr;
+	ttglobal tg = gglobal();
+	bufPtr = tg->EAICore.EAIbufpos;
+	int stillToDo = (int)strlen((&EAI_BUFFER_CUR));
+	struct tEAIHelpers *th;
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+
+	if(NULL == tg->EAICore.EAIbuffer) {
+		printf("fwl_EAI_handleRest() did not have a buffer, WTF!!") ;
+		return NULL ;
+	}
+	if(stillToDo > 0) {
+		if(eaiverbose) {
+			printf("%s:%d fwl_EAI_handleRest: Buffer at %p , bufPtr=%d , still to do=%d str :%s:\n",\
+			__FILE__,__LINE__,tg->EAICore.EAIbuffer,bufPtr,(int)strlen((&EAI_BUFFER_CUR)), (&EAI_BUFFER_CUR));
+		}
+
+		EAI_core_commands() ;
+
+		th = &tg->EAIHelpers;
+		return th->outBuffer ;
+	} else {
+		return "";
+	}
+}
+
+char * fwl_EAI_handleBuffer(char *fromFront) {
+	/* memcp from fromFront to &EAI_BUFFER_CUR */
+	int eaiverbose;
+	int len = strlen(fromFront) ;
+	ttglobal tg = gglobal();
+	struct tEAIHelpers *th;
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+
+	if(NULL == tg->EAICore.EAIbuffer) {
+		tg->EAICore.EAIbuffer = MALLOC(char *, tg->EAICore.EAIbufsize * sizeof (char));
+		if(eaiverbose) {
+			printf("fwl_EAI_handleBuffer() did not have a buffer, so create one at %p\n",tg->EAICore.EAIbuffer) ;
+		}
+	}
+	if(eaiverbose) {
+		printf("%s:%d fwl_EAI_handleBuffer: Buffer at %p is %d chars,",__FILE__,__LINE__,fromFront,len);
+		printf("Copy to buffer at %p\n", tg->EAICore.EAIbuffer);
+	}
+
+	if(len <= EAIREADSIZE) {
+		tg->EAICore.EAIbuffer[len] = '\0';
+		memcpy(tg->EAICore.EAIbuffer, fromFront, len);
+
+                //int EAIbufcount;                                /* pointer into buffer*/
+                //int EAIbufpos;
+		tg->EAICore.EAIbufpos = 0;
+                tg->EAICore.EAIbufcount = 0;
+
+		EAI_core_commands() ;
+
+		th = &tg->EAIHelpers;
+		return th->outBuffer ;
+	} else {
+		fwlio_RxTx_control(CHANNEL_EAI,RxTx_STOP) ;
+		return "";
+	}
+}
+char * fwl_MIDI_handleBuffer(char *fromFront) {
+	/* memcp from fromFront to &EAI_BUFFER_CUR */
+	int eaiverbose;
+	int len = strlen(fromFront) ;
+	ttglobal tg = gglobal();
+	struct tEAIHelpers *th;
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+
+	if(NULL == tg->EAICore.EAIbuffer) {
+		tg->EAICore.EAIbuffer = MALLOC(char *, tg->EAICore.EAIbufsize * sizeof (char));
+		if(eaiverbose) {
+			printf("fwl_MIDI_handleBuffer() did not have a buffer, so create one at %p\n",tg->EAICore.EAIbuffer) ;
+		}
+	}
+	if(eaiverbose) {
+		printf("%s:%d fwl_MIDI_handleBuffer: Buffer at %p is %d chars,",__FILE__,__LINE__,fromFront,len);
+		printf("Copy to buffer at %p\n", tg->EAICore.EAIbuffer);
+	}
+
+	if(len <= EAIREADSIZE) {
+		tg->EAICore.EAIbuffer[len] = '\0';
+		memcpy(tg->EAICore.EAIbuffer, fromFront, len);
+
+		tg->EAICore.EAIbufpos = 0;
+                tg->EAICore.EAIbufcount = 0;
+
+		EAI_core_commands() ;
+
+		th = &tg->EAIHelpers;
+		return th->outBuffer ;
+	} else {
+		fwlio_RxTx_control(CHANNEL_MIDI,RxTx_STOP) ;
+		return "";
+	}
+}
+
+void EAI_core_commands () {
 	/* char buf[EAIREADSIZE];*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
 	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
@@ -151,31 +328,33 @@ void EAI_parse_commands () {
 	int dumpfsize ;
 	int dumpInt ;
 	FILE *dumpfd ;
+
 	int eaiverbose;
 	ppEAIEventsIn p;
-	//ppEAIServ ps;
+	//ppEAICore ps;
 	struct tEAIHelpers *th;
 	ttglobal tg = gglobal();
 	p = (ppEAIEventsIn)tg->EAIEventsIn.prv;
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
 	th = &tg->EAIHelpers;
-	//ps = tg->EAIServ.prv;
+	//ps = tg->EAICore.prv;
 
 	/* initialization */
-	bufPtr = 0;
+	bufPtr = tg->EAICore.EAIbufpos;
 
 	/* output buffer - start off with it this size */
 	th->outBufferLen = EAIREADSIZE;
 	th->outBuffer = MALLOC(char *, th->outBufferLen);
+	th->outBuffer[0] = 0;
 
-	while (EAI_BUFFER_CUR> 0) {
+	if (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
-			printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",(int)strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
+			printf ("EAI_core_commands: strlen %d str :%s:\n",(int)strlen((&EAI_BUFFER_CUR)), (&EAI_BUFFER_CUR));
 		}
 
 		/* step 1, get the command sequence number */
 		if (sscanf ((&EAI_BUFFER_CUR),"%d",&count) != 1) {
-			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",(&EAI_BUFFER_CUR));
+			printf ("EAI_core_commands, expected a sequence number on command :%s:\n",(&EAI_BUFFER_CUR));
 			count = 0;
 		}
 		if (eaiverbose) {
@@ -236,6 +415,7 @@ void EAI_parse_commands () {
 					fclose(dumpfd) ;
 					unlink(dumpname) ;
 				}
+
 				break;
 				}
 			case GETRENDPROP: {
@@ -296,6 +476,7 @@ void EAI_parse_commands () {
 			case GETNODETYPE: {
 				int cNode;
 				retint = sscanf(&EAI_BUFFER_CUR,"%d",(&cNode));
+				if (eaiverbose) { printf ("\n"); } /* need to fix the dangling printf before the case statement */
 				if (cNode != 0) {
         				boxptr = getEAINodeFromTable(cNode,-1);
 					sprintf (th->outBuffer,"RE\n%f\n%d\n%d",TickTime(),count,getSAI_X3DNodeType (
@@ -314,6 +495,7 @@ void EAI_parse_commands () {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %s %s",&xtmp, ctmp,dtmp);
+				if (eaiverbose) { printf ("\n"); } /* need to fix the dangling printf before the case statement */
 				if (eaiverbose) {	
 					printf ("GETFIELDTYPE cptr %d %s %s\n",xtmp, ctmp, dtmp);
 				}	
@@ -326,9 +508,60 @@ void EAI_parse_commands () {
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
 				setField_FromEAI (&EAI_BUFFER_CUR);
+				th->outBuffer[0] = 0;
 				if (eaiverbose) {	
 					printf ("after SENDEVENT, strlen %d\n",(int)strlen(&EAI_BUFFER_CUR));
 				}
+				break;
+				}
+			case MIDIINFO: {
+				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
+/* if we do not have a string yet, we have to do this...
+This is a problem. We cannot create the VRML until we have a whole stanza
+which means we may have to block, because we cannot respond to the original request.
+
+However, nowadays we do not read any sockets directly....
+*/
+				int topWaitLimit=16;
+				int currentWaitCount=0;
+
+				while (EOT == NULL && topWaitLimit >= currentWaitCount) {
+					if(fwlio_RxTx_control(CHANNEL_MIDI,RxTx_REFRESH) == 0) {
+						/* Nothing to be done, maybe not even running */
+						usleep(10000);
+						currentWaitCount++;
+					} else {
+						if(fwlio_RxTx_waitfor(CHANNEL_MIDI,"\nEOT\n") != (char *)NULL) {
+							char *tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
+							if(tempEAIdata != (char *)NULL) {
+								strcat(&EAI_BUFFER_CUR,tempEAIdata) ;
+								/* tg->EAICore.EAIbuffer = ....*/
+								free(tempEAIdata) ;
+							}
+						} else {
+							usleep(10000);
+							currentWaitCount++;
+						}
+					}
+					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
+				}
+
+				if (topWaitLimit <= currentWaitCount) {
+					/* Abandon Ship */
+					sprintf (th->outBuffer,"RE\n%f\n%d\n-1",TickTime(),count);
+				} else {
+					*EOT = 0; /* take off the EOT marker*/
+					/* MIDICODE ReWireRegisterMIDI(&EAI_BUFFER_CUR); */
+
+					/* finish this, note the pointer maths */
+					bufPtr = (int) (EOT+3-tg->EAICore.EAIbuffer);
+					sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
+				}
+				break;
+				}
+			case MIDICONTROL: {
+				/* sprintf (th->outBuffer,"RE\n%f\n%d\n%d",TickTime(),count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
+				/* MIDICODE ReWireMIDIControl(&EAI_BUFFER_CUR); */
 				break;
 				}
 			case CREATEVU:
@@ -342,17 +575,46 @@ void EAI_parse_commands () {
 					}	
 
 					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
-					/* if we do not have a string yet, we have to do this...*/
-					while (EOT == NULL) {
-						tg->EAIServ.EAIbuffer = read_EAI_socket(tg->EAIServ.EAIbuffer,&tg->EAIServ.EAIbufcount, &tg->EAIServ.EAIbufsize, &tg->EAIServ.EAIlistenfd);
+/* if we do not have a string yet, we have to do this...
+This is a problem. We cannot create the VRML until we have a whole stanza
+which means we may have to block, because we cannot respond to the original request.
+
+However, nowadays we do not read any sockets directly....
+*/
+					int topWaitLimit=16;
+					int currentWaitCount=0;
+
+					while (EOT == NULL && topWaitLimit >= currentWaitCount) {
+						if(fwlio_RxTx_control(CHANNEL_EAI,RxTx_REFRESH) == 0) {
+							/* Nothing to be done, maybe not even running */
+							usleep(10000);
+							currentWaitCount++;
+						} else {
+							if(fwlio_RxTx_waitfor(CHANNEL_EAI,"\nEOT\n") != (char *)NULL) {
+								char *tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
+								if(tempEAIdata != (char *)NULL) {
+									strcat(&EAI_BUFFER_CUR,tempEAIdata) ;
+									/* tg->EAICore.EAIbuffer = ....*/
+									free(tempEAIdata) ;
+								}
+							} else {
+								usleep(10000);
+								currentWaitCount++;
+							}
+						}
 						EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 					}
+					if (topWaitLimit <= currentWaitCount) {
+						/* Abandon Ship */
+						sprintf (th->outBuffer,"RE\n%f\n%d\n-1",TickTime(),count);
+					} else {
 
-					*EOT = 0; /* take off the EOT marker*/
+						*EOT = 0; /* take off the EOT marker*/
 
-					ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),retGroup);
-					/* finish this, note the pointer maths */
-					bufPtr = (int) (EOT+3-tg->EAIServ.EAIbuffer);
+						ra = EAI_CreateVrml("String",(&EAI_BUFFER_CUR),retGroup);
+						/* finish this, note the pointer maths */
+						bufPtr = (int) (EOT+3-tg->EAICore.EAIbuffer);
+					}
 				} else {
 /*  					char *filename = MALLOC(char *,1000); */
 					char *mypath;
@@ -409,7 +671,7 @@ void EAI_parse_commands () {
 				address = getEAIMemoryPointer (ra,rb);
 
 				if (eaiverbose) {	
-					printf ("SENDCHILD Parent: %u ParentField: %u %s Child: %s\n",(unsigned int) ra, (unsigned int)rb, ctmp, dtmp);
+					printf ("SENDCHILD Parent: %u ParentField: %u %s Child at: %d\n",(unsigned int) ra, (unsigned int)rb, ctmp, rc);
 				}	
 
 				/* we actually let the end of eventloop code determine whether this is an add or
@@ -464,7 +726,7 @@ void EAI_parse_commands () {
 				/* set up the route from this variable to the handle Listener routine */
 				if (eaiverbose)  printf ("going to register route for RegisterListener, have type %d\n",tmp_c); 
 
-				CRoutes_Register  (1,node, offset, X3D_NODE(tg->EAIServ.EAIListenerData), 0, (int) tmp_c,(void *) 
+				CRoutes_Register  (1,node, offset, X3D_NODE(tg->EAICore.EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
@@ -506,7 +768,7 @@ void EAI_parse_commands () {
 				/* put the address of the listener area in a string format for registering
 				   the route - the route propagation will copy data to here */
 				/* set up the route from this variable to the handle Listener routine */
-				CRoutes_Register  (0,node, offset, X3D_NODE(tg->EAIServ.EAIListenerData), 0, (int) tmp_c,(void *) 
+				CRoutes_Register  (0,node, offset, X3D_NODE(tg->EAICore.EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
@@ -571,6 +833,20 @@ void EAI_parse_commands () {
 
 				/* prep the reply... */
 				sprintf (th->outBuffer,"RE\n%f\n%d\n",TickTime(),count);
+				/*
+				 * Lots of pretending  going on here....
+				 *
+				 * We prep (and send) the first portion of the reply
+				 * but you will notice later on, we do not add an END_OF marker.
+				 * So, then it is EAI_Anchor_Response() that sends the actual
+				 * success/fail response with a END_OF marker.
+				 *
+				 * Therefore the client needs to be clever and glue the two-part
+				 * reply back together again. This is easy in the socket code, but
+				 * if you use functions, you need to be clever and wait for the
+				 * async callback befor proceeding as if the request worked.
+				 *
+				 */
 
 				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
 				setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&tg->EAIEventsIn.EAI_AnchorNode;
@@ -647,19 +923,26 @@ void EAI_parse_commands () {
 
 			}
 
-		if (command != SENDEVENT)  {
-			if (command != LOADURL) outBufferCat("\nRE_EOT");
-			EAI_send_string (th->outBuffer,tg->EAIServ.EAIlistenfd);
-		}
-
-		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */
 		/* skip to the next command */
 		while (EAI_BUFFER_CUR >= ' ') bufPtr++;
-
 		/* skip any new lines that may be there */
 		while ((EAI_BUFFER_CUR == 10) || (EAI_BUFFER_CUR == 13)) bufPtr++;
-		/* printf ("and %d : indx %d thread %d\n",strlen(&EAI_BUFFER_CUR),bufPtr,pthread_self()); */
+
+		if (eaiverbose) {	
+			printf ("end of command, remainder %d chars ",(int)strlen(&EAI_BUFFER_CUR));
+			printf ("and :%s: thread %lu\n",(&EAI_BUFFER_CUR),(unsigned long) pthread_self());
+
+		}
+		if (command == SENDEVENT || (command == MIDICONTROL))  {
+			/* events don't send a reply as such so your code has to check for zerolength strings*/
+			th->outBuffer[0] = 0;
+		} else {
+			/* send the response, but only a portion in the case of LOADURL */
+			if (command != LOADURL) outBufferCat("\nRE_EOT"); /* Please read and digest the LOADURL case above */
+		}
 	}
+	tg->EAICore.EAIbufpos = bufPtr;
+	return ;
 }
 
 static void handleGETROUTES (char *bufptr, int repno) {
@@ -1086,14 +1369,14 @@ void createLoadURL(char *bufptr) {
 void EAI_Anchor_Response (int resp) {
 	char myline[1000];
 	ppEAIEventsIn p;
-	//ppEAIServ ps;
+	//ppEAICore ps;
 	ttglobal tg = gglobal();
 	p = (ppEAIEventsIn)tg->EAIEventsIn.prv;
-	//ps = (ppEAIServ)tg->EAIServ.prv;
+	//ps = (ppEAICore)tg->EAICore.prv;
 	if (p->waiting_for_anchor) {
 		if (resp) strcpy (myline,"OK\nRE_EOT");
 		else strcpy (myline,"FAIL\nRE_EOT");
-		EAI_send_string (myline,tg->EAIServ.EAIlistenfd);
+		fwlio_RxTx_sendbuffer (__FILE__,__LINE__,CHANNEL_EAI,myline);
 	}
 	p->waiting_for_anchor = FALSE;
 }

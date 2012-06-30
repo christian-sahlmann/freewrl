@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.84 2012/05/31 19:06:42 crc_canada Exp $
+$Id: CRoutes.c,v 1.85 2012/06/30 22:09:45 davejoubert Exp $
 
 ???
 
@@ -2114,8 +2114,8 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	}
 	/* is this an MFNode or SFNode? */
 	{
-	//ppEAIServ p = (ppEAIServ)gglobal()->EAIServ.prv;
-	if (toNode != (struct X3D_Node*) gglobal()->EAIServ.EAIListenerData) {
+	//ppEAICore p = (ppEAICore)gglobal()->EAICore.prv;
+	if (toNode != (struct X3D_Node*) gglobal()->EAICore.EAIListenerData) {
 		if (multitype==ROUTING_SFNODE) {
 			unsigned int fnvalue;
 			unsigned int *fnlocation;

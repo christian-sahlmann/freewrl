@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsOut.c,v 1.15 2012/05/17 02:38:56 crc_canada Exp $
+$Id: EAIEventsOut.c,v 1.16 2012/06/30 22:09:44 davejoubert Exp $
 
 Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
@@ -60,15 +60,22 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 *
 ********************************************************************/
 
+void fwl_EAI_clearListenerNode() {
+	/* Called by the socket server upon sucessful setup */
+	/* Since the socket server does not 'know' tgglobal, do it outside it's space */
+	ttglobal tg = gglobal();
+	bzero(&tg->EAICore.EAIListenerData, sizeof(tg->EAICore.EAIListenerData));
+}
+
 void EAIListener () {
 	int id, tp;
 	char buf[EAIREADSIZE];
 	struct Multi_Node *mfptr;	/* used for freeing memory*/
 	int eaiverbose;
-	//ppEAIServ p;
+	//ppEAICore p;
 	ttglobal tg = gglobal();
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
-	//p = (ppEAIServ)tg->EAIServ.prv;
+	//p = (ppEAICore)tg->EAICore.prv;
 
 	/* get the type and the id.*/
 	tp = tg->CRoutes.CRoutesExtra&0xff;
@@ -79,7 +86,7 @@ void EAIListener () {
 	}	
 
 	/* convert the data to string form, for sending to the EAI java client */
-	EAI_Convert_mem_to_ASCII (id,"EV", tp, tg->EAIServ.EAIListenerData, buf);
+	EAI_Convert_mem_to_ASCII (id,"EV", tp, tg->EAICore.EAIListenerData, buf);
 
 	/* if this is a MF type, there most likely will be MALLOC'd memory to free... */
 	switch (tp) {
@@ -93,7 +100,7 @@ void EAIListener () {
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFVec3f: {
-			mfptr = (struct Multi_Node *) tg->EAIServ.EAIListenerData;
+			mfptr = (struct Multi_Node *) tg->EAICore.EAIListenerData;
 			FREE_IF_NZ ((*mfptr).p);
 		}
 		default: {}
@@ -104,7 +111,7 @@ void EAIListener () {
 
 	/* zero the memory for the next time - MultiMemcpy needs this to be zero, otherwise
 	   it might think that the "oldlen" will be non-zero */
-	bzero(&tg->EAIServ.EAIListenerData, sizeof(tg->EAIServ.EAIListenerData));
+	bzero(&tg->EAICore.EAIListenerData, sizeof(tg->EAICore.EAIListenerData));
 
 
 	/* append the EV_EOT marker to the end of the string */
@@ -114,8 +121,8 @@ void EAIListener () {
 		printf ("Handle Listener, returning %s\n",buf);
 	}	
 
-	/* send the EV reply */
-	EAI_send_string(buf,tg->EAIServ.EAIlistenfd);
+	/* send the EV data (not really a reply, but a system event) */
+	fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI,buf) ;
 }
 
 #endif //EXCLUDE_EAI
