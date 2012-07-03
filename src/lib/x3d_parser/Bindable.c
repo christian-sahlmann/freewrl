@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.70 2012/05/31 19:06:42 crc_canada Exp $
+$Id: Bindable.c,v 1.71 2012/07/03 20:49:36 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -241,7 +241,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		}
 
 	default:
-		ConsoleMessage("send_bind_to, cant send a set_bind to %s !!\n",stringNodeType(node->_nodeType));
+		ConsoleMessage("send_bind_to, cant send a set_bind to %s %p!!\n",stringNodeType(node->_nodeType),node);
 	}
 }
 

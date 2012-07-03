@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.254 2012/07/03 19:13:49 crc_canada Exp $
+  $Id: MainLoop.c,v 1.255 2012/07/03 20:49:36 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2486,7 +2486,7 @@ void fwl_init_EaiVerbose() {
 #if defined (_ANDROID)
 
 void fwl_Android_replaceWorldNeeded() {
-	ConsoleMessage ("remove old world, but leave threads intact");
+	// ConsoleMessage ("remove old world, but leave threads intact");
 	rootNode()->children.n = 0;
 
 
@@ -2503,21 +2503,11 @@ void fwl_Android_replaceWorldNeeded() {
 
 	/* make the root_res equal NULL - this throws away all old resource info */
 
-{char me[200];
-sprintf(me,"in fwl_Android_replaceWorldNeeded, root_res %p\n",gglobal()->resources.root_res);
-ConsoleMessage(me);
-}
 	gglobal()->resources.root_res = NULL;
 
 	Android_reset_viewer_to_defaults();
-                struct tProdCon *t = &gglobal()->ProdCon;
-{char me[200]; sprintf(me,"fwl_Android_replaceWorldNeeded,curboundvpno %d",t->currboundvpno); ConsoleMessage(me); }
-
-
-                                        send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
-
-
-
+        struct tProdCon *t = &gglobal()->ProdCon;
+        send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode()->children.n; i++) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.29 2012/06/26 18:33:15 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.30 2012/07/03 20:49:36 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -81,6 +81,7 @@ typedef struct pConsoleMessage{
 #define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 20
 	int androidFreeSlot;
 	char * androidMessageSlot[MAX_ANDROID_CONSOLE_MESSAGE_SLOTS];
+	int androidHaveUnreadMessages;
 	
 #endif //ANDROID
 
@@ -441,6 +442,19 @@ static void android_save_log(char *thislog) {
 
 	if (p->androidMessageSlot[cur] != NULL) free (p->androidMessageSlot[cur]);
 	p->androidMessageSlot[cur] = thislog;
+
+	// indicate we have messages
+	p->androidHaveUnreadMessages++;
+}
+
+// tell the UI how many unread console messages we have.
+int android_get_unread_message_count() {
+	ttglobal tg = gglobal();
+	if (!tg) return 0;
+	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	return p->androidHaveUnreadMessages;
+
+
 }
 
 char *android_get_last_message(int whichOne) {
@@ -450,7 +464,10 @@ char *android_get_last_message(int whichOne) {
 	if (!tg) return "NO GGLOBAL - NO MESSAGES";
 	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	
-	// which one?
+	// reset the "number of messages" counter.
+	p->androidHaveUnreadMessages = 0;
+
+	// which message from our rotating pool do we want?
 	whm = p->androidFreeSlot - whichOne;
 	if (whm < 0) whm = MAX_ANDROID_CONSOLE_MESSAGE_SLOTS-1;
 

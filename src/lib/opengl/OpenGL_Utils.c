@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.243 2012/06/30 22:09:45 davejoubert Exp $
+  $Id: OpenGL_Utils.c,v 1.244 2012/07/03 20:49:36 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3836,9 +3836,9 @@ void fwl_Android_reloadAssets(void) {
 	struct X3D_Node *node;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	ConsoleMessage("fwl_Android_reloadAssets called");
+	//ConsoleMessage("fwl_Android_reloadAssets called");
 
-	ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
+	//ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
 	fwl_initialize_GL();
 
         LOCK_MEMORYTABLE
@@ -3850,7 +3850,7 @@ void fwl_Android_reloadAssets(void) {
 		switch (node->_nodeType) {
 			case NODE_Sphere: {
 				struct X3D_Sphere *me = (struct X3D_Sphere *)node;
-				ConsoleMessage ("Sphere - zeroing VBO");
+				//ConsoleMessage ("Sphere - zeroing VBO");
 				me->_sideVBO = 0;
 				me->__SphereIndxVBO = 0;
 				FREE_IF_NZ(me->__points.p);
@@ -3862,7 +3862,7 @@ void fwl_Android_reloadAssets(void) {
 			}
 			case NODE_Background: {
 				struct X3D_Background *me = (struct X3D_Background *)node;
-				ConsoleMessage ("Background - zeroing VBO");
+				//ConsoleMessage ("Background - zeroing VBO");
 					me->__VBO = 0;
 				node->_change ++;
 				break;
