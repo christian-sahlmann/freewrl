@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.253 2012/06/30 22:09:44 davejoubert Exp $
+  $Id: MainLoop.c,v 1.254 2012/07/03 19:13:49 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2476,8 +2476,11 @@ void setDisplayed (int state) {
 
 void fwl_init_EaiVerbose() {
         //eaiverbose = TRUE;
+#if !defined(EXCLUDE_EAI)
 	gglobal()->EAI_C_CommonFunctions.eaiverbose = TRUE;
 	fwlio_RxTx_control(CHANNEL_EAI, RxTx_MOREVERBOSE); /* RxTx_SILENT */
+#endif
+
 }
 
 #if defined (_ANDROID)

@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.103 2012/06/26 18:33:15 crc_canada Exp $
+  $Id: ProdCon.c,v 1.104 2012/07/03 19:13:50 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -813,7 +813,7 @@ void _inputParseThread(void)
         actions.sa_flags = 0;
         actions.sa_handler = Parser_thread_exit_handler;
         rc = sigaction(SIGUSR2,&actions,NULL);
-ConsoleMessage ("for parserThread, have defined exit handler");
+	// ConsoleMessage ("for parserThread, have defined exit handler");
         #endif //HAVE_PTHREAD_CANCEL
 
 	{
