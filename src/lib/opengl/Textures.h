@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.32 2012/06/25 14:33:14 crc_canada Exp $
+$Id: Textures.h,v 1.33 2012/07/06 21:19:27 crc_canada Exp $
 
 Screen snapshot.
 
@@ -95,47 +95,12 @@ struct textureVertexInfo {
 const char *texst(int num);
 
 
-#ifdef OLDCODE
-OLDCODEnow in iglobal.h
-OLDCODE
-OLDCODEstruct multiTexParams {
-OLDCODE    int multitex_mode;
-OLDCODE    int multitex_source;
-OLDCODE    int multitex_function;
-OLDCODE};
-#endif //OLDCODE
-
-
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
-
-#ifdef OLDCODE
-OLDCODEbump this up because now display.h needs it
-OLDCODE/* multitexture and single texture handling */
-OLDCODE#ifdef GLES2
-OLDCODE#define MAX_MULTITEXTURE 4
-OLDCODE#else
-OLDCODE#define MAX_MULTITEXTURE 10
-OLDCODE#endif
-#endif //OLDCODE
-
-/* texture stuff - see code. Need array because of MultiTextures */
-/* first, how many textures do we have? 0 -> MAX_MULTITEXTURE */
-//extern int textureStackTop; 
-
-/* what are the textures, and what are the multitexturing parameters if more than one? */
-//extern struct multiTexParams *textureParameterStack[];
-//extern void *textureParameterStack[];
-//extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
-
-//extern GLuint     *global_tcin;
-//extern int     global_tcin_count; 
-//extern void 	*global_tcin_lastParent;
 
 extern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
 
-//extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
 struct X3D_Node *getThis_textureTransform();
 
 extern int fwl_isTextureLoaded(int texno);
@@ -148,11 +113,7 @@ extern int display_status;
 #define TEXTURE_NO_ALPHA 1
 #define TEXTURE_ALPHA 2
 
-//extern int last_texture_type;
 void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param);
-
-
-
 void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				GLuint *texture_num,
 				int repeatS,
