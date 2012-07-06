@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.101 2012/06/12 19:52:31 crc_canada Exp $
+$Id: Component_Shape.c,v 1.102 2012/07/06 21:15:26 crc_canada Exp $
 
 X3D Shape Component
 
@@ -1003,6 +1003,9 @@ void child_Shape (struct X3D_Shape *node) {
 		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 
 	}
+
+	// now done in textureDraw_end  tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
+
 	/* enable the shader for this shape */
         enableGlobalShader (node->_shaderTableEntry);
 
@@ -1101,6 +1104,8 @@ void child_Shape (struct X3D_Shape *node) {
 	p->material_oneSided = NULL;
 
 	/* a texture and a transparency flag... */
+
+
 	tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
 	/* assume that lighting is enabled. Absence of Material or Appearance
 	   node will turn lighting off; in this case, at the end of Shape, we
@@ -1151,7 +1156,6 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 	}
 #endif
-
 	/* if we do NOT have a shader node, do the appearance nodes */
         if (p->appearanceProperties.currentShader == 0) {
 			if (p->material_oneSided != NULL) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.52 2012/05/29 17:14:04 istakenv Exp $
+$Id: RenderTextures.c,v 1.53 2012/07/06 21:15:26 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -48,7 +48,7 @@ texture enabling - works for single texture, for multitexture.
 
 #ifdef TEXVERBOSE
 #define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-    printf ("textureUnit %d texture %d\n",aaa,bbb); \
+    printf ("textureUnit %d texture %d at %d\n",aaa,bbb,__LINE__); \
     glActiveTexture(GL_TEXTURE0+aaa); \
     glBindTexture(GL_TEXTURE_2D,bbb); }
 #else
@@ -57,16 +57,6 @@ texture enabling - works for single texture, for multitexture.
     glBindTexture(GL_TEXTURE_2D,bbb); }
 #endif
 
-
-///* variables for keeping track of status */
-//static int currentTextureUnit = 99;
-//struct multiTexParams *textureParameterStack[MAX_MULTITEXTURE];
-//void *textureParameterStack[MAX_MULTITEXTURE];
-//typedef struct pRenderTextures{
-///* variables for keeping track of status */
-//int currentTextureUnit;// = 99;
-//
-//}* ppRenderTextures;
 
 void *RenderTextures_constructor(){
 	void *v = malloc(sizeof(struct pRenderTextures));
@@ -79,7 +69,6 @@ void RenderTextures_init(struct tRenderTextures *t){
 	{
 		ppRenderTextures p = (ppRenderTextures)t->prv;
 		/* variables for keeping track of status */
-		p->currentTextureUnit = 99;
 	}
 }
 
@@ -131,10 +120,10 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
     
 #ifdef TEXVERBOSE
    if (getAppearanceProperties()->currentShaderProperties != NULL) {
-    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform %d\n",c,tg->RenderFuncs.boundTextureStack[c],
+    printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform %d\n",c,tg->RenderFuncs.boundTextureStack[c],
         getAppearanceProperties()->currentShaderProperties->TextureUnit[c]);
    } else {
-    printf ("SET_TEXTURE_UNIT %d, boundTextureStack is %d, sending to uniform [NULL--No Shader]\n",c,tg->RenderFuncs.boundTextureStack[c]);
+    printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform [NULL--No Shader]\n",c,tg->RenderFuncs.boundTextureStack[c]);
    }
 #endif
     
@@ -243,25 +232,6 @@ void textureDraw_end(void) {
 
 	    for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 
-		if (c != p->currentTextureUnit) {
-			SET_TEXTURE_UNIT(c);
-			//glActiveTexture(GL_TEXTURE0+c);
-			//if(1){
-			//	GLint useTex;
-			//	s_shader_capabilities_t *csp;
-			//	csp = getAppearanceProperties()->currentShaderProperties; 
-			//	useTex = csp->useTex;
-			// if( useTex > -1){ 
-			//	float fw_useTex[4]; 
-			//	int jj; 
-			//	for(jj=0;jj<4;jj++) fw_useTex[jj] = 0.0f; //set textures off
-			//	glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
-			//  } 
-			//}
-
-			p->currentTextureUnit = c;
-		}
-
 	        if (getThis_textureTransform()) end_textureTransform();
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
 		#ifndef SHADERS_2011
@@ -308,7 +278,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
  
 	if (genTex->VA_arrays != NULL) {
        // printf ("passedInGenTex, A\n");
-		for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
+		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
             //printf ("passedInGenTex, c= %d\n",c);
 			/* are we ok with this texture yet? */
 			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
@@ -325,7 +295,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 	} else {
         //printf ("passedInGenTex, B\n");
-		for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
+		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
             //printf ("passedInGenTex, c=%d\n",c);
 			/* are we ok with this texture yet? */
 			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
@@ -377,7 +347,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 	COMPILE_TCNODE;
 
-	for (c=0; c<=tg->RenderFuncs.textureStackTop; c++) {
+	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		/* printf ("haveTexCoord, rendering node... \n"); */
 		render_node ((void *)myTCnode);
 		/* are we ok with this texture yet? */

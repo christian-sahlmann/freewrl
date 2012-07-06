@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.145 2012/05/25 19:35:35 istakenv Exp $
+  $Id: display.h,v 1.146 2012/07/06 21:15:26 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -885,58 +885,7 @@ void resetGeometry();
 
 
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
-#if defined(GLES2)
-	/* ES 2.0 - set the sampler */
-	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); 
- //    glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0+aaa, aaa); 
-	// if(getAppearanceProperties()->currentShaderProperties->useTex > -1){ 
-	//	float fw_useTex[4]; 
-	//	int jj; 
-	//	for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= aaa ? 1.0f : 0.0f; 
-	//	glUniform4f(getAppearanceProperties()->currentShaderProperties->useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
-	//  } 
-	// }
-#ifdef OLDCODE
-OLDCODE
-OLDCODEThe texture binding has been changed by John Stewart to handle multitextures.
-OLDCODE
-OLDCODE#define SET_TEXTURE_UNIT(c) \
-OLDCODE			if(1){ \
-OLDCODE				GLint loc; \
-OLDCODE				GLint x; \
-OLDCODE				GLint useTex; \
-OLDCODE				s_shader_capabilities_t *csp; \
-OLDCODE				csp = getAppearanceProperties()->currentShaderProperties; \
-OLDCODE				switch(c){ \
-OLDCODE					case 0: \
-OLDCODE							loc = csp->Texture0; break; \
-OLDCODE					case 1: \
-OLDCODE							loc = csp->Texture1; break; \
-OLDCODE					case 2: \
-OLDCODE							loc = csp->Texture2; break; \
-OLDCODE					case 3: \
-OLDCODE							loc = csp->Texture3; break; \
-OLDCODE					default: \
-OLDCODE							loc = csp->Texture0; break; \
-OLDCODE				} \
-OLDCODE				useTex = csp->useTex; \
-OLDCODE				glActiveTexture(GL_TEXTURE0+c); \
-OLDCODE			     /*glUniform1i(loc+c, c); */ \
-OLDCODE				glUniform1i(loc,c); \
-OLDCODE			 if( useTex > -1){  \
-OLDCODE				float fw_useTex[4];  \
-OLDCODE				int jj;  \
-OLDCODE				for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= c ? 1.0f : 0.0f; \
-OLDCODE				glUniform4f(useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
-OLDCODE			  } \
-OLDCODE			}
-OLDCODE#else
-OLDCODE	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
-OLDCODE#endif
-#endif //OLDCODE
-#endif //GLES2
-
-	#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
+	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)

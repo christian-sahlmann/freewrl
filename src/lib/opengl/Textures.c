@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.116 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: Textures.c,v 1.117 2012/07/06 21:15:26 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -776,7 +776,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
         ttglobal tg = gglobal();
         ppRenderTextures p = (ppRenderTextures)tg->RenderTextures.prv;
 
-
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),
 			node->texture.n,
@@ -832,8 +831,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, working on texture %d\n",count);
 #endif
         
-        p->currentTextureUnit = count;
-
 		/* get the texture */
 		nt = X3D_IMAGETEXTURE(node->texture.p[count]);
 
@@ -934,7 +931,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	nurls=1;
 	mytexdata = NULL;
 
-	/* printf ("move_texture_to_opengl, node of type %s\n",stringNodeType(me->scenegraphNode->_nodeType)); */
+	/* printf ("move_texture_to_opengl, node of type %s\n",stringNodeType(me->scenegraphNode->_nodeType));  */
 
 	/* is this texture invalid and NOT caught before here? */
 	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
@@ -948,21 +945,17 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	}
 
 	/* do we need to convert this to an OpenGL texture stream?*/
-/*
-#ifdef IPHONE
-printf ("for IPHONE, ensuring packing\n");
-glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-#endif
-*/
  
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
+#define TEXVERBOSE
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %p is %u, type %s\n",
 			me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
+#undef TEXVERBOSE
 
 
 

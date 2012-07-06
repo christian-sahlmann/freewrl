@@ -40,9 +40,7 @@ struct multiTexParams {
 };
 
 typedef struct pRenderTextures{
-/* variables for keeping track of status */
-int currentTextureUnit;// = 99;
-
+	// blank for now
 }* ppRenderTextures;
 
 
