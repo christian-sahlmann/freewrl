@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.103 2012/07/07 12:27:39 crc_canada Exp $
+$Id: Component_Shape.c,v 1.104 2012/07/07 14:48:00 crc_canada Exp $
 
 X3D Shape Component
 
@@ -432,6 +432,18 @@ void compile_Shape (struct X3D_Shape *node) {
 
 void child_Appearance (struct X3D_Appearance *node) {
 printf ("child_Appearance called\n");
+}
+
+void compile_Material (struct X3D_Appearance *node) {
+printf ("compile_Material called\n");
+}
+
+void compile_TwoSidedMaterial (struct X3D_Appearance *node) {
+printf ("compile_TwoSidedMaterial called\n");
+}
+
+void render_TwoSidedMaterial (struct X3D_Appearance *node) {
+printf ("render_TwoSidedMaterial called\n");
 }
 
 #else //SHADERS_2011
