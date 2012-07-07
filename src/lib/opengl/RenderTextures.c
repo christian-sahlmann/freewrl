@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.53 2012/07/06 21:15:26 crc_canada Exp $
+$Id: RenderTextures.c,v 1.54 2012/07/07 14:44:30 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -48,13 +48,13 @@ texture enabling - works for single texture, for multitexture.
 
 #ifdef TEXVERBOSE
 #define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-    printf ("textureUnit %d texture %d at %d\n",aaa,bbb,__LINE__); \
-    glActiveTexture(GL_TEXTURE0+aaa); \
-    glBindTexture(GL_TEXTURE_2D,bbb); }
+	printf ("textureUnit %d texture %d at %d\n",aaa,bbb,__LINE__); \
+	glActiveTexture(GL_TEXTURE0+aaa); \
+	glBindTexture(GL_TEXTURE_2D,bbb); }
 #else
 #define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-    glActiveTexture(GL_TEXTURE0+aaa); \
-    glBindTexture(GL_TEXTURE_2D,bbb); }
+	glActiveTexture(GL_TEXTURE0+aaa); \
+	glBindTexture(GL_TEXTURE_2D,bbb); }
 #endif
 
 
@@ -90,10 +90,10 @@ printf ("skipping setupTexGen\n");
 	case GL_REFLECTION_MAP:
 	case GL_SPHERE_MAP:
 	case GL_NORMAL_MAP:
-                                FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
-                                FW_GL_TEXGENI(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
-                                FW_GL_ENABLE(GL_TEXTURE_GEN_S);
-                                FW_GL_ENABLE(GL_TEXTURE_GEN_T);
+		FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
+		FW_GL_TEXGENI(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
+		FW_GL_ENABLE(GL_TEXTURE_GEN_S);
+		FW_GL_ENABLE(GL_TEXTURE_GEN_T);
 	break;
 	default: {}
 		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
@@ -109,27 +109,28 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 {
 	ttglobal tg = gglobal();
 
-    /* which texture unit are we working on? */
+	/* which texture unit are we working on? */
     
-    /* tie each fw_TextureX uniform into the correct texture unit */
+	/* tie each fw_TextureX uniform into the correct texture unit */
     
-    // here we assign the texture unit to a specific number. NOTE: in the current code, this will ALWAYS
-    // be [0] = 0, [1] = 1; etc.
-    texUnit[c] = c;
-    
-    
+	/* here we assign the texture unit to a specific number. NOTE: in the current code, this will ALWAYS
+	 * be [0] = 0, [1] = 1; etc. */
+	texUnit[c] = c;
+
 #ifdef TEXVERBOSE
-   if (getAppearanceProperties()->currentShaderProperties != NULL) {
-    printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform %d\n",c,tg->RenderFuncs.boundTextureStack[c],
-        getAppearanceProperties()->currentShaderProperties->TextureUnit[c]);
-   } else {
-    printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform [NULL--No Shader]\n",c,tg->RenderFuncs.boundTextureStack[c]);
-   }
+	if (getAppearanceProperties()->currentShaderProperties != NULL) {
+		printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform %d\n",c,
+			tg->RenderFuncs.boundTextureStack[c],
+			getAppearanceProperties()->currentShaderProperties->TextureUnit[c]);
+	} else {
+		printf ("setActiveTexture %d, boundTextureStack is %d, sending to uniform [NULL--No Shader]\n",c,
+			tg->RenderFuncs.boundTextureStack[c]);
+	}
 #endif
     
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
-	   bind_image, we store a pointer for the texture parameters. It is
-	   NULL, possibly different for MultiTextures */
+	 * bind_image, we store a pointer for the texture parameters. It is
+	 * NULL, possibly different for MultiTextures */
 
 	if (tg->RenderTextures.textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
         
@@ -137,22 +138,34 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
 		#endif
 
-                /* should we set the coloUr to 1,1,1,1 so that the material does not show
-                   through a RGB texture?? */
-                /* only do for the first texture if MultiTexturing */
-                if (c == 0) {
+		/* should we set the coloUr to 1,1,1,1 so that the material does not show
+		 * through a RGB texture?? */
+		/* only do for the first texture if MultiTexturing */
+		if (c == 0) {
+#ifndef SHADERS_2011
+			float allones[] = {1.0f,1.0f,1.0f,1.0f};
+			allones[3] = thisTransparency;
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+#endif
 			#ifdef TEXVERBOSE
 			printf ("setActiveTexture - firsttexture  \n"); 
 			#endif
-                    texMode[c]= GL_MODULATE;
-                } else {
-                    texMode[c]=GL_ADD;
-                }
-
+			texMode[c]= GL_MODULATE;
+		} else {
+			texMode[c]=GL_ADD;
+		}
+#ifndef SHADERS_2011
+		/* not quite sure of this; comments say this area is for when we are NOT in multitexture mode,
+		 * but if that is true then 'c' should never not be zero here...? */
+		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+#endif
 
 	} else {
-        //printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source);
+	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
 		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
+#ifndef SHADERS_2011
+			doNonShaderTextureHandlingWithMultiTexParams(&(tg->RenderTextures.textureParameterStack[c]));
+#endif
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;

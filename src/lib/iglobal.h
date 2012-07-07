@@ -32,13 +32,6 @@ Variable use:
 #include "x3d_parser/X3DParser.h" //for PARENTSTACKSIZE
 #include "ui/common.h" // for ppcommon
 
-//JAS added here for Android compile. Maybe should define INSTANCEGLOBAL?
-struct multiTexParams {
-    int multitex_mode;
-    int multitex_source;
-    int multitex_function;
-};
-
 typedef struct pRenderTextures{
 	// blank for now
 }* ppRenderTextures;
