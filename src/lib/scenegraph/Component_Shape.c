@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.104 2012/07/07 14:48:00 crc_canada Exp $
+$Id: Component_Shape.c,v 1.105 2012/07/07 19:00:46 crc_canada Exp $
 
 X3D Shape Component
 
@@ -421,13 +421,107 @@ void child_Shape (struct X3D_Shape *node) {
 
 }
 
-
-
-
-/* find info on the appearance of this Shape and create a shader */
 void compile_Shape (struct X3D_Shape *node) {
+	int whichAppearanceShader = -1;
+	int whichShapeColorShader = -1;
+	int isUnlitGeometry = -1;
+    
+	whichShapeColorShader = getShapeColourShader(node->geometry);
+	whichAppearanceShader = getAppearanceShader(node->appearance);
+	isUnlitGeometry = getIfLinePoints(node->geometry);
+
+
+
+	/* choose the shader. Note that we just "or" the results together */
+
+    /* right now, multiTextures go through one heck of a big unoptimized shader */
+    if (whichAppearanceShader == (MULTI_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER)) {
+        node->_shaderTableEntry = multiTexShader;
+        
+    } else {
+	switch (whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
+            
+	case  NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = noMaterialNoAppearanceShader;
+		break;
+
+	case  TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = noTexTwoMaterialShader;
+		break;
+
+	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = noTexOneMaterialShader;
+		break;	
+
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = oneTexTwoMaterialShader;
+		break;
+
+	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
+		node->_shaderTableEntry = oneTexOneMaterialShader;
+		break;	
+
+
+	
+
+	/* SECTION 2 -  HAVE Color node in shape */
+
+	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
+	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
+		node->_shaderTableEntry = linePointColorNodeShader;
+		break;
+
+	
+	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
+	case NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
+		node->_shaderTableEntry = linePointNoColorNodeShader;
+		break;
+
+	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+		node->_shaderTableEntry = backgroundSphereShader;
+		break;
+
+	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+		node->_shaderTableEntry = noTexTwoMaterialColourShader;
+		break;
+
+	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+		node->_shaderTableEntry = noTexOneMaterialColourShader;
+		break;	
+
+	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
+		break;
+
+	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
+		node->_shaderTableEntry = oneTexOneMaterialColourShader;
+		break;	
+	
+
+	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
+    }
+    }
+
+    
+	#ifdef SHAPE_VERBOSE
+	printChoosingShader(node->_shaderTableEntry);
+	#endif //SHAPE_VERBOSE
+    
+
+
 	MARK_NODE_COMPILED
-	ConsoleMessage("should not be calling compile_Shape here");
 }
 
 void child_Appearance (struct X3D_Appearance *node) {
@@ -929,108 +1023,11 @@ void render_Material (struct X3D_Material *node) {
 
 
 /* find info on the appearance of this Shape and create a shader */
+
 void compile_Shape (struct X3D_Shape *node) {
-	int whichAppearanceShader = -1;
-	int whichShapeColorShader = -1;
-	int isUnlitGeometry = -1;
-    
-	whichShapeColorShader = getShapeColourShader(node->geometry);
-	whichAppearanceShader = getAppearanceShader(node->appearance);
-	isUnlitGeometry = getIfLinePoints(node->geometry);
-
-
-
-	/* choose the shader. Note that we just "or" the results together */
-
-    /* right now, multiTextures go through one heck of a big unoptimized shader */
-    if (whichAppearanceShader == (MULTI_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER)) {
-        node->_shaderTableEntry = multiTexShader;
-        
-    } else {
-	switch (whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
-            
-	case  NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noMaterialNoAppearanceShader;
-		break;
-
-	case  TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexTwoMaterialShader;
-		break;
-
-	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexOneMaterialShader;
-		break;	
-
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexTwoMaterialShader;
-		break;
-
-	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexOneMaterialShader;
-		break;	
-
-
-	
-
-	/* SECTION 2 -  HAVE Color node in shape */
-
-	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
-	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-		node->_shaderTableEntry = linePointColorNodeShader;
-		break;
-
-	
-	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
-	case NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-		node->_shaderTableEntry = linePointNoColorNodeShader;
-		break;
-
-	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = backgroundSphereShader;
-		break;
-
-	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexTwoMaterialColourShader;
-		break;
-
-	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexOneMaterialColourShader;
-		break;	
-
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
-		break;
-
-	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexOneMaterialColourShader;
-		break;	
-	
-
-	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
-    }
-    }
-
-    
-	#ifdef SHAPE_VERBOSE
-	printChoosingShader(node->_shaderTableEntry);
-	#endif //SHAPE_VERBOSE
-    
-
-
 	MARK_NODE_COMPILED
 }
+
 
 
 
