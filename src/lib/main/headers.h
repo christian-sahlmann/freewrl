@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: headers.h,v 1.176 2012/06/30 22:09:45 davejoubert Exp $
+$Id: headers.h,v 1.177 2012/07/07 12:27:39 crc_canada Exp $
 
 Global includes.
 
@@ -397,17 +397,6 @@ unsigned int setField_FromEAI (char *ptr);
        fabs(1-sqrt(rot.c[0]*rot.c[0]+rot.c[1]*rot.c[1]+rot.c[2]*rot.c[2])) \
                >NORMAL_VECTOR_LENGTH_TOLERANCE \
 )
-
-/* from VRMLC.pm */
-//extern int sound_from_audioclip;
-extern int global_lineProperties;
-extern int global_fillProperties;
-//extern float gl_linewidth;
-//extern int soundWarned;
-//extern int cur_hits;
-//extern struct point_XYZ hyper_r1,hyper_r2;
-
-extern struct X3D_Text *lastTextNode;
 
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_CubeMapTexturing.c,v 1.32 2012/05/08 15:59:50 crc_canada Exp $
+$Id: Component_CubeMapTexturing.c,v 1.33 2012/07/07 12:27:39 crc_canada Exp $
 
 X3D Cubemap Texturing Component
 
@@ -145,31 +145,29 @@ struct DdsLoadInfo loadInfoDXT3 = {
 struct DdsLoadInfo loadInfoDXT5 = {
   true, false, false, 4, 16, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 };
-#ifndef GL_ES_VERSION_2_0
-struct DdsLoadInfo loadInfoBGRA8 = {
-  false, false, false, 1, 4, GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE
-};
-#endif
+
+#if defined (GL_BGRA)
+
+	struct DdsLoadInfo loadInfoBGRA8 = {
+	  false, false, false, 1, 4, GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE
+	};
+	struct DdsLoadInfo loadInfoBGR5A1 = {
+	  false, true, false, 1, 2, GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
+	};
+	struct DdsLoadInfo loadInfoIndex8 = {
+	  false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
+	};
+#endif //BGRA textures supported
+
 struct DdsLoadInfo loadInfoRGB8 = {
   false, false, false, 1, 3, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE
 };
 struct DdsLoadInfo loadInfoBGR8 = {
   false, false, false, 1, 3, GL_RGB8, GL_BGR, GL_UNSIGNED_BYTE
 };
-#ifndef GL_ES_VERSION_2_0
-struct DdsLoadInfo loadInfoBGR5A1 = {
-  false, true, false, 1, 2, GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV
-};
-#endif
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
-#ifndef GL_ES_VERSION_2_0
-struct DdsLoadInfo loadInfoIndex8 = {
-  false, false, true, 1, 1, GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE
-};
-#endif
-
 
 bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
@@ -258,9 +256,15 @@ printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelForm
     li = &loadInfoDXT5;
   }
   
-#ifndef GL_ES_VERSION_2_0
+#if defined (GL_BGRA)
 else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
     li = &loadInfoBGRA8;
+  }
+  else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
+    li = &loadInfoBGR5A1;
+  }
+  else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
+    li = &loadInfoIndex8;
   }
 #endif
 
@@ -271,24 +275,13 @@ else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
     li = &loadInfoBGR8;
   }
   
-#ifndef GL_ES_VERSION_2_0
-  else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
-    li = &loadInfoBGR5A1;
-  }
-#endif
 
   else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
     li = &loadInfoBGR565;
   }
   
-#ifndef GL_ES_VERSION_2_0
-  else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
-    li = &loadInfoIndex8;
-  }
-#endif
-
   else {
-printf ("li failure\n");
+	ConsoleMessage("CubeMap li failure\n");
 return FALSE;
   }
 

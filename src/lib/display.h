@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.146 2012/07/06 21:15:26 crc_canada Exp $
+  $Id: display.h,v 1.147 2012/07/07 12:27:39 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -59,7 +59,6 @@ Functions:
 	#ifndef GLchar
 		#define GLchar GLbyte
 	#endif
-#define GL_BGRA  0x8765 /*random unlikely number so it never matches*/
 #undef HAVE_LIBGLEW
 #undef GLEW
 #undef GLEW_MX

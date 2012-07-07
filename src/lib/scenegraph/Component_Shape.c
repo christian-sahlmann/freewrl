@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.102 2012/07/06 21:15:26 crc_canada Exp $
+$Id: Component_Shape.c,v 1.103 2012/07/07 12:27:39 crc_canada Exp $
 
 X3D Shape Component
 
@@ -126,48 +126,315 @@ struct X3D_Node *getThis_textureTransform(){
 	return p->this_textureTransform;
 }
 
-void render_LineProperties (struct X3D_LineProperties *node) {
-	GLint	factor;
-	GLushort pat;
 
-	if (node->applied) {
-		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+#ifdef SHADERS_2011
 
-		p->linePropertySet=TRUE;
-		if (node->linewidthScaleFactor > 1.0) {
-			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
-            #ifndef GL_ES_VERSION_2_0
-			FW_GL_POINTSIZE(node->linewidthScaleFactor);
-            #endif
-		}
+/* Least significant hex digit - appearance */
+#define NO_APPEARANCE_SHADER 0x0000
+#define MATERIAL_APPEARANCE_SHADER 0x0001
+#define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
+#define ONE_TEX_APPEARANCE_SHADER 0x0004
+#define MULTI_TEX_APPEARANCE_SHADER 0x0008
+
+/* second least significant hex digit - PolyRep colour present */
+#define NO_COLOUR_SHADER 0x0000
+#define HAVE_COLOUR_SHADER 0x00010
+
+/* fourth least significant hex digit - lines, points */
+#define NO_LINES_POINTS 0x0000
+#define HAVE_LINEPOINTS 0x1000
 
 
-		if (node->linetype > 1) {
-#ifndef GL_ES_VERSION_2_0
-			factor = 2;
-			pat = 0xffff; /* can not support fancy line types - this is the default */
-			switch (node->linetype) {
-				case 2: pat = 0xff00; break; /* dashed */
-				case 3: pat = 0x4040; break; /* dotted */
-				case 4: pat = 0x04ff; break; /* dash dot */
-				case 5: pat = 0x44fe; break; /* dash dot dot */
-				case 6: pat = 0x0100; break; /* optional */
-				case 7: pat = 0x0100; break; /* optional */
-				case 10: pat = 0xaaaa; break; /* optional */
-				case 11: pat = 0x0170; break; /* optional */
-				case 12: pat = 0x0000; break; /* optional */
-				case 13: pat = 0x0000; break; /* optional */
-				default: {}
-			}
-			FW_GL_LINE_STIPPLE(factor,pat);
-			FW_GL_ENABLE(GL_LINE_STIPPLE);
-#else
-            ConsoleMessage ("OpenGL-ES - no line stipple");
-#endif
-		}
+#define CHECK_COLOUR_FIELD(aaa) \
+	case NODE_##aaa: { \
+		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
+		if (me->color == NULL) return NO_COLOUR_SHADER; \
+		else return HAVE_COLOUR_SHADER; \
+		break; \
+	} 
+
+#define CHECK_VRML1_COLOUR_FIELD(aaa) \
+	case NODE_##aaa: { \
+		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
+		if (me->_color == NULL) return NO_COLOUR_SHADER; \
+		else return HAVE_COLOUR_SHADER; \
+		break; \
+	} \
+
+/* if this is a LineSet, PointSet, etc... */
+static int getIfLinePoints(struct X3D_Node *myGeom) {
+	struct X3D_Node *realNode;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return NO_APPEARANCE_SHADER;
+	switch (realNode->_nodeType) {
+		case NODE_IndexedLineSet:
+		case NODE_LineSet:
+		case NODE_VRML1_IndexedLineSet:
+		case NODE_PointSet:
+		case NODE_VRML1_PointSet:
+			return  HAVE_LINEPOINTS;
+
 	}
+	return NO_LINES_POINTS;
 }
 
+
+
+/* Some shapes have Color nodes - if so, then we have other shaders */
+static int getShapeColourShader (struct X3D_Node *myGeom) {
+	struct X3D_Node *realNode;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return NO_APPEARANCE_SHADER;
+
+	/* go through each node type that can have a Color node, and if it is not NULL
+	   we know we have a Color node */
+
+	switch (realNode->_nodeType) {
+		CHECK_COLOUR_FIELD(IndexedFaceSet);
+		CHECK_COLOUR_FIELD(IndexedLineSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleFanSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleSet);
+		CHECK_COLOUR_FIELD(IndexedTriangleStripSet);
+		CHECK_COLOUR_FIELD(LineSet);
+		CHECK_COLOUR_FIELD(PointSet);
+		CHECK_COLOUR_FIELD(TriangleFanSet);
+		CHECK_COLOUR_FIELD(TriangleStripSet);
+		CHECK_COLOUR_FIELD(TriangleSet);
+		CHECK_COLOUR_FIELD(ElevationGrid);
+		CHECK_COLOUR_FIELD(GeoElevationGrid);
+		CHECK_VRML1_COLOUR_FIELD(VRML1_IndexedFaceSet);
+	}
+
+	/* if we are down here, we KNOW we do not have a color field */
+	return NO_COLOUR_SHADER;
+}
+
+static int getAppearanceShader (struct X3D_Node *myApp) {
+	struct X3D_Appearance *realAppearanceNode;
+	struct X3D_Node *realMaterialNode;
+
+
+	int retval = NO_APPEARANCE_SHADER;
+
+	/* if there is no appearance node... */
+	if (myApp == NULL) return retval;
+
+	realAppearanceNode = ((struct X3D_Appearance *)myApp);
+	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
+
+	if (realAppearanceNode->material != NULL) {
+		realMaterialNode = ((struct X3D_Node *)realAppearanceNode->material);
+		if (realMaterialNode->_nodeType == NODE_Material) {
+			retval |= MATERIAL_APPEARANCE_SHADER;
+		}
+		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
+			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
+		}
+	}
+    
+    
+
+	if (realAppearanceNode->texture != NULL) {
+        printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
+        if ((realAppearanceNode->texture->_nodeType == NODE_ImageTexture) ||
+            (realAppearanceNode->texture->_nodeType == NODE_PixelTexture)){
+			retval |= ONE_TEX_APPEARANCE_SHADER;
+		} else if (realAppearanceNode->texture->_nodeType == NODE_MultiTexture) {
+            retval |= MULTI_TEX_APPEARANCE_SHADER;
+        } else {
+			printf ("getAppearanceShader, texture field %s not supported yet\n",
+			stringNodeType(realAppearanceNode->texture->_nodeType));
+		}
+	}
+    printf ("getAppearanceShader, returning %x\n",retval);
+
+	return retval;
+}
+
+
+#ifdef SHAPE_VERBOSE
+static void printChoosingShader(shader_type_t whichOne) {
+    
+    ConsoleMessage ("choose shader: ");
+    switch (whichOne) {
+        case backgroundSphereShader: ConsoleMessage ("backgroundSphereShader\n"); break;
+        case backgroundTextureBoxShader: ConsoleMessage ("backgroundTextureBoxShader\n"); break;
+        case noTexOneMaterialShader: ConsoleMessage ("noTexOneMaterialShader\n"); break;
+        case noMaterialNoAppearanceShader: ConsoleMessage ("noMaterialNoAppearanceShader\n"); break;
+        case noTexTwoMaterialShader: ConsoleMessage ("noTexTwoMaterialShader\n"); break;
+        case oneTexOneMaterialShader: ConsoleMessage ("oneTexOneMaterialShader\n"); break;
+        case oneTexTwoMaterialShader: ConsoleMessage ("oneTexTwoMaterialShader\n"); break;
+        case complexTexOneMaterialShader: ConsoleMessage ("complexTexOneMaterialShader\n"); break;
+        case complexTexTwoMaterialShader: ConsoleMessage ("complexTexTwoMaterialShader\n"); break;
+        case noTexTwoMaterialColourShader: ConsoleMessage ("noTexTwoMaterialColourShader\n"); break;
+        case noTexOneMaterialColourShader: ConsoleMessage ("noTexOneMaterialColourShader\n"); break;
+        case oneTexTwoMaterialColourShader: ConsoleMessage ("oneTexTwoMaterialColourShader\n"); break;
+        case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader\n"); break;
+        case multiTexShader: ConsoleMessage ("multiTexShader\n"); break;
+        case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader\n"); break;
+        case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader\n"); break;
+        default : ConsoleMessage ("shader node unidentified");
+    }
+    
+}
+#endif //SHAPE_VERBOSE
+
+/* find info on the appearance of this Shape and create a shader */
+/* 
+	The possible sequence of a properly constructed appearance field is:
+
+	Shape.appearance -> Appearance
+	
+	Appearance.fillProperties 	-> FillProperties
+	Appearance.lineProperties 	-> LineProperties
+	Appearance.material 		-> Material
+					-> TwoSidedMaterial	
+	Appearance.shaders		-> ComposedShader
+	Appearance.shaders		-> PackagedShader
+	Appearance.shaders		-> ProgramShader
+
+	Appearance.texture		-> Texture
+	Appearance.texture		-> MultiTexture
+	Appearance.textureTransform	->
+
+*/
+
+void render_FillProperties (struct X3D_FillProperties *node) {
+ConsoleMessage("should not be calling render_FillProperties");
+}
+
+void render_LineProperties (struct X3D_LineProperties *node) {
+	ConsoleMessage ("should not be calling render_LineProperties");
+}
+
+
+void render_Material (struct X3D_Material *node) {
+ConsoleMessage("render_Material called");
+}
+
+
+
+void child_Shape (struct X3D_Shape *node) {
+	struct X3D_Node *tmpN;
+	// JAS int i;
+	// JAS float dcol[4];
+	// JAS float ecol[4];
+	// JAS float scol[4];
+	// JAS float amb;
+    
+	ppComponent_Shape p;
+        ttglobal tg = gglobal();
+
+
+
+	COMPILE_IF_REQUIRED
+
+	/* JAS - if not collision, and render_geom is not set, no need to go further */
+	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+	if(!(node->geometry)) { return; }
+
+	RECORD_DISTANCE
+
+	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
+		/* only need to forward the call to the child */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
+		render_node(tmpN);
+		return;
+	}
+
+	if (node->_shaderTableEntry == -1) {
+		return;
+	}
+        p = (ppComponent_Shape)tg->Component_Shape.prv;
+	{
+		struct fw_MaterialParameters defaultMaterials = {
+					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
+					{0.0f, 0.0f, 0.0f, 1.0f}, /* ambientIntensity */
+					{0.8f, 0.8f, 0.8f, 1.0f}, /* diffuseColor */
+					{0.0f, 0.0f, 0.0f, 1.0f}, /* specularColor */
+					10.0f};                   /* shininess */
+
+		/* copy the material stuff in preparation for copying all to the shader */
+		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+
+	}
+
+	// now done in textureDraw_end  tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
+
+	/* enable the shader for this shape */
+        enableGlobalShader (node->_shaderTableEntry);
+
+	/* now, are we rendering blended nodes or normal nodes?*/
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+
+		RENDER_MATERIAL_SUBNODES(node->appearance);
+
+		if (p->material_oneSided != NULL) {
+
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,&(p->material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
+
+		} else if (p->material_twoSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,&(p->material_twoSided->_verifiedFrontColor.p[0]), 3*sizeof(float));
+		} else {
+			/* no materials selected.... */
+		}
+
+		/* send along lighting, material, other visible properties */
+		sendMaterialsToShader(p->appearanceProperties.currentShaderProperties);
+
+		#ifdef SHAPEOCCLUSION
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
+		#endif
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+		render_node(tmpN);
+
+		#ifdef SHAPEOCCLUSION
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
+		#endif
+	}
+
+	/* any shader turned on? if so, turn it off */
+	TURN_GLOBAL_SHADER_OFF;
+	p->material_twoSided = NULL;
+	p->material_oneSided = NULL;
+
+    
+	/* did the lack of an Appearance or Material node turn lighting off? */
+	LIGHTING_ON;
+
+	/* turn off face culling */
+	DISABLE_CULL_FACE;
+
+}
+
+
+
+
+/* find info on the appearance of this Shape and create a shader */
+void compile_Shape (struct X3D_Shape *node) {
+	MARK_NODE_COMPILED
+	ConsoleMessage("should not be calling compile_Shape here");
+}
+
+void child_Appearance (struct X3D_Appearance *node) {
+printf ("child_Appearance called\n");
+}
+
+#else //SHADERS_2011
 
 static void shaderErrorLog(GLuint myShader, char *which) {
         #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
@@ -403,6 +670,43 @@ uniform mat3	fw_NormalMatrix; \n\
 
 
 }
+void render_LineProperties (struct X3D_LineProperties *node) {
+	GLint	factor;
+	GLushort pat;
+
+	if (node->applied) {
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+		p->linePropertySet=TRUE;
+		if (node->linewidthScaleFactor > 1.0) {
+			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
+			FW_GL_POINTSIZE(node->linewidthScaleFactor);
+		}
+
+
+		if (node->linetype > 1) {
+			factor = 2;
+			pat = 0xffff; /* can not support fancy line types - this is the default */
+			switch (node->linetype) {
+				case 2: pat = 0xff00; break; /* dashed */
+				case 3: pat = 0x4040; break; /* dotted */
+				case 4: pat = 0x04ff; break; /* dash dot */
+				case 5: pat = 0x44fe; break; /* dash dot dot */
+				case 6: pat = 0x0100; break; /* optional */
+				case 7: pat = 0x0100; break; /* optional */
+				case 10: pat = 0xaaaa; break; /* optional */
+				case 11: pat = 0x0170; break; /* optional */
+				case 12: pat = 0x0000; break; /* optional */
+				case 13: pat = 0x0000; break; /* optional */
+				default: {}
+			}
+			FW_GL_LINE_STIPPLE(factor,pat);
+			FW_GL_ENABLE(GL_LINE_STIPPLE);
+		}
+	}
+}
+
+
 
 void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 	int i;
@@ -611,246 +915,9 @@ void render_Material (struct X3D_Material *node) {
 }
 
 
-#ifdef SHADERS_2011
-
-/* Least significant hex digit - appearance */
-#define NO_APPEARANCE_SHADER 0x0000
-#define MATERIAL_APPEARANCE_SHADER 0x0001
-#define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
-#define ONE_TEX_APPEARANCE_SHADER 0x0004
-#define MULTI_TEX_APPEARANCE_SHADER 0x0008
-
-/* second least significant hex digit - PolyRep colour present */
-#define NO_COLOUR_SHADER 0x0000
-#define HAVE_COLOUR_SHADER 0x00010
-
-/* fourth least significant hex digit - lines, points */
-#define NO_LINES_POINTS 0x0000
-#define HAVE_LINEPOINTS 0x1000
-
-
-#define CHECK_COLOUR_FIELD(aaa) \
-	case NODE_##aaa: { \
-		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
-		if (me->color == NULL) return NO_COLOUR_SHADER; \
-		else return HAVE_COLOUR_SHADER; \
-		break; \
-	} 
-
-#define CHECK_VRML1_COLOUR_FIELD(aaa) \
-	case NODE_##aaa: { \
-		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
-		if (me->_color == NULL) return NO_COLOUR_SHADER; \
-		else return HAVE_COLOUR_SHADER; \
-		break; \
-	} \
-
-/* if this is a LineSet, PointSet, etc... */
-static int getIfLinePoints(struct X3D_Node *myGeom) {
-	struct X3D_Node *realNode;
-
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
-
-	if (realNode == NULL) return NO_APPEARANCE_SHADER;
-	switch (realNode->_nodeType) {
-		case NODE_IndexedLineSet:
-		case NODE_LineSet:
-		case NODE_VRML1_IndexedLineSet:
-		case NODE_PointSet:
-		case NODE_VRML1_PointSet:
-			return  HAVE_LINEPOINTS;
-
-	}
-	return NO_LINES_POINTS;
-}
-
-
-
-/* Some shapes have Color nodes - if so, then we have other shaders */
-static int getShapeColourShader (struct X3D_Node *myGeom) {
-	struct X3D_Node *realNode;
-
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
-
-	if (realNode == NULL) return NO_APPEARANCE_SHADER;
-
-	/* go through each node type that can have a Color node, and if it is not NULL
-	   we know we have a Color node */
-
-	switch (realNode->_nodeType) {
-		CHECK_COLOUR_FIELD(IndexedFaceSet);
-		CHECK_COLOUR_FIELD(IndexedLineSet);
-		CHECK_COLOUR_FIELD(IndexedTriangleFanSet);
-		CHECK_COLOUR_FIELD(IndexedTriangleSet);
-		CHECK_COLOUR_FIELD(IndexedTriangleStripSet);
-		CHECK_COLOUR_FIELD(LineSet);
-		CHECK_COLOUR_FIELD(PointSet);
-		CHECK_COLOUR_FIELD(TriangleFanSet);
-		CHECK_COLOUR_FIELD(TriangleStripSet);
-		CHECK_COLOUR_FIELD(TriangleSet);
-		CHECK_COLOUR_FIELD(ElevationGrid);
-		CHECK_COLOUR_FIELD(GeoElevationGrid);
-		CHECK_VRML1_COLOUR_FIELD(VRML1_IndexedFaceSet);
-	}
-
-	/* if we are down here, we KNOW we do not have a color field */
-	return NO_COLOUR_SHADER;
-}
-
-#ifdef OLDCODE
-OLDCODE/* find info on the geometry of this shape */
-OLDCODEstatic int getGeometryShader (struct X3D_Node *myGeom) {
-OLDCODE
-OLDCODE	#ifdef HAVE_GEOMETRY_SHADERS
-OLDCODE	struct X3D_Node *realNode;
-OLDCODE    
-OLDCODE	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
-OLDCODE
-OLDCODE	if (realNode == NULL) return NO_GEOM_SHADER;
-OLDCODE
-OLDCODE	if (realNode->_nodeType == NODE_Sphere) return SPHERE_GEOM_SHADER;
-OLDCODE	#endif /* HAVE_GEOMETRY_SHADERS */
-OLDCODE
-OLDCODE	return NO_GEOM_SHADER;
-OLDCODE}
-OLDCODE
-OLDCODE static int getAppearanceShader (struct X3D_Node *myApp) {
-OLDCODE 	struct X3D_Appearance *realAppearanceNode;
-OLDCODE 	struct X3D_Node *realMaterialNode;
-OLDCODE 	struct X3D_Node *realTextureNode;
-OLDCODE 
-OLDCODE 	int retval = NO_APPEARANCE_SHADER;
-OLDCODE 
-OLDCODE 	/* if there is no appearance node... */
-OLDCODE 	if (myApp == NULL) return retval;
-OLDCODE 
-OLDCODE 	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,myApp, realAppearanceNode);
-OLDCODE 	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
-OLDCODE 
-OLDCODE 	if (realAppearanceNode->material != NULL) {
-OLDCODE 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->material, realMaterialNode);
-OLDCODE 		if (realMaterialNode->_nodeType == NODE_Material) {
-OLDCODE 			retval |= MATERIAL_APPEARANCE_SHADER;
-OLDCODE 		}
-OLDCODE 		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
-OLDCODE 			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
-OLDCODE 		}
-OLDCODE 	}
-OLDCODE 
-OLDCODE 	if (realAppearanceNode->texture != NULL) {
-OLDCODE 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,realAppearanceNode->texture, realTextureNode);
-OLDCODE 		if (realTextureNode->_nodeType == NODE_ImageTexture) {
-OLDCODE 			retval |= ONE_TEX_APPEARANCE_SHADER;
-OLDCODE 		} else if(realTextureNode->_nodeType == NODE_MultiTexture ){
-OLDCODE 			retval |= COMPLEX_TEX_APPEARANCE_SHADER;
-OLDCODE 			//q. do we need to recurse here into ImageTextures?
-OLDCODE 		} else {
-OLDCODE 			printf ("getAppearanceShader, texture field %s not supported yet\n",
-OLDCODE 			stringNodeType(realTextureNode->_nodeType));
-OLDCODE 		}
-OLDCODE 	}
-OLDCODE 
-OLDCODE 
-OLDCODE 	return retval;
-OLDCODE }
-#endif //OLDCODE
-
-
-static int getAppearanceShader (struct X3D_Node *myApp) {
-	struct X3D_Appearance *realAppearanceNode;
-	struct X3D_Node *realMaterialNode;
-
-
-	int retval = NO_APPEARANCE_SHADER;
-
-	/* if there is no appearance node... */
-	if (myApp == NULL) return retval;
-
-	realAppearanceNode = ((struct X3D_Appearance *)myApp);
-	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
-
-	if (realAppearanceNode->material != NULL) {
-		realMaterialNode = ((struct X3D_Node *)realAppearanceNode->material);
-		if (realMaterialNode->_nodeType == NODE_Material) {
-			retval |= MATERIAL_APPEARANCE_SHADER;
-		}
-		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
-			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
-		}
-	}
-    
-    
-
-	if (realAppearanceNode->texture != NULL) {
-        printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
-        if ((realAppearanceNode->texture->_nodeType == NODE_ImageTexture) ||
-            (realAppearanceNode->texture->_nodeType == NODE_PixelTexture)){
-			retval |= ONE_TEX_APPEARANCE_SHADER;
-		} else if (realAppearanceNode->texture->_nodeType == NODE_MultiTexture) {
-            retval |= MULTI_TEX_APPEARANCE_SHADER;
-        } else {
-			printf ("getAppearanceShader, texture field %s not supported yet\n",
-			stringNodeType(realAppearanceNode->texture->_nodeType));
-		}
-	}
-    printf ("getAppearanceShader, returning %x\n",retval);
-
-	return retval;
-}
-
-
-#ifdef SHAPE_VERBOSE
-static void printChoosingShader(shader_type_t whichOne) {
-    
-    ConsoleMessage ("choose shader: ");
-    switch (whichOne) {
-        case backgroundSphereShader: ConsoleMessage ("backgroundSphereShader\n"); break;
-        case backgroundTextureBoxShader: ConsoleMessage ("backgroundTextureBoxShader\n"); break;
-        case noTexOneMaterialShader: ConsoleMessage ("noTexOneMaterialShader\n"); break;
-        case noMaterialNoAppearanceShader: ConsoleMessage ("noMaterialNoAppearanceShader\n"); break;
-        case noTexTwoMaterialShader: ConsoleMessage ("noTexTwoMaterialShader\n"); break;
-        case oneTexOneMaterialShader: ConsoleMessage ("oneTexOneMaterialShader\n"); break;
-        case oneTexTwoMaterialShader: ConsoleMessage ("oneTexTwoMaterialShader\n"); break;
-        case complexTexOneMaterialShader: ConsoleMessage ("complexTexOneMaterialShader\n"); break;
-        case complexTexTwoMaterialShader: ConsoleMessage ("complexTexTwoMaterialShader\n"); break;
-        case noTexTwoMaterialColourShader: ConsoleMessage ("noTexTwoMaterialColourShader\n"); break;
-        case noTexOneMaterialColourShader: ConsoleMessage ("noTexOneMaterialColourShader\n"); break;
-        case oneTexTwoMaterialColourShader: ConsoleMessage ("oneTexTwoMaterialColourShader\n"); break;
-        case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader\n"); break;
-        case multiTexShader: ConsoleMessage ("multiTexShader\n"); break;
-        case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader\n"); break;
-        case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader\n"); break;
-        default : ConsoleMessage ("shader node unidentified");
-    }
-    
-}
-#endif //SHAPE_VERBOSE
-
-/* find info on the appearance of this Shape and create a shader */
-/* 
-	The possible sequence of a properly constructed appearance field is:
-
-	Shape.appearance -> Appearance
-	
-	Appearance.fillProperties 	-> FillProperties
-	Appearance.lineProperties 	-> LineProperties
-	Appearance.material 		-> Material
-					-> TwoSidedMaterial	
-	Appearance.shaders		-> ComposedShader
-	Appearance.shaders		-> PackagedShader
-	Appearance.shaders		-> ProgramShader
-
-	Appearance.texture		-> Texture
-	Appearance.texture		-> MultiTexture
-	Appearance.textureTransform	->
-
-*/
-
-#endif /* SHADERS_2011 */
 
 /* find info on the appearance of this Shape and create a shader */
 void compile_Shape (struct X3D_Shape *node) {
-#ifdef SHADERS_2011
 	int whichAppearanceShader = -1;
 	int whichShapeColorShader = -1;
 	int isUnlitGeometry = -1;
@@ -949,117 +1016,12 @@ void compile_Shape (struct X3D_Shape *node) {
 	#endif //SHAPE_VERBOSE
     
 
-#endif //SHADERS_2011
 
 	MARK_NODE_COMPILED
 }
 
 
-#ifdef SHADERS_2011
-void child_Shape (struct X3D_Shape *node) {
-	struct X3D_Node *tmpN;
-	// JAS int i;
-	// JAS float dcol[4];
-	// JAS float ecol[4];
-	// JAS float scol[4];
-	// JAS float amb;
-    
-	ppComponent_Shape p;
-        ttglobal tg = gglobal();
 
-
-
-	COMPILE_IF_REQUIRED
-
-	/* JAS - if not collision, and render_geom is not set, no need to go further */
-	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
-	if(!(node->geometry)) { return; }
-
-	RECORD_DISTANCE
-
-	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
-		/* only need to forward the call to the child */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
-		render_node(tmpN);
-		return;
-	}
-
-	if (node->_shaderTableEntry == -1) {
-		return;
-	}
-        p = (ppComponent_Shape)tg->Component_Shape.prv;
-	{
-		struct fw_MaterialParameters defaultMaterials = {
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* ambientIntensity */
-					{0.8f, 0.8f, 0.8f, 1.0f}, /* diffuseColor */
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* specularColor */
-					10.0f};                   /* shininess */
-
-		/* copy the material stuff in preparation for copying all to the shader */
-		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-
-	}
-
-	// now done in textureDraw_end  tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
-
-	/* enable the shader for this shape */
-        enableGlobalShader (node->_shaderTableEntry);
-
-	/* now, are we rendering blended nodes or normal nodes?*/
-	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-
-		RENDER_MATERIAL_SUBNODES(node->appearance);
-
-		if (p->material_oneSided != NULL) {
-
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,&(p->material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
-
-		} else if (p->material_twoSided != NULL) {
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
-			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,&(p->material_twoSided->_verifiedFrontColor.p[0]), 3*sizeof(float));
-		} else {
-			/* no materials selected.... */
-		}
-
-		/* send along lighting, material, other visible properties */
-		sendMaterialsToShader(p->appearanceProperties.currentShaderProperties);
-
-		#ifdef SHAPEOCCLUSION
-		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
-		#endif
-
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
-		render_node(tmpN);
-
-		#ifdef SHAPEOCCLUSION
-		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
-		#endif
-	}
-
-	/* any shader turned on? if so, turn it off */
-	TURN_GLOBAL_SHADER_OFF;
-	p->material_twoSided = NULL;
-	p->material_oneSided = NULL;
-
-    
-	/* did the lack of an Appearance or Material node turn lighting off? */
-	LIGHTING_ON;
-
-	/* turn off face culling */
-	DISABLE_CULL_FACE;
-
-}
-
-#else /* ifdef SHADERS_2011 */
 
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
@@ -1267,9 +1229,6 @@ void child_Shape (struct X3D_Shape *node) {
 	DISABLE_CULL_FACE;
 }
 
-#endif /* SHADERS_2011 */
-
-
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
 	
@@ -1331,3 +1290,5 @@ void child_Appearance (struct X3D_Appearance *node) {
 		}
 	}
 }
+
+#endif //SHADERS_2011

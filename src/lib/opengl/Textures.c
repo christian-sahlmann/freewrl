@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.118 2012/07/06 21:19:27 crc_canada Exp $
+  $Id: Textures.c,v 1.119 2012/07/07 12:27:39 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -936,7 +936,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* is this texture invalid and NOT caught before here? */
 	/* this is the same as the defaultBlankTexture; the following code should NOT be executed */
 	if (me->texdata == NULL) {
-		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA here */
+		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA or GL_RGBA here */
 		me->x = 1;
 		me->y = 1;
 		me->hasAlpha = FALSE;
@@ -1134,13 +1134,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
 		#endif
 
-#ifdef GL_ES_VERSION_2_0
-		iformat = GL_RGBA; format = GL_RGBA;
-		glEnable(GL_TEXTURE_CUBE_MAP);
-#else
+		#if defined (GL_BGRA)
 		iformat = GL_RGBA; format = GL_BGRA;
-		glEnable(GL_TEXTURE_CUBE_MAP);
-#endif
+		#else
+		iformat = GL_RGBA; format = GL_RGBA;
+		#endif
 
 		/* first image in the ComposedCubeMap, do some setups */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
@@ -1260,12 +1258,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 			
-#ifdef GL_ES_VERSION_2_0
-			iformat = GL_RGBA; format = GL_RGBA;
-#else
-			/* NOTE: trying BGRA format from textures */
+			/* BGRA is seemingly faster on desktop machines... */
+			#if defined (GL_BGRA)
 			iformat = GL_RGBA; format = GL_BGRA;
-#endif
+			#else
+			iformat = GL_RGBA; format = GL_RGBA;
+			#endif
 			
 			/* do the image. */
 			if(x && y) {
