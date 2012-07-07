@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.105 2012/07/07 19:00:46 crc_canada Exp $
+$Id: Component_Shape.c,v 1.106 2012/07/07 19:09:21 crc_canada Exp $
 
 X3D Shape Component
 
@@ -125,6 +125,159 @@ struct X3D_Node *getThis_textureTransform(){
 	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 	return p->this_textureTransform;
 }
+
+
+void child_Appearance (struct X3D_Appearance *node) {
+	struct X3D_Node *tmpN;
+	
+	/* initialization */
+	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
+	
+	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
+	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+	
+	/* Render the material node... */
+	RENDER_MATERIAL_SUBNODES(node->material);
+	
+	if (node->fillProperties) {
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->fillProperties,tmpN);
+		render_node(tmpN);
+	}
+	
+	/* set line widths - if we have line a lineProperties node */
+	if (node->lineProperties) {
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->lineProperties,tmpN);
+		render_node(tmpN);
+	}
+	
+	if(node->texture) {
+		/* we have to do a glPush, then restore, later */
+		/* glPushAttrib(GL_ENABLE_BIT); */
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+		/* is there a TextureTransform? if no texture, fugutaboutit */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->textureTransform,p->this_textureTransform);
+		
+		/* now, render the texture */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
+
+		render_node(tmpN);
+	}
+
+	/* shaders here/supported?? */
+	if (node->shaders.n !=0) {
+		int count;
+		int foundGoodShader = FALSE;
+		
+		for (count=0; count<node->shaders.n; count++) {
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->shaders.p[count], tmpN);
+			
+			/* have we found a valid shader yet? */
+			if (foundGoodShader) {
+				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+				/* yes, just tell other shaders that they are not selected */
+				SET_SHADER_SELECTED_FALSE(tmpN);
+			} else {
+				/* render this node; if it is valid, then we call this one the selected one */
+				SET_FOUND_GOOD_SHADER(tmpN);
+				DEBUG_SHADER("running shader (%s) %d of %d\n",
+			    	 stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
+				render_node(tmpN);
+			}
+		}
+	}
+}
+
+
+void render_Material (struct X3D_Material *node) {
+	COMPILE_IF_REQUIRED
+	{
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
+	p->material_oneSided = node;
+	}
+}
+
+
+/* bounds check the material node fields */
+void compile_Material (struct X3D_Material *node) {
+	int i;
+	float trans;
+
+
+	/* verify that the numbers are within range */
+	if (node->ambientIntensity < 0.0f) node->ambientIntensity=0.0f;
+	if (node->ambientIntensity > 1.0f) node->ambientIntensity=1.0f;
+	if (node->shininess < 0.0f) node->shininess=0.0f;
+	if (node->shininess > 1.0f) node->shininess=1.0f;
+	if (node->transparency < 0.0f) node->transparency=MIN_NODE_TRANSPARENCY;
+	if (node->transparency >= 1.0f) node->transparency=MAX_NODE_TRANSPARENCY;
+
+	for (i=0; i<3; i++) {
+		if (node->diffuseColor.c[i] < 0.0f) node->diffuseColor.c[i]=0.0f;
+		if (node->diffuseColor.c[i] > 1.0f) node->diffuseColor.c[i]=1.0f;
+		if (node->emissiveColor.c[i] < 0.0f) node->emissiveColor.c[i]=0.0f;
+		if (node->emissiveColor.c[i] > 1.0f) node->emissiveColor.c[i]=1.0f;
+		if (node->specularColor.c[i] < 0.0f) node->specularColor.c[i]=0.0f;
+		if (node->specularColor.c[i] > 1.0f) node->specularColor.c[i]=1.0f;
+	}
+
+        /* set the transparency here for the material */
+	/* Remember, VRML/X3D transparency 0.0 = solid; OpenGL 1.0 = solid, so we reverse it... */
+        trans = 1.0f - node->transparency;
+                
+	/* we now keep verified params in a structure that maps to Shaders well...
+		struct gl_MaterialParameters {
+        	        vec4 emission;
+        	        vec4 ambient;
+        	        vec4 diffuse;
+        	        vec4 specular;
+        	        float shininess;
+        	};
+	  which is stored in the _verifiedColor[17] array here.
+	  emission [0]..[3];
+	  ambient [4]..[7];
+	  diffuse [8]..[11];
+	  specular [12]..[15];
+	  shininess [16]
+	  
+*/
+	/* first, put in the transparency */
+        node->_verifiedColor.p[3] = trans;
+        node->_verifiedColor.p[7] = trans;
+        node->_verifiedColor.p[11] = trans;
+        node->_verifiedColor.p[15] = trans;
+                
+	/* DiffuseColor */
+	memcpy((void *)(&node->_verifiedColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
+
+	/* Ambient  - diffuseColor * ambientIntensity */
+        for(i=0; i<3; i++) { node->_verifiedColor.p[i+4] = node->_verifiedColor.p[i+8] * node->ambientIntensity; }
+
+	/* Specular */
+	memcpy((void *)(&node->_verifiedColor.p[12]), node->specularColor.c, sizeof (float) * 3);
+
+	/* Emissive */
+	memcpy((void *)(&node->_verifiedColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
+
+	/* Shininess */
+        node->_verifiedColor.p[16] = node->shininess * 128.0f;
+
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
+        if ((node->_verifiedColor.p[16] > MAX_SHIN) || (node->_verifiedColor.p[16] < MIN_SHIN)) {
+                if (node->_verifiedColor.p[16]>MAX_SHIN){node->_verifiedColor.p[16] = MAX_SHIN;}else{node->_verifiedColor.p[16]=MIN_SHIN;}
+        }
+#undef MAX_SHIN
+#undef MIN_SHIN
+
+
+	MARK_NODE_COMPILED
+}
+
+
 
 
 #ifdef SHADERS_2011
@@ -310,12 +463,6 @@ ConsoleMessage("should not be calling render_FillProperties");
 void render_LineProperties (struct X3D_LineProperties *node) {
 	ConsoleMessage ("should not be calling render_LineProperties");
 }
-
-
-void render_Material (struct X3D_Material *node) {
-ConsoleMessage("render_Material called");
-}
-
 
 
 void child_Shape (struct X3D_Shape *node) {
@@ -518,26 +665,16 @@ void compile_Shape (struct X3D_Shape *node) {
 	#ifdef SHAPE_VERBOSE
 	printChoosingShader(node->_shaderTableEntry);
 	#endif //SHAPE_VERBOSE
-    
-
 
 	MARK_NODE_COMPILED
 }
 
-void child_Appearance (struct X3D_Appearance *node) {
-printf ("child_Appearance called\n");
-}
-
-void compile_Material (struct X3D_Appearance *node) {
-printf ("compile_Material called\n");
-}
-
 void compile_TwoSidedMaterial (struct X3D_Appearance *node) {
-printf ("compile_TwoSidedMaterial called\n");
+ConsoleMessage ("compile_TwoSidedMaterial called\n");
 }
 
 void render_TwoSidedMaterial (struct X3D_Appearance *node) {
-printf ("render_TwoSidedMaterial called\n");
+ConsoleMessage ("render_TwoSidedMaterial called\n");
 }
 
 #else //SHADERS_2011
@@ -1010,27 +1147,11 @@ void compile_Material (struct X3D_Material *node) {
 }
 
 
-void render_Material (struct X3D_Material *node) {
-	COMPILE_IF_REQUIRED
-	{
-	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
-
-	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
-	p->material_oneSided = node;
-	}
-}
-
-
-
 /* find info on the appearance of this Shape and create a shader */
 
 void compile_Shape (struct X3D_Shape *node) {
 	MARK_NODE_COMPILED
 }
-
-
-
-
 
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
@@ -1238,66 +1359,5 @@ void child_Shape (struct X3D_Shape *node) {
 	DISABLE_CULL_FACE;
 }
 
-void child_Appearance (struct X3D_Appearance *node) {
-	struct X3D_Node *tmpN;
-	
-	/* initialization */
-	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
-	
-	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
-	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-	
-	/* Render the material node... */
-	RENDER_MATERIAL_SUBNODES(node->material);
-	
-	if (node->fillProperties) {
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->fillProperties,tmpN);
-		render_node(tmpN);
-	}
-	
-	/* set line widths - if we have line a lineProperties node */
-	if (node->lineProperties) {
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->lineProperties,tmpN);
-		render_node(tmpN);
-	}
-	
-	if(node->texture) {
-		/* we have to do a glPush, then restore, later */
-		/* glPushAttrib(GL_ENABLE_BIT); */
-		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
-
-		/* is there a TextureTransform? if no texture, fugutaboutit */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->textureTransform,p->this_textureTransform);
-		
-		/* now, render the texture */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
-
-		render_node(tmpN);
-	}
-
-	/* shaders here/supported?? */
-	if (node->shaders.n !=0) {
-		int count;
-		int foundGoodShader = FALSE;
-		
-		for (count=0; count<node->shaders.n; count++) {
-			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->shaders.p[count], tmpN);
-			
-			/* have we found a valid shader yet? */
-			if (foundGoodShader) {
-				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
-				/* yes, just tell other shaders that they are not selected */
-				SET_SHADER_SELECTED_FALSE(tmpN);
-			} else {
-				/* render this node; if it is valid, then we call this one the selected one */
-				SET_FOUND_GOOD_SHADER(tmpN);
-				DEBUG_SHADER("running shader (%s) %d of %d\n",
-			    	 stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
-				render_node(tmpN);
-			}
-		}
-	}
-}
 
 #endif //SHADERS_2011
