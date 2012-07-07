@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.255 2012/07/03 20:49:36 crc_canada Exp $
+  $Id: MainLoop.c,v 1.256 2012/07/07 14:07:23 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2104,7 +2104,7 @@ void fwl_set_KeyString(const char* kstring)
    console. */
 void outOfMemory(const char *msg) {
         ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
-                        "and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
+                        "and is exiting. -- %s--",msg);
         usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }
