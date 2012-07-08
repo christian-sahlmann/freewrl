@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.49 2012/07/08 19:11:45 dug9 Exp $
+  $Id: statusbarHud.c,v 1.50 2012/07/08 20:02:52 dug9 Exp $
 
 */
 
@@ -1801,6 +1801,8 @@ void renderButtons()
 			bool highlightIt = p->pmenu.items[i].butStatus;
 			rgba[0] = .922f; rgba[1] = .91f; rgba[2] = .844f, rgba[3] = 1.0f; //windowing gray
 #ifndef QNX
+			// touch screens don't benefit from isOver highlighting because
+			// your finger is blocking your view of the button anyway
 			if(i==p->isOver){
 				rgba[0] = 1.0f; rgba[1] = 1.0f; rgba[2] = 1.0f;
 				highlightIt = true;
@@ -1814,7 +1816,9 @@ void renderButtons()
 #ifdef GLES2
 				glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
 				glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
-								   GL_FALSE, 0, p->pmenu.items[i].vert );
+								 //  GL_FALSE, 0, p->pmenu.items[i].vert );
+								   GL_FALSE, 0, &(p->pmenu.vert[i*3*4]) );
+
 				// Load the texture coordinate
 				glVertexAttribPointer ( p->texCoordLoc, 2, GL_FLOAT,
 								   GL_FALSE, 0, p->pmenu.items[p->pmenu.nitems-1].tex );   //nitems -1 should be the blank texture
