@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.124 2012/06/18 17:41:43 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.125 2012/07/08 17:06:10 dug9 Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -481,7 +481,6 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 	glBindBuffer(target,buffer);
 }
 
-
 void sendArraysToGPU (int mode, int first, int count) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	#ifdef RENDERVERBOSE
@@ -527,7 +526,19 @@ void sendArraysToGPU (int mode, int first, int count) {
 	} 
 
 	}
+	// when glDrawArrays bombs it's usually some function left an array
+	// enabled that's not supposed to be - try disabling something
+//glDisableClientState(GL_VERTEX_ARRAY);
+//glDisableClientState(GL_NORMAL_ARRAY);
+//glDisableClientState(GL_INDEX_ARRAY);
+//glDisableClientState(GL_COLOR_ARRAY);
+//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+//glDisableClientState(GL_FOG_COORDINATE_ARRAY);
+//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+//glDisableClientState(GL_EDGE_FLAG_ARRAY);
 	glDrawArrays(mode,first,count);
+
+
 }
 
 void sendElementsToGPU (int mode, int count, int type, int *indices) {

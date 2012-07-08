@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.98 2012/06/12 19:52:31 crc_canada Exp $
+  $Id: display.c,v 1.99 2012/07/08 17:06:10 dug9 Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -305,6 +305,14 @@ bool initialize_rdr_caps()
 
 	{
     printf("opengl version=%s\n",rdr_caps.version);
+	if(!rdr_caps.have_GL_VERSION_2_0)
+	{
+		printf("please upgrade to opengl version 2+\n see http://www.opengl.org/wiki/Getting_Started  for details\n");
+		printf("press enter to exit\n");
+		getchar();
+		exit(-1);
+	}
+
 
 	rdr_caps.av_glsl_shaders = GLEW_ARB_fragment_shader;
 	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
