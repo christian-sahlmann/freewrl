@@ -110,8 +110,8 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	Snapshot_init(&iglobal->Snapshot);
 	#endif
 
-#if !defined(EXCLUDE_EAI)
 	EAI_C_CommonFunctions_init(&iglobal->EAI_C_CommonFunctions);
+#if !defined(EXCLUDE_EAI)
 	EAIEventsIn_init(&iglobal->EAIEventsIn);
 	EAIHelpers_init(&iglobal->EAIHelpers);
 	EAICore_init(&iglobal->EAICore);

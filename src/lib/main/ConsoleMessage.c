@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.30 2012/07/03 20:49:36 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.31 2012/07/08 20:14:12 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -471,9 +471,9 @@ char *android_get_last_message(int whichOne) {
 	whm = p->androidFreeSlot - whichOne;
 	if (whm < 0) whm = MAX_ANDROID_CONSOLE_MESSAGE_SLOTS-1;
 
-	if (p->androidMessageSlot[whm] == NULL) return "";
+	if (p->androidMessageSlot[whm] == NULL) return strdup("");
 
-	return p->androidMessageSlot[whm];
+	return strdup(p->androidMessageSlot[whm]);
 }
 
 #endif //ANDROID
