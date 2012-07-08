@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.257 2012/07/08 15:17:45 dug9 Exp $
+  $Id: MainLoop.c,v 1.258 2012/07/08 19:11:45 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1335,10 +1335,10 @@ static void render()
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
 			cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
-#ifndef GLES2
 			if (Viewer()->anaglyph)
 				if(Viewer()->anaglyphMethod == 1) //haveAnaglyphShader) 
 				{
+#ifndef GLES2
 					if (count==0) {
 						USE_SHADER(0);
 						FW_GL_ACCUM(GL_LOAD,1.0); 
@@ -1348,10 +1348,10 @@ static void render()
 						FW_GL_ACCUM(GL_ACCUM,1.0); 
 						FW_GL_ACCUM(GL_RETURN,1.0);
 					}
+#endif
 				}
 				else if(Viewer()->anaglyphMethod == 2)
 					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
-#endif
 		}
 	} /* for loop */
 

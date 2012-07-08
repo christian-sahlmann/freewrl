@@ -1,5 +1,5 @@
 /*
-  $Id: common.h,v 1.8 2011/09/12 17:28:44 crc_canada Exp $
+  $Id: common.h,v 1.9 2012/07/08 19:11:45 dug9 Exp $
 
   FreeWRL support library.
 
@@ -46,6 +46,8 @@ typedef struct pcommon{
         char messagebar[MAXSTAT];
         char window_title[MAXTITLE];
         int cursorStyle;
+		int promptForURL;
+		int promptForFile;
 }* ppcommon;
 
 /* Status update functions */

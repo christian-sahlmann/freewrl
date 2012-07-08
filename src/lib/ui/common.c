@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.13 2012/03/30 17:23:16 crc_canada Exp $
+  $Id: common.c,v 1.14 2012/07/08 19:11:45 dug9 Exp $
 
   FreeWRL support library.
 
@@ -46,6 +46,8 @@ void common_init(struct tcommon *t){
 		//char messagebar[MAXSTAT];
 		//char window_title[MAXTITLE];
 		p->cursorStyle = ACURSE;
+		p->promptForURL = 0;
+		p->promptForFile = 0;
 	}
 }
 //ppcommon p = (ppcommon)gglobal()->common.prv;
@@ -106,6 +108,32 @@ char *getMessageBar()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->messagebar;
 }
+/* the next 4 functions allow statusbarHud to set a flag 
+   to indicate the frontend should pop up a dialog to prompt for
+   something
+*/
+int fwl_pollPromptForURL()
+{ /* poll from front end / UI in loop */
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->promptForURL;
+}
+int fwl_pollPromptForFile()
+{ 
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	return p->promptForFile;
+}
+void fwl_setPromptForURL(int state)
+{
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->promptForURL = state; //1 or 0
+}
+void fwl_setPromptForFile(int state)
+{
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	p->promptForFile = state; //1 or 0
+}
+
+
 void setArrowCursor()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;
