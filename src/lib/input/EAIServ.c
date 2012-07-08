@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIServ.c,v 1.28 2012/06/30 22:09:44 davejoubert Exp $
+$Id: EAIServ.c,v 1.29 2012/07/08 15:17:45 dug9 Exp $
 
 Implement Socket server functionality for FreeWRL.
 This is currently (Jun 2012) used by the EAI and the MIDI routines
@@ -177,9 +177,14 @@ int fwlio_RxTx_control(int channel, int action) {
 		}
 	}
 	if( RxTx_REFRESH == action) {
+		int EAIsockfd, EAIlistenfd;
+		int E_SOCK_bufcount;
+		int E_SOCK_bufsize;
+		char *E_SOCK_buffer; 
+
 		if (!service_wanted[channel]) return 0;
-		int EAIsockfd =  SCK_descriptors[channel][MAINSOCK_FD] ;
-		int EAIlistenfd = SCK_descriptors[channel][CLIENT_FD] ;
+		EAIsockfd =  SCK_descriptors[channel][MAINSOCK_FD] ;
+		EAIlistenfd = SCK_descriptors[channel][CLIENT_FD] ;
 		if (!service_connected[channel]) {
 			service_failed[channel] = !(privSocketSetup(channel,&EAIsockfd,&EAIlistenfd));
 			if(service_failed[channel]) {
@@ -199,9 +204,9 @@ int fwlio_RxTx_control(int channel, int action) {
 		/* have we closed connection? */
 		if(SCK_descriptors[channel][CLIENT_FD] < 0) return 0;
 
-		int E_SOCK_bufcount = sock_bufcount[channel];
-		int E_SOCK_bufsize = sock_bufsize[channel] ;
-		char *E_SOCK_buffer = sock_buffers[channel] ; 
+		E_SOCK_bufcount = sock_bufcount[channel];
+		E_SOCK_bufsize = sock_bufsize[channel] ;
+		E_SOCK_buffer = sock_buffers[channel] ; 
 
 		/* EBUFFLOCK; */
 		sock_buffers[channel] = privSocketRead(channel,E_SOCK_buffer,&E_SOCK_bufcount, &E_SOCK_bufsize, &EAIlistenfd);

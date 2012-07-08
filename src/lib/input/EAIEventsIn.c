@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAIEventsIn.c,v 1.85 2012/06/30 22:09:44 davejoubert Exp $
+$Id: EAIEventsIn.c,v 1.86 2012/07/08 15:17:45 dug9 Exp $
 
 Handle incoming EAI (and java class) events with panache.
 
@@ -191,9 +191,10 @@ struct X3D_Anchor* get_EAIEventsIn_AnchorNode()
 int fwl_EAI_allDone() {
 	int eaiverbose;
 	int bufPtr;
+	int stillToDo;
 	ttglobal tg = gglobal();
 	bufPtr = tg->EAICore.EAIbufpos;
-	int stillToDo = (int)strlen((&EAI_BUFFER_CUR));
+	stillToDo = (int)strlen((&EAI_BUFFER_CUR));
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
 	if (eaiverbose && stillToDo > 0) {
 		printf ("EAI_allDone still to do: strlen %d str :%s:\n",stillToDo, (&EAI_BUFFER_CUR));
@@ -204,10 +205,11 @@ int fwl_EAI_allDone() {
 char * fwl_EAI_handleRest() {
 	int eaiverbose;
 	int bufPtr;
+	int stillToDo;
+	struct tEAIHelpers *th;
 	ttglobal tg = gglobal();
 	bufPtr = tg->EAICore.EAIbufpos;
-	int stillToDo = (int)strlen((&EAI_BUFFER_CUR));
-	struct tEAIHelpers *th;
+	stillToDo = (int)strlen((&EAI_BUFFER_CUR));
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
 
 	if(NULL == tg->EAICore.EAIbuffer) {
@@ -515,7 +517,6 @@ void EAI_core_commands () {
 				break;
 				}
 			case MIDIINFO: {
-				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 /* if we do not have a string yet, we have to do this...
 This is a problem. We cannot create the VRML until we have a whole stanza
 which means we may have to block, because we cannot respond to the original request.
@@ -524,6 +525,7 @@ However, nowadays we do not read any sockets directly....
 */
 				int topWaitLimit=16;
 				int currentWaitCount=0;
+				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 
 				while (EOT == NULL && topWaitLimit >= currentWaitCount) {
 					if(fwlio_RxTx_control(CHANNEL_MIDI,RxTx_REFRESH) == 0) {
@@ -570,6 +572,9 @@ However, nowadays we do not read any sockets directly....
 
 				retGroup = createNewX3DNode(NODE_Group);
 				if (command == CREATEVS) {
+					int topWaitLimit=16;
+					int currentWaitCount=0;
+
 					if (eaiverbose) {	
 						printf ("CREATEVS %s\n",&EAI_BUFFER_CUR);
 					}	
@@ -581,8 +586,6 @@ which means we may have to block, because we cannot respond to the original requ
 
 However, nowadays we do not read any sockets directly....
 */
-					int topWaitLimit=16;
-					int currentWaitCount=0;
 
 					while (EOT == NULL && topWaitLimit >= currentWaitCount) {
 						if(fwlio_RxTx_control(CHANNEL_EAI,RxTx_REFRESH) == 0) {
@@ -930,7 +933,11 @@ However, nowadays we do not read any sockets directly....
 
 		if (eaiverbose) {	
 			printf ("end of command, remainder %d chars ",(int)strlen(&EAI_BUFFER_CUR));
+#ifdef _MSC_VER
+			printf ("and :%s: thread %lu\n",(&EAI_BUFFER_CUR),(unsigned long) pthread_self().p);
+#else
 			printf ("and :%s: thread %lu\n",(&EAI_BUFFER_CUR),(unsigned long) pthread_self());
+#endif
 
 		}
 		if (command == SENDEVENT || (command == MIDICONTROL))  {

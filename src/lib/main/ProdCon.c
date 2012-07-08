@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.104 2012/07/03 19:13:50 crc_canada Exp $
+  $Id: ProdCon.c,v 1.105 2012/07/08 15:17:45 dug9 Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -895,11 +895,11 @@ char me[200];
 
 
 void kill_bindables (void) {
+	int i;
 	ppProdCon p;
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
-	int i;
 
 	KILL_BINDABLE(t->viewpointNodes);
 	KILL_BINDABLE(p->backgroundNodes);

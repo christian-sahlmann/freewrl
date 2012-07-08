@@ -34,6 +34,7 @@ Variable use:
 
 typedef struct pRenderTextures{
 	// blank for now
+	void *nada;
 }* ppRenderTextures;
 
 

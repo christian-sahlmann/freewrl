@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.256 2012/07/07 14:07:23 crc_canada Exp $
+  $Id: MainLoop.c,v 1.257 2012/07/08 15:17:45 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -816,6 +816,7 @@ void fwl_RenderSceneUpdateScene() {
 		 */
 
                 /* handle_EAI(); */
+		{
 		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
 		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
 			if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_REFRESH) == 0) {
@@ -828,11 +829,14 @@ void fwl_RenderSceneUpdateScene() {
 					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
 				}
 				if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_PENDING) > 0) {
+					char *tempEAIdata;
 					if ( socketVerbose != 0 ) {
 						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
 					}
-					char *tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
+					tempEAIdata = fwlio_RxTx_getbuffer(CHANNEL_EAI) ;
 					if(tempEAIdata != (char *)NULL) {
+						char * replyData;
+						int EAI_StillToDo;
 						if ( socketVerbose != 0 ) {
 							printf("%s:%d Something for EAI to do with buffer addr %p\n",__FILE__,__LINE__,tempEAIdata ) ;
 						}
@@ -840,9 +844,9 @@ void fwl_RenderSceneUpdateScene() {
 						 * Every incoming command has a reply,
 						 * and the reply is synchronous.
 						 */
-						char * replyData = fwl_EAI_handleBuffer(tempEAIdata);
+						replyData = fwl_EAI_handleBuffer(tempEAIdata);
 						free(tempEAIdata) ;
-						int EAI_StillToDo = 1;
+						EAI_StillToDo = 1;
 						do {
 							if(replyData != NULL && strlen(replyData) != 0) {
 								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_EAI, replyData) ;
@@ -876,17 +880,20 @@ void fwl_RenderSceneUpdateScene() {
 					printf("%s:%d Test RxTx_PENDING\n",__FILE__,__LINE__) ;
 				}
 				if(fwlio_RxTx_control(CHANNEL_MIDI, RxTx_PENDING) > 0) {
+					char *tempMIDIdata;
 					if ( socketVerbose != 0 ) {
 						printf("%s:%d Something pending\n",__FILE__,__LINE__) ;
 					}
-					char *tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
+					tempMIDIdata = fwlio_RxTx_getbuffer(CHANNEL_MIDI) ;
 					if(tempMIDIdata != (char *)NULL) {
+						char * replyData;
+						int EAI_StillToDo;
 						if ( socketVerbose != 0 ) {
 							printf("%s:%d Something for MIDI to do with buffer addr %p\n",__FILE__,__LINE__,tempMIDIdata ) ;
 						}
-						char * replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
+						replyData = fwl_MIDI_handleBuffer(tempMIDIdata);
 						free(tempMIDIdata) ;
-						int EAI_StillToDo = 1;
+						EAI_StillToDo = 1;
 						do {
 							if(replyData != NULL && strlen(replyData) != 0) {
 								fwlio_RxTx_sendbuffer(__FILE__,__LINE__,CHANNEL_MIDI, replyData) ;
@@ -903,6 +910,7 @@ void fwl_RenderSceneUpdateScene() {
 					}
 				}
 			}
+		}
 		}
   		#endif //EXCLUDE_EAI
           }
@@ -2178,8 +2186,9 @@ void fwl_doQuit()
 // note that the "tempnam" function will accept NULL as the directory on many platforms,
 // so this function does not really need to be called on many platforms.
 void fwl_tmpFileLocation(char *tmpFileLocation) {
+	ttglobal tg;
 	if (tmpFileLocation == NULL) return;
-	ttglobal tg = gglobal();
+	tg = gglobal();
 	FREE_IF_NZ(tg->Mainloop.tmpFileLocation);
 	tg->Mainloop.tmpFileLocation = MALLOC(char *,strlen(tmpFileLocation)+1);
 	strcpy(tg->Mainloop.tmpFileLocation,tmpFileLocation);

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.54 2012/07/07 14:44:30 istakenv Exp $
+$Id: RenderTextures.c,v 1.55 2012/07/08 15:17:45 dug9 Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -164,7 +164,9 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
 		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
 #ifndef SHADERS_2011
+#ifndef _MSC_VER
 			doNonShaderTextureHandlingWithMultiTexParams(&(tg->RenderTextures.textureParameterStack[c]));
+#endif
 #endif
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */

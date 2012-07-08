@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.106 2012/07/07 19:09:21 crc_canada Exp $
+$Id: Component_Shape.c,v 1.107 2012/07/08 15:17:45 dug9 Exp $
 
 X3D Shape Component
 
@@ -200,7 +200,7 @@ void render_Material (struct X3D_Material *node) {
 	}
 }
 
-
+#ifdef SHADERS_2011
 /* bounds check the material node fields */
 void compile_Material (struct X3D_Material *node) {
 	int i;
@@ -277,7 +277,7 @@ void compile_Material (struct X3D_Material *node) {
 	MARK_NODE_COMPILED
 }
 
-
+#endif //SHADERS_2011
 
 
 #ifdef SHADERS_2011
