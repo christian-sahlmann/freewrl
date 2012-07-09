@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.260 2012/07/09 00:59:56 dug9 Exp $
+  $Id: MainLoop.c,v 1.261 2012/07/09 14:53:43 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2060,40 +2060,33 @@ void updateButtonStatus()
 }
 void checkFileLoadRequest()
 {
+	char *fname;
 	ttglobal tg = gglobal();
+	fname = NULL;
+
 	//poll state:
 	if(fwl_pollPromptForURL())
 	{
 		fwl_setPromptForURL(0);
 		#if defined(_MSC_VER) || defined(QNX)
-		{
-			char *fname = frontend_pick_URL();
-			if(fname)
-			{
-				//fwl_replaceWorldNeeded(fname);
-				//tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(fname);
-				//tg->RenderFuncs.BrowserAction = TRUE;
-				Anchor_ReplaceWorld(fname);
-				free(fname);
-			}
-		}
+			fname = frontend_pick_URL();
 		#endif
 	}
 	else if(fwl_pollPromptForFile())
 	{
 		fwl_setPromptForFile(0);
 		#if defined(_MSC_VER) || defined(QNX)
-		{
-			char *fname = frontend_pick_file();
-			if(fname)
-			{
-				//fwl_replaceWorldNeeded(fname);
-				Anchor_ReplaceWorld(fname);
-				free(fname);
-			}
-		}
+			fname = frontend_pick_file();
 		#endif
 	}
+	// update 
+	if(fname)
+	{
+		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+		Anchor_ReplaceWorld(fname);
+		free(fname);
+	}
+
 }
 void _displayThread()
 {
