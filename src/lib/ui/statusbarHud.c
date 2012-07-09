@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.50 2012/07/08 20:02:52 dug9 Exp $
+  $Id: statusbarHud.c,v 1.51 2012/07/09 00:59:56 dug9 Exp $
 
 */
 
@@ -1760,6 +1760,21 @@ void updateButtonVertices()
 			}
 	}
 }
+/* moved to mainloop.c 
+void updateButtonStatus()
+{
+	//checks collision, headlight and navmode 
+	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
+	// events inside vrml. We take our UI current state from the scene state.
+	int headlight, collision, navmode;
+	headlight = fwl_get_headlight();
+	collision = fwl_getCollision();
+	navmode = fwl_getNavMode();
+	setMenuButton_navModes(navmode);
+	setMenuButton_headlight(headlight);
+	setMenuButton_collision(collision);
+}
+*/
 void renderButtons()
 {
 	/* called from drawStatusBar() to render the user buttons like walk/fly, headlight, collision etc. */
@@ -1776,6 +1791,7 @@ void renderButtons()
 	if(!p->butsLoaded)
 		initButtons();
 	updateButtonVertices();
+	//updateButtonStatus();
 	glScissor(0,(int)p->pmenu.yoffset,tg->display.screenWidth,p->buttonSize); //tg->Mainloop.clipPlane*2);
 
 	glEnable(GL_SCISSOR_TEST);

@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.76 2012/06/30 22:09:44 davejoubert Exp $
+  $Id: main.c,v 1.77 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -229,7 +229,7 @@ void fwl_setp_fullscreen	(bool foo)	{ fwl_params.fullscreen = foo; }
 void fwl_setp_multithreading	(bool foo)	{ fwl_params.multithreading = foo; }
 void fwl_setp_eai		(bool foo)	{ fwl_params.eai = foo; }
 void fwl_setp_verbose		(bool foo)	{ fwl_params.verbose = foo; }
-void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
+//void fwl_setp_collision		(int foo)	{ fwl_params.collision = foo; }
 
 int	fwl_getp_width		(void)	{ return fwl_params.width; }
 int	fwl_getp_height		(void)	{ return fwl_params.height; }
@@ -238,7 +238,7 @@ bool	fwl_getp_fullscreen	(void)	{ return fwl_params.fullscreen; }
 bool	fwl_getp_multithreading	(void)	{ return fwl_params.multithreading; }
 bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
 bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
-int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
+//int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 
 ttglobal fwl;
 void* fwl_init_instance()

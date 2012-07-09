@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.71 2012/07/03 20:49:36 crc_canada Exp $
+$Id: Bindable.c,v 1.72 2012/07/09 00:59:56 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -148,7 +148,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	}
         viewer->headlight = node->headlight;
 	/* tell the menu buttons of the state of this headlight */
-	setMenuButton_headlight(node->headlight);
+	//setMenuButton_headlight(node->headlight);
 
 	/* transition effects */
 	viewer->transitionTime = node->transitionTime;

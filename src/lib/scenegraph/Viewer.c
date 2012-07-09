@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.89 2012/07/03 20:49:36 crc_canada Exp $
+$Id: Viewer.c,v 1.90 2012/07/09 00:59:56 dug9 Exp $
 
 CProto ???
 
@@ -201,7 +201,7 @@ void viewer_default() {
 
 	p->Viewer.headlight = TRUE;
 	/* tell the menu buttons of the state of this headlight */
-	setMenuButton_headlight(p->Viewer.headlight);
+	//setMenuButton_headlight(p->Viewer.headlight);
 	p->Viewer.speed = 1.0;
 	p->Viewer.Dist = 10.0;
 	memcpy (&p->Viewer.walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
@@ -248,8 +248,9 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		quaternion_inverse(&(p->Viewer.AntiQuat),&q_i);
 
 		viewer->headlight = TRUE;
+		viewer->collision = FALSE;
 		/* tell the menu buttons of the state of this headlight */
-		setMenuButton_headlight(viewer->headlight);
+		//setMenuButton_headlight(viewer->headlight);
 		viewer->speed = 1.0;
 		viewer->Dist = 10.0;
         memcpy (&viewer->walk, &p->viewer_walk,sizeof (X3D_Viewer_Walk));
@@ -310,20 +311,35 @@ void fwl_toggle_headlight() {
 		p->Viewer.headlight = TRUE;
 	}
 	/* tell the menu buttons of the state of this headlight */
-	setMenuButton_headlight(p->Viewer.headlight);
+	//setMenuButton_headlight(p->Viewer.headlight);
 
 }
+/* July 7, 2012 I moved .collision from params to x3d_viewer struct, 
+	so its like headlight and navmode */
 void setNoCollision() {
-	fwl_setp_collision(0);
-	setMenuButton_collision(fwl_getp_collision());
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->Viewer.collision = 0;
+	//fwl_setp_collision(0);
+	//setMenuButton_collision(p->Viewer.collision); //fwl_getp_collision());
 }
-
 int get_collision() { 
-	return fwl_getp_collision();
+	return fwl_getCollision(); //fwl_getp_collision();
 }
 void toggle_collision() {
-	fwl_setp_collision(!fwl_getp_collision()); 
-	setMenuButton_collision(fwl_getp_collision());
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->Viewer.collision = 1 - p->Viewer.collision;
+
+	//fwl_setp_collision(!fwl_getp_collision()); 
+	//setMenuButton_collision(p->Viewer.collision); //fwl_getp_collision());
+}
+
+int fwl_getCollision(){
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	return p->Viewer.collision;
+}
+void fwl_setCollision(int state) {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	p->Viewer.collision = state;
 }
 
 void fwl_init_StereoDefaults()
@@ -373,15 +389,51 @@ void fwl_set_viewer_type(const int type) {
 	/* if there is no bound viewer, just ignore (happens on initialization) */
 	if (vectorSize(tg->Bindable.navigation_stack) >0)
 		if (p->Viewer.oktypes[type]==FALSE) {
-			setMenuButton_navModes(p->Viewer.type);
+			//setMenuButton_navModes(p->Viewer.type);
 			return;
 		}
 
 	viewer_init(&p->Viewer,type);
 
 	/* tell the window menu what we are */
-	setMenuButton_navModes(p->Viewer.type);
+	//setMenuButton_navModes(p->Viewer.type);
 
+}
+char* fwl_getNavModeStr()
+{
+	ttglobal tg = gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	switch(p->Viewer.type) {
+	case VIEWER_NONE:
+		return "NONE";
+	case VIEWER_EXAMINE:
+		return "EXAMINE";
+	case VIEWER_WALK:
+		return "WALK";
+	case VIEWER_EXFLY:
+		return "EXFLY";
+	case VIEWER_TPLANE:
+		return "TPLANE";
+	case VIEWER_RPLANE:
+		return "RPLANE";
+	case VIEWER_TILT:
+		return "TILT";
+	case VIEWER_FLY2:
+		return "FLY2";
+	case VIEWER_YAWPITCHZOOM:
+		return "YAWPITCHZOOM";
+	case VIEWER_FLY:
+		return "FLY";
+	default:
+		return "NONE";
+	}
+	return "NONE";
+}
+int fwl_getNavMode()
+{
+	ttglobal tg = gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
+	return p->Viewer.type;
 }
 
 
@@ -1392,7 +1444,7 @@ handle_tick_exfly()
 
 		/* allow the user to continue in default Viewer mode */
 		p->Viewer.type = VIEWER_EXAMINE;
-		setMenuButton_navModes(p->Viewer.type);
+		//setMenuButton_navModes(p->Viewer.type);
 		return;
 	}
 	rv = fread(string, sizeof(char), IN_FILE_BYTES, p->exfly_in_file);

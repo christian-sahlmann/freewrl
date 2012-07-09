@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.h,v 1.50 2012/05/01 14:35:38 dug9 Exp $
+$Id: Viewer.h,v 1.51 2012/07/09 00:59:56 dug9 Exp $
 
 Viewer ???
 
@@ -212,6 +212,7 @@ typedef struct viewer {
 	Quaternion AntiQuat;
 	Quaternion bindTimeQuat;
 	int headlight;
+	int collision; //added July 7, 2012
 	double speed;
 	double Dist;
 	/*stereovision...*/

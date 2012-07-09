@@ -1,5 +1,5 @@
 /*
-  $Id: common.c,v 1.14 2012/07/08 19:11:45 dug9 Exp $
+  $Id: common.c,v 1.15 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL support library.
 
@@ -132,7 +132,6 @@ void fwl_setPromptForFile(int state)
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	p->promptForFile = state; //1 or 0
 }
-
 
 void setArrowCursor()
 {

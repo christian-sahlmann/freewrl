@@ -1,5 +1,5 @@
 /*
-  $Id: fwWindow32.c,v 1.40 2012/05/31 18:44:44 crc_canada Exp $
+  $Id: fwWindow32.c,v 1.41 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL support library.
   FreeWRL main window : win32 code.
@@ -31,7 +31,10 @@ HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
 HDC   ghDC; 
 HGLRC ghRC; 
 
-
+HWND fw_window32_hwnd()
+{
+	return ghWnd;
+}
 void fwl_do_keyPress(const char kp, int type);
 
 /* from Blender GHOST_SystemWin32.cpp: Key code values not found in winuser.h */

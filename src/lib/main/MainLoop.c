@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.259 2012/07/08 20:16:48 crc_canada Exp $
+  $Id: MainLoop.c,v 1.260 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1080,7 +1080,7 @@ static void render_pre() {
         setup_viewpoint();      /*  need this to render collisions correctly*/
 
         /* 4. Collisions */
-        if (fwl_getp_collision() == 1) {
+        if (fwl_getCollision() == 1) {
                 render_collisions(Viewer()->type);
                 setup_viewpoint(); /*  update viewer position after collision, to*/
                                    /*  give accurate info to Proximity sensors.*/
@@ -2040,6 +2040,61 @@ void finalizeRenderSceneUpdateScene() {
 /* iphone front end handles the displayThread internally */
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 /* handle all the displaying and event loop stuff. */
+void updateButtonStatus()
+{
+	//checks collision, headlight and navmode 
+	//-these can be set by either the UI (this statusbar), keyboard hits, or from 
+	// events inside vrml. 
+	// Here we take our UI current state from the scene state. 
+	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
+	// the equivalent of the following once per frame (poll state and set UI)
+	int headlight, collision, navmode;
+	//poll state:
+	headlight = fwl_get_headlight();
+	collision = fwl_getCollision();
+	navmode = fwl_getNavMode();
+	//set UI:
+	setMenuButton_navModes(navmode);
+	setMenuButton_headlight(headlight);
+	setMenuButton_collision(collision);
+}
+void checkFileLoadRequest()
+{
+	ttglobal tg = gglobal();
+	//poll state:
+	if(fwl_pollPromptForURL())
+	{
+		fwl_setPromptForURL(0);
+		#if defined(_MSC_VER) || defined(QNX)
+		{
+			char *fname = frontend_pick_URL();
+			if(fname)
+			{
+				//fwl_replaceWorldNeeded(fname);
+				//tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(fname);
+				//tg->RenderFuncs.BrowserAction = TRUE;
+				Anchor_ReplaceWorld(fname);
+				free(fname);
+			}
+		}
+		#endif
+	}
+	else if(fwl_pollPromptForFile())
+	{
+		fwl_setPromptForFile(0);
+		#if defined(_MSC_VER) || defined(QNX)
+		{
+			char *fname = frontend_pick_file();
+			if(fname)
+			{
+				//fwl_replaceWorldNeeded(fname);
+				Anchor_ReplaceWorld(fname);
+				free(fname);
+			}
+		}
+		#endif
+	}
+}
 void _displayThread()
 {
 	ENTER_THREAD("display");
@@ -2058,6 +2113,8 @@ void _displayThread()
 	while (!((ppMainloop)(gglobal()->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");
 		fwl_RenderSceneUpdateScene();
+		updateButtonStatus();
+		checkFileLoadRequest();
 	} 
 	/* when finished: */
 	finalizeRenderSceneUpdateScene();

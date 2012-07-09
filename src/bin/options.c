@@ -1,5 +1,5 @@
 /*
-  $Id: options.c,v 1.39 2011/07/26 14:34:56 istakenv Exp $
+  $Id: options.c,v 1.40 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL command line arguments.
 
@@ -310,8 +310,8 @@ int fv_parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'Q': /* --nocollision, no argument */
-	    fwl_setp_collision(FALSE);
-	    fv_params->collision = FALSE;
+	    //fwl_setp_collision(FALSE);
+	    //fv_params->collision = FALSE; this is the default
 	    break;
 
 /* Snapshot options */

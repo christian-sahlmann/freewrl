@@ -1,5 +1,5 @@
 /*
-  $Id: libFreeWRL.h,v 1.55 2012/07/08 19:11:45 dug9 Exp $
+  $Id: libFreeWRL.h,v 1.56 2012/07/09 00:59:56 dug9 Exp $
 
   FreeWRL library API (public)
 
@@ -81,7 +81,7 @@ typedef struct freewrl_params {
 	bool multithreading;
 	bool eai;
 	bool verbose;
-	int collision;	/* do collision detection? */
+	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
 
 } freewrl_params_t;
 
@@ -105,7 +105,7 @@ void fwl_setp_fullscreen	(bool foo);
 void fwl_setp_multithreading	(bool foo);
 void fwl_setp_eai		(bool foo);
 void fwl_setp_verbose		(bool foo);
-void fwl_setp_collision		(int foo);
+//void fwl_setp_collision		(int foo);
 
 int	fwl_getp_width		(void);
 int	fwl_getp_height		(void);
@@ -114,7 +114,7 @@ bool	fwl_getp_fullscreen	(void);
 bool	fwl_getp_multithreading	(void);
 bool	fwl_getp_eai		(void);
 bool	fwl_getp_verbose	(void);
-int	fwl_getp_collision	(void);
+//int	fwl_getp_collision	(void);
 
 bool fwl_initFreeWRL(freewrl_params_t *params);
 void closeFreeWRL();
@@ -332,5 +332,10 @@ void setMenuButton_collision (int val);
 void setMenuButton_headlight (int val);
 void setMenuButton_navModes (int type);
 void setMenuButton_texSize (int size);
+int fwl_get_headlight();
+char* fwl_getNavModeStr();
+int fwl_getNavMode();
+int	fwl_getCollision();
+void fwl_setCollision(int state);
 
 #endif /* __LIBFREEWRL_API_H__ */
