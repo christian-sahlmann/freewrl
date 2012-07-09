@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.46 2012/07/07 14:44:30 istakenv Exp $
+$Id: OpenGL_Utils.h,v 1.47 2012/07/09 18:32:07 istakenv Exp $
 
 Screen snapshot.
 
@@ -101,9 +101,5 @@ void fw_gluUnProject( GLDOUBLE winX,
 
 void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
                   GLint viewport[4]);
-
-#ifndef SHADERS_2011
-void doNonShaderTextureHandlingWithMultiTexParams(struct multiTexParams *params);
-#endif
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

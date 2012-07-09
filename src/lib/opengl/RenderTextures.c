@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.55 2012/07/08 15:17:45 dug9 Exp $
+$Id: RenderTextures.c,v 1.56 2012/07/09 18:32:07 istakenv Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -142,11 +142,6 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 		 * through a RGB texture?? */
 		/* only do for the first texture if MultiTexturing */
 		if (c == 0) {
-#ifndef SHADERS_2011
-			float allones[] = {1.0f,1.0f,1.0f,1.0f};
-			allones[3] = thisTransparency;
-			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-#endif
 			#ifdef TEXVERBOSE
 			printf ("setActiveTexture - firsttexture  \n"); 
 			#endif
@@ -154,20 +149,10 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 		} else {
 			texMode[c]=GL_ADD;
 		}
-#ifndef SHADERS_2011
-		/* not quite sure of this; comments say this area is for when we are NOT in multitexture mode,
-		 * but if that is true then 'c' should never not be zero here...? */
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-#endif
 
 	} else {
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
 		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
-#ifndef SHADERS_2011
-#ifndef _MSC_VER
-			doNonShaderTextureHandlingWithMultiTexParams(&(tg->RenderTextures.textureParameterStack[c]));
-#endif
-#endif
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.247 2012/07/09 16:58:16 istakenv Exp $
+  $Id: OpenGL_Utils.c,v 1.248 2012/07/09 18:32:07 istakenv Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1494,131 +1494,6 @@ static void getGenericShader(shader_type_t whichOne) {
 	(*myShader).compiledOK = (success == GL_TRUE);
 
 	getShaderCommonInterfaces(myShader);
-}
-
-#else /* ifdef SHADERS_2011 */
-
-/* have a function here that will handle setting the various GL parameters etc
-   to handle what used to be done for non-shaders in compileMultiTexture 
-   (formerly loadMultiTexture)
-   
-   this essentially means mapping multitex_mode, multitex_source, perhaps also multitex_function
-   into the combine_rgb, source{0,1}_{rgb,alpha}, {rgb,alpha}_scale values and calling the
-   FW_GL_TEXENVI calls on each as appropriate (as per the old setActiveTexture)
-
-   ...still need to figure out where this function would be called from, though...
-   ...maybe in setActiveTexture, same as it used to??
- */
-void doNonShaderTextureHandlingWithMultiTexParams(struct multiTexParams *param) {
-	GLint texture_env_mode = GL_MODULATE;
-	GLint combine_rgb = GL_MODULATE;
-	GLint source0_rgb = GL_TEXTURE;
-	GLint operand0_rgb = GL_SRC_COLOR;
-	GLint source1_rgb = GL_PREVIOUS;
-	GLint operand1_rgb = GL_SRC_COLOR;
-	GLint combine_alpha = GL_REPLACE;
-	GLint source0_alpha = GL_TEXTURE;
-	GLint operand0_alpha = GL_SRC_ALPHA;
-	GLint source1_alpha = 0; /* GL_PREVIOUS commented out */
-	GLint operand1_alpha = 0; /* GL_SRC_ALPHA commented out */
-	GLfloat rgb_scale = 1;
-	GLfloat alpha_scale = 1;
-
-	/* map MTSRC to the settings that will later control the results */
-	switch(param->multitex_source) {
-	case MTSRC_MODULATE:
-		break;
-	case MTSRC_MODULATE2X:
-		texture_env_mode = GL_COMBINE;
-		rgb_scale = 2;
-		alpha_scale = 2;
-		break;
-	case MTSRC_MODULATE4X:
-		texture_env_mode = GL_COMBINE;
-		rgb_scale = 4;
-		alpha_scale = 4;
-		break;
-	case MTSRC_ADDSMOOTH:
-		texture_env_mode = GL_COMBINE;
-		combine_rgb = GL_ADD;
-		break;
-	case MTSRC_BLENDDIFFUSEALPHA:
-	case MTSRC_BLENDCURRENTALPHA:
-	case MTSRC_MODULATEALPHA_ADDCOLOR:
-	case MTSRC_MODULATEINVALPHA_ADDCOLOR:
-	case MTSRC_MODULATEINVCOLOR_ADDALPHA:
-	case MTSRC_SUBTRACT:
-		texture_env_mode = GL_COMBINE;
-		combine_rgb = GL_SUBTRACT;
-		break;
-	case MTSRC_SELECTARG1:
-		texture_env_mode = GL_REPLACE;
-		combine_rgb = GL_TEXTURE0;
-		break;
-	case MTSRC_SELECTARG2:
-		texture_env_mode = GL_REPLACE;
-		combine_rgb = GL_TEXTURE1;
-		break;
-	case MTSRC_DOTPRODUCT3:
-		texture_env_mode = GL_COMBINE;
-		combine_rgb = GL_DOT3_RGB;
-		break;
-	case MTSRC_REPLACE:
-		texture_env_mode = GL_REPLACE;
-		break;
-	case MTSRC_ADDSIGNED2X:
-		rgb_scale = 2;
-		alpha_scale = 2;
-	case MTSRC_ADDSIGNED:
-		texture_env_mode = GL_COMBINE;
-		combine_rgb = GL_ADD_SIGNED;
-		break;
-	case MTSRC_ADD:
-		texture_env_mode = GL_COMBINE;
-		combine_rgb = GL_ADD;
-		break;
-	case MTSRC_OFF:
-		texture_env_mode = 0;
-		break;
-	default:
-		texture_env_mode = 0;
-		if (param->multitex_source != INT_ID_UNDEFINED)
-			ConsoleMessage ("MultiTexture - mode not supported yet: %s\n",
-				MULTITEXTURESOURCE[param->multitex_source]);
-		break;
-	}
-
-	/* do the OGL calls */
-	switch (texture_env_mode) {
-	case GL_MODULATE:
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		break;
-	case GL_REPLACE:
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		break;
-	case GL_COMBINE:
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-
-/* for some reason doing these things now seems to double apply the texture stuffs
- * which can actually remove/reverse/undo texturing it seems..
- * So i leave them commented at the moment
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_RGB, combine_rgb);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_RGB, source0_rgb);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_RGB, operand0_rgb);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_RGB, source1_rgb);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_RGB, operand1_rgb);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, combine_alpha);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, source0_alpha);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, operand0_alpha);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_RGB_SCALE, rgb_scale);
-		FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_ALPHA_SCALE, alpha_scale);
-		if (source1_alpha != 0) 
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, source1_alpha);
-		if (operand1_alpha != 0) 
-			FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, operand1_alpha);
-*/
-		break;
-	}
 }
 
 #endif /* ifdef SHADERS_2011 */
