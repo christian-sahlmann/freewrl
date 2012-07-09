@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.261 2012/07/09 14:53:43 dug9 Exp $
+  $Id: MainLoop.c,v 1.262 2012/07/09 15:05:11 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2060,6 +2060,19 @@ void updateButtonStatus()
 }
 void checkFileLoadRequest()
 {
+	/* Checks flags and pops up a dialog for the user to enter a new 
+	   scene URL or File path.
+		I heard Android calls from UI thread:
+		fwl_Android_replaceWorldNeeded();
+	   then calls from render thread:
+	    fwl_initializeRenderSceneUpdateScene();
+		pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)currentFile) 
+		fv_display_initialize();
+	   In this native case for statusbarHud UI (which is in the rendering thread)
+	   the UI flags that it wants the dialog box to come up in the rendering thread. 
+	   Then the dialog and replaceworld are called from rendering thread here.
+	*/
+
 	char *fname;
 	ttglobal tg = gglobal();
 	fname = NULL;
