@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.246 2012/07/07 14:44:30 istakenv Exp $
+  $Id: OpenGL_Utils.c,v 1.247 2012/07/09 16:58:16 istakenv Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1509,7 +1509,7 @@ static void getGenericShader(shader_type_t whichOne) {
    ...still need to figure out where this function would be called from, though...
    ...maybe in setActiveTexture, same as it used to??
  */
-void doNonShaderTextureHandlingWithMultiTextParams(struct multiTexParams *param) {
+void doNonShaderTextureHandlingWithMultiTexParams(struct multiTexParams *param) {
 	GLint texture_env_mode = GL_MODULATE;
 	GLint combine_rgb = GL_MODULATE;
 	GLint source0_rgb = GL_TEXTURE;
