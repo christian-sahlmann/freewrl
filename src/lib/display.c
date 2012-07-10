@@ -1,5 +1,5 @@
 /*
-  $Id: display.c,v 1.99 2012/07/08 17:06:10 dug9 Exp $
+  $Id: display.c,v 1.100 2012/07/10 19:25:12 crc_canada Exp $
 
   FreeWRL support library.
   Display (X11/Motif or OSX/Aqua) initialization.
@@ -341,14 +341,24 @@ bool initialize_rdr_caps()
 #endif
 
 	/* if we are doing our own shading, force the powers of 2, because otherwise mipmaps are not possible. */
-	#ifdef SHADERS_2011
-		if (rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
+#ifdef OLDCODE
+OLDCODE	#ifdef SHADERS_2011
+OLDCODE		if (rdr_caps.av_npot_texture) printf ("turning off av_npot_texture, even though it is possible\n");
+#endif //OLDCODE
+
 		rdr_caps.av_npot_texture=FALSE;
-		#ifdef GLES2
+
+#ifdef OLDCODE
+	OLDCODE	#ifdef GLES2
+#endif //OLDCODE
+
 			/* attempting multi-texture */
 			rdr_caps.av_multitexture = 1;
-		#endif
-	#endif /* SHADERS_2011 */
+
+#ifdef OLDCODE
+OLDCODE		#endif
+OLDCODE	#endif /* SHADERS_2011 */
+#endif //OLDCODE
 
 
 	/* Max texture size */

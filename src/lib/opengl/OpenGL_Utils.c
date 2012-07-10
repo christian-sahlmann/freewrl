@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.249 2012/07/10 18:40:26 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.250 2012/07/10 19:25:12 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -288,7 +288,10 @@ static char * readInputString(char *fn) {
 #undef MAXREADSIZE
 
 
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
+
 static void shaderErrorLog(GLuint myShader, char *which) {
         #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
 #define MAX_INFO_LOG_SIZE 512
@@ -1496,7 +1499,9 @@ static void getGenericShader(shader_type_t whichOne) {
 	getShaderCommonInterfaces(myShader);
 }
 
-#endif /* ifdef SHADERS_2011 */
+#ifdef OLDCODE
+OLDCODE #endif /* ifdef SHADERS_2011 */
+#endif //OLDCODE
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange, handled;
@@ -1824,7 +1829,9 @@ bool fwl_initialize_GL()
 #endif /* KEEP_FV_INLIB */
 
 
-	#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	#ifdef SHADERS_2011
+#endif //OLDCODE
 
 	/* for rendering Background and TextureBackground nodes */
 	getGenericShader(backgroundSphereShader);
@@ -1855,15 +1862,19 @@ bool fwl_initialize_GL()
 	/* multi texture shader */
 	getGenericShader(multiTexShader);
 
-	#endif /* SHADERS_2011 */
+#ifdef OLDCODE
+OLDCODE	#endif /* SHADERS_2011 */
+#endif //OLDCODE
 
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
     
-	/* Set up the OpenGL state. This'll get overwritten later... */
-	#ifndef SHADERS_2011
-	FW_GL_CLEAR_DEPTH(1.0);
-	#endif
+#ifdef OLDCODE
+OLDCODE	/* Set up the OpenGL state. This'll get overwritten later... */
+OLDCODE	#ifndef SHADERS_2011
+OLDCODE	FW_GL_CLEAR_DEPTH(1.0);
+OLDCODE	#endif
+#endif OLDCODE
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 5");
     
@@ -1876,20 +1887,25 @@ bool fwl_initialize_GL()
     
 
 	/* Configure OpenGL for our uses. */
-#ifndef SHADERS_2011
-        FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-        FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-#endif
+#ifdef OLDCODE
+OLDCODE #ifndef SHADERS_2011
+    OLDCODE     FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+OLDCODE         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE #endif
+#endif //OLDCODE
+
 	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
     
 	
-	#ifndef SHADERS_2011
-	FW_GL_SHADEMODEL(GL_SMOOTH);
-	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
-	FW_GL_ENABLE (GL_RESCALE_NORMAL);
-	#endif
+#ifdef OLDCODE
+OLDCODE	#ifndef SHADERS_2011
+OLDCODE	FW_GL_SHADEMODEL(GL_SMOOTH);
+OLDCODE	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+OLDCODE	FW_GL_ENABLE (GL_RESCALE_NORMAL);
+OLDCODE	#endif
+#endif //OLDCODE
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 8");
     
@@ -1934,10 +1950,12 @@ bool fwl_initialize_GL()
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start b");
     
 
-	#ifndef SHADERS_2011
-	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-	FW_GL_ENABLE(GL_NORMALIZE);
-	#endif
+#ifdef OLDCODE
+OLDCODE	#ifndef SHADERS_2011
+OLDCODE	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+OLDCODE	FW_GL_ENABLE(GL_NORMALIZE);
+OLDCODE	#endif
+#endif //OLDCODE
 
 	/* for textured appearance add specular highlights as a separate secondary color
 	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
