@@ -1,4 +1,4 @@
-# $Id: VRMLC.pm,v 1.66 2012/05/31 19:06:42 crc_canada Exp $
+# $Id: VRMLC.pm,v 1.67 2012/07/10 13:14:57 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # Portions Copyright (C) 1998 Bernhard Reiter
@@ -8,6 +8,9 @@
 
 #
 # $Log: VRMLC.pm,v $
+# Revision 1.67  2012/07/10 13:14:57  crc_canada
+# remove alloc_tri field from struct X3D_PolyRep
+#
 # Revision 1.66  2012/05/31 19:06:42  crc_canada
 # gcc on OSX issue - vector_size is in gcc; our code changed internal
 # vector_size to vectorSize in all files.
@@ -2039,7 +2042,6 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int ccw;	/* ccw field for single faced structures */
 	int ntri; /* number of triangles */
 	int streamed;	/* is this done the streaming pass? */
-	int alloc_tri; /* number of allocated triangles */
 
 	/* indicies for arrays. OpenGL ES 2.0 - unsigned short for the DrawArrays call */
 	GLuint *cindex;   /* triples (per triangle) */
