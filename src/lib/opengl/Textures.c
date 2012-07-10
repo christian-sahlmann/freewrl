@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.120 2012/07/09 16:54:38 istakenv Exp $
+  $Id: Textures.c,v 1.121 2012/07/10 18:40:26 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -567,7 +567,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			render_node(X3D_NODE(thistex));
 		        FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        		textureDraw_start(NULL,&mtf);
+        		textureDraw_start(&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
@@ -632,7 +632,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureDraw_start(NULL,&mtf);
+        			textureDraw_start(&mtf);
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 

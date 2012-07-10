@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: GenPolyRep.c,v 1.35 2012/05/08 15:59:50 crc_canada Exp $
+$Id: GenPolyRep.c,v 1.36 2012/07/10 18:40:27 crc_canada Exp $
 
 ???
 
@@ -159,6 +159,8 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 		tcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
 
 		rep->tcindex=0; /* we will generate our own mapping */
+	} else {
+		ConsoleMessage ("even though we have a texCoord node here, we need to generate");
 	}
 
 	/* make up points array */
@@ -563,7 +565,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int npoints = 0;
 	int nnormals=0;
 	int ncolors=0;
-	int texCoordNodeType = 0;
 	int vert_ind = 0;
 	int calc_normind = 0;
 
@@ -877,7 +878,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	   will check it better in stream_polyrep. */
 	if (tc != NULL) {
 		rep_->tcoordtype=tc->_nodeType;
-		texCoordNodeType = tc->_nodeType;
 	} else {
 		rep_->tcoordtype=0;
 	}

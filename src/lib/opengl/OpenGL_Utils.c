@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.248 2012/07/09 18:32:07 istakenv Exp $
+  $Id: OpenGL_Utils.c,v 1.249 2012/07/10 18:40:26 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -3431,9 +3431,6 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	
 		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
 			break; /* can be a duplicate SF/MFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
-			break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
 	
 		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */

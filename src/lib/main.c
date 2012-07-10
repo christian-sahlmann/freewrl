@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.77 2012/07/09 00:59:56 dug9 Exp $
+  $Id: main.c,v 1.78 2012/07/10 18:40:26 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -124,7 +124,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     	fwl_setp_height(400);
     	fwl_setp_eai(FALSE);
     	fwl_setp_fullscreen(FALSE);
-    	fwl_setp_collision(1);
+    	/* removed by doug fwl_setp_collision(1); */
     } 
 
     /* start threads, parse initial scene, etc */

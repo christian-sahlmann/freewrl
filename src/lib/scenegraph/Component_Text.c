@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.53 2012/06/25 14:33:14 crc_canada Exp $
+$Id: Component_Text.c,v 1.54 2012/07/10 18:40:26 crc_canada Exp $
 
 X3D Text Component
 
@@ -49,6 +49,7 @@ X3D Text Component
 #include "LinearAlgebra.h"
 #include "Component_Shape.h"
 #include "../scenegraph/Tess.h"
+#include "../scenegraph/Polyrep.h"
 
 
 #ifdef _ANDROID

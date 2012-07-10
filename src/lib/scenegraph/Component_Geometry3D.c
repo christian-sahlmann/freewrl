@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.85 2012/06/12 19:52:31 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.86 2012/07/10 18:40:26 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -174,7 +174,7 @@ void render_Box (struct X3D_Box *node) {
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(NULL,&mtf);
+	textureDraw_start(&mtf);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
@@ -471,7 +471,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		mtf.TC_type = GL_FLOAT;
 		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__cylinderTriangles);
 
@@ -486,7 +486,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	
 		if (node->side) {
 			FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
-			textureDraw_start(NULL,&mtf);
+			textureDraw_start(&mtf);
 	
 			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
@@ -494,7 +494,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		}
 		if(node->bottom) {
 			mtf.VA_arrays=cylendtex;
-			textureDraw_start(NULL,&mtf);
+			textureDraw_start(&mtf);
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
@@ -505,7 +505,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	
 		if (node->top) {
 			mtf.VA_arrays=cylendtex;
-			textureDraw_start(NULL,&mtf);
+			textureDraw_start(&mtf);
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
@@ -765,7 +765,7 @@ void render_Cone (struct X3D_Cone *node) {
 		mtf.TC_type = GL_FLOAT;
 		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
 		mtf.TC_pointer = BUFFER_OFFSET(24);
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 		FW_GL_DRAWARRAYS(GL_TRIANGLES,0,node->__coneTriangles);
 
 		/* turn off */
@@ -777,7 +777,7 @@ void render_Cone (struct X3D_Cone *node) {
 		if(node->bottom) {
 			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
-			textureDraw_start(NULL,&mtf);
+			textureDraw_start(&mtf);
 			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
 			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
 			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,(int *) tribotindx);
@@ -789,7 +789,7 @@ void render_Cone (struct X3D_Cone *node) {
 			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints.p);
 			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals.p);
 			mtf.VA_arrays = trisidtex;
-			textureDraw_start(NULL,&mtf);
+			textureDraw_start(&mtf);
 	
 			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
@@ -1010,7 +1010,7 @@ void render_Sphere (struct X3D_Sphere *node) {
                 mtf.TC_type = GL_FLOAT;
                 mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
                 mtf.TC_pointer = BUFFER_OFFSET(24);
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
 		
@@ -1023,7 +1023,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 #else  // SHADERS_2011
     {
 		int count;
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
 

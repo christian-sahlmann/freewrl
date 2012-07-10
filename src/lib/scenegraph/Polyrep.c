@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.58 2012/05/24 19:16:10 istakenv Exp $
+$Id: Polyrep.c,v 1.59 2012/07/10 18:40:27 crc_canada Exp $
 
 ???
 
@@ -861,9 +861,9 @@ void render_polyrep(void *node) {
 	if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
 		struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO]);
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 	} else {
-		textureDraw_start(X3D_NODE(node), NULL);
+        //ConsoleMessage("skipping tds of textures");
 	}
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[VERTEX_VBO]);
@@ -900,9 +900,11 @@ void render_polyrep(void *node) {
 	/*  textures?*/
 	if (pr->GeneratedTexCoords) {
 		struct textureVertexInfo mtf = {pr->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
-		textureDraw_start(NULL,&mtf);
-	} else {
-		textureDraw_start(X3D_NODE(node), NULL);
+		textureDraw_start(&mtf);
+#ifdef OLDCODE
+OLDCODE	} else {
+OLDCODE		textureDraw_start(X3D_NODE(node), NULL);
+#endif //OLDCODE
 	}
 	
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -1121,7 +1123,7 @@ void render_ray_polyrep(void *node) {
 }
 
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
-void compile_polyrep(void *innode, void *coord, void *color, void *normal, void *texCoord) {
+void compile_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord) {
 	struct X3D_Virt *virt;
 	struct X3D_Node *node;
 	struct X3D_PolyRep *polyrep;

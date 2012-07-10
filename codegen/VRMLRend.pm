@@ -4,7 +4,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# $Id: VRMLRend.pm,v 1.41 2012/04/26 16:36:23 crc_canada Exp $
+# $Id: VRMLRend.pm,v 1.42 2012/07/10 18:40:26 crc_canada Exp $
 #
 # Name:        VRMLRend.c
 # Description:
@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log: VRMLRend.pm,v $
+# Revision 1.42  2012/07/10 18:40:26  crc_canada
+# changing TextureCoordinate handling for shaders; remove "precision" for non-GLES shaders.
+#
 # Revision 1.41  2012/04/26 16:36:23  crc_canada
 # Android changes - preparing for MultiTexturing
 #
@@ -612,7 +615,6 @@
 	GeoElevationGrid 
 	LoadSensor 
 	TextureCoordinateGenerator 
-	TextureCoordinate 
 	Text 
 	LineProperties 
 	FillProperties 

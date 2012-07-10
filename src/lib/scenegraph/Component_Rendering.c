@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.30 2011/06/29 20:19:00 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.31 2012/07/10 18:40:26 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -43,6 +43,7 @@ X3D Rendering Component
 #include "../opengl/OpenGL_Utils.h"
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Polyrep.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
 static void findExtentInCoord (struct X3D_Node *node, int count, struct SFVec3f* coord) {

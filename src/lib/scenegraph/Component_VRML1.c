@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.32 2011/06/29 18:28:07 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.33 2012/07/10 18:40:27 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -75,6 +75,7 @@ Have fun! John A. Stewart, June 2009
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Vector.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/Polyrep.h"
 
 
 #include "LinearAlgebra.h"

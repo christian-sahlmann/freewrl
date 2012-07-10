@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.56 2012/07/09 18:32:07 istakenv Exp $
+$Id: RenderTextures.c,v 1.57 2012/07/10 18:40:26 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -165,57 +165,64 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	return TRUE;
 }
 
-void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) {
-	struct X3D_TextureCoordinate *myTCnode = NULL;
 
-	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
-	printf ("	texC %p, genTex %p\n",texC,genTex);
-	#endif
-
-	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
-	if (texC == NULL) {
+void textureDraw_start(struct textureVertexInfo* genTex) {
 		passedInGenTex(genTex);
-
-	/* hmmm - maybe this texCoord node exists? */
-	} else {
-		switch (texC->_nodeType) {
-		case NODE_IndexedFaceSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDFACESET(texC)->texCoord; break;
-		case NODE_ElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(texC)->texCoord; break;
-		case NODE_GeoElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(texC)->texCoord; break;
-		case NODE_TriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(texC)->texCoord; break;
-		case NODE_TriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(texC)->texCoord; break;
-		case NODE_TriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(texC)->texCoord; break;
-		case NODE_IndexedTriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(texC)->texCoord; break;
-		case NODE_IndexedTriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(texC)->texCoord; break;
-		case NODE_IndexedTriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(texC)->texCoord; break;
-		default :printf ("textureDrawStart, unhandled node type...\n");
-		
-
-		}
-
-		if (myTCnode == NULL) return;
-
-		#ifdef TEXVERBOSE
-		printf ("ok, texC->_nodeType is %s\n",stringNodeType(texC->_nodeType));
-		printf ("myTCnode is of type %s\n",stringNodeType(myTCnode->_nodeType));
-		#endif
-
-		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-			haveTexCoord(myTCnode);
-
-
-		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
-			haveMultiTexCoord((struct X3D_MultiTextureCoordinate *)myTCnode);
-
-		} else {
-			/* this has to be a TexureCoordinateGenerator node */
-			haveTexCoordGenerator (myTCnode);
-		}
-	}
-	PRINT_GL_ERROR_IF_ANY("");
-	return;
 }
+
+#ifdef OLDCODE
+OLDCODEvoid textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) {
+OLDCODE	struct X3D_TextureCoordinate *myTCnode = NULL;
+OLDCODE
+OLDCODE	#ifdef TEXVERBOSE
+OLDCODE	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
+OLDCODE	printf ("	texC %p, genTex %p\n",texC,genTex);
+OLDCODE	#endif
+OLDCODE
+OLDCODE	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
+OLDCODE	if (texC == NULL) {
+OLDCODE		passedInGenTex(genTex);
+OLDCODE
+OLDCODE	/* hmmm - maybe this texCoord node exists? */
+OLDCODE	} else {
+OLDCODE		switch (texC->_nodeType) {
+OLDCODE		case NODE_IndexedFaceSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDFACESET(texC)->texCoord; break;
+OLDCODE		case NODE_ElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(texC)->texCoord; break;
+OLDCODE		case NODE_GeoElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(texC)->texCoord; break;
+OLDCODE		case NODE_TriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(texC)->texCoord; break;
+OLDCODE		case NODE_TriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(texC)->texCoord; break;
+OLDCODE		case NODE_TriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(texC)->texCoord; break;
+OLDCODE		case NODE_IndexedTriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(texC)->texCoord; break;
+OLDCODE		case NODE_IndexedTriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(texC)->texCoord; break;
+OLDCODE		case NODE_IndexedTriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(texC)->texCoord; break;
+OLDCODE		default :printf ("textureDrawStart, unhandled node type...\n");
+OLDCODE		
+OLDCODE
+OLDCODE		}
+OLDCODE
+OLDCODE		if (myTCnode == NULL) return;
+OLDCODE
+OLDCODE		#ifdef TEXVERBOSE
+OLDCODE		printf ("ok, texC->_nodeType is %s\n",stringNodeType(texC->_nodeType));
+OLDCODE		printf ("myTCnode is of type %s\n",stringNodeType(myTCnode->_nodeType));
+OLDCODE		#endif
+OLDCODE
+OLDCODE		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
+OLDCODE			haveTexCoord(myTCnode);
+OLDCODE
+OLDCODE
+OLDCODE		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
+OLDCODE			haveMultiTexCoord((struct X3D_MultiTextureCoordinate *)myTCnode);
+OLDCODE
+OLDCODE		} else {
+OLDCODE			/* this has to be a TexureCoordinateGenerator node */
+OLDCODE			haveTexCoordGenerator (myTCnode);
+OLDCODE		}
+OLDCODE	}
+OLDCODE	PRINT_GL_ERROR_IF_ANY("");
+OLDCODE	return;
+OLDCODE}
+#endif //OLDCODE
 
 /* lets disable textures here */
 void textureDraw_end(void) {
@@ -331,6 +338,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	PRINT_GL_ERROR_IF_ANY("");
 }
 
+#ifdef OLDCODE
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 	int c;
     int i;
@@ -383,7 +391,9 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 	PRINT_GL_ERROR_IF_ANY("");
 }
+#endif //OLDCODE
 
+#ifdef OLDCODE
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 	int c;
 	GLint texUnit[MAX_MULTITEXTURE];
@@ -444,6 +454,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 		}
 	}
 }
+#endif //OLDCODE
 
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 	int c;
