@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.72 2012/07/09 00:59:56 dug9 Exp $
+$Id: Bindable.c,v 1.73 2012/07/10 19:14:54 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -784,27 +784,36 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 		FREE_IF_NZ (node->__points.p);
 		FREE_IF_NZ (node->__colours.p);
 		node->__quadcount = actq;
-		#ifndef SHADERS_2011
-		/* record this info if NOT doing shaders */
-		node->__points.p = (struct SFVec3f *)newPoints;
-		node->__colours.p = (struct SFColor *)newColors;
-		#endif /* SHADERS_2011 */
+#ifdef OLDCODE
+OLDCODE		#ifndef SHADERS_2011
+OLDCODE		/* record this info if NOT doing shaders */
+OLDCODE		node->__points.p = (struct SFVec3f *)newPoints;
+OLDCODE		node->__colours.p = (struct SFColor *)newColors;
+OLDCODE		#endif /* SHADERS_2011 */
+#endif //OLDCODE
+
 	} else {
 		tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
 		/* do we have an old background to destroy? */
 		FREE_IF_NZ (tbnode->__points.p);
 		FREE_IF_NZ (tbnode->__colours.p);
 		tbnode->__quadcount = actq;
-		#ifndef SHADERS_2011
-		/* record this info if NOT doing shaders */
-		tbnode->__points.p = (struct SFVec3f *)newPoints;
-		tbnode->__colours.p = (struct SFColor *)newColors;
-		#endif /* SHADERS_2011 */
+#ifdef OLDCODE
+OLDCODE		#ifndef SHADERS_2011
+OLDCODE		/* record this info if NOT doing shaders */
+OLDCODE		tbnode->__points.p = (struct SFVec3f *)newPoints;
+OLDCODE		tbnode->__colours.p = (struct SFColor *)newColors;
+OLDCODE		#endif /* SHADERS_2011 */
+#endif //OLDCODE
+
 	}
 
 
-	#ifdef SHADERS_2011
-	{
+#ifdef OLDCODE
+OLDCODE	#ifdef SHADERS_2011
+OLDCODE	{
+#endif //OLDCODE
+
 		struct MyVertex *combinedBuffer = MALLOC(struct MyVertex *, sizeof (struct MyVertex) * actq * 2);
 		int i;
 		float *npp = newPoints;
@@ -842,8 +851,11 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 
 		/* and, we can free it */
 		FREE_IF_NZ(combinedBuffer);
-	}
-	#endif /* SHADERS_2011 */
+
+#ifdef OLDCODE
+OLDCODE	}
+OLDCODE	#endif /* SHADERS_2011 */
+#endif //OLDCODE
 }
 
 void render_Background (struct X3D_Background *node) {
@@ -875,7 +887,9 @@ void render_Background (struct X3D_Background *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
-	#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	#ifdef SHADERS_2011
+#endif //OLDCODE
 		enableGlobalShader(backgroundSphereShader);
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -894,20 +908,22 @@ void render_Background (struct X3D_Background *node) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 		TURN_GLOBAL_SHADER_OFF;
-	#else
-
-		/* now, display the lists */
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
-		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
-
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	#endif
+#ifdef OLDCODE
+OLDCODE	#else
+OLDCODE
+OLDCODE		/* now, display the lists */
+OLDCODE		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+OLDCODE		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE
+OLDCODE		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+OLDCODE
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE	#endif
+#endif //OLDCODE
 
 	/* now, for the textures, if they exist */
 	if (((node->backUrl).n>0) ||
@@ -924,17 +940,26 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
-		#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE		#ifdef SHADERS_2011
+#endif //OLDCODE
 		enableGlobalShader(backgroundTextureBoxShader);
-		#endif
+
+#ifdef OLDCODE
+OLDCODE		#endif
+#endif //OLDCODE
 
 		loadBackgroundTextures(node);
 
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
-		#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE		#ifdef SHADERS_2011
+#endif //OLDCODE
 		TURN_GLOBAL_SHADER_OFF;
-		#endif
+#ifdef OLDCODE
+OLDCODE		#endif
+#endif //OLDCODE
 	}
 	FW_GL_POP_MATRIX();
 
@@ -975,7 +1000,9 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 
-	#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	#ifdef SHADERS_2011
+#endif //OLDCODE
 		enableGlobalShader(backgroundSphereShader);
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
@@ -994,20 +1021,23 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 		TURN_GLOBAL_SHADER_OFF;
-	#else
 
-		/* now, display the lists */
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
-
-		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
-
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	#endif
+#ifdef OLDCODE
+OLDCODE	#else
+OLDCODE
+OLDCODE		/* now, display the lists */
+OLDCODE		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+OLDCODE		FW_GL_COLOR_POINTER(3, GL_FLOAT, 0, (GLfloat *)node->__colours.p);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE
+OLDCODE		FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+OLDCODE
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE	#endif
+#endif //OLDCODE
 	/* now, for the textures, if they exist */
 	if ((node->backTexture !=0) ||
 			(node->frontTexture !=0) ||
@@ -1016,17 +1046,30 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->topTexture !=0) ||
 			(node->bottomTexture !=0)) {
 
-		#ifdef SHADERS_2011
+#ifdef OLDCODE
+	OLDCODE	#ifdef SHADERS_2011
+#endif //OLDCODE
+
 		enableGlobalShader(backgroundTextureBoxShader);
-		#endif
+
+#ifdef OLDCODE
+OLDCODE		#endif
+#endif //OLDCODE
 
 
 		loadTextureBackgroundTextures(node);
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
-		#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE		#ifdef SHADERS_2011
+#endif //OLDCODE
+
 		TURN_GLOBAL_SHADER_OFF;
-		#endif
+
+#ifdef OLDCODE
+OLDCODE		#endif
+#endif //OLDCODE
+
 	}
 
 	/* pushes are done in moveBackgroundCentre */

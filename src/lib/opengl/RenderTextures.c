@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.57 2012/07/10 18:40:26 crc_canada Exp $
+$Id: RenderTextures.c,v 1.58 2012/07/10 19:14:54 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -241,11 +241,14 @@ void textureDraw_end(void) {
 
 	        if (getThis_textureTransform()) end_textureTransform();
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
-		#ifndef SHADERS_2011
-		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
-		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
-		FW_GL_DISABLE(GL_TEXTURE_2D);
-		#endif /* SHADERS_2011 */
+
+#ifdef OLDCODE
+OLDCODE		#ifndef SHADERS_2011
+OLDCODE		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+OLDCODE		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
+OLDCODE		FW_GL_DISABLE(GL_TEXTURE_2D);
+OLDCODE		#endif /* SHADERS_2011 */
+#endif //OLDCODE
 	    }
 
 	} else {
@@ -254,11 +257,13 @@ void textureDraw_end(void) {
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
 
 		/* not in OpenGL-ES 2.0... */
-		#ifndef SHADERS_2011
-			FW_GL_DISABLE(GL_TEXTURE_GEN_S);
-			FW_GL_DISABLE (GL_TEXTURE_GEN_T);
-			FW_GL_DISABLE(GL_TEXTURE_2D);
-		#endif /* SHADERS_2011 */
+#ifdef OLDCODE
+OLDCODE		#ifndef SHADERS_2011
+OLDCODE			FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+OLDCODE			FW_GL_DISABLE (GL_TEXTURE_GEN_T);
+OLDCODE			FW_GL_DISABLE(GL_TEXTURE_2D);
+OLDCODE		#endif /* SHADERS_2011 */
+#endif //OLDCODE
 
 	}
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.86 2012/07/10 18:40:26 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.87 2012/07/10 19:14:54 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -192,19 +192,20 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
-#ifndef SHADERS_2011
-	struct SFVec3f *pt;
-	float a1, a2;
-	struct SFVec3f *tmpptr;
-#endif //SHADERS_2011
+#ifdef OLDCODE //#ifndef SHADERS_2011
+OLDCODE	struct SFVec3f *pt;
+OLDCODE	float a1, a2;
+OLDCODE	struct SFVec3f *tmpptr;
+#endif //OLDCODE #endif //SHADERS_2011
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
 
 	/* use VBOS for Cylinders? */
-#ifdef SHADERS_2011
-	 {
+#ifdef OLDCODE //#ifdef SHADERS_2011
+OLDCODE	 {
+#endif //OLDCODE
 		struct MyVertex cylVert[CYLDIV * 4 * 3];
 		int indx = 0;
 
@@ -394,50 +395,54 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-     }
-#else // not SHADERS_2011
-         
- {
-		/*  MALLOC memory (if possible)*/
-		if (!node->__points.p) tmpptr = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+4));
-		else tmpptr = node->__points.p;
-	
-		if (!node->__normals.p) node->__normals.p = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+1));
-	
-		/*  now, create the vertices; this is a quad, so each face = 4 points*/
-		pt = tmpptr;
-		for (i=0; i<CYLDIV; i++) {
-			a1 = (float) (PI*2*i)/(float)CYLDIV;
-			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
-			pt[i*2+0].c[0] = r* (float) sin(a1);
-			pt[i*2+0].c[1] = (float) h;
-			pt[i*2+0].c[2] = r* (float) cos(a1);
-			pt[i*2+1].c[0] = r*(float) sin(a1);
-			pt[i*2+1].c[1] = (float) -h;
-			pt[i*2+1].c[2] = r*(float) cos(a1);
-		}
-	
-		/*  wrap the points around*/
-		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFVec3f)*2);
-	
-		/*  center points of top and bottom*/
-		pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
-		pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
-		node->__points.p = tmpptr;
-	}
-#endif // SHADERS_2011
-         
+#ifdef OLDCODE 
+OLDCODE     }
+OLDCODE#else // not SHADERS_2011
+OLDCODE         
+OLDCODE {
+OLDCODE		/*  MALLOC memory (if possible)*/
+OLDCODE		if (!node->__points.p) tmpptr = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+4));
+OLDCODE		else tmpptr = node->__points.p;
+OLDCODE	
+OLDCODE		if (!node->__normals.p) node->__normals.p = MALLOC(struct SFVec3f *, sizeof(struct SFVec3f)*2*(CYLDIV+1));
+OLDCODE	
+OLDCODE		/*  now, create the vertices; this is a quad, so each face = 4 points*/
+OLDCODE		pt = tmpptr;
+OLDCODE		for (i=0; i<CYLDIV; i++) {
+OLDCODE			a1 = (float) (PI*2*i)/(float)CYLDIV;
+OLDCODE			a2 = (float) (PI*2*(i+1))/(float)CYLDIV;
+OLDCODE			pt[i*2+0].c[0] = r* (float) sin(a1);
+OLDCODE			pt[i*2+0].c[1] = (float) h;
+OLDCODE			pt[i*2+0].c[2] = r* (float) cos(a1);
+OLDCODE			pt[i*2+1].c[0] = r*(float) sin(a1);
+OLDCODE			pt[i*2+1].c[1] = (float) -h;
+OLDCODE			pt[i*2+1].c[2] = r*(float) cos(a1);
+OLDCODE		}
+OLDCODE	
+OLDCODE		/*  wrap the points around*/
+OLDCODE		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFVec3f)*2);
+OLDCODE	
+OLDCODE		/*  center points of top and bottom*/
+OLDCODE		pt[CYLDIV*2+2].c[0] = 0.0f; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0f;
+OLDCODE		pt[CYLDIV*2+3].c[0] = 0.0f; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0f;
+OLDCODE		node->__points.p = tmpptr;
+OLDCODE	}
+OLDCODE#endif // SHADERS_2011
+OLDCODE         
+#endif //OLDCODE
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
     
-#if !defined(SHADERS_2011)
-	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
-	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
-	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
-	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
-
-#endif //SHADERS_2011
+#ifdef OLDCODE
+OLDCODE#if !defined(SHADERS_2011)
+OLDCODE	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
+OLDCODE	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
+OLDCODE	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
+OLDCODE	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
+OLDCODE
+OLDCODE#endif //SHADERS_2011
+#endif //OLDCODE
 
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};    
@@ -455,8 +460,10 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 	CULL_FACE(node->solid)
 
-#ifdef SHADERS_2011
-	 {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE 	 {
+#endif //OLDCODE
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -478,44 +485,46 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-     }
-#else // not SHADERS_2011
-	 {
-		/*  Display the shape*/
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-	
-		if (node->side) {
-			FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
-			textureDraw_start(&mtf);
-	
-			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
-			gglobal()->Mainloop.trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
-		}
-		if(node->bottom) {
-			mtf.VA_arrays=cylendtex;
-			textureDraw_start(&mtf);
-			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cylbotindx);
-			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
-		}
-	
-		if (node->top) {
-			mtf.VA_arrays=cylendtex;
-			textureDraw_start(&mtf);
-			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-			FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
-			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cyltopindx);
-			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
-		}
-
-	}
-#endif // SHADERS_2011
+#ifdef OLDCODE
+OLDCODE     }
+OLDCODE#else // not SHADERS_2011
+OLDCODE	 {
+OLDCODE		/*  Display the shape*/
+OLDCODE		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+OLDCODE	
+OLDCODE		if (node->side) {
+OLDCODE			FW_GL_NORMAL_POINTER (GL_FLOAT,0,cylnorms);
+OLDCODE			textureDraw_start(&mtf);
+OLDCODE	
+OLDCODE			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+OLDCODE			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
+OLDCODE		}
+OLDCODE		if(node->bottom) {
+OLDCODE			mtf.VA_arrays=cylendtex;
+OLDCODE			textureDraw_start(&mtf);
+OLDCODE			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+OLDCODE			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
+OLDCODE			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+OLDCODE			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cylbotindx);
+OLDCODE			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
+OLDCODE		}
+OLDCODE	
+OLDCODE		if (node->top) {
+OLDCODE			mtf.VA_arrays=cylendtex;
+OLDCODE			textureDraw_start(&mtf);
+OLDCODE			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+OLDCODE			FW_GL_NORMAL3F(0.0f,1.0f,0.0f);
+OLDCODE			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+OLDCODE			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,(int *) cyltopindx);
+OLDCODE			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += CYLDIV+2;
+OLDCODE		}
+OLDCODE
+OLDCODE	}
+OLDCODE#endif // SHADERS_2011
+#endif //OLDCODE
          
 	textureDraw_end();
 }
@@ -541,8 +550,11 @@ void compile_Cone (struct X3D_Cone *node) {
 	MARK_NODE_COMPILED
 
 	
-#ifdef SHADERS_2011
-    {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE     {
+#endif //OLDCODE
+
 		struct MyVertex coneVert[CONEDIV * 2 * 3];
 		int indx = 0;
 
@@ -657,76 +669,80 @@ void compile_Cone (struct X3D_Cone *node) {
 		FREE_IF_NZ(node->__sidepoints.p);
 		FREE_IF_NZ(node->__normals.p);
 
-	} 
-#else // SHADERS_2011
-    {
-
-		/*  MALLOC memory (if possible)*/
-		if (!node->__botpoints.p) node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
-		if (!node->__sidepoints.p) node->__sidepoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
-
-		/* use normals for compiled flag for threading */
-
-		if (!node->__normals.p) ptr = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
-		else ptr = node->__normals.p;
-	
-		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = node->__botpoints.p;
-		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
-		for (i=1; i<=CONEDIV; i++) {
-			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
-			pt[i].c[1] = (float) -h;
-			pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
-		}
-		/*  and throw another point that is centre of bottom*/
-		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
-
-		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
-
-		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
-		/*  easier to handle.*/
-		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = node->__sidepoints.p;
-		for (i=0; i<CONEDIV; i++) {
-			/*  top point*/
-			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
-			/*  left point*/
-			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
-			/* right point*/
-			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
-		}
-
-		/*  wrap bottom point around once again... ie, final right point = initial left point*/
-		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
-
-		/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
-		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-		norm = ptr;
-		for (i=0; i<=CONEDIV; i++) {
-			/*  top point*/
-			angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
-			norm[i*3+0].c[0] = (float) sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = (float) cos(angle);
-			/* left point*/
-			angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
-			norm[i*3+1].c[0] = (float) sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = (float) cos(angle);
-			/*  right point*/
-			angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
-			norm[i*3+2].c[0] = (float) sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = (float) cos(angle);
-		}
-
-		/* ok, finished compiling, finish */
-		node->__normals.p = ptr;
-	} 
-#endif // SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	} 
+OLDCODE#else // SHADERS_2011
+OLDCODE    {
+OLDCODE
+OLDCODE		/*  MALLOC memory (if possible)*/
+OLDCODE		if (!node->__botpoints.p) node->__botpoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*(CONEDIV+3));
+OLDCODE		if (!node->__sidepoints.p) node->__sidepoints.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
+OLDCODE
+OLDCODE		/* use normals for compiled flag for threading */
+OLDCODE
+OLDCODE		if (!node->__normals.p) ptr = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*3*(CONEDIV+1));
+OLDCODE		else ptr = node->__normals.p;
+OLDCODE	
+OLDCODE		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
+OLDCODE		pt = node->__botpoints.p;
+OLDCODE		pt[0].c[0] = 0.0f; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0f;
+OLDCODE		for (i=1; i<=CONEDIV; i++) {
+OLDCODE			pt[i].c[0] = r* (float) sin(PI*2*i/(float)CONEDIV);
+OLDCODE			pt[i].c[1] = (float) -h;
+OLDCODE			pt[i].c[2] = r* (float) cos(PI*2*i/(float)CONEDIV);
+OLDCODE		}
+OLDCODE		/*  and throw another point that is centre of bottom*/
+OLDCODE		pt[CONEDIV+1].c[0] = 0.0f; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0f;
+OLDCODE
+OLDCODE		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
+OLDCODE		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFVec3f));
+OLDCODE
+OLDCODE		/*  side triangles. Make 3 seperate points per triangle... makes FW_GL_DRAWARRAYS with normals*/
+OLDCODE		/*  easier to handle.*/
+OLDCODE		/*  rearrange bottom points into this array; top, bottom, left.*/
+OLDCODE		spt = node->__sidepoints.p;
+OLDCODE		for (i=0; i<CONEDIV; i++) {
+OLDCODE			/*  top point*/
+OLDCODE			spt[i*3].c[0] = 0.0f; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0f;
+OLDCODE			/*  left point*/
+OLDCODE			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFVec3f));
+OLDCODE			/* right point*/
+OLDCODE			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFVec3f));
+OLDCODE		}
+OLDCODE
+OLDCODE		/*  wrap bottom point around once again... ie, final right point = initial left point*/
+OLDCODE		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFVec3f));
+OLDCODE
+OLDCODE		/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
+OLDCODE		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
+OLDCODE		norm = ptr;
+OLDCODE		for (i=0; i<=CONEDIV; i++) {
+OLDCODE			/*  top point*/
+OLDCODE			angle = (float) (PI * 2 * (i+0.5f)) / (float) (CONEDIV);
+OLDCODE			norm[i*3+0].c[0] = (float) sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = (float) cos(angle);
+OLDCODE			/* left point*/
+OLDCODE			angle = (float) (PI * 2 * (i+0.0f)) / (float) (CONEDIV);
+OLDCODE			norm[i*3+1].c[0] = (float) sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = (float) cos(angle);
+OLDCODE			/*  right point*/
+OLDCODE			angle = (float) (PI * 2 * (i+1.0f)) / (float) (CONEDIV);
+OLDCODE			norm[i*3+2].c[0] = (float) sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = (float) cos(angle);
+OLDCODE		}
+OLDCODE
+OLDCODE		/* ok, finished compiling, finish */
+OLDCODE		node->__normals.p = ptr;
+OLDCODE	} 
+OLDCODE#endif // SHADERS_2011
+#endif //OLDCODE
     
 }
 
 void render_Cone (struct X3D_Cone *node) {
-#if !defined(SHADERS_2011)
-	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
-	extern float trisidtex[];		/*  in CFuncs/statics.c*/
-#endif
+#ifdef OLDCODE
+OLDCODE #if !defined(SHADERS_2011)
+OLDCODE 	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
+OLDCODE 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
+OLDCODE #endif
+#endif //OLDCODE
 
     extern float tribottex[];		/*  in CFuncs/statics.c*/
     
@@ -749,8 +765,10 @@ void render_Cone (struct X3D_Cone *node) {
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-#ifdef SHADERS_2011
-    {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE    {
+#endif //OLDCODE
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -771,34 +789,36 @@ void render_Cone (struct X3D_Cone *node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-#else // SHADERS_2011
-    {
-		if(node->bottom) {
-			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
-			textureDraw_start(&mtf);
-			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
-			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
-			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,(int *) tribotindx);
-			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-			gglobal()->Mainloop.trisThisLoop += CONEDIV+2;
-		}
-
-		if(node->side) {
-			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints.p);
-			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals.p);
-			mtf.VA_arrays = trisidtex;
-			textureDraw_start(&mtf);
-	
-			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
-			gglobal()->Mainloop.trisThisLoop += 60;
-		}
-
-    }
-#endif // SHADERS_2011
-
+#ifdef OLDCODE
+OLDCODE	}
+OLDCODE#else // SHADERS_2011
+OLDCODE    {
+OLDCODE		if(node->bottom) {
+OLDCODE			FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
+OLDCODE			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__botpoints.p);
+OLDCODE			textureDraw_start(&mtf);
+OLDCODE			FW_GL_NORMAL3F(0.0f,-1.0f,0.0f);
+OLDCODE			/* note the casting - GL_UNSIGNED_BYTE; but index is expected to be an int * */
+OLDCODE			FW_GL_DRAWELEMENTS (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,(int *) tribotindx);
+OLDCODE			FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += CONEDIV+2;
+OLDCODE		}
+OLDCODE
+OLDCODE		if(node->side) {
+OLDCODE			FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints.p);
+OLDCODE			FW_GL_NORMAL_POINTER (GL_FLOAT,0,(GLfloat *)node->__normals.p);
+OLDCODE			mtf.VA_arrays = trisidtex;
+OLDCODE			textureDraw_start(&mtf);
+OLDCODE	
+OLDCODE			/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+OLDCODE			FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 60);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += 60;
+OLDCODE		}
+OLDCODE
+OLDCODE    }
+OLDCODE#endif // SHADERS_2011
+OLDCODE
+#endif //OLDCODE
 
 	textureDraw_end();
 }
@@ -859,8 +879,10 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	START_TRIG1
 
-#ifdef SHADERS_2011
-    {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE     {
+#endif //OLDCODE
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
@@ -939,32 +961,34 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		FREE_IF_NZ(SphVBO);
                 FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 
-	} 
-#else // SHADERS_2011
-    {
-		for(v=0; v<SPHDIV; v++) {
-			float vsin1 = SIN1;
-			float vcos1 = COS1, vsin2,vcos2;
-			UP_TRIG1
-			vsin2 = SIN1;
-			vcos2 = COS1;
-			START_TRIG2
-			for(h=0; h<=SPHDIV; h++) {
-				float hsin1 = SIN2;
-				float hcos1 = COS2;
-				UP_TRIG2
-				pts[count].c[0] = rad * vsin2 * hcos1;
-				pts[count].c[1] = rad * vcos2;
-				pts[count].c[2] = rad * vsin2 * hsin1;
-				count++;
-				pts[count].c[0] = rad * vsin1 * hcos1;
-				pts[count].c[1] = rad * vcos1;
-				pts[count].c[2] = rad * vsin1 * hsin1;
-				count++;
-			}
-		}	
-	}
-#endif // SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	} 
+OLDCODE#else // SHADERS_2011
+OLDCODE    {
+OLDCODE		for(v=0; v<SPHDIV; v++) {
+OLDCODE			float vsin1 = SIN1;
+OLDCODE			float vcos1 = COS1, vsin2,vcos2;
+OLDCODE			UP_TRIG1
+OLDCODE			vsin2 = SIN1;
+OLDCODE			vcos2 = COS1;
+OLDCODE			START_TRIG2
+OLDCODE			for(h=0; h<=SPHDIV; h++) {
+OLDCODE				float hsin1 = SIN2;
+OLDCODE				float hcos1 = COS2;
+OLDCODE				UP_TRIG2
+OLDCODE				pts[count].c[0] = rad * vsin2 * hcos1;
+OLDCODE				pts[count].c[1] = rad * vcos2;
+OLDCODE				pts[count].c[2] = rad * vsin2 * hsin1;
+OLDCODE				count++;
+OLDCODE				pts[count].c[0] = rad * vsin1 * hcos1;
+OLDCODE				pts[count].c[1] = rad * vcos1;
+OLDCODE				pts[count].c[2] = rad * vsin1 * hsin1;
+OLDCODE				count++;
+OLDCODE			}
+OLDCODE		}	
+OLDCODE	}
+OLDCODE#endif // SHADERS_2011
+#endif //OLDCODE
 
 	/* finished - for threading */
 	node->__points.p = ptr;
@@ -995,8 +1019,10 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 	/*  Display the shape*/
 
-#ifdef SHADERS_2011
-    {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE     {
+#endif //OLDCODE
 		// taken from the OpenGL.org website:
 		#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -1019,22 +1045,24 @@ void render_Sphere (struct X3D_Sphere *node) {
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	} 
-#else  // SHADERS_2011
-    {
-		int count;
-		textureDraw_start(&mtf);
-		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
-		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
-
-
-		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-		for (count = 0; count < SPHDIV/2; count ++) { 
-			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
-			gglobal()->Mainloop.trisThisLoop += (SPHDIV+1) * 4;
-		}
- 	}
-#endif // SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	} 
+OLDCODE#else  // SHADERS_2011
+OLDCODE    {
+OLDCODE		int count;
+OLDCODE		textureDraw_start(&mtf);
+OLDCODE		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
+OLDCODE		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
+OLDCODE
+OLDCODE
+OLDCODE		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+OLDCODE		for (count = 0; count < SPHDIV/2; count ++) { 
+OLDCODE			FW_GL_DRAWARRAYS (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
+OLDCODE			gglobal()->Mainloop.trisThisLoop += (SPHDIV+1) * 4;
+OLDCODE		}
+OLDCODE 	}
+OLDCODE#endif // SHADERS_2011
+#endif //OLDCODE
 
 	textureDraw_end();
 
@@ -1698,9 +1726,11 @@ static void collisionCone_init(struct X3D_Cone *node)
 	struct SFVec3f *spt;			/*  side points*/
 	struct Multi_Vec3f botpoints;
     	
-#if !defined(SHADERS_2011)
-	extern unsigned char tribotindx[];
-#endif	
+#ifdef OLDCODE
+OLDCODE #if !defined(SHADERS_2011)
+OLDCODE 	extern unsigned char tribotindx[];
+OLDCODE #endif	
+#endif //OLDCODE
 
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)
 
@@ -1860,13 +1890,17 @@ void collide_Cone (struct X3D_Cone *node) {
 	       struct point_XYZ delta;
 
                 /* is this node initialized? if not, get outta here and do this later */
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
 		
 			if (node->__coneVBO == 0) return;
-#else
-           
-            if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
-#endif
+#ifdef OLDCODE
+OLDCODE #else
+       OLDCODE     
+OLDCODE             if ((node->__sidepoints.p == 0)  && (node->__botpoints.p==0)) return;
+OLDCODE #endif
+#endif //OLDCODE
 
 	       iv.y = h; jv.y = -h;
 
@@ -1971,10 +2005,7 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	
 	/* not initialized yet - wait for next pass */
 
-//#if defined(SHADERS_2011) || defined(_MSC_VER)
     if (!node->__points.p) return;
-//#endif
-
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
 
@@ -2007,8 +2038,10 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
 
-#ifdef SHADERS_2011
-	 {
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+OLDCODE 	 {
+#endif //OLDCODE
 		float a1, a2;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
@@ -2032,13 +2065,15 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 		/*  center points of top and bottom*/
 		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
 		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
-	} 
-#else  // SHADERS_2011
-    
-		/* have points via the vertex array */
-		pts = node->__points.p;
-	
-#endif // SHADERS_2011
+#ifdef OLDCODE
+OLDCODE	} 
+OLDCODE#else  // SHADERS_2011
+OLDCODE    
+OLDCODE		/* have points via the vertex array */
+OLDCODE		pts = node->__points.p;
+OLDCODE	
+OLDCODE#endif // SHADERS_2011
+#endif //OLDCODE 
 
     
 	for(i=0;i<collisionCylinder.npts;i++)
@@ -2094,9 +2129,14 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	collisionCylinder.smin[1] = -1.0; //-h/2;
 	collisionCylinder.smax[1] =  1.0; //h/2;
 
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
+
 		FREE_IF_NZ(pts);
-#endif
+#ifdef OLDCODE
+OLDCODE#endif //SHADERS_2011
+#endif //OLDCODE
 	
 }
 

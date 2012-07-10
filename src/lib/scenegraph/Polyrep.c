@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.59 2012/07/10 18:40:27 crc_canada Exp $
+$Id: Polyrep.c,v 1.60 2012/07/10 19:14:54 crc_canada Exp $
 
 ???
 
@@ -78,12 +78,19 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	r->color = (float *)newcolors;
 
 	/* VBOs need this re-bound */
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
+
+
 	if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 	glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
 	FREE_IF_NZ(r->color);
-#endif //SHADERS_2011
+
+#ifdef OLDCODE
+OLDCODE #endif //SHADERS_2011
+#endif //OLDCODE
 
 }
 
@@ -841,7 +848,9 @@ void render_polyrep(void *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 	
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
 
 	/*  status bar, text do not have normals*/
 	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
@@ -885,41 +894,45 @@ void render_polyrep(void *node) {
 		FW_GL_DISABLE(GL_COLOR_MATERIAL);
 
 	}
-#else // have SHADERS_2011
-	/*  status bar, text do not have normals*/
-	if (pr->normal) {
-		FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) pr->normal);
-	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
-	
-	/*  colours?*/
-	if (hasc) {
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,pr->color);
-	}
 
-	/*  textures?*/
-	if (pr->GeneratedTexCoords) {
-		struct textureVertexInfo mtf = {pr->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
-		textureDraw_start(&mtf);
 #ifdef OLDCODE
-OLDCODE	} else {
-OLDCODE		textureDraw_start(X3D_NODE(node), NULL);
+OLDCODE
+OLDCODE#else // have SHADERS_2011
+OLDCODE	/*  status bar, text do not have normals*/
+OLDCODE	if (pr->normal) {
+OLDCODE		FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) pr->normal);
+OLDCODE	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
+OLDCODE	
+OLDCODE	/*  colours?*/
+OLDCODE	if (hasc) {
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,pr->color);
+OLDCODE	}
+OLDCODE
+OLDCODE	/*  textures?*/
+OLDCODE	if (pr->GeneratedTexCoords) {
+OLDCODE		struct textureVertexInfo mtf = {pr->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
+OLDCODE		textureDraw_start(&mtf);
+OLDCODE#ifdef OLDCODE
+OLDCODEOLDCODE	} else {
+OLDCODEOLDCODE		textureDraw_start(X3D_NODE(node), NULL);
+OLDCODE#endif //OLDCODE
+OLDCODE	}
+OLDCODE	
+OLDCODE	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+OLDCODE	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) pr->actualCoord);
+OLDCODE	FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT, pr->cindex);
+OLDCODE
+OLDCODE	/*  put things back to the way they were;*/
+OLDCODE	if (!pr->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+OLDCODE	if (hasc) {
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_DISABLE(GL_COLOR_MATERIAL);
+OLDCODE	}
+OLDCODE
+OLDCODE#endif //SHADERS_2011
+OLDCODE
 #endif //OLDCODE
-	}
-	
-	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) pr->actualCoord);
-	FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT, pr->cindex);
-
-	/*  put things back to the way they were;*/
-	if (!pr->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-	if (hasc) {
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_DISABLE(GL_COLOR_MATERIAL);
-	}
-
-#endif //SHADERS_2011
-
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 
@@ -1155,13 +1168,19 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 		polyrep->maxVals[2] =  -999999.9f;
 
 		for (i=0; i<VBO_COUNT; i++) polyrep->VBO_buffers[i] = 0;
-#ifdef SHADERS_2011
+#ifdef OLDCODE
+OLDCODE #ifdef SHADERS_2011
+#endif //OLDCODE
+
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
 			glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
 			glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
 
 			/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
-#endif // SHADERS_2011
+
+#ifdef OLDCODE
+OLDCODE #endif // SHADERS_2011
+#endif //OLDCODE
 
 
 	}
