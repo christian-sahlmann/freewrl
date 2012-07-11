@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.88 2012/07/11 19:10:54 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.89 2012/07/11 19:27:48 dug9 Exp $
 
 X3D Geometry 3D Component
 
@@ -192,14 +192,14 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
+	struct MyVertex cylVert[CYLDIV * 4 * 3];
+	int indx = 0;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
 
 	/* use VBOS for Cylinders? */
-		struct MyVertex cylVert[CYLDIV * 4 * 3];
-		int indx = 0;
 
 		if (node->__cylinderVBO == 0) {
 			glGenBuffers(1,(GLuint*) &node->__cylinderVBO);
@@ -446,12 +446,12 @@ void compile_Cone (struct X3D_Cone *node) {
 	struct SFVec3f *spt;			/*  side points*/
 	struct SFVec3f *norm;			/*  side normals*/
 	void *ptr;
+	struct MyVertex coneVert[CONEDIV * 2 * 3];
+	int indx = 0;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
-		struct MyVertex coneVert[CONEDIV * 2 * 3];
-		int indx = 0;
 
 		if (node->__coneVBO == 0) {
 			glGenBuffers(1,(GLuint *) &node->__coneVBO);
@@ -663,7 +663,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	INIT_TRIG2(SPHDIV)
 
 	START_TRIG1
-
+	{
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
@@ -741,7 +741,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 		FREE_IF_NZ(SphVBO);
                 FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-
+	}
 	/* finished - for threading */
 	node->__points.p = ptr;
 }
@@ -1752,7 +1752,7 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 	inverseh = inverser = 1.0;
 	if(!APPROX(h,0.0)) inverseh = 1.0/h;
 	if(!APPROX(r,0.0)) inverser = 1.0/r;
-
+	{
 		float a1, a2;
 		/* ok - we copy the non-VBO code here so that Doug Sandens Cylinder Collision code
 		   uses the same algorithm whether running in VBO mode or not */
@@ -1776,7 +1776,7 @@ static void collisionCylinder_init(struct X3D_Cylinder *node)
 		/*  center points of top and bottom*/
 		pts[CYLDIV*2+2].c[0] = 0.0f; pts[CYLDIV*2+2].c[1] = (float) h; pts[CYLDIV*2+2].c[2] = 0.0f;
 		pts[CYLDIV*2+3].c[0] = 0.0f; pts[CYLDIV*2+3].c[1] = (float)-h; pts[CYLDIV*2+3].c[2] = 0.0f;
-    
+	}
 	for(i=0;i<collisionCylinder.npts;i++)
 	{
 		/* points */
