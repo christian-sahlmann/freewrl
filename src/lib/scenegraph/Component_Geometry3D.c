@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.89 2012/07/11 19:27:48 dug9 Exp $
+$Id: Component_Geometry3D.c,v 1.90 2012/07/11 20:41:57 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -595,6 +595,7 @@ void render_Cone (struct X3D_Cone *node) {
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
 
 		/* set up texture drawing for this guy */
+        mtf.pre_canned_textureCoords = NULL;
 		mtf.TC_size = 2;
 		mtf.TC_type = GL_FLOAT;
 		mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
@@ -778,7 +779,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLfloat) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLfloat)  sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
-    
+                mtf.pre_canned_textureCoords = NULL;
                 mtf.TC_size = 2;
                 mtf.TC_type = GL_FLOAT;
                 mtf.TC_stride = (GLfloat) sizeof(struct MyVertex);
