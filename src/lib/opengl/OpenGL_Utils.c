@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.253 2012/07/11 19:10:54 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.254 2012/07/11 21:07:07 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -369,7 +369,10 @@ static char *oneTexFragmentShader = " \
 varying vec2 v_texC; \
 uniform sampler2D fw_Texture_unit0; \
 void main () { \
-gl_FragColor = texture2D(fw_Texture_unit0, v_texC); \
+vec2 tmpt; \
+tmpt.s = clamp(v_texC.s,0.0,1.0); \
+tmpt.t = clamp(v_texC.t,0.0,1.0); \
+gl_FragColor = texture2D(fw_Texture_unit0, tmpt); \
 }";
 
 static char *oneTexVertexShader = " \
@@ -398,6 +401,10 @@ void main(void) { \
 vec4 tmpt; \
 gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
  tmpt = fw_TextureMatrix * vec4(fw_MultiTexCoord0,0.,0.); \
+/* \
+tmpt.s = clamp(tmpt.s,0.0,1.0); \
+tmpt.t = clamp(tmpt.t,0.0,1.0); \
+*/ \
 v_texC = tmpt.st; \
 }";
 
