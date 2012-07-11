@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.108 2012/07/10 19:14:54 crc_canada Exp $
+$Id: Component_Shape.c,v 1.109 2012/07/11 14:03:41 crc_canada Exp $
 
 X3D Shape Component
 
@@ -390,7 +390,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
     
 
 	if (realAppearanceNode->texture != NULL) {
-        printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
+        //printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
         if ((realAppearanceNode->texture->_nodeType == NODE_ImageTexture) ||
             (realAppearanceNode->texture->_nodeType == NODE_PixelTexture)){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
@@ -401,7 +401,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			stringNodeType(realAppearanceNode->texture->_nodeType));
 		}
 	}
-    printf ("getAppearanceShader, returning %x\n",retval);
+    //printf ("getAppearanceShader, returning %x\n",retval);
 
 	return retval;
 }

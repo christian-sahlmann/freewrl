@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.250 2012/07/10 19:25:12 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.251 2012/07/11 14:03:40 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1369,6 +1369,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
+	me->TextureMatrix = GET_UNIFORM(myProg,"fw_TextureMatrix");
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
@@ -3730,7 +3731,7 @@ static void killNode (int index) {
 	#endif
 }
 
-void sendExplicitMatriciesToShader (GLuint ModelViewMatrix, GLuint ProjectionMatrix, GLuint NormalMatrix) 
+static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix) 
 
 {
 
@@ -3739,6 +3740,7 @@ void sendExplicitMatriciesToShader (GLuint ModelViewMatrix, GLuint ProjectionMat
 	float *sp; 
 	GLDOUBLE *dp;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
 
 	/* ModelView first */
 	dp = p->FW_ModelView[p->modelviewTOS];
@@ -3761,6 +3763,12 @@ void sendExplicitMatriciesToShader (GLuint ModelViewMatrix, GLuint ProjectionMat
 		sp ++; dp ++;
 	}
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
+
+	if (TextureMatrix != -1) {
+		ConsoleMessage ("should be sending in TextureMatrix here");
+		ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+	}
+
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
@@ -3804,7 +3812,7 @@ normMat[6],normMat[7],normMat[8]);
 /* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
-	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix) ;
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix) ;
 }
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {

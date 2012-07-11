@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.148 2012/07/10 19:25:12 crc_canada Exp $
+  $Id: display.h,v 1.149 2012/07/11 14:03:40 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -429,6 +429,7 @@ typedef struct {
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
+	GLint TextureMatrix;
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;

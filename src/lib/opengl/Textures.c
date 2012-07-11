@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.122 2012/07/10 19:14:54 crc_canada Exp $
+  $Id: Textures.c,v 1.123 2012/07/11 14:03:40 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -958,14 +958,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
-#define TEXVERBOSE
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %p is %u, type %s\n",
 			me, me->OpenGLTexture,stringNodeType(me->nodeType));
 #endif
-#undef TEXVERBOSE
-
-
 
 	}
 
