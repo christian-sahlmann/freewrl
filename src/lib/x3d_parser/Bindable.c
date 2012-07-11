@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.73 2012/07/10 19:14:54 crc_canada Exp $
+$Id: Bindable.c,v 1.74 2012/07/11 19:21:47 dug9 Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -813,7 +813,7 @@ OLDCODE		#endif /* SHADERS_2011 */
 OLDCODE	#ifdef SHADERS_2011
 OLDCODE	{
 #endif //OLDCODE
-
+	{
 		struct MyVertex *combinedBuffer = MALLOC(struct MyVertex *, sizeof (struct MyVertex) * actq * 2);
 		int i;
 		float *npp = newPoints;
@@ -851,7 +851,7 @@ OLDCODE	{
 
 		/* and, we can free it */
 		FREE_IF_NZ(combinedBuffer);
-
+	}
 #ifdef OLDCODE
 OLDCODE	}
 OLDCODE	#endif /* SHADERS_2011 */
