@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.252 2012/07/11 14:49:36 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.253 2012/07/11 19:10:54 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -69,6 +69,11 @@
 #include "../x3d_parser/Bindable.h"
 
 #include "../ui/common.h"
+
+
+
+#define DO_TEXTURE_TRANSFORMS_ALL_THE_TIME
+
 
 
 #define USE_JS_EXPERIMENTAL_CODE 0
@@ -184,6 +189,12 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 
 		p->whichMode = GL_MODELVIEW;
 		p->currentMatrix = p->FW_ModelView[0];
+        
+        // load identity matricies in here
+        loadIdentityMatrix(p->FW_ModelView[0]);
+        loadIdentityMatrix(p->FW_ProjectionView[0]);
+        loadIdentityMatrix(p->FW_TextureView[0]);
+
 
 	}
 }
@@ -387,8 +398,7 @@ void main(void) { \
 vec4 tmpt; \
 gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
  tmpt = fw_TextureMatrix * vec4(fw_MultiTexCoord0,0.,0.); \
-/* v_texC =fw_MultiTexCoord0; */ \
-v_texC = tmpt.xy; \
+v_texC = tmpt.st; \
 }";
 
 
@@ -541,6 +551,7 @@ const int	indx_one = 1;   \
 \
 uniform mat4	fw_ModelViewMatrix;   \
 uniform mat4 	fw_ProjectionMatrix;   \
+uniform mat4    fw_TextureMatrix; \
 \
 uniform mat3	fw_NormalMatrix;   \
 \
@@ -672,7 +683,10 @@ mat_diffuse_colour = fw_FrontMaterial.diffuse;   \
 /* JAS */ v_front_colour = vec4 (1.,1.,1.,1.); \
 \
 \
-v_texC =fw_MultiTexCoord0;\
+/* simple if no textureTransforms v_texC =fw_MultiTexCoord0; */ \
+vec4 tmpt; \
+tmpt = fw_TextureMatrix * vec4(fw_MultiTexCoord0,0.,0.); \
+v_texC = tmpt.st; \
 \
 gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
 }";
@@ -1240,11 +1254,11 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 
 		case oneTexOneMaterialShader: {
 			*fragmentSource = oneTexFragmentShader;
-#ifdef JOHN_TESTING
-ConsoleMessage ("oneTexOneMaterialShader - testing TextureTransform code");
+
+#ifdef DO_TEXTURE_TRANSFORMS_ALL_THE_TIME
                 	*vertexSource = oneTexVertexShaderTextureTransform;
 #else
-                	*vertexSource = oneTexVertexShader;
+          *vertexSource = oneTexVertexShader;
 #endif
 
 			break;
@@ -1764,15 +1778,15 @@ void doglClearColor() {
 }
 
 /* did we have a TextureTransform in the Appearance node? */
-void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
-
-	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
+void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
+    
 	FW_GL_MATRIX_MODE(GL_TEXTURE);
        	/* done in RenderTextures now FW_GL_ENABLE(GL_TEXTURE_2D); */
 	FW_GL_LOAD_IDENTITY();
 
 	/* is this a simple TextureTransform? */
 	if (textureNode->_nodeType == NODE_TextureTransform) {
+        //ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
 		/*  Render transformations according to spec.*/
         	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
@@ -1813,13 +1827,7 @@ void start_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 	} else {
 		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
 	}
-	FW_GL_MATRIX_MODE(GL_MODELVIEW);
-}
 
-/* did we have a TextureTransform in the Appearance node? */
-void end_textureTransform (void) {
-	FW_GL_MATRIX_MODE(GL_TEXTURE);
-	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
@@ -1890,32 +1898,13 @@ OLDCODE	#endif /* SHADERS_2011 */
 
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
-    
-#ifdef OLDCODE
-OLDCODE	/* Set up the OpenGL state. This'll get overwritten later... */
-OLDCODE	#ifndef SHADERS_2011
-OLDCODE	FW_GL_CLEAR_DEPTH(1.0);
-OLDCODE	#endif
-#endif OLDCODE
-    
-	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 5");
-    
-
+        
 	FW_GL_MATRIX_MODE(GL_PROJECTION);
 	FW_GL_LOAD_IDENTITY();
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 6");
     
-
-	/* Configure OpenGL for our uses. */
-#ifdef OLDCODE
-OLDCODE #ifndef SHADERS_2011
-    OLDCODE     FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
-OLDCODE         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-OLDCODE #endif
-#endif //OLDCODE
-
 	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
@@ -2049,17 +2038,13 @@ void fw_glMatrixMode(GLint mode) {
 	p->whichMode = mode;
 	
 	#ifdef VERBOSE
-	printf ("fw_glMatrixMode, projTOS %d, modTOS %d\n",p->projectionviewTOS,p->modelviewTOS);
+	printf ("fw_glMatrixMode, projTOS %d, modTOS %d texvTOS %d\n",p->projectionviewTOS,p->modelviewTOS, p->textureviewTOS);
 
 	switch (p->whichMode) {
 		case GL_PROJECTION: printf ("glMatrixMode(GL_PROJECTION)\n"); break;
 		case GL_MODELVIEW: printf ("glMatrixMode(GL_MODELVIEW)\n"); break;
 		case GL_TEXTURE: printf ("glMatrixMode(GL_TEXTURE)\n"); break;
 	}
-	#endif
-	
-	#ifndef GL_ES_VERSION_2_0
-	glMatrixMode(mode); /* JAS - tell OpenGL what the current matrix mode is */
 	#endif
 
 	switch (p->whichMode) {
@@ -2073,7 +2058,7 @@ void fw_glMatrixMode(GLint mode) {
 
 void fw_glLoadIdentity(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-
+    //ConsoleMessage ("fw_glLoadIdentity, whichMode %d, tex %d",p->whichMode,GL_TEXTURE);
 	loadIdentityMatrix(p->currentMatrix);
 	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
@@ -2090,7 +2075,6 @@ void fw_glPushMatrix(void) {
 		PUSHMAT (GL_TEXTURE,p->textureviewTOS,MAX_SMALL_MATRIX_STACK,p->FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
-	/* if (p->whichMode == GL_PROJECTION) { printf ("	fw_glPushMatrix tos now %d\n",p->projectionviewTOS); }  */
 
  	FW_GL_LOADMATRIX(p->currentMatrix); 
 #undef PUSHMAT
@@ -2107,7 +2091,6 @@ void fw_glPopMatrix(void) {
 		POPMAT (GL_TEXTURE,p->textureviewTOS,p->FW_TextureView)
 		default :printf ("wrong mode in popMatrix\n");
 	}
-	/* if (whichMode == GL_PROJECTION) { printf ("	fw_glPopMatrix tos now %d\n",p->projectionviewTOS); } */
 
  	FW_GL_LOADMATRIX(p->currentMatrix); 
 }
@@ -3770,17 +3753,12 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		sp = spval;
 		dp = p->FW_TextureView[p->textureviewTOS];
 
-		ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+		//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
 		/* convert GLDOUBLE to float */
 		for (i=0; i<16; i++) {
 			*sp = (float) *dp; 	
 			sp ++; dp ++;
 		}
-ConsoleMessage ("tm %f %f %f %f, %f %f %f %f, %f %f %f %f, %f %f %f %f",
-sp[0],sp[1],sp[2],sp[3],
-sp[4],sp[5],sp[6],sp[7],
-sp[8],sp[9],sp[10],sp[11],
-sp[12],sp[13],sp[14],sp[15]);
 		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
 	}
 

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.60 2012/07/10 19:14:54 crc_canada Exp $
+$Id: Polyrep.c,v 1.61 2012/07/11 19:10:54 crc_canada Exp $
 
 ???
 
@@ -894,45 +894,6 @@ OLDCODE #ifdef SHADERS_2011
 		FW_GL_DISABLE(GL_COLOR_MATERIAL);
 
 	}
-
-#ifdef OLDCODE
-OLDCODE
-OLDCODE#else // have SHADERS_2011
-OLDCODE	/*  status bar, text do not have normals*/
-OLDCODE	if (pr->normal) {
-OLDCODE		FW_GL_NORMAL_POINTER(GL_FLOAT,0,(GLfloat *) pr->normal);
-OLDCODE	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
-OLDCODE	
-OLDCODE	/*  colours?*/
-OLDCODE	if (hasc) {
-OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-OLDCODE		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,pr->color);
-OLDCODE	}
-OLDCODE
-OLDCODE	/*  textures?*/
-OLDCODE	if (pr->GeneratedTexCoords) {
-OLDCODE		struct textureVertexInfo mtf = {pr->GeneratedTexCoords,2,GL_FLOAT,0,NULL};
-OLDCODE		textureDraw_start(&mtf);
-OLDCODE#ifdef OLDCODE
-OLDCODEOLDCODE	} else {
-OLDCODEOLDCODE		textureDraw_start(X3D_NODE(node), NULL);
-OLDCODE#endif //OLDCODE
-OLDCODE	}
-OLDCODE	
-OLDCODE	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-OLDCODE	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *) pr->actualCoord);
-OLDCODE	FW_GL_DRAWELEMENTS(GL_TRIANGLES,pr->ntri*3,GL_UNSIGNED_INT, pr->cindex);
-OLDCODE
-OLDCODE	/*  put things back to the way they were;*/
-OLDCODE	if (!pr->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
-OLDCODE	if (hasc) {
-OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-OLDCODE		FW_GL_DISABLE(GL_COLOR_MATERIAL);
-OLDCODE	}
-OLDCODE
-OLDCODE#endif //SHADERS_2011
-OLDCODE
-#endif //OLDCODE
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 

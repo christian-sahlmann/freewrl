@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.58 2012/07/10 19:14:54 crc_canada Exp $
+$Id: RenderTextures.c,v 1.59 2012/07/11 19:10:54 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -170,59 +170,6 @@ void textureDraw_start(struct textureVertexInfo* genTex) {
 		passedInGenTex(genTex);
 }
 
-#ifdef OLDCODE
-OLDCODEvoid textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) {
-OLDCODE	struct X3D_TextureCoordinate *myTCnode = NULL;
-OLDCODE
-OLDCODE	#ifdef TEXVERBOSE
-OLDCODE	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
-OLDCODE	printf ("	texC %p, genTex %p\n",texC,genTex);
-OLDCODE	#endif
-OLDCODE
-OLDCODE	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
-OLDCODE	if (texC == NULL) {
-OLDCODE		passedInGenTex(genTex);
-OLDCODE
-OLDCODE	/* hmmm - maybe this texCoord node exists? */
-OLDCODE	} else {
-OLDCODE		switch (texC->_nodeType) {
-OLDCODE		case NODE_IndexedFaceSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDFACESET(texC)->texCoord; break;
-OLDCODE		case NODE_ElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(texC)->texCoord; break;
-OLDCODE		case NODE_GeoElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(texC)->texCoord; break;
-OLDCODE		case NODE_TriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(texC)->texCoord; break;
-OLDCODE		case NODE_TriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(texC)->texCoord; break;
-OLDCODE		case NODE_TriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(texC)->texCoord; break;
-OLDCODE		case NODE_IndexedTriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(texC)->texCoord; break;
-OLDCODE		case NODE_IndexedTriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(texC)->texCoord; break;
-OLDCODE		case NODE_IndexedTriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(texC)->texCoord; break;
-OLDCODE		default :printf ("textureDrawStart, unhandled node type...\n");
-OLDCODE		
-OLDCODE
-OLDCODE		}
-OLDCODE
-OLDCODE		if (myTCnode == NULL) return;
-OLDCODE
-OLDCODE		#ifdef TEXVERBOSE
-OLDCODE		printf ("ok, texC->_nodeType is %s\n",stringNodeType(texC->_nodeType));
-OLDCODE		printf ("myTCnode is of type %s\n",stringNodeType(myTCnode->_nodeType));
-OLDCODE		#endif
-OLDCODE
-OLDCODE		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-OLDCODE			haveTexCoord(myTCnode);
-OLDCODE
-OLDCODE
-OLDCODE		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
-OLDCODE			haveMultiTexCoord((struct X3D_MultiTextureCoordinate *)myTCnode);
-OLDCODE
-OLDCODE		} else {
-OLDCODE			/* this has to be a TexureCoordinateGenerator node */
-OLDCODE			haveTexCoordGenerator (myTCnode);
-OLDCODE		}
-OLDCODE	}
-OLDCODE	PRINT_GL_ERROR_IF_ANY("");
-OLDCODE	return;
-OLDCODE}
-#endif //OLDCODE
 
 /* lets disable textures here */
 void textureDraw_end(void) {
@@ -239,31 +186,13 @@ void textureDraw_end(void) {
 
 	    for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 
-	        if (getThis_textureTransform()) end_textureTransform();
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
 
-#ifdef OLDCODE
-OLDCODE		#ifndef SHADERS_2011
-OLDCODE		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
-OLDCODE		FW_GL_DISABLE (GL_TEXTURE_GEN_T);
-OLDCODE		FW_GL_DISABLE(GL_TEXTURE_2D);
-OLDCODE		#endif /* SHADERS_2011 */
-#endif //OLDCODE
 	    }
 
 	} else {
 
-	        if (getThis_textureTransform()) end_textureTransform();
 		FW_GL_DISABLECLIENTSTATE(GL_TEXTURE_COORD_ARRAY);
-
-		/* not in OpenGL-ES 2.0... */
-#ifdef OLDCODE
-OLDCODE		#ifndef SHADERS_2011
-OLDCODE			FW_GL_DISABLE(GL_TEXTURE_GEN_S);
-OLDCODE			FW_GL_DISABLE (GL_TEXTURE_GEN_T);
-OLDCODE			FW_GL_DISABLE(GL_TEXTURE_2D);
-OLDCODE		#endif /* SHADERS_2011 */
-#endif //OLDCODE
 
 	}
 
@@ -287,8 +216,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
 	#endif 
- 
-	if (genTex->VA_arrays != NULL) {
+
+    /* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
+	if (genTex->pre_canned_textureCoords != NULL) {
        // printf ("passedInGenTex, A\n");
 		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
             //printf ("passedInGenTex, c= %d\n",c);
@@ -296,15 +226,16 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
                 //printf ("passedInGenTex, B\n");
 				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
+                    struct X3D_Node *tt = getThis_textureTransform();
                     //printf ("passedInGenTex, C\n");
-                    if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+                    if (tt!=NULL) do_textureTransform(tt,c);
                     SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
                    
-                    FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->VA_arrays);
+                    FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
                     sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
 				}
 			}
-		}
+}
 	} else {
         //printf ("passedInGenTex, B\n");
 		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
@@ -314,7 +245,8 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
                 //printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
                     //printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
-        				if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+                    struct X3D_Node *tt = getThis_textureTransform();
+                    if (tt!=NULL) do_textureTransform(tt,c);
                     SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
                     
 					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
@@ -325,6 +257,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				}
 			}
 		}
+
 	}
 
 	if (getAppearanceProperties()->currentShaderProperties != NULL) {
@@ -343,123 +276,6 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	PRINT_GL_ERROR_IF_ANY("");
 }
 
-#ifdef OLDCODE
-static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
-	int c;
-    int i;
-    GLint texUnit[MAX_MULTITEXTURE];
-    GLint texMode[MAX_MULTITEXTURE];
-	ttglobal tg = gglobal();
-    
-	#ifdef TEXVERBOSE
-	printf ("have a NODE_TextureCoordinate\n");
-	printf ("and this texture has %d points we have texture stacking depth of %d\n",myTCnode->point.n,tg->RenderFuncs.textureStackTop);
-	#endif
-
-	/* render the TextureCoordinate node for every texture in this node */
-
-	COMPILE_TCNODE;
-
-	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-		/* printf ("haveTexCoord, rendering node... \n"); */
-		render_node ((void *)myTCnode);
-		/* are we ok with this texture yet? */
-		//printf ("haveTexCoord, boundTextureStack[c] = %d VBO %d\n",tg->RenderFuncs.boundTextureStack[c], myTCnode->__VBO);
-		if (tg->RenderFuncs.boundTextureStack[c] !=0) {
-
-			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-	       			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-                    if (myTCnode->__VBO != 0) {
-                        struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-                        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,myTCnode->__VBO);
-                        passedInGenTex(&mtf);
-                    } else {
-                        SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
-  
-                        FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
-                        sendClientStateToGPU (TRUE,GL_TEXTURE_COORD_ARRAY);
-                    }
-			}
-		}
-	}    
-
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
-	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-	        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-	        glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
-	    }
-	#ifdef TEXVERBOSE
-	} else {
-		printf (" currentShaderProperties is NULL, skipping glUniform1i calls\n",tg->RenderFuncs.textureStackTop);
-	#endif
-	}
-
-	PRINT_GL_ERROR_IF_ANY("");
-}
-#endif //OLDCODE
-
-#ifdef OLDCODE
-static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
-	int c;
-	GLint texUnit[MAX_MULTITEXTURE];
-	GLint texMode[MAX_MULTITEXTURE];
-	struct X3D_TextureCoordinate *myTCnode;
-	ttglobal tg = gglobal();
-	myTCnode = (struct X3D_TextureCoordinate *) myMTCnode; /* for now, in case of errors, this is set to an invalid value */
-
-	#ifdef TEXVERBOSE
-	printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);
-	#endif
-	
-	/* render the TextureCoordinate node for every texture in this node */
-	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-		/* do we have enough textures in this MultiTextureCoordinate node? */
-		if (c<myMTCnode->texCoord.n) {
-			myTCnode = 
-				(struct X3D_TextureCoordinate *) myMTCnode->texCoord.p[c];
-
-			/* is this a valid textureCoord node, and not another
-			   MultiTextureCoordinate node? */
-			if ((myTCnode->_nodeType == NODE_TextureCoordinate) ||
-			    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
-				render_node (X3D_NODE(myTCnode));
-				/* are we ok with this texture yet? */
-				if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-					if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-        					if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-						FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
-						FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
-						FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
-					}
-				}
-			#ifdef TEXVERBOSE
-			} else {
-				printf ("MultiTextureCoord, problem with %d as a child \n",myTCnode->_nodeType);
-			#endif
-			}
-		#ifdef TEXVERBOSE
-		} else {
-			printf ("MultiTextureCoord, not enough children for the number of textures...\n");
-		#endif
-		}
-		/* are we ok with this texture yet? */
-		if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-        			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
-
-				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,gglobal()->RenderFuncs.boundTextureStack[c]);
-			
-				/* do the texture coordinate stuff */
-				if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
-				} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
-					setupTexGen ((struct X3D_TextureCoordinateGenerator*) myTCnode);
-				}
-			}
-		}
-	}
-}
-#endif //OLDCODE
 
 static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 	int c;
@@ -477,7 +293,7 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c] != 0) {
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-	       			if (getThis_textureTransform()) start_textureTransform(getThis_textureTransform(),c);
+	       			if (getThis_textureTransform()) do_textureTransform(getThis_textureTransform(),c);
 				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
 
 				setupTexGen((struct X3D_TextureCoordinateGenerator*) myTCnode);

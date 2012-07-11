@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.34 2012/07/10 18:40:26 crc_canada Exp $
+$Id: Textures.h,v 1.35 2012/07/11 19:10:54 crc_canada Exp $
 
 Screen snapshot.
 
@@ -59,7 +59,7 @@ typedef struct textureTableIndexStruct textureTableIndexStruct_s;
    when we had (for instance) Cone textures - put this as part of the VBO. */
 
 struct textureVertexInfo {
-	GLfloat	*VA_arrays;
+    GLfloat *pre_canned_textureCoords;
 	GLint TC_size; 		/* glTexCoordPointer - size param */
 	GLenum TC_type;		/* glTexCoordPointer - type param */	
 	GLsizei TC_stride;	/* glTexCoordPointer - stride param */

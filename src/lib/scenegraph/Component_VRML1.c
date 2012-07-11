@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.33 2012/07/10 18:40:27 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.34 2012/07/11 19:10:54 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -336,9 +336,6 @@ void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 		render_VRML1_Material(p->cSLD->matNode);
 	}
 
-	/* did we have a textureTransform? */
-	if (p->cSLD->t2tNode!=NULL) end_textureTransform();
-
 	if (p->cSLD->t2Node) FW_GL_DISABLE(GL_TEXTURE_2D);
 } 
 
@@ -662,7 +659,7 @@ void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) 
 	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	if (p->cSLD!=NULL) p->cSLD->t2tNode = node;
 	/* call this, level is zero */
-	start_textureTransform (X3D_NODE(node),0);
+	do_textureTransform (X3D_NODE(node),0);
 }
 
 void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) {
