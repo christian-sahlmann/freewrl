@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.251 2012/07/11 14:03:40 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.252 2012/07/11 14:49:36 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -177,9 +177,6 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		//p->memtablelock = PTHREAD_MUTEX_INITIALIZER;
 		pthread_mutex_init(&(p->memtablelock), NULL);
 		// LoadIdentity will initialize these
-		// JAS p->FW_ModelView[MAX_LARGE_MATRIX_STACK];
-		// JAS p->FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
-		// JAS p->FW_TextureView[MAX_SMALL_MATRIX_STACK];
 		 
 		p->modelviewTOS = 0;
 		p->projectionviewTOS = 0;
@@ -376,6 +373,24 @@ void main(void) { \
 gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
 v_texC =fw_MultiTexCoord0; \
 }";
+
+static char *oneTexVertexShaderTextureTransform = " \
+attribute      vec4 fw_Vertex; \
+uniform        mat4 fw_ModelViewMatrix; \
+uniform        mat4 fw_ProjectionMatrix; \
+uniform        mat4 fw_TextureMatrix; \
+\
+attribute vec2 fw_MultiTexCoord0; \
+varying        vec2 v_texC; \
+\
+void main(void) { \
+vec4 tmpt; \
+gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
+ tmpt = fw_TextureMatrix * vec4(fw_MultiTexCoord0,0.,0.); \
+/* v_texC =fw_MultiTexCoord0; */ \
+v_texC = tmpt.xy; \
+}";
+
 
 /* still to do:
  #define MTMODE_BLENDCURRENTALPHA	2
@@ -1225,7 +1240,13 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 
 		case oneTexOneMaterialShader: {
 			*fragmentSource = oneTexFragmentShader;
+#ifdef JOHN_TESTING
+ConsoleMessage ("oneTexOneMaterialShader - testing TextureTransform code");
+                	*vertexSource = oneTexVertexShaderTextureTransform;
+#else
                 	*vertexSource = oneTexVertexShader;
+#endif
+
 			break;
 		}
 
@@ -2022,24 +2043,6 @@ void BackEndLightsOff() {
 }
 
 
-///* OpenGL perform matrix state here */
-//#define MAX_LARGE_MATRIX_STACK 32	/* depth of stacks */
-//#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
-//#define MATRIX_SIZE 16		/* 4 x 4 matrix */
-//typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
-//
-//static MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
-//static MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
-//static MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
-// 
-//static int modelviewTOS = 0;
-//static int projectionviewTOS = 0;
-//static int textureviewTOS = 0;
-//
-//static int whichMode = GL_MODELVIEW;
-//static GLDOUBLE *currentMatrix = FW_ModelView[0];
-
-
 void fw_glMatrixMode(GLint mode) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
@@ -2269,9 +2272,7 @@ void fw_glGetDoublev (int ty, GLDOUBLE *mat) {
 	switch (ty) {
 		case GL_PROJECTION_MATRIX: dp = p->FW_ProjectionView[p->projectionviewTOS]; break;
 		case GL_MODELVIEW_MATRIX: dp = p->FW_ModelView[p->modelviewTOS]; break;
-#ifndef GL_ES_VERSION_2_0
 		case GL_TEXTURE_MATRIX: dp = p->FW_TextureView[p->textureviewTOS]; break;
-#endif
 		default: { 
 			loadIdentityMatrix(mat); 
 		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
@@ -3764,9 +3765,23 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	}
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 
+	/* TextureMatrix */
 	if (TextureMatrix != -1) {
-		ConsoleMessage ("should be sending in TextureMatrix here");
+		sp = spval;
+		dp = p->FW_TextureView[p->textureviewTOS];
+
 		ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+		/* convert GLDOUBLE to float */
+		for (i=0; i<16; i++) {
+			*sp = (float) *dp; 	
+			sp ++; dp ++;
+		}
+ConsoleMessage ("tm %f %f %f %f, %f %f %f %f, %f %f %f %f, %f %f %f %f",
+sp[0],sp[1],sp[2],sp[3],
+sp[4],sp[5],sp[6],sp[7],
+sp[8],sp[9],sp[10],sp[11],
+sp[12],sp[13],sp[14],sp[15]);
+		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
 	}
 
 
