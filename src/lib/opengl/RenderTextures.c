@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.59 2012/07/11 19:10:54 crc_canada Exp $
+$Id: RenderTextures.c,v 1.60 2012/07/17 17:00:41 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -81,7 +81,8 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
 /* TextureGenerator node? if so, do it */
 static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
-#if defined(IPHONE) || defined(_ANDROID ) || defined(GLES2)
+#if defined(GL_ES_VERSION_2_0)
+
 printf ("skipping setupTexGen\n");
 #else
 	switch (this->__compiledmode) {

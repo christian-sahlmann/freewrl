@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Textures.h,v 1.35 2012/07/11 19:10:54 crc_canada Exp $
+$Id: Textures.h,v 1.36 2012/07/17 17:00:41 crc_canada Exp $
 
 Screen snapshot.
 
@@ -98,7 +98,6 @@ const char *texst(int num);
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
-//OLDCODEextern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_start(struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
 

@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.124 2012/07/11 19:21:47 dug9 Exp $
+  $Id: Textures.c,v 1.125 2012/07/17 17:00:41 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -123,10 +123,6 @@ struct Uni_String *newASCIIString(char *str);
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
 
-
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-#endif //OLDCODE
 
 static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, GLubyte *pixels);
 
@@ -281,11 +277,6 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 
 	FREE_IF_NZ(newImage);
 }
-
-#ifdef OLDCODE
-OLDCODE #endif /* SHADERS_2011 */
-#endif //OLDCODE
-
 
 
 /**
@@ -1080,9 +1071,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		Rrc = Rrc ? GL_REPEAT : GL_CLAMP_TO_EDGE; //GL_CLAMP;
 		generateMipMaps = GL_TRUE;
 
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-#endif //OLDCODE
 		if(me->x > 0 && me->y > 0)
 		{
 			// experimental code to deal with oblong texture images
@@ -1101,9 +1089,6 @@ OLDCODE #ifdef SHADERS_2011
 			else ratio = (float)me->x / (float)me->y;
 			if(ratio > 2.0f) generateMipMaps = GL_FALSE;
 		}
-#ifdef OLDCODE
-OLDCODE#endif
-#endif //OLDCODE
 
 		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
 		if ((me->x<=256) || (me->y<=256)) {
@@ -1171,18 +1156,7 @@ OLDCODE#endif
 			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
 		}
 	
-#ifdef OLDCODE
-OLDCODE		#ifdef SHADERS_2011
-#endif //OLDCODE
 			myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-#ifdef OLDCODE
-OLDCODE		#else
-OLDCODE			FW_GL_TEXIMAGE2D(getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-OLDCODE			FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-OLDCODE			FW_GL_TEXGENI(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-OLDCODE			FW_GL_TEXGENI(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT);
-OLDCODE		#endif /* SHADERS_2011 */
-#endif //OLDCODE
 
 		/* last thing to do at the end of the setup for the 6th face */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
@@ -1249,11 +1223,11 @@ OLDCODE		#endif /* SHADERS_2011 */
 				
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+#if !defined(GL_ES_VERSION_2_0)
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, Rrc);
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_PRIORITY, texPri);
 			FW_GL_TEXPARAMETERFV(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,(GLfloat *)&borderColour);
-#endif /* IPHONE */
+#endif /*  GL_ES_VERSION_2_0 */
 
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
 			FW_GL_TEXPARAMETERF(GL_TEXTURE_2D,GL_TEXTURE_MAX_ANISOTROPY_EXT,anisotropicDegree);
@@ -1311,9 +1285,6 @@ OLDCODE		#endif /* SHADERS_2011 */
 				}
 			
 
-#ifdef OLDCODE
-OLDCODE				#ifdef SHADERS_2011
-#endif //OLDCODE
 				/* it is a power of 2, lets make sure it is square */
 				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
 				   lets just keep things consistent 
@@ -1328,58 +1299,16 @@ OLDCODE				#ifdef SHADERS_2011
 					}
 				}
 
-#ifdef OLDCODE
-OLDCODE				#endif /* SHADERS_2011 */
-#endif //OLDCODE
-
 				/* if scaling is ok... */
 				if ((x==rx) && (y==ry)) {
 					dest = mytexdata;
 				} else {
-#ifdef OLDCODE
-OLDCODE#ifndef SHADERS_2011
-OLDCODE					int texOk = FALSE;
-OLDCODE#endif
-#endif //OLDCODE
                     
 					/* try this texture on for size, keep scaling down until we can do it */
 					/* all textures are 4 bytes/pixel */
 					dest = MALLOC(unsigned char *, (unsigned) 4 * rx * ry);
 
-#ifdef OLDCODE
-OLDCODE					#ifdef SHADERS_2011
-#endif //OLDCODE
 						myScaleImage(x,y,rx,ry,mytexdata,dest);
-
-#ifdef OLDCODE
-OLDCODE					#else
-OLDCODE					texOk = FALSE;
-OLDCODE					while (!texOk) {
-OLDCODE						GLint width, height;
-OLDCODE
-OLDCODE						FW_GLU_SCALE_IMAGE(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
-OLDCODE						FW_GL_TEXIMAGE2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, borderWidth, format, GL_UNSIGNED_BYTE, dest);
-OLDCODE						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
-OLDCODE						FW_GL_GET_TEX_LEVEL_PARAMETER_IV (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
-OLDCODE
-OLDCODE		
-OLDCODE						if ((width == 0) || (height == 0)) {
-OLDCODE							rx= rx/2; ry = ry/2;
-OLDCODE							if (gglobal()->internalc.global_print_opengl_errors) {
-OLDCODE								DEBUG_MSG("width %d height %d going to try size %d %d, last time %d %d\n",
-OLDCODE									  width, height, rx,ry,x,y);
-OLDCODE							}
-OLDCODE							if ((rx==0) || (ry==0)) {
-OLDCODE							    ConsoleMessage ("out of texture memory");
-OLDCODE							    me->status = TEX_LOADED; /* yeah, right */
-OLDCODE							    return;
-OLDCODE							}
-OLDCODE						} else {
-OLDCODE							texOk = TRUE;
-OLDCODE						}
-OLDCODE					}
-OLDCODE                    #endif /* SHADERS_2011 */
-#endif //OLDCODE
 				}
 				
 		
@@ -1387,20 +1316,9 @@ OLDCODE                    #endif /* SHADERS_2011 */
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 				}
 		
-#ifdef OLDCODE
-OLDCODE				#ifdef SHADERS_2011
-#endif //OLDCODE
 
-					myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+				myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
-#ifdef OLDCODE
-OLDCODE				#else
-OLDCODE					FW_GL_TEXPARAMETERI(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, generateMipMaps);
-OLDCODE					FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-OLDCODE				#endif
-#endif //OLDCODE
-
-		
 				if(mytexdata != dest) {FREE_IF_NZ(dest);}
 			}
 		
