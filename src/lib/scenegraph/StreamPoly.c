@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: StreamPoly.c,v 1.42 2012/07/10 19:25:12 crc_canada Exp $
+$Id: StreamPoly.c,v 1.43 2012/07/17 19:58:30 crc_canada Exp $
 
 ???
 
@@ -346,7 +346,6 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	}
     
     if (NO_TEXCOORD_NODE) {
-        ConsoleMessage ("no TextureCoordinate node, must generate default texture maps");
         defaultTextureMap(node, r);
     }
     

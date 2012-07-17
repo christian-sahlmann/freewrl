@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Tess.c,v 1.25 2012/05/08 15:59:50 crc_canada Exp $
+$Id: Tess.c,v 1.26 2012/07/17 19:58:30 crc_canada Exp $
 
 ???
 
@@ -26,8 +26,6 @@ $Id: Tess.c,v 1.25 2012/05/08 15:59:50 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
@@ -38,9 +36,6 @@ $Id: Tess.c,v 1.25 2012/05/08 15:59:50 crc_canada Exp $
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-
-/* OpenGL-ES 2.0 does not have tessellator */
-#if defined(HAVE_GLU_TESS) 
 
 
 /* JAS */
@@ -273,5 +268,3 @@ void destruct_tessellation(void) {
 	printf("Tessellation Object deleted!\n");
 }
 
-
-#endif /* HAVE_GLU_TESS */
