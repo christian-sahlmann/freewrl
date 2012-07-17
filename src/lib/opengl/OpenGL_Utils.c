@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.256 2012/07/17 17:00:41 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.257 2012/07/17 22:29:35 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1192,14 +1192,22 @@ static char *linePointVertexColourShader = " \
 	}";
 
 static char *linePointVertexNoColourShader = " \
+struct fw_MaterialParameters {    \
+vec4 emission;    \
+vec4 ambient;    \
+vec4 diffuse;    \
+vec4 specular;    \
+float shininess;    \
+};    \
+\
         varying        vec4 v_color; \
 	attribute      vec4 fw_Vertex; \
-        uniform        vec3 fw_genericMaterialColour; \
 	uniform        mat4 fw_ModelViewMatrix; \
 	uniform        mat4 fw_ProjectionMatrix; \
+uniform fw_MaterialParameters fw_FrontMaterial; \
 	void main(void) { \
 	       gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \
-		v_color = vec4(fw_genericMaterialColour,1.0); \
+		v_color = fw_FrontMaterial.emission; \
 	}";
 
 
@@ -1462,10 +1470,6 @@ static void getGenericShader(shader_type_t whichOne) {
 	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
-
-#ifndef GL_ES_VERSION_2_0
-	GLuint myGeometryShader=0;
-#endif
 
 	GLuint myProg = 0;
 	s_shader_capabilities_t *myShader;

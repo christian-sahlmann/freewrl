@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.31 2012/07/08 20:14:12 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.32 2012/07/17 22:29:35 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -99,8 +99,8 @@ void *ConsoleMessage_constructor(){
 }
 void ConsoleMessage_init(struct tConsoleMessage *t){
 	//public
-	t->Console_writeToHud; //= 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
-	t->consMsgCount; // = 0;
+	//t->Console_writeToHud; //= 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+	//t->consMsgCount; // = 0;
 	//private
 	t->prv = ConsoleMessage_constructor();
 	{

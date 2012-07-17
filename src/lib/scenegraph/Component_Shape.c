@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.111 2012/07/17 19:58:29 crc_canada Exp $
+$Id: Component_Shape.c,v 1.112 2012/07/17 22:29:35 crc_canada Exp $
 
 X3D Shape Component
 
@@ -451,14 +451,265 @@ static void printChoosingShader(shader_type_t whichOne) {
 
 */
 
+/* now works with our pushing matricies (norm, proj, modelview) but not for complete shader appearance replacement */
 void render_FillProperties (struct X3D_FillProperties *node) {
-ConsoleMessage("should not be calling render_FillProperties");
+#ifdef OLDERCODE
+	GLfloat hatchX;
+	GLfloat hatchY;
+	GLint algor;
+	GLint hatched;
+	GLint filled;
+	int success;
+
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+	if (!p->fpshaderloaded) {
+		const char *vs = "\
+			/* \n\
+			  Shader source from \n\
+			  \"Introduction to the OpenGL Shading Language\" \n\
+			  presentation by Randi Rost, 3DLabs (GLSLOverview2005.pdf) \n\
+			*/ \n\
+			 \n\
+uniform                mat4 fw_ModelViewMatrix; \n\
+uniform                mat4 fw_ProjectionMatrix; \n\
+uniform mat3	fw_NormalMatrix; \n\
+			uniform vec3 LightPosition; \n\
+			uniform bool filled; \n\
+			const float SpecularContribution = 0.3; \n\
+			const float DiffuseContribution = 1.0 - SpecularContribution; \n\
+			varying float LightIntensity; \n\
+			varying vec2 MCposition; \n\
+			void main(void) \n\
+			{ \n\
+               gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * gl_Vertex; \n\
+			    vec3 ecPosition = vec3(fw_ModelViewMatrix * gl_Vertex); \n\
+			    vec3 tnorm      = normalize(fw_NormalMatrix * gl_Normal); \n\
+			    vec3 lightVec   = normalize(LightPosition - ecPosition); \n\
+			    vec3 reflectVec = reflect(-lightVec, tnorm); \n\
+			    vec3 viewVec    = normalize(-ecPosition); \n\
+			    float diffuse   = max(dot(lightVec, tnorm), 0.0); \n\
+			    float spec      = 0.0; \n\
+			    if (diffuse > 0.0) \n\
+			    { \n\
+			        spec = max(dot(reflectVec, viewVec), 0.0); \n\
+			        spec = pow(spec, 16.0); \n\
+			    } \n\
+			    LightIntensity = DiffuseContribution * diffuse + \n\
+			                       SpecularContribution * spec; \n\
+			    MCposition      = gl_Vertex.xy; \n\
+			    /* old - JAS gl_Position     = ftransform(); */ \n\
+			    // Get the vertex colour\n\
+			    if (filled) gl_FrontColor = gl_FrontMaterial.diffuse;\n\
+			    else gl_FrontColor = vec4(0.0, 0.0, 0.0, 0.0); // make transparent \n\
+			} \n\
+		";
+
+		const char *fs = "\
+			/*  \n\
+			  Shader source from  \n\
+			  \"Introduction to the OpenGL Shading Language\"  \n\
+			  presentation by Randi Rost, 3DLabs (GLSLOverview2005.pdf)  \n\
+			*/  \n\
+			  \n\
+			// HatchSize - x and y - larger = less hatches on shape \n\
+			const vec2  HatchSize= vec2(0.15, 0.15);  \n\
+			  \n\
+			uniform vec4 HatchColour;     //= (0.85,0.86,0.84);  \n\
+			uniform bool hatched;\n\
+			uniform bool filled; \n\
+			uniform vec2  HatchPct;               //= (0.90, 0.85);  \n\
+			uniform int algorithm;	\n\
+			varying vec2  MCposition;  \n\
+			varying float LightIntensity;  \n\
+			  \n\
+			void main(void)  \n\
+			{  \n\
+			    vec4 color;  \n\
+			    vec2 position, useBrick;  \n\
+			    vec4 fragCol = gl_Color; \n\
+			  \n\
+			    position = MCposition / HatchSize;  \n\
+			  \n\
+			    if (algorithm == 0) {// bricking \n\
+			    	if (fract(position.y * 0.5) > 0.5)  \n\
+			            position.x += 0.5;  \n\
+			   } \n\
+			  \n\
+			    // algorithm 1, 2 = no futzing required here \n\
+			    if (algorithm == 3) {// positive diagonals \n\
+				    vec2 curpos = position; \n\
+			            position.x -= curpos.y;  \n\
+			   } \n\
+			  \n\
+			    if (algorithm == 4) {// negative diagonals \n\
+				    vec2 curpos = position; \n\
+			            position.x += curpos.y;  \n\
+			   } \n\
+			  \n\
+			    if (algorithm == 6) {// diagonal crosshatch \n\
+				vec2 curpos = position; \n\
+				if (fract(position.y) > 0.5)  { \n\
+        			    if (fract(position.x) < 0.5) position.x += curpos.y; \n\
+        			    else position.x -= curpos.y; \n\
+				} else { \n\
+        			    if (fract(position.x) > 0.5) position.x += curpos.y; \n\
+        			    else position.x -= curpos.y; \n\
+				} \n\
+			   } \n\
+			  \n\
+			    position = fract(position);  \n\
+			  \n\
+			    useBrick = step(position, HatchPct);  \n\
+			  \n\
+			    if (hatched) color = mix(HatchColour, fragCol, useBrick.x * useBrick.y);  \n\
+			    else color = fragCol; \n\
+			  \n\
+			    color *= LightIntensity;  \n\
+			    gl_FragColor = color;  \n\
+				if (filled) gl_FragColor.a = 1.0; //JAS \n\
+			}  \n\
+		";
+
+		GLuint v;
+		GLuint f;
+	
+		#ifdef FILLVERBOSE
+			printf ("creating shaders\n");
+		#endif
+
+
+		v = CREATE_SHADER(GL_VERTEX_SHADER);
+		f = CREATE_SHADER(GL_FRAGMENT_SHADER);	
+	
+		#ifdef FILLVERBOSE
+			printf ("assigning shader source\n");
+		#endif
+
+
+		SHADER_SOURCE(v, 1, &vs,NULL);
+		SHADER_SOURCE(f, 1, &fs,NULL);
+	
+		#ifdef FILLVERBOSE
+			printf ("compiling shaders\n");
+		#endif
+
+
+		COMPILE_SHADER(v);
+	
+                COMPILE_SHADER(v);
+                GET_SHADER_INFO(v, COMPILE_STATUS, &success);
+                if (!success) {
+                        shaderErrorLog(v,"GEOMETRY");
+                }
+
+		COMPILE_SHADER(f);
+                GET_SHADER_INFO(f, COMPILE_STATUS, &success);
+                if (!success) {
+                        shaderErrorLog(f,"GEOMETRY");
+                }
+
+		#ifdef FILLVERBOSE
+			printf ("creating program and attaching\n");
+		#endif
+
+		p->fillpropCurrentShader = CREATE_PROGRAM;
+		
+		ATTACH_SHADER(p->fillpropCurrentShader,v);
+		ATTACH_SHADER(p->fillpropCurrentShader,f);
+	
+		#ifdef FILLVERBOSE
+			printf ("linking program\n");
+		#endif
+
+
+		LINK_SHADER(p->fillpropCurrentShader);
+
+		#ifdef FILLVERBOSE
+			printf ("getting shader vars\n");
+		#endif
+
+		p->hatchColour = GET_UNIFORM(p->fillpropCurrentShader,"HatchColour");
+		p->hatchPercent = GET_UNIFORM(p->fillpropCurrentShader,"HatchPct");
+		p->filledBool = GET_UNIFORM(p->fillpropCurrentShader,"filled");
+		p->hatchedBool = GET_UNIFORM(p->fillpropCurrentShader,"hatched");
+		p->algorithm = GET_UNIFORM(p->fillpropCurrentShader,"algorithm");
+		p->modView = GET_UNIFORM(p->fillpropCurrentShader, "fw_ModelViewMatrix");
+		p->projMat = GET_UNIFORM(p->fillpropCurrentShader, "fw_ProjectionMatrix");
+		p->normMat = GET_UNIFORM(p->fillpropCurrentShader, "fw_NormalMatrix");
+
+		#ifdef FILLVERBOSE
+			printf ("hatchColour %d hatchPercent %d filledbool %d hatchedbool %d algor %d\n",p->hatchColour,p->hatchPercent,p->filledBool,p->hatchedBool,p->algorithm);
+			printf ("norm %d vert %d mod %d, proj %d norm %d\n",p->norm, p->vert, p->modView, p->projMat, p->normMat);
+		#endif
+
+
+		p->fpshaderloaded = TRUE;
+	}
+	USE_SHADER(p->fillpropCurrentShader);
+
+
+	hatchX = 0.80f; hatchY = 0.80f;
+	algor = node->hatchStyle; filled = node->filled; hatched = node->hatched;
+	switch (node->hatchStyle) {
+		case 1: hatchX = 1.0f; break; /* horizontal lines */
+		case 2: hatchY = 1.0f; break; /* vertical lines */
+		case 3: hatchY=1.0f; break; /* positive sloped lines */
+		case 4: hatchY=1.0f; break; /* negative sloped lines */
+		case 5: break; /* square pattern */
+		case 6: hatchY = 1.0f; break; /* diamond pattern */
+
+		default :{
+			node->hatched = FALSE;
+		}
+	}
+	GLUNIFORM2F(p->hatchPercent,hatchX, hatchY);
+	GLUNIFORM1I(p->filledBool,filled);
+	GLUNIFORM1I(p->hatchedBool,hatched);
+	GLUNIFORM1I(p->algorithm,algor);
+	GLUNIFORM4F(p->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
+
+	/* now for the transform, normal and modelview matricies */
+	sendExplicitMatriciesToShader (p->modView, p->projMat, p->normMat);
+#endif //OLDERCODE
 }
+
 
 void render_LineProperties (struct X3D_LineProperties *node) {
-	ConsoleMessage ("should not be calling render_LineProperties");
-}
+	GLint	factor;
+	GLushort pat;
 
+	if (node->applied) {
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+
+		p->linePropertySet=TRUE;
+		if (node->linewidthScaleFactor > 1.0) {
+			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
+			FW_GL_POINTSIZE(node->linewidthScaleFactor);
+		}
+
+
+		if (node->linetype > 1) {
+			factor = 2;
+			pat = 0xffff; /* can not support fancy line types - this is the default */
+			switch (node->linetype) {
+				case 2: pat = 0xff00; break; /* dashed */
+				case 3: pat = 0x4040; break; /* dotted */
+				case 4: pat = 0x04ff; break; /* dash dot */
+				case 5: pat = 0x44fe; break; /* dash dot dot */
+				case 6: pat = 0x0100; break; /* optional */
+				case 7: pat = 0x0100; break; /* optional */
+				case 10: pat = 0xaaaa; break; /* optional */
+				case 11: pat = 0x0170; break; /* optional */
+				case 12: pat = 0x0000; break; /* optional */
+				case 13: pat = 0x0000; break; /* optional */
+				default: {}
+			}
+			//FW_GL_LINE_STIPPLE(factor,pat);
+			//FW_GL_ENABLE(GL_LINE_STIPPLE);
+		}
+	}
+}
 
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;
