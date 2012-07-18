@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.12 2011/06/04 17:33:47 dug9 Exp $
+$Id: Component_Shape.h,v 1.13 2012/07/18 16:48:11 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -92,7 +92,6 @@ struct matpropstruct {
 	int 	cullFace;		/* is this single-sided or two-sided? */
 };
 
-//extern struct matpropstruct appearanceProperties;
 struct matpropstruct* getAppearanceProperties();
 
 #define MIN_NODE_TRANSPARENCY 0.0f

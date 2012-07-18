@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.149 2012/07/11 14:03:40 crc_canada Exp $
+  $Id: display.h,v 1.150 2012/07/18 16:48:11 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -394,6 +394,9 @@ typedef enum shader_type {
 	/* full MultiTexture shader */
 	multiTexShader,
 
+	/* fillProperties shader */
+	fillPropertiesFullShader,
+
 	/* final one, used for array sizing */
 	max_enum_shader_type
 } shader_type_t;
@@ -434,11 +437,6 @@ typedef struct {
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
-	//GLint Texture0;
-	//GLint Texture1;
-	//GLint Texture2;
-	//GLint Texture3;
-	//GLint useTex;
 	/* some items have no real colour, like lines and points */
 	GLint myMaterialColour;
 
@@ -446,13 +444,14 @@ typedef struct {
     GLint TextureMode[MAX_MULTITEXTURE];
     GLint textureCount;
 
+	/* fill properties */
+	GLint hatchColour;
+	GLint hatchPercent;
+	GLint filledBool;
+	GLint hatchedBool;
+	GLint algorithm;
 
 	
-	///* some geom shaders have particular uniforms, eg geom radius */
-	//GLint specialUniform1;
-	//GLint specialUniform2;
-	//GLint specialUniform3;
-	//GLint specialUniform4;
 } s_shader_capabilities_t;
 
 typedef struct {

@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.257 2012/07/17 22:29:35 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.258 2012/07/18 16:48:11 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -310,7 +310,107 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 }
 
 
+static char *fillPropertiesFragmentShader = " \n\
+			// HatchSize - x and y - larger = less hatches on shape \n\
+			const vec2  HatchSize= vec2(0.15, 0.15);  \n\
+			  \n\
+			uniform vec4 HatchColour;     //= (0.85,0.86,0.84);  \n\
+			uniform bool hatched;\n\
+			uniform bool filled; \n\
+			uniform vec2  HatchPct;               //= (0.90, 0.85);  \n\
+			uniform int algorithm;	\n\
+			varying vec2  MCposition;  \n\
+			varying float LightIntensity;  \n\
+			varying vec4 v_front_colour; \n\
+			  \n\
+			void main(void)  \n\
+			{  \n\
+			    vec4 color;  \n\
+			    vec2 position, useBrick;  \n\
+			    vec4 fragCol = v_front_colour; \n\
+			  \n\
+			    position = MCposition / HatchSize;  \n\
+			  \n\
+			    if (algorithm == 0) {// bricking \n\
+			    	if (fract(position.y * 0.5) > 0.5)  \n\
+			            position.x += 0.5;  \n\
+			   } \n\
+			  \n\
+			    // algorithm 1, 2 = no futzing required here \n\
+			    if (algorithm == 3) {// positive diagonals \n\
+				    vec2 curpos = position; \n\
+			            position.x -= curpos.y;  \n\
+			   } \n\
+			  \n\
+			    if (algorithm == 4) {// negative diagonals \n\
+				    vec2 curpos = position; \n\
+			            position.x += curpos.y;  \n\
+			   } \n\
+			  \n\
+			    if (algorithm == 6) {// diagonal crosshatch \n\
+				vec2 curpos = position; \n\
+				if (fract(position.y) > 0.5)  { \n\
+        			    if (fract(position.x) < 0.5) position.x += curpos.y; \n\
+        			    else position.x -= curpos.y; \n\
+				} else { \n\
+        			    if (fract(position.x) > 0.5) position.x += curpos.y; \n\
+        			    else position.x -= curpos.y; \n\
+				} \n\
+			   } \n\
+			  \n\
+			    position = fract(position);  \n\
+			  \n\
+			    useBrick = step(position, HatchPct);  \n\
+			  \n\
+			    if (hatched) color = mix(HatchColour, fragCol, useBrick.x * useBrick.y);  \n\
+			    else color = fragCol; \n\
+			  \n\
+                color *= LightIntensity; \n\
+			    gl_FragColor = color;  \n\
+				if (filled) gl_FragColor.a = 1.0; //JAS \n\
+                /* gl_FragColor = vec4(1., 1., 1., 1.); */ \n\
+			}  \n\
+		";
 
+
+	static char *fillPropertiesVertexShader = "\
+			uniform                mat4 fw_ModelViewMatrix; \n\
+			uniform                mat4 fw_ProjectionMatrix; \n\
+			uniform mat3	fw_NormalMatrix; \n\
+			uniform vec3 LightPosition; \n\
+			uniform bool filled; \n\
+			varying vec4 v_front_colour; \n\
+			const float SpecularContribution = 0.3; \n\
+			const float DiffuseContribution = 1.0 - SpecularContribution; \n\
+			varying float LightIntensity; \n\
+			varying vec2 MCposition; \n\
+            attribute	vec4 fw_Vertex; \n\
+            attribute      vec3 fw_Normal; \n\
+			void main(void) \n\
+			{ \n\
+                gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex; \n\
+			    vec3 ecPosition = vec3(fw_ModelViewMatrix * fw_Vertex); \n\
+			    vec3 tnorm      = normalize(fw_NormalMatrix * fw_Normal); \n\
+			    vec3 lightVec   = normalize(LightPosition - ecPosition); \n\
+			    vec3 reflectVec = reflect(-lightVec, tnorm); \n\
+			    vec3 viewVec    = normalize(-ecPosition); \n\
+			    float diffuse   = max(dot(lightVec, tnorm), 0.0); \n\
+			    float spec      = 0.0; \n\
+			    if (diffuse > 0.0) \n\
+			    { \n\
+			        spec = max(dot(reflectVec, viewVec), 0.0); \n\
+			        spec = pow(spec, 16.0); \n\
+			    } \n\
+			    LightIntensity = DiffuseContribution * diffuse + \n\
+			                       SpecularContribution * spec; \n\
+			    MCposition      = fw_Vertex.xy; \n\
+			    // Get the vertex colour\n\
+			    if (filled) v_front_colour = gl_FrontMaterial.diffuse;\n\
+			    else v_front_colour = vec4(0.0, 0.0, 0.0, 0.0); // make transparent \n\
+\
+/* v_front_colour = vec4(1.,1.,1.,1.); */ \
+			} \n\
+		";
 
 static char *materialNoTexShader =
 " varying vec4 v_front_colour; void main () {gl_FragColor = v_front_colour;}";
@@ -1315,11 +1415,15 @@ static int getGenericShaderSource (char **compileFlags, char **vertexSource, cha
 			break;
 		}
 
+		case fillPropertiesFullShader: {
+			*fragmentSource = fillPropertiesFragmentShader;
+			*vertexSource = fillPropertiesVertexShader;
+            break;
+		}
+
 		/* still to be written */
 		case oneTexTwoMaterialColourShader:
 		case oneTexOneMaterialColourShader:
-
-
 		case oneTexTwoMaterialShader: {
 			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
@@ -1432,10 +1536,21 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     
     me->textureCount = GET_UNIFORM(myProg,"textureCount");
 
+	/* for FillProperties */
+	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
+	me->hatchPercent = GET_UNIFORM(myProg,"HatchPct");
+	me->filledBool = GET_UNIFORM(myProg,"filled");
+	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
+	me->algorithm = GET_UNIFORM(myProg,"algorithm");
+
+
 	#ifdef VERBOSE
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix); 
+        printf ("hatchColour %d, hatchPercent %d",me->hatchColour, me->hatchPercent);
 	#endif
+
+    
 }
 
 
@@ -1458,6 +1573,7 @@ switch (whichOne) {
 	case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader"); break;
 	case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader"); break;
 	case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader"); break;
+	case fillPropertiesFullShader: ConsoleMessage ("fillPropertiesFullShader"); break;
 	case multiTexShader: ConsoleMessage ("multiTexShader"); break;
 }
 }
@@ -1477,6 +1593,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *vertexSource[2];
 	char  *fragmentSource[2];
 
+    
 	#ifdef VERBOSE
 	printCompilingShader(whichOne);
 	#endif //VERBOSE
@@ -1887,6 +2004,10 @@ bool fwl_initialize_GL()
 
 	/* multi texture shader */
 	getGenericShader(multiTexShader);
+
+	/* fillProperties node shader */
+	getGenericShader(fillPropertiesFullShader);
+
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
         
