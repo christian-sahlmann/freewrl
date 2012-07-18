@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.61 2012/07/11 19:10:54 crc_canada Exp $
+$Id: Polyrep.c,v 1.62 2012/07/18 01:15:17 crc_canada Exp $
 
 ???
 
@@ -78,9 +78,6 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	r->color = (float *)newcolors;
 
 	/* VBOs need this re-bound */
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-#endif //OLDCODE
 
 
 	if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
@@ -88,9 +85,6 @@ OLDCODE #ifdef SHADERS_2011
 	glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
 	FREE_IF_NZ(r->color);
 
-#ifdef OLDCODE
-OLDCODE #endif //SHADERS_2011
-#endif //OLDCODE
 
 }
 
@@ -848,9 +842,6 @@ void render_polyrep(void *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 	
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-#endif //OLDCODE
 
 	/*  status bar, text do not have normals*/
 	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
@@ -1129,20 +1120,12 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 		polyrep->maxVals[2] =  -999999.9f;
 
 		for (i=0; i<VBO_COUNT; i++) polyrep->VBO_buffers[i] = 0;
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-#endif //OLDCODE
 
 			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
 			glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
 			glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
 
 			/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
-
-#ifdef OLDCODE
-OLDCODE #endif // SHADERS_2011
-#endif //OLDCODE
-
 
 	}
 	polyrep = (struct X3D_PolyRep *)node->_intern;

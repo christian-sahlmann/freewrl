@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib_windows\JS\js1.5\src;..\..\src\Lib;..\..\src\libtess;..\;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\zlib\include;..\..\..\..\lib_windows\expat\source\lib_hide;..\..\..\..\lib_windows\jpeg\include;..\..\..\..\lib_windows\freetype2\include;..\..\..\..\lib_windows\png\include;&quot;$(NV_WINGL_X86_PLAT)/include&quot;;..\..\..\..\lib_windows\glew\include_HIDE;..\..\..\..\lib_windows\libxml2\include"
-				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW_no;GLEW_MX_no;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD_no;DO_COLLISION_GPU_no;SHADERS_2011;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;FREEWRL_STEREO_RENDERING"
+				PreprocessorDefinitions="W_DEBUG;WIN32;GLEW_no;GLEW_MX_no;_CRT_SECURE_NO_WARNINGS;XP_WIN;STATUSBAR_HUD_no;DO_COLLISION_GPU_no;GLES2;FRONTEND_HANDLES_DISPLAY_THREAD;FREEWRL_STEREO_RENDERING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
