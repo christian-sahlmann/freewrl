@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.49 2012/07/11 19:10:54 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.50 2012/07/18 13:54:46 crc_canada Exp $
 
 Screen snapshot.
 
@@ -42,6 +42,11 @@ struct multiTexParams {
 
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
+
+
+void sendMatriciesToShader(s_shader_capabilities_t *me);
+
+void sendMaterialsToShader(s_shader_capabilities_t *me);
 
 void
 BackEndClearBuffer(int);

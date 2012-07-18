@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry3D.c,v 1.90 2012/07/11 20:41:57 crc_canada Exp $
+$Id: Component_Geometry3D.c,v 1.91 2012/07/18 13:54:46 crc_canada Exp $
 
 X3D Geometry 3D Component
 
@@ -440,12 +440,7 @@ void compile_Cone (struct X3D_Cone *node) {
 
 	float h = (node->height)/2;
 	float r = node->bottomRadius;
-	float angle;
 	int i;
-	struct SFVec3f *pt;			/*  bottom points*/
-	struct SFVec3f *spt;			/*  side points*/
-	struct SFVec3f *norm;			/*  side normals*/
-	void *ptr;
 	struct MyVertex coneVert[CONEDIV * 2 * 3];
 	int indx = 0;
 
@@ -719,7 +714,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			int row;
 			int indx;
 
-			glGenBuffers(1,&node->__SphereIndxVBO);
+			glGenBuffers(1,(GLuint *)&node->__SphereIndxVBO);
 			//for (count=0; count<TRISINSPHERE*2; count++) pindices[count]=0;
 			for (row=0; row<SPHDIV; row++) {
 				indx=42*row;
@@ -1453,7 +1448,6 @@ static void collisionCone_init(struct X3D_Cone *node)
 	double h,r,inverseh,inverser;
 	struct SFVec3f *pts;// = node->__botpoints;
 	struct SFVec3f *pt;
-	struct SFVec3f *spt;			/*  side points*/
 	struct Multi_Vec3f botpoints;
     	
 	/*  re-using the compile_cone node->__points data which is organized into GL_TRAIANGLE_FAN (bottom) and GL_TRIANGLES (side)

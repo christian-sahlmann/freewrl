@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.87 2012/07/08 15:17:45 dug9 Exp $
+  $Id: LoadTextures.c,v 1.88 2012/07/18 13:54:46 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -242,6 +242,25 @@ static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
 {
 }
 
+// sometimes (usually?) we have to flip an image vertically. 
+static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
+	int i,ii,rowcount;
+	unsigned char *sourcerow, *destrow;
+	unsigned char * blob;
+    
+	rowcount = width * 4;
+	blob = MALLOC(unsigned char*, height * rowcount);
+	for(i=0;i<height;i++) {
+		ii = height - 1 - i;
+		sourcerow = &input[i*rowcount];
+		destrow = &blob[ii*rowcount];
+		memcpy(destrow,sourcerow,rowcount);
+	}
+	//FREE_IF_NZ(input);
+	return blob;
+}
+
+
 
 #if defined (TARGET_AQUA)
 /* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
@@ -384,24 +403,6 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
  */
 char* download_file(char* filename);
 
-
-// sometimes (usually?) we have to flip an image vertically. 
-unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
-	int i,j,ii,rowcount;
-	unsigned char *sourcerow, *destrow;
-	unsigned char * blob;
-
-	rowcount = width * 4;
-	blob = MALLOC(unsigned char*, height * rowcount);
-	for(i=0;i<height;i++) {
-		ii = height - 1 - i;
-		sourcerow = &input[i*rowcount];
-		destrow = &blob[ii*rowcount];
-		memcpy(destrow,sourcerow,rowcount);
-	}
-	//FREE_IF_NZ(input);
-	return blob;
-}
 
 
 

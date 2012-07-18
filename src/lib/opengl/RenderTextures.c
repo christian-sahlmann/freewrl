@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.60 2012/07/17 17:00:41 crc_canada Exp $
+$Id: RenderTextures.c,v 1.61 2012/07/18 13:54:46 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -66,10 +66,10 @@ void *RenderTextures_constructor(){
 void RenderTextures_init(struct tRenderTextures *t){
 	//t->textureParameterStack[];
 	t->prv = RenderTextures_constructor();
-	{
-		ppRenderTextures p = (ppRenderTextures)t->prv;
-		/* variables for keeping track of status */
-	}
+//	{
+//		ppRenderTextures p = (ppRenderTextures)t->prv;
+//		/* variables for keeping track of status */
+//	}
 }
 
 

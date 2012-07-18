@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.125 2012/07/17 17:00:41 crc_canada Exp $
+  $Id: Textures.c,v 1.126 2012/07/18 13:54:46 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -772,8 +772,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	struct multiTexParams *paramPtr;
 
 	struct X3D_ImageTexture *nt;
-        ttglobal tg = gglobal();
-        ppRenderTextures p = (ppRenderTextures)tg->RenderTextures.prv;
 
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),

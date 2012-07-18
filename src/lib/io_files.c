@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.54 2012/06/26 21:02:33 crc_canada Exp $
+  $Id: io_files.c,v 1.55 2012/07/18 13:54:46 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -365,7 +365,6 @@ static openned_file_t* load_file_read(const char *filename)
 static char *fileText = NULL;
 static char *fileName = NULL;
 static int frontend_return_status = 0;
-static char *localFile = NULL;
 static int fileSize = 0;
 static int imageWidth;
 static int imageHeight;
@@ -440,7 +439,6 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
-	openned_file_t *of = NULL;
 
 	DEBUG_RES("loading file: %s\n", filename);
 
@@ -462,7 +460,10 @@ openned_file_t* load_file(const char *filename)
 
 	if(frontend_return_status == -1) return NULL;
 	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+    
 #else //FRONTEND_GETS_FILES 
+
+    openned_file_t *of = NULL;
 
 
 #if defined(FW_USE_MMAP)
