@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.258 2012/07/18 16:48:11 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.259 2012/07/18 21:23:21 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1050,10 +1050,10 @@ p_eye = fw_ModelViewMatrix * fw_Vertex;   \
 n = fw_NormalMatrix * fw_Normal;   \
 /* if (rescale_normal) {   \
 n = rescale_normal_factor * n;   \
-}   \
-if (normalize_normal)    \
+}  \
+if (normalize_normal) */    \
 n = normalize(n);   \
-*/  \
+ \
 /* mat_ambient_colour = enable_colour_material ? fw_Color   \
 : fw_FrontMaterial.ambient; */   \
 \

@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.88 2012/07/18 13:54:46 crc_canada Exp $
+  $Id: LoadTextures.c,v 1.89 2012/07/18 21:23:21 dug9 Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -387,6 +387,8 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
 					memcpy(destrow,sourcerow,rowcount);
 				}
 				tti->texdata = blob;
+				//try johns next time: tti->texdata = flipImageVertically(myFile->fileData, myFile->imageHeight, myFile->imageWidth); 
+
 			}
 		}
 		tti->hasAlpha = 1; //img.transparency; //Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0;

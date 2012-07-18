@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.55 2012/07/18 13:54:46 crc_canada Exp $
+  $Id: io_files.c,v 1.56 2012/07/18 21:23:21 dug9 Exp $
 
   FreeWRL support library.
   IO with files.
@@ -462,7 +462,7 @@ openned_file_t* load_file(const char *filename)
 	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
     
 #else //FRONTEND_GETS_FILES 
-
+	{
     openned_file_t *of = NULL;
 
 
@@ -480,6 +480,7 @@ openned_file_t* load_file(const char *filename)
 #endif
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
+	}
 #endif //FRONTEND_GETS_FILES
 }
 
