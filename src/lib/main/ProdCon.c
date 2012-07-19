@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.105 2012/07/08 15:17:45 dug9 Exp $
+  $Id: ProdCon.c,v 1.106 2012/07/19 20:09:43 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -145,7 +145,7 @@ uintptr_t _fw_instance = 0;
 
 //static s_list_t *resource_list_to_parse = NULL;
 
-#define PARSE_STRING(input,where) parser_do_parse_string(input,where)
+#define PARSE_STRING(input,len,where) parser_do_parse_string(input,len,where)
 
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
@@ -162,7 +162,7 @@ struct PSStruct {
 	struct Uni_String *sv;			/* the SV for javascript		*/
 };
 
-bool parser_do_parse_string(const char *input, struct X3D_Group *nRn);
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Group *nRn);
 
 /* Bindables */
 typedef struct pProdCon{
@@ -255,33 +255,33 @@ int fwl_isinputThreadParsing() {
 /**
  *   parser_do_parse_string: actually calls the parser.
  */
-bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
+static bool parser_do_parse_string(const unsigned char *input, const int len, struct X3D_Group *nRn)
 {
 	bool ret;
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 	ret = FALSE;
 
-	inputFileType = determineFileType(input);
+	inputFileType = determineFileType(input,len);
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
-		ret = X3DParse(nRn, input);
+		ret = X3DParse(nRn, (const char*)input);
 		break;
 	case IS_TYPE_VRML:
-		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), input);
+		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
 		p->haveParsedCParsed = TRUE;
 		break;
 	case IS_TYPE_VRML1: {
-		char *newData = convert1To2(input);
+		char *newData = convert1To2((const char*)input);
 		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
 		FREE_IF_NZ(newData);
-	}
 		break;
+    }
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
-		ret = ColladaParse (nRn, input);
+		ret = ColladaParse (nRn, (const char*)input);
 		break;
 	case IS_TYPE_SKETCHUP:
 		ConsoleMessage ("Google Sketchup format not supported yet");
@@ -289,11 +289,12 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	case IS_TYPE_KML:
 		ConsoleMessage ("KML-KMZ  format not supported yet");
 		break;
+            
 	default: {
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Group, children), input);
+			cParse (nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
@@ -517,7 +518,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		insert_node = X3D_GROUP(res->where); /* casting here for compiler */
 		offsetInNode = res->offsetFromWhere;
 
-		parsedOk = PARSE_STRING(res->request, nRn);
+		parsedOk = PARSE_STRING((const unsigned char *)res->request,(const int)strlen(res->request), nRn);
 	} else {
 		/* standard file parsing */
 		l = (s_list_t *) res->openned_files;
@@ -559,7 +560,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 	
 		/* ACTUALLY CALLS THE PARSER */
-		parsedOk = PARSE_STRING(of->fileData, nRn);
+		parsedOk = PARSE_STRING(of->fileData, of->fileDataSize, nRn);
 	
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
 			tg->CParse.globalParser = t->savedParser;
@@ -852,8 +853,6 @@ void _inputParseThread(void)
 }
 
 static void unbind_node(struct X3D_Node* node) {
-char me[200];
-
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 			X3D_VIEWPOINT(node)->isBound = 0;
@@ -895,7 +894,6 @@ char me[200];
 
 
 void kill_bindables (void) {
-	int i;
 	ppProdCon p;
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;

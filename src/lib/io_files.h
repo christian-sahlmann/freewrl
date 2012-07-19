@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.11 2012/06/26 21:02:33 crc_canada Exp $
+  $Id: io_files.h,v 1.12 2012/07/19 20:09:43 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -45,7 +45,7 @@ typedef struct openned_file {
 	const char *fileFileName;
 	int fileDescriptor;
 	int fileDataSize;
-	char *fileData;
+	unsigned char *fileData;
 	int imageHeight;
 	int imageWidth;
 	bool imageAlpha;
@@ -70,7 +70,7 @@ openned_file_t* load_file(const char *filename);
 extern int inputFileType;
 extern int inputFileVersion[];
 
-int determineFileType(const char *buffer);
+int determineFileType(const unsigned char *buffer, const int len);
 
 
 /* borrowed from headers.h -- need a clean-up */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.47 2012/05/31 19:06:42 crc_canada Exp $
+$Id: CParseLexer.c,v 1.48 2012/07/19 20:09:43 crc_canada Exp $
 
 ???
 
@@ -1347,7 +1347,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         int mode;
         int type;
         struct Multi_String url;
-        char *buffer;
+        unsigned char *buffer;
         char *testname;
 		char *pound;
 

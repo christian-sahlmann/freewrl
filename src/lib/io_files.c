@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.56 2012/07/18 21:23:21 dug9 Exp $
+  $Id: io_files.c,v 1.57 2012/07/19 20:09:42 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -217,9 +217,11 @@ bool do_dir_exists(const char *dir)
  */
 void of_dump(openned_file_t *of)
 {
-	static char first_ten[11];
+	static unsigned char first_ten[11];
 	if (of->fileData) {
-		strncpy(first_ten, of->fileData, 10);
+        int len = of->fileDataSize;
+        if (len>10)len=10;
+		memcpy(first_ten, of->fileData, len);
 	}
 	printf("{%s, %d, %d, %s%s}\n", of->fileFileName, of->fileDescriptor, of->fileDataSize, (of->fileData ? first_ten : "(null)"), (of->fileData ? "..." : ""));
 }
@@ -229,7 +231,7 @@ void of_dump(openned_file_t *of)
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
  */
-static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, char *data, int imageHeight, int imageWidth, bool imageAlpha)
+static openned_file_t* create_openned_file(const char *filename, int fd, int dataSize, unsigned char *data, int imageHeight, int imageWidth, bool imageAlpha)
 {
 	openned_file_t *of;
 
@@ -362,7 +364,7 @@ static openned_file_t* load_file_read(const char *filename)
 
 #ifdef FRONTEND_GETS_FILES
 /* these variables are used on return of data from front end, and are passed on to create_openned_file */
-static char *fileText = NULL;
+static unsigned char *fileText = NULL;
 static char *fileName = NULL;
 static int frontend_return_status = 0;
 static int fileSize = 0;
@@ -400,7 +402,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 	} else {
 		// printf ("fwg_frontEndReturningData, returning ok\n");
     		/* note the "+1" ....*/
-		fileText = MALLOC (char *, len+1);
+		fileText = MALLOC (unsigned char *, len+1);
 		memcpy (fileText, fileData, len);
 		fileSize = len;
 		imageWidth = width;
@@ -462,7 +464,7 @@ openned_file_t* load_file(const char *filename)
 	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
     
 #else //FRONTEND_GETS_FILES 
-	{
+
     openned_file_t *of = NULL;
 
 
@@ -480,7 +482,6 @@ openned_file_t* load_file(const char *filename)
 #endif
 	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
-	}
 #endif //FRONTEND_GETS_FILES
 }
 
@@ -488,16 +489,16 @@ openned_file_t* load_file(const char *filename)
 /**
  *   check the first few lines to see if this is an XMLified file
  */
-int determineFileType(const char *buffer)
+int determineFileType(const unsigned char *buffer, const int len)
 {
-	const char *rv;
+	const unsigned char *rv;
 	int count;
 	int foundStart = FALSE;
 
 	for (count = 0; count < 3; count ++) inputFileVersion[count] = 0;
 
 	/* is this an XML file? */
-	if (strncmp(buffer,"<?xml version",12) == 0){
+	if (strncmp((const char*)buffer,"<?xml version",12) == 0){
 		rv = buffer;	
 
 		/* skip past the header; we will look for lines like: 
@@ -513,44 +514,44 @@ int determineFileType(const char *buffer)
 				if (*rv != '!') foundStart = TRUE;
 			} else if (*rv == '\0') foundStart = TRUE;	
 		}
-		if (strncmp(rv,"X3D",3) == 0) {
+		if (strncmp((const char*)rv,"X3D",3) == 0) {
 			/* the full version number will be found by the parser */
 			inputFileVersion[0] = 3;
 			return IS_TYPE_XML_X3D;
 		}
-		if (strncmp(rv,"COLLADA",7) == 0) {
+		if (strncmp((const char*)rv,"COLLADA",7) == 0) {
 			return IS_TYPE_COLLADA;
 		}
-		if (strncmp(rv,"kml",3) == 0) {
+		if (strncmp((const char*)rv,"kml",3) == 0) {
 			return IS_TYPE_KML;
 		}
 
 	} else {
-		if (strncmp(buffer,"#VRML V2.0 utf8",15) == 0) {
+		if (strncmp((const char*)buffer,"#VRML V2.0 utf8",15) == 0) {
 			inputFileVersion[0] = 2;
 			return IS_TYPE_VRML;
 		}
 
-		if (strncmp (buffer, "#X3D",4) == 0) {
+		if (strncmp ((const char*)buffer, "#X3D",4) == 0) {
 			inputFileVersion[0] = 3;
 			/* ok, have X3D here, what version? */
 
-			if (strncmp (buffer,"#X3D V3.0 utf8",14) == 0) {
+			if (strncmp ((const char*)buffer,"#X3D V3.0 utf8",14) == 0) {
 				return IS_TYPE_VRML;
 			}
-			if (strncmp (buffer,"#X3D V3.1 utf8",14) == 0) {
+			if (strncmp ((const char*)buffer,"#X3D V3.1 utf8",14) == 0) {
 				inputFileVersion[1] = 1;
 				return IS_TYPE_VRML;
 			}
-			if (strncmp (buffer,"#X3D V3.2 utf8",14) == 0) {
+			if (strncmp ((const char*)buffer,"#X3D V3.2 utf8",14) == 0) {
 				inputFileVersion[1] = 2;
 				return IS_TYPE_VRML;
 			}
-			if (strncmp (buffer,"#X3D V3.3 utf8",14) == 0) {
+			if (strncmp ((const char*)buffer,"#X3D V3.3 utf8",14) == 0) {
 				inputFileVersion[1] = 3;
 				return IS_TYPE_VRML;
 			}
-			if (strncmp (buffer,"#X3D V3.4 utf8",14) == 0) {
+			if (strncmp ((const char*)buffer,"#X3D V3.4 utf8",14) == 0) {
 				inputFileVersion[1] = 4;
 				return IS_TYPE_VRML;
 			}
@@ -558,9 +559,10 @@ int determineFileType(const char *buffer)
 		}
 		
 		/* VRML V1? */
-		if (strncmp(buffer,"#VRML V1.0 asc",10) == 0) {
+		if (strncmp((const char*)buffer,"#VRML V1.0 asc",10) == 0) {
 			return IS_TYPE_VRML1;
 		}
+
 	}
 	return IS_TYPE_UNKNOWN;
 }

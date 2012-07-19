@@ -1,5 +1,5 @@
 /*
-  $Id: resources.h,v 1.21 2011/07/27 23:42:31 crc_canada Exp $
+  $Id: resources.h,v 1.22 2012/07/19 20:09:43 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -171,7 +171,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res);
 bool resource_fetch(resource_item_t *res);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
-char *resource_get_text(resource_item_t *res);
 void resource_destroy(resource_item_t *res);
 void destroy_root_res();
 
