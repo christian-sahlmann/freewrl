@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.150 2012/07/18 16:48:11 crc_canada Exp $
+  $Id: display.h,v 1.151 2012/07/20 15:10:32 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -324,15 +324,9 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-#ifdef GLU_VERSION
-	#define HAVE_GLU_TESS 1
-#else
 	#if defined(GLES2) 
 		#include <libtess2.h>
-		#define HAVE_GLU_TESS 1
 	#endif
-#endif
-
 
 /* Main initialization function */
 /* int display_initialize(); */

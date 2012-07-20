@@ -296,12 +296,7 @@ iOLDCODE	}Component_Networking;
 	struct tTess{
 		int *global_IFS_Coords;
 		int global_IFS_Coord_count;//=0;
-#if defined(HAVE_GLU_TESS) 
 		GLUtriangulatorObj *global_tessobj;
-#else
-		int global_tessobj;
-#endif /* HAVE_GLU_TESS */
-
 		void *prv;
 	}Tess;
 	struct tViewer{
