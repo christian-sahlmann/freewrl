@@ -172,9 +172,11 @@ typedef struct iiglobal //InstanceGlobal
 		void *savedParser; //struct VRMLParser* savedParser;
 		void *prv;
 	} ProdCon;
+       #if defined (INCLUDE_NON_WEB3D_FORMATS)
 	struct tColladaParser{
 		void *prv;
 	}ColladaParser;
+       #endif //INCLUDE_NON_WEB3D_FORMATS
 	struct tFrustum{
 		int OccFailed;//. = FALSE;
 		void *prv;

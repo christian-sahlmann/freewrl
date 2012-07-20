@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.57 2012/07/19 20:09:43 crc_canada Exp $
+  $Id: resources.c,v 1.58 2012/07/20 14:56:09 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -583,7 +583,9 @@ bool resource_load(resource_item_t *res)
  */
 void resource_identify_type(resource_item_t *res)
 {
-	char *test_it = NULL;
+	unsigned char *test_it = NULL;
+    int test_it_len = 0;
+    
 	s_list_t *l;
 	openned_file_t *of;
 	int t;
@@ -600,7 +602,9 @@ void resource_identify_type(resource_item_t *res)
 			return;
 			break;
 		case rest_string:
-			test_it = res->request;
+			test_it = (unsigned char*)res->request;
+                ConsoleMessage ("test_it is :%s:",test_it);
+            test_it_len = (int)strlen(res->request);
 			break;
 		case rest_url:
 		case rest_file:
@@ -619,21 +623,32 @@ void resource_identify_type(resource_item_t *res)
 			/* might this be a gzipped input file? */
 			possiblyUnzip(of);
 			test_it = of->fileData;
+                test_it_len = of->fileDataSize;
 			break;
 		}
 
 
 		/* Test it */
-		t = determineFileType(test_it,(const int)strlen(test_it));
+        //ConsoleMessage("going to call determindFileType here");
+		t = determineFileType(test_it,test_it_len);
 		switch (t) {
 		case IS_TYPE_VRML:
 		case IS_TYPE_VRML1:
+                
+#if defined (INCLUDE_STL_FILES)
+            case IS_TYPE_BINARY_STL: case IS_TYPE_ASCII_STL:
+#endif //INCLUDE_STL_FILES
+
                                 
 			res->media_type = resm_vrml;
 			break;
+                
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 		case IS_TYPE_COLLADA:
 		case IS_TYPE_KML:
 		case IS_TYPE_SKETCHUP:
+#endif  //INCLUDE_NON_WEB3D_FORMATS
+                
 		case IS_TYPE_XML_X3D:
 			res->media_type = resm_x3d;
 			break;

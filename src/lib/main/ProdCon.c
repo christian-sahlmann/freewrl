@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.106 2012/07/19 20:09:43 crc_canada Exp $
+  $Id: ProdCon.c,v 1.107 2012/07/20 14:56:09 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -55,7 +55,11 @@
 #include "../world_script/jsUtils.h"
 #include "Snapshot.h"
 #include "../scenegraph/Collision.h"
+
+#if defined(INCLUDE_NON_WEB3D_FORMATS)
 #include "../non_web3d_formats/ColladaParser.h"
+#endif //INCLUDE_NON_WEB3D_FORMATS
+
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
@@ -279,6 +283,8 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		FREE_IF_NZ(newData);
 		break;
     }
+            
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
 		ret = ColladaParse (nRn, (const char*)input);
@@ -289,7 +295,28 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	case IS_TYPE_KML:
 		ConsoleMessage ("KML-KMZ  format not supported yet");
 		break;
-            
+#endif //INCLUDE_NON_WEB3D_FORMATS
+
+#if defined (INCLUDE_STL_FILES)
+        case IS_TYPE_ASCII_STL: {
+            char *convertAsciiSTL(const unsigned char*);
+
+            char *newData = convertAsciiSTL(input);
+            //ConsoleMessage("IS_TYPE_ASCII_STL, now file is :%s:",newData);
+
+            ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+            FREE_IF_NZ(newData);
+            break;
+        }
+        case IS_TYPE_BINARY_STL: {
+            char *convertBinarySTL(const unsigned char*);
+            char *newData = convertBinarySTL(input);
+            ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+            FREE_IF_NZ(newData);
+            break;
+        }
+#endif //INCLUDE_STL_FILES
+
 	default: {
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;

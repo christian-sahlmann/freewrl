@@ -1,5 +1,5 @@
 /*
-  $Id: io_files.h,v 1.12 2012/07/19 20:09:43 crc_canada Exp $
+  $Id: io_files.h,v 1.13 2012/07/20 14:56:09 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -59,13 +59,22 @@ openned_file_t* load_file(const char *filename);
  */
 
 /* VRML/X3D version */
+#define IS_TYPE_UNKNOWN    200
 #define IS_TYPE_XML_X3D	   100
 #define IS_TYPE_VRML       101
 #define IS_TYPE_VRML1      102
+
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 #define IS_TYPE_SKETCHUP   103
 #define IS_TYPE_KML        104
 #define IS_TYPE_COLLADA    105
-#define IS_TYPE_UNKNOWN    200
+#endif //INCLUDE_NON_WEB3D_FORMATS
+
+#if defined (INCLUDE_STL_FILES)
+#define IS_TYPE_ASCII_STL   300
+#define IS_TYPE_BINARY_STL  301
+#endif //INCLUDE_STL_FILES
+
 
 extern int inputFileType;
 extern int inputFileVersion[];

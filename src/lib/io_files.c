@@ -1,6 +1,6 @@
 //[s release];
 /*
-  $Id: io_files.c,v 1.57 2012/07/19 20:09:42 crc_canada Exp $
+  $Id: io_files.c,v 1.58 2012/07/20 14:56:09 crc_canada Exp $
 
   FreeWRL support library.
   IO with files.
@@ -392,6 +392,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 	MUTEX_LOCK_FILE_RETRIEVAL
     
+    //ConsoleMessage ("fwg_frontEndReturningData, len %d",len);
 	/* did we get data? is "len" not zero?? */
 	if (len == 0) {
 		// printf ("fwg_frontEndReturningData, returning error\n");
@@ -461,6 +462,7 @@ openned_file_t* load_file(const char *filename)
 	fileName = NULL;
 
 	if(frontend_return_status == -1) return NULL;
+    //ConsoleMessage("going to return create_openned_file of size %d",fileSize);
 	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
     
 #else //FRONTEND_GETS_FILES 
@@ -494,7 +496,7 @@ int determineFileType(const unsigned char *buffer, const int len)
 	const unsigned char *rv;
 	int count;
 	int foundStart = FALSE;
-
+    
 	for (count = 0; count < 3; count ++) inputFileVersion[count] = 0;
 
 	/* is this an XML file? */
@@ -518,13 +520,16 @@ int determineFileType(const unsigned char *buffer, const int len)
 			/* the full version number will be found by the parser */
 			inputFileVersion[0] = 3;
 			return IS_TYPE_XML_X3D;
-		}
+        }
+        
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 		if (strncmp((const char*)rv,"COLLADA",7) == 0) {
 			return IS_TYPE_COLLADA;
 		}
 		if (strncmp((const char*)rv,"kml",3) == 0) {
 			return IS_TYPE_KML;
 		}
+#endif //INCLUDE_NON_WEB3D_FORMATS
 
 	} else {
 		if (strncmp((const char*)buffer,"#VRML V2.0 utf8",15) == 0) {
@@ -564,6 +569,10 @@ int determineFileType(const unsigned char *buffer, const int len)
 		}
 
 	}
+    #if defined (INCLUDE_STL_FILES)
+    int stlDTFT(const unsigned char*, int); return stlDTFT(buffer,len);
+    #endif //INCLUDE_STL_FILES
+    
 	return IS_TYPE_UNKNOWN;
 }
 

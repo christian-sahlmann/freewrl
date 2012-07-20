@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ColladaParser.c,v 1.21 2011/07/27 23:42:31 crc_canada Exp $
+$Id: ColladaParser.c,v 1.22 2012/07/20 14:56:09 crc_canada Exp $
 
 ???
 
@@ -26,6 +26,7 @@ $Id: ColladaParser.c,v 1.21 2011/07/27 23:42:31 crc_canada Exp $
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 #include <config.h>
 
 #include <system.h>
@@ -270,3 +271,4 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	shutdownColladaParser();
 	return TRUE;
 }
+#endif //INCLUDE_NON_WEB3D_FORMATS
