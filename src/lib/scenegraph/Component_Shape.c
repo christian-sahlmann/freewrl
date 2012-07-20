@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.113 2012/07/18 16:48:11 crc_canada Exp $
+$Id: Component_Shape.c,v 1.114 2012/07/20 20:23:38 crc_canada Exp $
 
 X3D Shape Component
 
@@ -122,14 +122,16 @@ void child_Appearance (struct X3D_Appearance *node) {
 	if(node->texture) {
 		/* we have to do a glPush, then restore, later */
 		/* glPushAttrib(GL_ENABLE_BIT); */
-		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+		
+        ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;    
+
 
 		/* is there a TextureTransform? if no texture, fugutaboutit */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->textureTransform,p->this_textureTransform);
 		
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
-
+        
 		render_node(tmpN);
 	}
 
@@ -513,19 +515,16 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 }
 
 void child_Shape (struct X3D_Shape *node) {
-	struct X3D_Node *tmpN;
-	// JAS int i;
-	// JAS float dcol[4];
-	// JAS float ecol[4];
-	// JAS float scol[4];
-	// JAS float amb;
-    
+	struct X3D_Node *tmpN;    
 	ppComponent_Shape p;
         ttglobal tg = gglobal();
 
-
-
 	COMPILE_IF_REQUIRED
+
+    
+    //FW_GL_MATRIX_MODE(GL_TEXTURE);
+    //FW_GL_LOAD_IDENTITY();
+    //FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -545,7 +544,8 @@ void child_Shape (struct X3D_Shape *node) {
 	if (node->_shaderTableEntry == -1) {
 		return;
 	}
-        p = (ppComponent_Shape)tg->Component_Shape.prv;
+    p = (ppComponent_Shape)tg->Component_Shape.prv;
+    
 	{
 		struct fw_MaterialParameters defaultMaterials = {
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
@@ -560,14 +560,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	}
 
-	// now done in textureDraw_end  tg->RenderFuncs.textureStackTop = 0; /* will be >=1 if textures found */
-
-	/* enable the shader for this shape */
-        enableGlobalShader (node->_shaderTableEntry);
-
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-
 		RENDER_MATERIAL_SUBNODES(node->appearance);
 
 		if (p->material_oneSided != NULL) {
@@ -586,8 +580,8 @@ void child_Shape (struct X3D_Shape *node) {
 			/* no materials selected.... */
 		}
 
-		/* send along lighting, material, other visible properties */
-		sendMaterialsToShader(p->appearanceProperties.currentShaderProperties);
+        /* enable the shader for this shape */
+        enableGlobalShader (node->_shaderTableEntry);
 
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
@@ -599,20 +593,29 @@ void child_Shape (struct X3D_Shape *node) {
 		#ifdef SHAPEOCCLUSION
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
 		#endif
+        
 	}
 
 	/* any shader turned on? if so, turn it off */
 	TURN_GLOBAL_SHADER_OFF;
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
-
+    
+    /* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
+        and some don't. So, if we have a TextureTransform, loadIdentity */
+    
+    if (p->this_textureTransform) {
+        p->this_textureTransform = NULL;
+        FW_GL_MATRIX_MODE(GL_TEXTURE);
+        FW_GL_LOAD_IDENTITY();
+        FW_GL_MATRIX_MODE(GL_MODELVIEW);
+    }
     
 	/* did the lack of an Appearance or Material node turn lighting off? */
 	LIGHTING_ON;
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
-
 }
 
 void compile_Shape (struct X3D_Shape *node) {

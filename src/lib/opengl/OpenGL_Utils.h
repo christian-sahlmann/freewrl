@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.50 2012/07/18 13:54:46 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.51 2012/07/20 20:23:38 crc_canada Exp $
 
 Screen snapshot.
 
@@ -77,7 +77,6 @@ void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
 void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
-void sendMatriciesToShader(s_shader_capabilities_t *);
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
 void fw_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ);

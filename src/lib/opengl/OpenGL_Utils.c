@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.259 2012/07/18 21:23:21 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.260 2012/07/20 20:23:38 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1894,11 +1894,13 @@ void doglClearColor() {
 	tg->OpenGL_Utils.cc_changed = FALSE;
 }
 
+
+
+
+
 /* did we have a TextureTransform in the Appearance node? */
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
-    
-	FW_GL_MATRIX_MODE(GL_TEXTURE);
-       	/* done in RenderTextures now FW_GL_ENABLE(GL_TEXTURE_2D); */
+    FW_GL_MATRIX_MODE(GL_TEXTURE);
 	FW_GL_LOAD_IDENTITY();
 
 	/* is this a simple TextureTransform? */
@@ -2131,7 +2133,6 @@ void fw_glMatrixMode(GLint mode) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	p->whichMode = mode;
-	
 	#ifdef VERBOSE
 	printf ("fw_glMatrixMode, projTOS %d, modTOS %d texvTOS %d\n",p->projectionviewTOS,p->modelviewTOS, p->textureviewTOS);
 
@@ -3851,9 +3852,10 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
 		/* convert GLDOUBLE to float */
 		for (i=0; i<16; i++) {
-			*sp = (float) *dp; 	
+			*sp = (float) *dp;
 			sp ++; dp ++;
 		}
+        
 		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
 	}
 
@@ -3900,31 +3902,42 @@ normMat[6],normMat[7],normMat[8]);
 /* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
-	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix) ;
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
+    
 }
 
+#define SEND_VEC4(myMat,myVal) \
+if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
+        
+#define SEND_FLOAT(myMat,myVal) \
+if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
+
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
+    struct matpropstruct *myap = getAppearanceProperties();
+    struct fw_MaterialParameters fw_FrontMaterial;
+	struct fw_MaterialParameters fw_BackMaterial;
+
+    
+    if (!myap) return;
+    fw_FrontMaterial = myap->fw_FrontMaterial;
+    fw_BackMaterial = myap->fw_BackMaterial;
+    
 	/* go through all of the Uniforms for this shader */
 
-#define SEND_VEC4(myMat,myVal) \
-	if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
-
-#define SEND_FLOAT(myMat,myVal) \
-	if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 
 
 /* eventually do this with code blocks in glsl */
-	SEND_VEC4(myMaterialAmbient,getAppearanceProperties()->fw_FrontMaterial.ambient);
-	SEND_VEC4(myMaterialDiffuse,getAppearanceProperties()->fw_FrontMaterial.diffuse);
-	SEND_VEC4(myMaterialSpecular,getAppearanceProperties()->fw_FrontMaterial.specular);
-	SEND_VEC4(myMaterialEmission,getAppearanceProperties()->fw_FrontMaterial.emission);
-	SEND_FLOAT(myMaterialShininess,getAppearanceProperties()->fw_FrontMaterial.shininess);
+	SEND_VEC4(myMaterialAmbient,fw_FrontMaterial.ambient);
+	SEND_VEC4(myMaterialDiffuse,fw_FrontMaterial.diffuse);
+	SEND_VEC4(myMaterialSpecular,fw_FrontMaterial.specular);
+	SEND_VEC4(myMaterialEmission,fw_FrontMaterial.emission);
+	SEND_FLOAT(myMaterialShininess,fw_FrontMaterial.shininess);
 
-	SEND_VEC4(myMaterialBackAmbient,getAppearanceProperties()->fw_BackMaterial.ambient);
-	SEND_VEC4(myMaterialBackDiffuse,getAppearanceProperties()->fw_BackMaterial.diffuse);
-	SEND_VEC4(myMaterialBackSpecular,getAppearanceProperties()->fw_BackMaterial.specular);
-	SEND_VEC4(myMaterialBackEmission,getAppearanceProperties()->fw_BackMaterial.emission);
-	SEND_FLOAT(myMaterialBackShininess,getAppearanceProperties()->fw_BackMaterial.shininess);
+	SEND_VEC4(myMaterialBackAmbient,fw_BackMaterial.ambient);
+	SEND_VEC4(myMaterialBackDiffuse,fw_BackMaterial.diffuse);
+	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);
+	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
+	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
 
 	if (me->lightState != -1) sendLightInfo(me);
 }
