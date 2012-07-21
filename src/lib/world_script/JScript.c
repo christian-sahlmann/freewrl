@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: JScript.c,v 1.47 2011/07/26 21:34:36 istakenv Exp $
+$Id: JScript.c,v 1.48 2012/07/21 18:51:03 dug9 Exp $
 
 Javascript C language binding.
 
@@ -909,7 +909,7 @@ static void InitScriptField(int num, indexT kind, indexT type, const char* field
 				JSaddGlobalECMANativeProperty(num, field);
 				if (kind == PKW_initializeOnly) {
 					if  (type == FIELDTYPE_SFString) {
-						tlen = (int) strlen(value.sfstring->strptr) + 20;
+						tlen = (int) strlen(value.sfstring->strptr) + strlen(field) + 20;
 					} else {
 						tlen = (int) strlen(field) + 400; /* long, in the case of doubles */
 					}

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: EAI_C_CommonFunctions.c,v 1.43 2012/07/08 20:14:12 crc_canada Exp $
+$Id: EAI_C_CommonFunctions.c,v 1.44 2012/07/21 18:51:03 dug9 Exp $
 
 ???
 
@@ -362,11 +362,43 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 		}
 		parser_fromString(parser,mfstringtmp);
 		/* FREE_IF_NZ(mfstringtmp); */
-        } else if (ctype == FIELDTYPE_SFNode) {
-                /* Need to change index to proper node ptr */
-                np = getEAINodeFromTable(atoi(value), -1);
-        } else {
-
+	} else if (ctype == FIELDTYPE_SFNode) {
+		/* Need to change index to proper node ptr */
+		np = getEAINodeFromTable(atoi(value), -1);
+	} else if (ctype == FIELDTYPE_SFString) {
+		if(isXML){
+			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
+			int ii, nq = 0;
+			char *mv, *pv, *v = value;
+			while (*v && *v != '\0')
+			{	
+				if(*v == '"') nq++;
+				v++;
+			}
+			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			v = value;
+			pv = NULL;
+			mv = mfstringtmp;
+			ii = 0;
+			while(*v && *v != '\0')
+			{
+				if(*v == '"'){
+					if(!(pv && *pv == '\\')){
+						*mv = '\\';
+						mv++;
+					}
+				}
+				*mv = *v;
+				mv++;
+				pv = v;
+				v++;
+			}
+			*mv = '\0';
+		}else{
+			mfstringtmp = STRDUP(value);
+		}
+		parser_fromString(parser,mfstringtmp);
+	} else {
 		mfstringtmp = STRDUP(value);
 		parser_fromString(parser,mfstringtmp);
 		/* FREE_IF_NZ(mfstringtmp); */
@@ -375,20 +407,17 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	ASSERT(parser->lexer);
 	FREE_IF_NZ(parser->lexer->curID);
 
-        if (ctype == FIELDTYPE_SFNode) {
-                struct X3D_Node* oldvalue;
+	if (ctype == FIELDTYPE_SFNode) {
+		struct X3D_Node* oldvalue;
 		nst = offsetPointer_deref(void *,node,coffset);
-                memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
-                if (oldvalue) {
-                        remove_parent(oldvalue, node);
-                }
-                memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
-                add_parent(np, node, "sarah's add", 0);
-
-        } else if (parseType(parser, ctype, &myVal)) {
-
+		memcpy (&oldvalue, nst, sizeof(struct X3D_Node*));
+		if (oldvalue) {
+			remove_parent(oldvalue, node);
+		}
+		memcpy(nst, (void*)&np, sizeof(struct X3D_Node*));
+		add_parent(np, node, "sarah's add", 0);
+	} else if (parseType(parser, ctype, &myVal)) {
 		/* printf ("parsed successfully\n");  */
-
 		nst = offsetPointer_deref(void *,node,coffset);
 
 
@@ -438,15 +467,16 @@ MF_TYPE(MFNode, mfnode, Node)
 
 			case FIELDTYPE_SFString: {
 					struct Uni_String *mptr;
-					mptr = * (struct Uni_String **)nst;
-					if (!mptr) {
-						ERROR_MSG("Parser_scanStringValueToMem: is nst (Uni_String) supposed to hold a NULL value ?");
-					} else {
-						FREE_IF_NZ(mptr->strptr);
-						mptr->strptr = myVal.sfstring->strptr;
-						mptr->len = myVal.sfstring->len;
-						mptr->touched = myVal.sfstring->touched;
-					}
+					memcpy(nst, &myVal.sfstring, sizeof(struct Uni_String*));
+					//mptr = * (struct Uni_String **)nst;
+					//if (!mptr) {
+					//	ERROR_MSG("Parser_scanStringValueToMem: is nst (Uni_String) supposed to hold a NULL value ?");
+					//} else {
+					//	FREE_IF_NZ(mptr->strptr);
+					//	mptr->strptr = myVal.sfstring->strptr;
+					//	mptr->len = myVal.sfstring->len;
+					//	mptr->touched = myVal.sfstring->touched;
+					//}
 				break; }
 
 			default: {
