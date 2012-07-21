@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.90 2012/07/09 00:59:56 dug9 Exp $
+$Id: Viewer.c,v 1.91 2012/07/21 12:50:58 dug9 Exp $
 
 CProto ???
 
@@ -280,6 +280,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->fovZoom = 1.0;
 		viewer->calculatedNearPlane = 0.0;
 		viewer->calculatedFarPlane = 0.0;
+		viewer->wasBound = FALSE;
 	}
 
 	resolve_pos();
@@ -2499,7 +2500,7 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 	*/
 	//INITIATE_SLERP
 	//if(false){
-	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { 
+	if (p->Viewer.transitionType != VIEWER_TRANSITION_TELEPORT && p->Viewer.wasBound) { 
         p->Viewer.SLERPing = FALSE; //TRUE; 
         p->Viewer.startSLERPtime = TickTime(); 
         memcpy (&p->Viewer.startSLERPPos, &p->Viewer.Pos, sizeof (struct point_XYZ)); 
@@ -2523,7 +2524,8 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 		p->Viewer.SLERPing = FALSE; 
 		p->Viewer.SLERPing2 = FALSE;
 	}
-
+	
+	p->Viewer.wasBound = TRUE;
 	/* calculate distance between the node position and defined centerOfRotation */
 	INITIATE_POSITION
 
