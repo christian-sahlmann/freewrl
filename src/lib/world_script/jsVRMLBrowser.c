@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: jsVRMLBrowser.c,v 1.54 2012/05/17 02:38:56 crc_canada Exp $
+$Id: jsVRMLBrowser.c,v 1.55 2012/07/21 19:50:21 dug9 Exp $
 
 Javascript C language binding.
 
@@ -557,6 +557,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 	struct X3D_Group *retGroup;
 	char *xstr; 
 	char *tmpstr;
+	char *separator;
 	int ra;
 	int count;
 	int wantedsize;
@@ -591,9 +592,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 		MallocdSize = 200;
 		xstr = MALLOC (char *, MallocdSize);
 		strcpy (xstr,"new MFNode(");
+		separator = " ";
 		for (count=0; count<retGroup->children.n; count ++) {
 			tmpstr = MALLOC(char *, strlen(_c) + 100);
-			sprintf (tmpstr,"new SFNode('%s','%p')",_c, (void*) retGroup->children.p[count]);
+			sprintf (tmpstr,"%s new SFNode('%s','%p')",separator, _c, (void*) retGroup->children.p[count]);
 			wantedsize = (int) (strlen(tmpstr) + strlen(xstr));
 			if (wantedsize > MallocdSize) {
 				MallocdSize = wantedsize +200;
@@ -603,6 +605,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 			
 			strncat (xstr,tmpstr,strlen(tmpstr));
 			FREE_IF_NZ (tmpstr);
+			separator = ", ";
 		}
 		strcat (xstr,")");
 		markForDispose(X3D_NODE(retGroup),FALSE);
