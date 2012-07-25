@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.151 2012/07/20 15:10:32 crc_canada Exp $
+  $Id: display.h,v 1.152 2012/07/25 18:45:27 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -361,41 +361,42 @@ bool fv_bind_GLcontext();
 
 /* OpenGL renderer capabilities */
 
+#ifdef OLDCODE
+OLDCODEtypedef enum shader_type {
+OLDCODE	/* Background shaders */
+OLDCODE	backgroundSphereShader,
+OLDCODE	backgroundTextureBoxShader,
+OLDCODE
+OLDCODE	/* generic (not geometry Shader specific) shaders */
+OLDCODE	noMaterialNoAppearanceShader,
+OLDCODE	noTexOneMaterialShader,
+OLDCODE	noTexTwoMaterialShader,
+OLDCODE	oneTexOneMaterialShader,
+OLDCODE	oneTexTwoMaterialShader,
+OLDCODE	complexTexOneMaterialShader,
+OLDCODE	complexTexTwoMaterialShader,
+OLDCODE
+OLDCODE	/* Shape has Color node */
+OLDCODE	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
+OLDCODE	noTexTwoMaterialColourShader,
+OLDCODE	noTexOneMaterialColourShader,
+OLDCODE	oneTexTwoMaterialColourShader,
+OLDCODE	oneTexOneMaterialColourShader,
+OLDCODE	linePointColorNodeShader,
+OLDCODE	linePointNoColorNodeShader,
+OLDCODE
+OLDCODE	/* full MultiTexture shader */
+OLDCODE	multiTexShader,
+OLDCODE
+OLDCODE	/* fillProperties shader */
+OLDCODE	fillPropertiesFullShader,
+OLDCODE
+OLDCODE	/* final one, used for array sizing */
+OLDCODE	max_enum_shader_type
+OLDCODE} shader_type_t;
+#endif //OLDCODE
 
-typedef enum shader_type {
-	/* Background shaders */
-	backgroundSphereShader,
-	backgroundTextureBoxShader,
-
-	/* generic (not geometry Shader specific) shaders */
-	noMaterialNoAppearanceShader,
-	noTexOneMaterialShader,
-	noTexTwoMaterialShader,
-	oneTexOneMaterialShader,
-	oneTexTwoMaterialShader,
-	complexTexOneMaterialShader,
-	complexTexTwoMaterialShader,
-
-	/* Shape has Color node */
-	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
-	noTexTwoMaterialColourShader,
-	noTexOneMaterialColourShader,
-	oneTexTwoMaterialColourShader,
-	oneTexOneMaterialColourShader,
-	linePointColorNodeShader,
-	linePointNoColorNodeShader,
-
-	/* full MultiTexture shader */
-	multiTexShader,
-
-	/* fillProperties shader */
-	fillPropertiesFullShader,
-
-	/* final one, used for array sizing */
-	max_enum_shader_type
-} shader_type_t;
-
-typedef struct {
+typedef struct s_shader_capabilities{
 	GLint compiledOK;
 	GLuint myShaderProgram;
 
@@ -474,7 +475,7 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
+	// OLDCODE s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 // JAS extern s_renderer_capabilities_t rdr_caps;

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderFuncs.h,v 1.31 2012/06/18 17:41:43 crc_canada Exp $
+$Id: RenderFuncs.h,v 1.32 2012/07/25 18:45:27 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -30,7 +30,9 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
-void enableGlobalShader (shader_type_t);
+//OLDCODE void enableGlobalShader (shader_type_t);
+
+void enableGlobalShader(s_shader_capabilities_t *);
 
 void turnGlobalShaderOff(void);
 

@@ -269,7 +269,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 		fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
 		FW_GL_TRANSLATE_F((float)fxy.x,(float)fxy.y,0.0f);
 	}
-	enableGlobalShader(backgroundTextureBoxShader);
+	enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
 	shader = getAppearanceProperties()->currentShader;
 	//FW_GL_ENABLE(GL_TEXTURE_2D);
 	glActiveTexture ( GL_TEXTURE0 );

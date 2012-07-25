@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Bindable.c,v 1.75 2012/07/18 01:15:17 crc_canada Exp $
+$Id: Bindable.c,v 1.76 2012/07/25 18:45:27 crc_canada Exp $
 
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
@@ -50,6 +50,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Component_Geospatial.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../ui/common.h"
 
 /* for Background spheres */
@@ -864,7 +865,7 @@ void render_Background (struct X3D_Background *node) {
 	   all geometry fits within the spheres */
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
-		enableGlobalShader(backgroundSphereShader);
+		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -898,7 +899,7 @@ void render_Background (struct X3D_Background *node) {
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
         	FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,boxtex);
 
-		enableGlobalShader(backgroundTextureBoxShader);
+		enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
 
 
 		loadBackgroundTextures(node);
@@ -946,7 +947,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	FW_GL_SCALE_D (viewer->backgroundPlane, viewer->backgroundPlane, viewer->backgroundPlane);
 
 
-		enableGlobalShader(backgroundSphereShader);
+		enableGlobalShader(getMyShader(COLOUR_MATERIAL_SHADER));
 
 		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
 		FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
@@ -974,7 +975,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 			(node->bottomTexture !=0)) {
 
 
-		enableGlobalShader(backgroundTextureBoxShader);
+		enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
 
 
 

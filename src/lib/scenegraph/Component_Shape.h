@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.13 2012/07/18 16:48:11 crc_canada Exp $
+$Id: Component_Shape.h,v 1.14 2012/07/25 18:45:27 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -32,41 +32,25 @@ Proximity sensor macro.
 #define __FREEWRL_SCENEGRAPH_SHAPE_H__
 
 
-/*
-struct gl_LightSourceParameters {
-	vec4 ambient; 
-	vec4 diffuse; 
-	vec4 specular; 
-	vec4 position; 
-	vec4 halfVector; 
-	vec3 spotDirection; 
-	float spotExponent; 
-	float spotCutoff; // (range: [0.0,90.0], 180.0)
-	float spotCosCutoff; // (range: [1.0,0.0],-1.0)
-	float constantAttenuation; 
-	float linearAttenuation; 
-	float quadraticAttenuation;	
-};
-	
-uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
-	
-struct gl_LightModelParameters {
-	vec4 ambient; 
-};
-	
-uniform gl_LightModelParameters gl_LightModel;
+/*******************************************************/
 
-struct gl_MaterialParameters {
-		vec4 emission;   
-		vec4 ambient;    
-		vec4 diffuse;    
-		vec4 specular;   
-		float shininess; 
-	};
-	
-uniform gl_MaterialParameters gl_FrontMaterial;
-uniform gl_MaterialParameters gl_BackMaterial;
-*/
+#define NO_APPEARANCE_SHADER 0x0001
+#define MATERIAL_APPEARANCE_SHADER 0x0002
+#define TWO_MATERIAL_APPEARANCE_SHADER 0x0004
+#define ONE_TEX_APPEARANCE_SHADER 0x0008
+#define MULTI_TEX_APPEARANCE_SHADER 0x000C
+
+/* PolyRep (etc) color field present */
+#define COLOUR_MATERIAL_SHADER 0x00010
+
+/*  - fillProperties present */
+#define FILL_PROPERTIES_SHADER 0x00020
+
+/*  - lines, points */
+#define HAVE_LINEPOINTS_COLOR 0x0040
+#define HAVE_LINEPOINTS_APPEARANCE 0x0080
+
+/*******************************************************/
 
 
 struct fw_MaterialParameters {
@@ -83,7 +67,6 @@ struct matpropstruct {
 	struct fw_MaterialParameters fw_BackMaterial;
 
 	/* which shader is active; 0 = no shader active */
-	GLint currentShader; 
 	s_shader_capabilities_t *currentShaderProperties;
 
 	float	transparency;

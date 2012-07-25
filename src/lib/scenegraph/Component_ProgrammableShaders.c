@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_ProgrammableShaders.c,v 1.59 2012/05/31 19:06:42 crc_canada Exp $
+$Id: Component_ProgrammableShaders.c,v 1.60 2012/07/25 18:45:27 crc_canada Exp $
 
 X3D Programmable Shaders Component
 
@@ -103,6 +103,30 @@ FIELDTYPE_MFVec4d
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 
+#ifndef NEED_TO_REIMPLEMENT_X3D_SHADERS_NODE
+static bool printedMsg = false;
+void render_ComposedShader (struct X3D_ComposedShader *node) {
+    ConsoleMessage ("have to re-implement FreeWRL Shader node");
+    printedMsg = true;
+}
+void render_PackagedShader (struct X3D_PackagedShader *node) {
+    ConsoleMessage ("have to re-implement FreeWRL Shader node");
+    printedMsg = true;
+}
+void render_ProgramShader (struct X3D_ProgramShader *node) {
+    ConsoleMessage ("have to re-implement FreeWRL Shader node");
+    printedMsg = true;
+}
+void compile_PackagedShader (struct X3D_PackagedShader *node) {
+}
+void compile_ComposedShader (struct X3D_ComposedShader *node) {
+}
+void compile_ProgramShader (struct X3D_ProgramShader *node) {
+}
+void getField_ToShader(int num) {
+}
+
+#else 
 static void sendInitialFieldsToShader(struct X3D_Node *);
 
 #define MAX_INFO_LOG_SIZE 512
@@ -988,3 +1012,4 @@ void render_ProgramShader (struct X3D_ProgramShader *node) {
 		RUN_IF_VALID
 	#endif
 }
+#endif //NEED_TO_REIMPLEMENT

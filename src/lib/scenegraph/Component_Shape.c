@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.114 2012/07/20 20:23:38 crc_canada Exp $
+$Id: Component_Shape.c,v 1.115 2012/07/25 18:45:27 crc_canada Exp $
 
 X3D Shape Component
 
@@ -45,6 +45,8 @@ X3D Shape Component
 #include "Component_ProgrammableShaders.h"
 #include "Component_Shape.h"
 #include "RenderFuncs.h"
+
+#define NOTHING 0
 
 typedef struct pComponent_Shape{
 
@@ -247,44 +249,24 @@ void compile_Material (struct X3D_Material *node) {
 	MARK_NODE_COMPILED
 }
 
-/* Least significant hex digit - appearance */
-#define NO_APPEARANCE_SHADER 0x0000
-#define MATERIAL_APPEARANCE_SHADER 0x0001
-#define TWO_MATERIAL_APPEARANCE_SHADER 0x0002
-#define ONE_TEX_APPEARANCE_SHADER 0x0004
-#define MULTI_TEX_APPEARANCE_SHADER 0x0008
-
-/* second least significant hex digit - PolyRep colour present */
-#define NO_COLOUR_SHADER 0x0000
-#define HAVE_COLOUR_SHADER 0x00010
-
-/* third least significant hex digit - fillProperties present */
-#define NO_FILL_PROPERTIES_SHADER 0x0000
-#define FILL_PROPERTIES_SHADER 0x00100
-
-/* fourth least significant hex digit - lines, points */
-#define NO_LINES_POINTS 0x0000
-#define HAVE_LINEPOINTS 0x1000
-
-
 #define CHECK_COLOUR_FIELD(aaa) \
 	case NODE_##aaa: { \
 		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
-		if (me->color == NULL) return NO_COLOUR_SHADER; \
-		else return HAVE_COLOUR_SHADER; \
+		if (me->color == NULL) return NOTHING; /* do not add any properties here */\
+		else return COLOUR_MATERIAL_SHADER; \
 		break; \
 	} 
 
 #define CHECK_VRML1_COLOUR_FIELD(aaa) \
 	case NODE_##aaa: { \
 		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
-		if (me->_color == NULL) return NO_COLOUR_SHADER; \
-		else return HAVE_COLOUR_SHADER; \
+		if (me->_color == NULL) return NOTHING; /* do not add any properties here */\
+		else return COLOUR_MATERIAL_SHADER; \
 		break; \
 	} \
 
 /* if this is a LineSet, PointSet, etc... */
-static int getIfLinePoints(struct X3D_Node *myGeom) {
+static bool getIfLinePoints(struct X3D_Node *myGeom) {
 	struct X3D_Node *realNode;
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
@@ -296,10 +278,10 @@ static int getIfLinePoints(struct X3D_Node *myGeom) {
 		case NODE_VRML1_IndexedLineSet:
 		case NODE_PointSet:
 		case NODE_VRML1_PointSet:
-			return  HAVE_LINEPOINTS;
+			return  true;
 
 	}
-	return NO_LINES_POINTS;
+	return false; // do not add any capabilites here.
 }
 
 
@@ -310,7 +292,7 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
-	if (realNode == NULL) return NO_APPEARANCE_SHADER;
+	if (realNode == NULL) return NOTHING;
 
 	/* go through each node type that can have a Color node, and if it is not NULL
 	   we know we have a Color node */
@@ -332,7 +314,7 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 	}
 
 	/* if we are down here, we KNOW we do not have a color field */
-	return NO_COLOUR_SHADER;
+	return NOTHING; /* do not add any capabilites here */
 }
 
 static int getAppearanceShader (struct X3D_Node *myApp) {
@@ -340,7 +322,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 	struct X3D_Node *realMaterialNode;
 
 
-	int retval = NO_APPEARANCE_SHADER;
+	int retval = NOTHING;
     
 	/* if there is no appearance node... */
 	if (myApp == NULL) return retval;
@@ -394,34 +376,6 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 	return retval;
 }
 
-
-#ifdef SHAPE_VERBOSE
-static void printChoosingShader(shader_type_t whichOne) {
-    
-    ConsoleMessage ("choose shader: ");
-    switch (whichOne) {
-        case backgroundSphereShader: ConsoleMessage ("backgroundSphereShader\n"); break;
-        case backgroundTextureBoxShader: ConsoleMessage ("backgroundTextureBoxShader\n"); break;
-        case noTexOneMaterialShader: ConsoleMessage ("noTexOneMaterialShader\n"); break;
-        case noMaterialNoAppearanceShader: ConsoleMessage ("noMaterialNoAppearanceShader\n"); break;
-        case noTexTwoMaterialShader: ConsoleMessage ("noTexTwoMaterialShader\n"); break;
-        case oneTexOneMaterialShader: ConsoleMessage ("oneTexOneMaterialShader\n"); break;
-        case oneTexTwoMaterialShader: ConsoleMessage ("oneTexTwoMaterialShader\n"); break;
-        case complexTexOneMaterialShader: ConsoleMessage ("complexTexOneMaterialShader\n"); break;
-        case complexTexTwoMaterialShader: ConsoleMessage ("complexTexTwoMaterialShader\n"); break;
-        case noTexTwoMaterialColourShader: ConsoleMessage ("noTexTwoMaterialColourShader\n"); break;
-        case noTexOneMaterialColourShader: ConsoleMessage ("noTexOneMaterialColourShader\n"); break;
-        case oneTexTwoMaterialColourShader: ConsoleMessage ("oneTexTwoMaterialColourShader\n"); break;
-        case oneTexOneMaterialColourShader: ConsoleMessage ("oneTexOneMaterialColourShader\n"); break;
-        case multiTexShader: ConsoleMessage ("multiTexShader\n"); break;
-        case linePointColorNodeShader: ConsoleMessage ("linePointColorNodeShader\n"); break;
-        case linePointNoColorNodeShader: ConsoleMessage ("linePointNoColorNodeShader\n"); break;
-        case fillPropertiesFullShader: ConsoleMessage ("fillPropertiesFullShader\n"); break;
-        default : ConsoleMessage ("shader node unidentified");
-    }
-    
-}
-#endif //SHAPE_VERBOSE
 
 /* find info on the appearance of this Shape and create a shader */
 /* 
@@ -484,11 +438,13 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 	GLushort pat;
 
 	if (node->applied) {
-		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+		//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 		if (node->linewidthScaleFactor > 1.0) {
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
+            #ifndef GL_ES_VERSION_2_0
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
+            #endif
 		}
 
 
@@ -517,7 +473,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;    
 	ppComponent_Shape p;
-        ttglobal tg = gglobal();
+    ttglobal tg = gglobal();
 
 	COMPILE_IF_REQUIRED
 
@@ -541,9 +497,6 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
-	if (node->_shaderTableEntry == -1) {
-		return;
-	}
     p = (ppComponent_Shape)tg->Component_Shape.prv;
     
 	{
@@ -565,7 +518,6 @@ void child_Shape (struct X3D_Shape *node) {
 		RENDER_MATERIAL_SUBNODES(node->appearance);
 
 		if (p->material_oneSided != NULL) {
-
 			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 			/* copy the emissive colour over for lines and points */
@@ -581,7 +533,7 @@ void child_Shape (struct X3D_Shape *node) {
 		}
 
         /* enable the shader for this shape */
-        enableGlobalShader (node->_shaderTableEntry);
+        enableGlobalShader (getMyShader(node->_shaderTableEntry));
 
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
@@ -611,6 +563,15 @@ void child_Shape (struct X3D_Shape *node) {
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
     }
     
+    /* LineSet, PointSets, set the width back to the original. */
+	{
+		float gl_linewidth = tg->Mainloop.gl_linewidth;
+		FW_GL_LINEWIDTH(gl_linewidth);
+        #ifndef GL_ES_VERSION_2_0
+		FW_GL_POINTSIZE(gl_linewidth);
+        #endif
+	}
+    
 	/* did the lack of an Appearance or Material node turn lighting off? */
 	LIGHTING_ON;
 
@@ -619,9 +580,10 @@ void child_Shape (struct X3D_Shape *node) {
 }
 
 void compile_Shape (struct X3D_Shape *node) {
-	int whichAppearanceShader = -1;
-	int whichShapeColorShader = -1;
-	int isUnlitGeometry = -1;
+	int whichAppearanceShader = 0;
+	int whichShapeColorShader = 0;
+	bool isUnlitGeometry = false;
+    int whichUnlitGeometry = 0;
     struct X3D_Node *tmpN = NULL;
     
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
@@ -629,107 +591,151 @@ void compile_Shape (struct X3D_Shape *node) {
     isUnlitGeometry = getIfLinePoints(tmpN);
     
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
-	whichAppearanceShader = getAppearanceShader(tmpN);
-    
-	
 
-
-
-	/* choose the shader. Note that we just "or" the results together */
-
-    /* right now, multiTextures go through one heck of a big unoptimized shader */
-    if (whichAppearanceShader == (MULTI_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER)) {
-        node->_shaderTableEntry = multiTexShader;
-
-    /* FillProperties - not efficient, but just do everything you can think of here */
-    } else if (whichAppearanceShader == (FILL_PROPERTIES_SHADER | MATERIAL_APPEARANCE_SHADER)) {
-        node->_shaderTableEntry = fillPropertiesFullShader;
+    /* Lines, points - can get the emission colour from an appearance node */
+    if (isUnlitGeometry) {
+        int myAppShad =  getAppearanceShader(tmpN);
         
-    } else {
-	switch (whichAppearanceShader | whichShapeColorShader | isUnlitGeometry) {
+        /* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
+           if it is zero, we either have an appearance node, or we have no-material. */
+        ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
+        if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
+            ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
             
-	case  NO_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noMaterialNoAppearanceShader;
-		break;
-
-	case  TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexTwoMaterialShader;
-		break;
-
-	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexOneMaterialShader;
-		break;	
-
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexTwoMaterialShader;
-		break;
-
-	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexOneMaterialShader;
-		break;	
-
-	/* if we have a LineSet, PointSet, etc, and there is a Color node in it, choose this one! */	
-	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER | HAVE_LINEPOINTS:
-		node->_shaderTableEntry = linePointColorNodeShader;
-		break;
-
-	
-	/* if we have a LineSet, PointSet, etc, and there is NOT a Color node in it, choose this one! */	
-	case NO_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| NO_COLOUR_SHADER | HAVE_LINEPOINTS:
-		node->_shaderTableEntry = linePointNoColorNodeShader;
-		break;
-
-	case NO_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = backgroundSphereShader;
-		break;
-
-	case TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexTwoMaterialColourShader;
-		break;
-
-	case MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = noTexOneMaterialColourShader;
-		break;	
-
-	case ONE_TEX_APPEARANCE_SHADER | TWO_MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexTwoMaterialColourShader;
-		break;
-
-	case ONE_TEX_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-	case ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER| HAVE_COLOUR_SHADER:
-		node->_shaderTableEntry = oneTexOneMaterialColourShader;
-		break;	
-	
-
-	default: node->_shaderTableEntry = noMaterialNoAppearanceShader;
+            /* which one first? */
+            if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
+            else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
+        }
+    } else {
+    	whichAppearanceShader = getAppearanceShader(tmpN);
     }
-    }
-
     
-	#ifdef SHAPE_VERBOSE
-	printChoosingShader(node->_shaderTableEntry);
-	#endif //SHAPE_VERBOSE
+    /* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
+    node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | whichUnlitGeometry);
+    
+    
+	if (node->_shaderTableEntry == NOTHING) 
+        node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
 	MARK_NODE_COMPILED
 }
 
-void compile_TwoSidedMaterial (struct X3D_Appearance *node) {
-ConsoleMessage ("compile_TwoSidedMaterial called\n");
+
+void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
+	int i;
+	float trans;
+
+	/* verify that the numbers are within range */
+	if (node->ambientIntensity < 0.0) node->ambientIntensity=0.0f;
+	if (node->ambientIntensity > 1.0) node->ambientIntensity=1.0f;
+	if (node->shininess < 0.0) node->shininess=0.0f;
+	if (node->shininess > 1.0) node->shininess=1.0f;
+	if (node->transparency < 0.0) node->transparency=MIN_NODE_TRANSPARENCY;
+	if (node->transparency >= 1.0) node->transparency=MAX_NODE_TRANSPARENCY;
+
+	if (node->backAmbientIntensity < 0.0) node->backAmbientIntensity=0.0f;
+	if (node->backAmbientIntensity > 1.0) node->backAmbientIntensity=1.0f;
+	if (node->backShininess < 0.0) node->backShininess=0.0f;
+	if (node->backShininess > 1.0) node->backShininess=1.0f;
+	if (node->backTransparency < 0.0) node->backTransparency=0.0f;
+	if (node->backTransparency > 1.0) node->backTransparency=1.0f;
+
+	for (i=0; i<3; i++) {
+		if (node->diffuseColor.c[i] < 0.0) node->diffuseColor.c[i]=0.0f;
+		if (node->diffuseColor.c[i] > 1.0) node->diffuseColor.c[i]=1.0f;
+		if (node->emissiveColor.c[i] < 0.0) node->emissiveColor.c[i]=0.0f;
+		if (node->emissiveColor.c[i] > 1.0) node->emissiveColor.c[i]=1.0f;
+		if (node->specularColor.c[i] < 0.0) node->specularColor.c[i]=0.0f;
+		if (node->specularColor.c[i] > 1.0) node->specularColor.c[i]=1.0f;
+
+		if (node->backDiffuseColor.c[i] < 0.0) node->backDiffuseColor.c[i]=0.0f;
+		if (node->backDiffuseColor.c[i] > 1.0) node->backDiffuseColor.c[i]=1.0f;
+		if (node->backEmissiveColor.c[i] < 0.0) node->backEmissiveColor.c[i]=0.0f;
+		if (node->backEmissiveColor.c[i] > 1.0) node->backEmissiveColor.c[i]=1.0f;
+		if (node->backSpecularColor.c[i] < 0.0) node->backSpecularColor.c[i]=0.0f;
+		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0f;
+	}
+
+
+	/* first, put in the transparency */
+	trans = 1.0 - node->transparency;
+        node->_verifiedFrontColor.p[3] = trans;
+        node->_verifiedFrontColor.p[7] = trans;
+        node->_verifiedFrontColor.p[11] = trans;
+        node->_verifiedFrontColor.p[15] = trans;
+	trans = 1.0 - node->backTransparency;
+        node->_verifiedBackColor.p[3] = trans;
+        node->_verifiedBackColor.p[7] = trans;
+        node->_verifiedBackColor.p[11] = trans;
+        node->_verifiedBackColor.p[15] = trans;
+                
+
+	/* DiffuseColor */
+	memcpy((void *)(&node->_verifiedFrontColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
+
+	/* Ambient  - diffuseFrontColor * ambientIntensity */
+        for(i=0; i<4; i++) { node->_verifiedFrontColor.p[i+4] = node->_verifiedFrontColor.p[i+8] * node->ambientIntensity; }
+
+	/* Specular */
+	memcpy((void *)(&node->_verifiedFrontColor.p[12]), node->specularColor.c, sizeof (float) * 3);
+
+	/* Emissive */
+	memcpy((void *)(&node->_verifiedFrontColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
+
+	/* Shininess */
+        node->_verifiedFrontColor.p[16] = node->shininess * 128.0f;
+
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
+        if ((node->_verifiedFrontColor.p[16] > MAX_SHIN) || (node->_verifiedFrontColor.p[16] < MIN_SHIN)) {
+                if (node->_verifiedFrontColor.p[16]>MAX_SHIN){node->_verifiedFrontColor.p[16] = MAX_SHIN;}else{node->_verifiedFrontColor.p[16]=MIN_SHIN;}
+        }
+#undef MAX_SHIN
+#undef MIN_SHIN
+
+	if (node->separateBackColor) {
+
+		/* DiffuseColor */
+		memcpy((void *)(&node->_verifiedBackColor.p[8]), node->backDiffuseColor.c, sizeof (float) * 3);
+	
+		/* Ambient  - diffuseBackColor * ambientIntensity */
+	        for(i=0; i<3; i++) { node->_verifiedBackColor.p[i+4] = node->_verifiedBackColor.p[i+8] * node->ambientIntensity; }
+	
+		/* Specular */
+		memcpy((void *)(&node->_verifiedBackColor.p[12]), node->backSpecularColor.c, sizeof (float) * 3);
+	
+		/* Emissive */
+		memcpy((void *)(&node->_verifiedBackColor.p[0]), node->backEmissiveColor.c, sizeof (float) * 3);
+	
+		/* Shininess */
+	        node->_verifiedBackColor.p[16] = node->shininess * 128.0f;
+	
+#define MAX_SHIN 128.0f
+#define MIN_SHIN 0.01f
+	        if ((node->_verifiedBackColor.p[16] > MAX_SHIN) || (node->_verifiedBackColor.p[16] < MIN_SHIN)) {
+	                if (node->_verifiedBackColor.p[16]>MAX_SHIN){node->_verifiedBackColor.p[16] = MAX_SHIN;}else{node->_verifiedBackColor.p[16]=MIN_SHIN;}
+	        }
+#undef MAX_SHIN
+#undef MIN_SHIN
+
+	} else {
+		/* just copy the front materials to the back */
+		memcpy(node->_verifiedBackColor.p, node->_verifiedFrontColor.p, sizeof (float) * 17);
+	}
+
+
+
+	MARK_NODE_COMPILED
 }
 
-void render_TwoSidedMaterial (struct X3D_Appearance *node) {
-ConsoleMessage ("render_TwoSidedMaterial called\n");
-}
+void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
+	
+	COMPILE_IF_REQUIRED
+	{
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
+	/* record this node for OpenGL-ES and OpenGL-3.1 operation */
+	p->material_twoSided = node;
+	}
+}
 

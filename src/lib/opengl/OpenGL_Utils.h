@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.51 2012/07/20 20:23:38 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.52 2012/07/25 18:45:27 crc_canada Exp $
 
 Screen snapshot.
 
@@ -30,6 +30,43 @@ Screen snapshot.
 #ifndef __FREEWRL_OPENGL_UTILS_H__
 #define __FREEWRL_OPENGL_UTILS_H__
 
+typedef enum vertexShaderResources {
+       	vertexPrecisionDeclare,
+    vertexLightDefines,
+    vertexPhongDeclare,
+    vertexNormalDeclare,
+	vertexPositionDeclare,
+	vertexSimpleColourDeclare,
+    vertexOneMaterialDeclare,
+    vertexBackMaterialDeclare,
+    vertFrontColourDeclare,
+    vertexLightingEquation,
+	vertexMainStart,
+	vertexPosition,
+    vertexOneMaterialCalculation,
+    vertexPhongCalculation,
+	vertexSimpleColour,
+	vertexMainEnd,
+	vertexEndMarker
+} vertexShaderResources_t;
+
+typedef enum fragmenShaderResources {
+	fragmentPrecisionDeclare,
+    fragmentLightDefines,
+    fragmentNormalColorDefs,
+	fragmentSimpleColourDeclare,
+    fragmentOneColourDeclare,
+    fragmentBackColourDeclare,
+    fragmentPhongNormPosDeclare,
+    fragmentADSLLightModel,
+	fragmentMainStart,
+	fragmentSimpleColourAssign,
+    fragmentOneColourAssign,
+    fragmentADSLAssign,
+	fragmentMainEnd,
+	fragmentEndMarker
+} fragmentShaderResources_t;
+
 
 /* Ian moved this from iglobal.h so that OpenGL_Utils.c could use it
  * since OpenGL_Utils.c cannot #include <iglobal.h> due to recursion */
@@ -43,9 +80,9 @@ struct multiTexParams {
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
 
+s_shader_capabilities_t *getMyShader(unsigned int);
 
 void sendMatriciesToShader(s_shader_capabilities_t *me);
-
 void sendMaterialsToShader(s_shader_capabilities_t *me);
 
 void

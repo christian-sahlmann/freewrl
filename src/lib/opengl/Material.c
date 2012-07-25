@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.c,v 1.28 2012/03/05 19:56:03 dug9 Exp $
+$Id: Material.c,v 1.29 2012/07/25 18:45:27 crc_canada Exp $
 
 Only do material settings that "matter" and bounds check all values.
 
@@ -233,11 +233,11 @@ void glColor3d (double r, double g, double b) {
     
 //printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor3d %lf %lf %lf\n",r,g,b);
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
     
-    if (getAppearanceProperties()->currentShaderProperties != NULL) {
-        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
-            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
-                         1,cols);
+    if (me != NULL) {
+        if (me->myMaterialColour != -1) {
+            GLUNIFORM3FV(me->myMaterialColour,1,cols);
         } else {
             ConsoleMessage ("glColor3d called; no shader property to send to");
         }
@@ -254,10 +254,11 @@ void glColor3dv (double *dcols) {
 //printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor3dv %lf %lf %lf\n",cols[0],cols[1],cols[2]);
     
-    if (getAppearanceProperties()->currentShaderProperties != NULL) {
-        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
-            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
-                         1,cols);
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+    
+    if (me != NULL) {
+        if (me->myMaterialColour != -1) {
+            GLUNIFORM3FV(me->myMaterialColour,1,cols);
         } else {
             ConsoleMessage ("glColor3dv called; no shader property to send to");
         }
@@ -268,10 +269,11 @@ void glColor3dv (double *dcols) {
 void glColor3fv (float *cols) {
 //printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor3fv %f %f %f\n",cols[0],cols[1],cols[2]);
-    if (getAppearanceProperties()->currentShaderProperties != NULL) {
-    if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
-     GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
-                  1,cols);
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+    
+    if (me != NULL) {
+    if (me->myMaterialColour != -1) {
+     GLUNIFORM3FV(me->myMaterialColour,1,cols);
     } else {
         ConsoleMessage ("glColor3fv called; no shader property to send to");
     }
@@ -285,9 +287,11 @@ void glColor4fv (float *cols) {
     
 //printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
 //printf ("glColor4fv %lf %lf %lf %lf\n",cols[0],cols[1],cols[2],cols[3]);
-    if (getAppearanceProperties()->currentShaderProperties != NULL) {
-        if (getAppearanceProperties()->currentShaderProperties->myMaterialColour != -1) {
-            GLUNIFORM3FV(getAppearanceProperties()->currentShaderProperties->myMaterialColour,
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+    
+    if (me != NULL) {
+        if (me->myMaterialColour != -1) {
+            GLUNIFORM3FV(me->myMaterialColour,
                          1,cols);
     } else {
         ConsoleMessage ("glColor4fv called; no shader property to send to");
@@ -298,14 +302,14 @@ void glColor4fv (float *cols) {
 
 void glColorMaterial (GLenum face, GLenum mode) {
 #ifndef GLES2
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShaderProperties->myShaderProgram);
 printf ("glColorMaterial %x, %d\n",face,mode);
 #endif
 }
 
 void glMaterialf (GLenum face, GLenum pname, float param) {
 #ifndef GLES2
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShaderProperties->myShaderProgram);
 printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
 	face,pname,GL_SHININESS,param);
 #endif
@@ -313,7 +317,7 @@ printf ("glMaterialf, face %d pname %d (GL_SHININESS == %d), param %f\n",
 
 void glMaterialfv (GLenum face, GLenum pname, float *param) {
 #ifndef GLES2
-printf ("... active shader %d, for ",getAppearanceProperties()->currentShader);
+printf ("... active shader %d, for ",getAppearanceProperties()->currentShaderProperties->myShaderProgram);
 printf ("glMaterialfv, face %d pname %d (GL_SHININESS == %d), param %f\n",
 	face,pname,GL_SHININESS,*param);
 #endif

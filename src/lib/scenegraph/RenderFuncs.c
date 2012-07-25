@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.127 2012/07/20 20:23:38 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.128 2012/07/25 18:45:27 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -319,11 +319,10 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 /* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	if (getAppearanceProperties()->currentShader != 0) {
-		getAppearanceProperties()->currentShader = 0;
-		getAppearanceProperties()->currentShaderProperties = NULL;
-		USE_SHADER(0);
-	}
+
+    /* get rid of the shader */
+    getAppearanceProperties()->currentShaderProperties = NULL;
+    USE_SHADER(0);
 
 	/* set array booleans back to defaults */
 	p->shaderNormalArray = TRUE;
@@ -335,33 +334,42 @@ void turnGlobalShaderOff(void) {
 
 
 /* choose and turn on a shader for this geometry */
-void enableGlobalShader(shader_type_t requestedShader) {
 
-	getAppearanceProperties()->currentShaderProperties = &(gglobal()->display.rdr_caps.backgroundShaderArrays[requestedShader]);
-	getAppearanceProperties()->currentShader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
-	USE_SHADER(getAppearanceProperties()->currentShader);
+void enableGlobalShader(s_shader_capabilities_t *myShader) {
+    //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
+    if (myShader == NULL) {
+        TURN_GLOBAL_SHADER_OFF; 
+        getAppearanceProperties()->currentShaderProperties = NULL;
+        return;
+    };
+    
+    
+    getAppearanceProperties()->currentShaderProperties = myShader;
+	USE_SHADER(myShader->myShaderProgram);
 }
 
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
 
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+
 #ifdef RENDERVERBOSE
 printf ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
 printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataType,stride);
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
+	if (me != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Normals,file,line);
+				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",me->Normals,file,line);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Vertices,file,line);
+				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",me->Vertices,file,line);
 				break;
 			case FW_COLOR_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->Colours,file,line);
+				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",me->Colours,file,line);
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",getAppearanceProperties()->currentShaderProperties->TexCoords,file,line);
+				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",me->TexCoords,file,line);
 				break;
 
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
@@ -372,27 +380,27 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-			if (getAppearanceProperties()->currentShaderProperties->Normals != -1) {
-				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Normals);
-				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Normals, 3, dataType, normalized, stride, pointer);
+			if (me->Normals != -1) {
+				glEnableVertexAttribArray(me->Normals);
+				glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-			if (getAppearanceProperties()->currentShaderProperties->Vertices != -1) {
-				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Vertices);
-				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Vertices, dataSize, dataType, normalized, stride, pointer);
+			if (me->Vertices != -1) {
+				glEnableVertexAttribArray(me->Vertices);
+				glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_COLOR_POINTER_TYPE:
-			if (getAppearanceProperties()->currentShaderProperties->Colours != -1) {
-				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->Colours);
-				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->Colours, dataSize, dataType, normalized, stride, pointer);
+			if (me->Colours != -1) {
+				glEnableVertexAttribArray(me->Colours);
+				glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-			if (getAppearanceProperties()->currentShaderProperties->TexCoords != -1) {
-				glEnableVertexAttribArray(getAppearanceProperties()->currentShaderProperties->TexCoords);
-				glVertexAttribPointer(getAppearanceProperties()->currentShaderProperties->TexCoords, dataSize, dataType, normalized, stride, pointer);
+			if (me->TexCoords != -1) {
+				glEnableVertexAttribArray(me->TexCoords);
+				glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
 			}
 				break;
 
@@ -442,7 +450,7 @@ void sendClientStateToGPU(int enable, int cap) {
 				p->shaderTextureArray = enable;
 				break;
 
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+			default : {printf ("sendClientStateToGPU, unknown type in shader\n");}
 		}
 #ifdef RENDERVERBOSE
 printf ("sendClientStateToGPU: getAppearanceProperties()->currentShaderProperties %p \n",getAppearanceProperties()->currentShaderProperties);
