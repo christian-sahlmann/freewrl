@@ -162,9 +162,9 @@ PTHREAD_LIBS="$PTHREAD_LIBS -lpthread"
 PKG_CHECK_MODULES(FREETYPE, freetype2)
 
 # Fontconfig [optional]
-AC_MY_SWITCH(fontconfig,[enable fontconfig support],off)
+AC_MY_SWITCH(fontconfig,[enable fontconfig support],on)
 if test x$sw_fontconfig = xyes; then
-    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, AC_DEFINE(HAVE_FONTCONFIG, 1, [Define if you have fontconfig installed.]))
+    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, AC_DEFINE(HAVE_FONTCONFIG, 1, [Define if you have fontconfig installed.]), [sw_fontconfig=no] )
 fi
 
 
