@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.261 2012/07/25 18:45:27 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.262 2012/07/26 15:36:34 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -376,39 +376,71 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 #define PHONG_SHADING_ALWAYS
 
-/*  VERTEX bits */
-static const GLchar *vertPosDeclare =
-"attribute      vec4 fw_Vertex; \n \
-uniform         mat4 fw_ModelViewMatrix; \n \
-uniform         mat4 fw_ProjectionMatrix; \n ";
+
+/* VERTEX inputs */
+
+static const GLchar *vertPosDec = "\
+    attribute      vec4 fw_Vertex; \n \
+    uniform         mat4 fw_ModelViewMatrix; \n \
+    uniform         mat4 fw_ProjectionMatrix; \n ";
+
+static const GLchar *vertNormDec = " \
+    uniform        mat3 fw_NormalMatrix;\n \
+    attribute      vec3 fw_Normal; \n";
+
+static const GLchar *vertSimColDec = "\
+    attribute  vec4 fw_Color;\n ";
+
+static const GLchar *vertTexMatrixDec = "\
+    uniform mat4 fw_TextureMatrix;\n";
+
+static const GLchar *vertTexCoordDec = "\
+    attribute vec2 fw_MultiTexCoord0;\n";
+
+static const GLchar *vertOneMatDec = "\
+    uniform fw_MaterialParameters\n\
+    fw_FrontMaterial; \n";
+static const GLchar *vertBackMatDec = "\
+    uniform fw_MaterialParameters fw_BackMaterial; \n";
+
+
+
+/* VERTEX outputs */
+
+static const GLchar *vertPhongOutput = " \
+    varying vec3 Norm; \
+    varying vec4 Pos; \n";
+
+static const GLchar *vertTexCoordOutput = "\
+    varying vec2 v_texC;\n";
+
+static const GLchar *vertFrontColDef = "\
+    varying vec4    v_front_colour; \n";
+
+
+/* VERTEX Calculations */
 
 static const GLchar *vertMainStart = "void main(void) { \n";
 
-static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
-
 static const GLchar *vertEnd = "}";
 
-static const GLchar *vertNormDec = " \
-uniform        mat3 fw_NormalMatrix; \
-attribute      vec3 fw_Normal; \n";
-
-static const GLchar *vertPhongDec = " \
-varying vec3 Norm; \
-varying vec4 Pos; \n";
+static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
 
 
-static const GLchar *vertPhongUse = "\
-Norm = normalize(fw_NormalMatrix * fw_Normal); \
-Pos = fw_ModelViewMatrix * fw_Vertex; ";
+static const GLchar *vertPhongCalc = "\
+Norm = normalize(fw_NormalMatrix * fw_Normal);\n \
+Pos = fw_ModelViewMatrix * fw_Vertex;\n ";
 
 
 
-static const GLchar *vertSimColDec = "attribute  vec4 fw_Color;\n ";
+
+
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
-static const GLchar *vertOneMatDec = "uniform fw_MaterialParameters  fw_FrontMaterial; \n";
-static const GLchar *vertBackMatDec = "uniform fw_MaterialParameters fw_BackMaterial; \n";
-static const GLchar *vertFrontColDef = "varying vec4    v_front_colour; \n";
+
+
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
+static const GLchar *vertSingTexCalc = "v_texC = vec2(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).st;\n";
+
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {    \
 vec4 emission;    \
@@ -428,6 +460,7 @@ uniform vec4 lightDiffuse[8];    \
 uniform vec4 lightPosition[8];    \
 uniform vec4 lightSpotDir[8]; \
 uniform vec4 lightSpecular[8]; \n";
+
 
 static const GLchar *fragPhongPNDec = "varying vec3 Norm;  \
 varying vec4 Pos; ";
@@ -605,14 +638,20 @@ v_front_colour = do_lighting(); \
 static const GLchar *fragPrecision = "precision lowp float;\n ";
 #endif
 
-static const GLchar *fragMainStart = "void main() {\n";
-static const GLchar *fragEnd = "}";
-static const GLchar *fragFrontColDec = "varying vec4 v_front_colour;\n";
+/* NOTE that we write to the vec4 "finalFrag", and at the end we assign
+    the gl_FragColor, because we might have textures, fill properties, etc*/
 
-static const GLchar *fragSimColAss = "gl_FragColor = v_front_colour;\n ";
-static const GLchar *fragNoAppAss = "gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n";
-static const GLchar *fragFrontColAss=    " gl_FragColor = v_front_colour;";
-const static GLchar *fragADSLAss = "gl_FragColor = ADSLightModel(Norm,Pos);";
+static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
+static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
+static const GLchar *fragFrontColDec = "varying vec4 v_front_colour;\n";
+static const GLchar *fragTexCoordDec = "varying vec2 v_texC; \n";
+static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
+
+static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
+static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
+static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
+const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
+const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC);\n";
 
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
@@ -620,7 +659,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
     if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
     if DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
-    if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_MATERIAL_SHADER");
+    if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_APPEARANCE_SHADER");
     if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("want MULTI_TEX_APPEARANCE_SHADER");
     if DESIRE(whichOne,COLOUR_MATERIAL_SHADER)ConsoleMessage("want COLOUR_MATERIAL_SHADER");
     if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
@@ -632,7 +671,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* Generic things first */
 
     /* Cross shader Vertex bits */
-    vertexSource[vertexPositionDeclare] = vertPosDeclare;    
+    vertexSource[vertexPositionDeclare] = vertPosDec;    
     vertexSource[vertexMainStart] = vertMainStart;
     vertexSource[vertexPosition] = vertPos;
     vertexSource[vertexMainEnd] = vertEnd;
@@ -673,9 +712,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 #endif
         DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)) {
 
-        vertexSource[vertexPhongDeclare] = vertPhongDec;
+        vertexSource[vertexPhongOutput] = vertPhongOutput;
         vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexPhongCalculation] = vertPhongUse;
+        vertexSource[vertexPhongCalculation] = vertPhongCalc;
             
         fragmentSource[fragmentLightDefines] = lightDefines;
         //fragmentSource[fragmentNormalColorDefs] = fragNormalColorDefs;
@@ -726,8 +765,20 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
         }
          */
+        
+        if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) {
+            vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
+            vertexSource[vertexTexCoordOutputDeclare] = vertTexCoordOutput;
+            vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
+            vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
+            
+            fragmentSource[fragmentTexCoordDeclare] = fragTexCoordDec;
+            fragmentSource[fragmentTex0Declare] = fragTex0Dec;
+            fragmentSource[fragmentSingleTextureAssign] = fragSingTexAss;
+            
+            
+        }
 
-    if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("still want ONE_TEX_MATERIAL_SHADER");
     if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("still want MULTI_TEX_APPEARANCE_SHADER");
     if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("still want FILL_PROPERTIES_SHADER");
     

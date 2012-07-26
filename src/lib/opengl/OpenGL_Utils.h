@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.52 2012/07/25 18:45:27 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.53 2012/07/26 15:36:34 crc_canada Exp $
 
 Screen snapshot.
 
@@ -31,38 +31,61 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 typedef enum vertexShaderResources {
-       	vertexPrecisionDeclare,
+    vertexPrecisionDeclare,
+    
     vertexLightDefines,
-    vertexPhongDeclare,
+    
+ 
     vertexNormalDeclare,
 	vertexPositionDeclare,
 	vertexSimpleColourDeclare,
+    vertexTextureMatrixDeclare,
     vertexOneMaterialDeclare,
     vertexBackMaterialDeclare,
     vertFrontColourDeclare,
+    vertexTexCoordInputDeclare,
+    
+    vertexTexCoordOutputDeclare,
+    
+    vertexPhongOutput,
+    
     vertexLightingEquation,
+    
 	vertexMainStart,
+    
 	vertexPosition,
+    vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,
     vertexPhongCalculation,
 	vertexSimpleColour,
+    
 	vertexMainEnd,
 	vertexEndMarker
 } vertexShaderResources_t;
 
 typedef enum fragmenShaderResources {
 	fragmentPrecisionDeclare,
+    
     fragmentLightDefines,
+    
     fragmentNormalColorDefs,
+    
+    fragmentTexCoordDeclare,
+    fragmentTex0Declare,
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
     fragmentPhongNormPosDeclare,
+    
     fragmentADSLLightModel,
+    
 	fragmentMainStart,
+    
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,
     fragmentADSLAssign,
+    fragmentSingleTextureAssign,
+    
 	fragmentMainEnd,
 	fragmentEndMarker
 } fragmentShaderResources_t;
