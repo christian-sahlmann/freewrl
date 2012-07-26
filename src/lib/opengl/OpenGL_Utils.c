@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.262 2012/07/26 15:36:34 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.263 2012/07/26 19:37:58 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -654,6 +654,141 @@ const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
 const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC);\n";
 
 
+/* MultiTexture stuff */
+/* still to do:
+ #define MTMODE_BLENDCURRENTALPHA       2
+ #define MTMODE_DOTPRODUCT3     4
+ #define MTMODE_SELECTARG2      5
+ #define MTMODE_SELECTARG1      6
+ #define MTMODE_BLENDDIFFUSEALPHA       7
+ #define MTMODE_MODULATEINVCOLOR_ADDALPHA       10
+ #define MTMODE_MODULATEINVALPHA_ADDCOLOR       15
+ #define MTMODE_MODULATEALPHA_ADDCOLOR  16
+ */
+const static GLchar *fragMulTexDef = " \
+#define MTMODE_ADDSIGNED2X    0\n \
+#define MTMODE_REPLACE        1\n \
+#define MTMODE_BLENDCURRENTALPHA      2\n \
+#define MTMODE_MODULATE       3\n \
+#define MTMODE_DOTPRODUCT3    4\n \
+#define MTMODE_SELECTARG2     5\n \
+#define MTMODE_SELECTARG1     6\n \
+#define MTMODE_BLENDDIFFUSEALPHA      7\n \
+#define MTMODE_SUBTRACT       8\n \
+#define MTMODE_ADD    9\n \
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA      10\n \
+#define MTMODE_ADDSMOOTH      11\n \
+#define MTMODE_MODULATE2X     12\n \
+#define MTMODE_MODULATE4X     13\n \
+#define MTMODE_OFF    14\n \
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR      15\n \
+#define MTMODE_MODULATEALPHA_ADDCOLOR 16\n \
+#define MTMODE_ADDSIGNED      17\n \
+";
+
+static const GLchar *fragMultiTexUniforms = " \
+/* defined for single textures... uniform sampler2D fw_Texture_unit0; */\
+uniform sampler2D fw_Texture_unit1; \
+uniform sampler2D fw_Texture_unit2; \
+/* REMOVE these as shader compile takes long \
+uniform sampler2D fw_Texture_unit3; \
+uniform sampler2D fw_Texture_unit4; \
+uniform sampler2D fw_Texture_unit5; \
+uniform sampler2D fw_Texture_unit6; \
+uniform sampler2D fw_Texture_unit7; \
+*/  \
+uniform int fw_Texture_mode0; \
+uniform int fw_Texture_mode1; \
+uniform int fw_Texture_mode2; \
+/* REMOVE these as shader compile takes long \
+uniform int fw_Texture_mode3; \
+uniform int fw_Texture_mode4; \
+uniform int fw_Texture_mode5; \
+uniform int fw_Texture_mode6; \
+uniform int fw_Texture_mode7; \
+*/ \n\
+\
+uniform int textureCount;\n";
+
+
+static const GLchar *fragMulTexFunc ="\
+vec4 finalColCalc(in vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \
+vec4 texel = texture2D(tex,texcoord); \
+vec4 rv = vec4(1.,0.,1.,1.);  \
+\
+if (mode==MTMODE_OFF) { rv = vec4(prevColour);} \
+else if (mode==MTMODE_REPLACE) {rv = vec4(texture2D(tex, texcoord));}\
+else if (mode==MTMODE_MODULATE) { \
+\
+vec3 ct,cf; \
+vec4 texel; \
+float at,af; \
+\
+cf = prevColour.rgb; \
+af = prevColour.a; \
+\
+ct = texel.rgb; \
+at = texel.a; \
+rv = vec4(ct*cf, at*af); \
+\
+} \
+else if (mode==MTMODE_MODULATE2X) { \
+vec3 ct,cf; \
+float at,af; \
+\
+cf = prevColour.rgb; \
+af = prevColour.a; \
+\
+ct = texel.rgb; \
+at = texel.a; \
+rv = vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.)); \
+}\
+else if (mode==MTMODE_MODULATE4X) { \
+vec3 ct,cf; \
+float at,af; \
+\
+cf = prevColour.rgb; \
+af = prevColour.a; \
+\
+ct = texel.rgb; \
+at = texel.a; \
+rv = vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.)); \
+}\
+else if (mode== MTMODE_ADDSIGNED) {\
+rv = vec4 (prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5)); \
+} \
+else if (mode== MTMODE_ADDSIGNED2X) {\
+rv = vec4 ((prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.)); \
+} \
+else if (mode== MTMODE_ADD) {\
+rv= vec4 (prevColour + texel); \
+} \
+else if (mode== MTMODE_SUBTRACT) {\
+rv = vec4 (prevColour - texel); \
+} \
+else if (mode==MTMODE_ADDSMOOTH) { \
+rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel); \
+} \
+return rv; \
+\
+} \n";
+
+const static GLchar *fragMulTexCalc = "\
+if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC);} \n\
+if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC);} \n\
+if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC);} \n\
+/* REMOVE these as shader compile takes long \
+if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,v_texC);} \n\
+if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,v_texC);} \n\
+if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,v_texC);} \n\
+if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,v_texC);} \n\
+if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,v_texC);} \n\
+*/ \n";
+
+
+
+
+
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
 
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
@@ -766,7 +901,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         }
          */
         
-        if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) {
+        /* texturing - MULTI_TEX builds on ONE_TEX */
+        if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
+            DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
             vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
             vertexSource[vertexTexCoordOutputDeclare] = vertTexCoordOutput;
             vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
@@ -774,12 +911,31 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             
             fragmentSource[fragmentTexCoordDeclare] = fragTexCoordDec;
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
-            fragmentSource[fragmentSingleTextureAssign] = fragSingTexAss;
+            fragmentSource[fragmentTextureAssign] = fragSingTexAss;
             
             
         }
 
-    if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("still want MULTI_TEX_APPEARANCE_SHADER");
+        /* MULTI_TEX builds on ONE_TEX */
+        if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
+            /* we have to do the material params, in case we need to
+                modulate/play with this. */
+            
+            vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+            vertexSource[vertexLightDefines] = lightDefines;
+            vertexSource[vertexLightingEquation] = vertLightingEquation;
+
+            fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
+
+            fragmentSource[fragmentMultiTexDeclare] = fragMulTexDef;
+            fragmentSource[fragmentTex0Declare] = fragTex0Dec;
+            fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
+            fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
+
+
+            
+        }
+        
     if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("still want FILL_PROPERTIES_SHADER");
     
 

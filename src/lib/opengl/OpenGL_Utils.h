@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.53 2012/07/26 15:36:34 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.54 2012/07/26 19:37:58 crc_canada Exp $
 
 Screen snapshot.
 
@@ -66,25 +66,28 @@ typedef enum vertexShaderResources {
 typedef enum fragmenShaderResources {
 	fragmentPrecisionDeclare,
     
+    fragmentMultiTexDefines,
     fragmentLightDefines,
     
     fragmentNormalColorDefs,
     
     fragmentTexCoordDeclare,
     fragmentTex0Declare,
+    fragmentMultiTexDeclare,
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
     fragmentPhongNormPosDeclare,
     
     fragmentADSLLightModel,
+    fragmentMultiTexModel,
     
 	fragmentMainStart,
     
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,
     fragmentADSLAssign,
-    fragmentSingleTextureAssign,
+    fragmentTextureAssign,
     
 	fragmentMainEnd,
 	fragmentEndMarker
