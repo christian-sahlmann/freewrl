@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.127 2012/07/25 18:45:27 crc_canada Exp $
+  $Id: Textures.c,v 1.128 2012/07/27 15:40:03 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -770,9 +770,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	int count;
 	int max;
 	struct multiTexParams *paramPtr;
-
 	struct X3D_ImageTexture *nt;
-    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),
@@ -799,20 +797,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	if (max > gglobal()->display.rdr_caps.texture_units) max = gglobal()->display.rdr_caps.texture_units;
     if (max > MAX_MULTITEXTURE) max = MAX_MULTITEXTURE;
     
-    /* do this before we get here - it is the max number of textures */
-    if (me != NULL) {
-      if (me->textureCount != -1) {
-#ifdef TEXVERBOSE
-        printf ("loadMultiTexture, setting the textureCount to %d\n",max);
-#endif
-
-        glUniform1i(me->textureCount, max);
-      }
-#ifdef TEXVERBOSE
-    } else {
-        printf("loadMultiTexture, could not set textureCount to %d because currentShaderProperties is NULL\n",max);
-#endif
-    }    
     
 	/* go through and get all of the textures */
 	paramPtr = (struct multiTexParams *) node->__params;
@@ -861,7 +845,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 #endif
 	}
 }
-
 
 #define BOUNDARY_TO_GL(direct) \
 				switch (findFieldInTEXTUREBOUNDARYKEYWORDS(tpNode->boundaryMode##direct->strptr)) { \

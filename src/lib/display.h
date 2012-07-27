@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.152 2012/07/25 18:45:27 crc_canada Exp $
+  $Id: display.h,v 1.153 2012/07/27 15:40:03 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -361,40 +361,6 @@ bool fv_bind_GLcontext();
 
 /* OpenGL renderer capabilities */
 
-#ifdef OLDCODE
-OLDCODEtypedef enum shader_type {
-OLDCODE	/* Background shaders */
-OLDCODE	backgroundSphereShader,
-OLDCODE	backgroundTextureBoxShader,
-OLDCODE
-OLDCODE	/* generic (not geometry Shader specific) shaders */
-OLDCODE	noMaterialNoAppearanceShader,
-OLDCODE	noTexOneMaterialShader,
-OLDCODE	noTexTwoMaterialShader,
-OLDCODE	oneTexOneMaterialShader,
-OLDCODE	oneTexTwoMaterialShader,
-OLDCODE	complexTexOneMaterialShader,
-OLDCODE	complexTexTwoMaterialShader,
-OLDCODE
-OLDCODE	/* Shape has Color node */
-OLDCODE	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
-OLDCODE	noTexTwoMaterialColourShader,
-OLDCODE	noTexOneMaterialColourShader,
-OLDCODE	oneTexTwoMaterialColourShader,
-OLDCODE	oneTexOneMaterialColourShader,
-OLDCODE	linePointColorNodeShader,
-OLDCODE	linePointNoColorNodeShader,
-OLDCODE
-OLDCODE	/* full MultiTexture shader */
-OLDCODE	multiTexShader,
-OLDCODE
-OLDCODE	/* fillProperties shader */
-OLDCODE	fillPropertiesFullShader,
-OLDCODE
-OLDCODE	/* final one, used for array sizing */
-OLDCODE	max_enum_shader_type
-OLDCODE} shader_type_t;
-#endif //OLDCODE
 
 typedef struct s_shader_capabilities{
 	GLint compiledOK;

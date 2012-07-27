@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: RenderTextures.c,v 1.62 2012/07/25 18:45:27 crc_canada Exp $
+$Id: RenderTextures.c,v 1.63 2012/07/27 15:40:03 crc_canada Exp $
 
 Texturing during Runtime 
 texture enabling - works for single texture, for multitexture. 
@@ -105,7 +105,6 @@ printf ("skipping setupTexGen\n");
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
 
-
 static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, GLint *texMode) 
 {
 	ttglobal tg = gglobal();
@@ -168,6 +167,9 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 
 void textureDraw_start(struct textureVertexInfo* genTex) {
+#ifdef TEXVERBOSE
+    ConsoleMessage("textureDraw_start");
+#endif
 		passedInGenTex(genTex);
 }
 
@@ -178,7 +180,7 @@ void textureDraw_end(void) {
 	ppRenderTextures p;
 	ttglobal tg = gglobal();
 	p = (ppRenderTextures)tg->RenderTextures.prv;
-
+    
 #ifdef TEXVERBOSE
 	printf ("start of textureDraw_end\n");
 #endif
@@ -213,6 +215,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	ttglobal tg = gglobal();
+
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
     
@@ -262,18 +265,26 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 
 	}
-
+    
+    /* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
+        //printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
+        
+        if (me->textureCount != -1) 
+        glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+        
+        
 	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
         	//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
-		glUniform1i(me->TextureUnit[i],i);
-		glUniform1i(me->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
-	    }
+            glUniform1i(me->TextureUnit[i],i);
+            glUniform1i(me->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
+        }
 	#ifdef TEXVERBOSE
 	} else {
 		printf (" NOT sending in %d i+tu+mode because currentShaderProperties is NULL\n",tg->RenderFuncs.textureStackTop);
 	#endif
 	}
+
     
     
 	PRINT_GL_ERROR_IF_ANY("");

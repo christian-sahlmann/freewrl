@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.263 2012/07/26 19:37:58 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.264 2012/07/27 15:40:03 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -350,6 +350,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         if (me->whichOne == rq_cap) {
+            //printf ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
             return me->myCapabilities;
         }
     }
@@ -361,13 +362,13 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     new ->whichOne = rq_cap;
     new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
 
-    ConsoleMessage ("going to compile new shader for %x",rq_cap);
+    //ConsoleMessage ("going to compile new shader for %x",rq_cap);
     makeAndCompileShader(new);
         
     vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
     
-    ConsoleMessage ("going to return new %p",new);
-    ConsoleMessage ("... myCapabilities is %p",new->myCapabilities);
+    //ConsoleMessage ("going to return new %p",new);
+    //ConsoleMessage ("... myCapabilities is %p",new->myCapabilities);
     return new->myCapabilities;
 }
 
@@ -721,7 +722,6 @@ else if (mode==MTMODE_REPLACE) {rv = vec4(texture2D(tex, texcoord));}\
 else if (mode==MTMODE_MODULATE) { \
 \
 vec3 ct,cf; \
-vec4 texel; \
 float at,af; \
 \
 cf = prevColour.rgb; \
@@ -729,6 +729,8 @@ af = prevColour.a; \
 \
 ct = texel.rgb; \
 at = texel.a; \
+\
+\
 rv = vec4(ct*cf, at*af); \
 \
 } \
@@ -1127,7 +1129,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     }
     
     me->textureCount = GET_UNIFORM(myProg,"textureCount");
-
+    //printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
+    
+    
+    
 	/* for FillProperties */
 	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
 	me->hatchPercent = GET_UNIFORM(myProg,"HatchPct");
@@ -1145,82 +1150,6 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     
 }
 
-#ifdef OLDCODE
-/* read in shaders and place the resulting shader program in the "whichShader" field if success. */
-static void getGenericShader(shader_type_t whichOne) {
-	GLint success;
-	GLuint myVertexShader = 0;
-	GLuint myFragmentShader= 0;
-
-	GLuint myProg = 0;
-	s_shader_capabilities_t *myShader;
-	char *compileFlags;
-	char *vertexSource[2];
-	char  *fragmentSource[2];
-
-    
-	#ifdef VERBOSE
-	printCompilingShader(whichOne);
-	#endif //VERBOSE
-
-
-	/* pointerize this */
-	myShader = &(gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne]);
-	myProg = glCreateProgram(); /* CREATE_PROGRAM */
-	(*myShader).myShaderProgram = myProg;
-
-	/* assume the worst... */
-	(*myShader).compiledOK = FALSE;
-	
-	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
-	if (!getSpecificShaderSource (&vertexSource[vertexPrecisionDeclare], &fragmentSource[fragmentPrecisionDeclare], whichOne)) {
-		return;
-	}
-
-	#ifdef GL_ES_VERSION_2_0
-	vertexSource[0] = compileFlags;
-	fragmentSource[0] = " \
-		precision lowp float;\n \
-	";
-
-	#else
-
-	vertexSource[0] = compileFlags;
-	fragmentSource[0] = compileFlags;
-	#endif
-
-
-	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
-	SHADER_SOURCE(myVertexShader, 2, (const GLchar **) vertexSource, NULL);
-	COMPILE_SHADER(myVertexShader);
-	GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success);
-	if (!success) {
-		shaderErrorLog(myVertexShader,"VERTEX");
-	} else {
-
-		ATTACH_SHADER(myProg, myVertexShader);
-	}
-
-
-	/* get Fragment shader */
-	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
-	SHADER_SOURCE(myFragmentShader, 2, (const GLchar **) fragmentSource, NULL);
-	COMPILE_SHADER(myFragmentShader);
-	GET_SHADER_INFO(myFragmentShader, COMPILE_STATUS, &success);
-	if (!success) {
-		shaderErrorLog(myFragmentShader,"FRAGMENT");
-	} else {
-		ATTACH_SHADER(myProg, myFragmentShader);
-	}
-
-
-	LINK_SHADER(myProg);
-	glGetProgramiv(myProg,GL_LINK_STATUS, &success); 
-	(*myShader).compiledOK = (success == GL_TRUE);
-
-	getShaderCommonInterfaces(myShader);
-}
-#endif //OLDCODE
 
 static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	int oldInRange, handled;
@@ -1543,40 +1472,6 @@ bool fwl_initialize_GL()
 #endif
 #endif /* KEEP_FV_INLIB */
 
-
-#ifdef OLDCODE
-	/* for rendering Background and TextureBackground nodes */
-	getGenericShader(backgroundSphereShader);
-	getGenericShader(backgroundTextureBoxShader);
-
-
-	/* for rendering Polyreps, and other shapes without Geometry and other special shaders */
-        getGenericShader(noMaterialNoAppearanceShader);
-        getGenericShader(noTexOneMaterialShader);
-	getGenericShader(noTexTwoMaterialShader);
-	getGenericShader(oneTexOneMaterialShader);
-	getGenericShader(oneTexTwoMaterialShader);
-	getGenericShader(complexTexOneMaterialShader);
-	getGenericShader(complexTexTwoMaterialShader);
-
-
-	/* Color node present in shape */
-	/* note, noMaterialNoAppearanceColourShader is the same as the Background Sphere shader -we use that one */
-	getGenericShader(noTexTwoMaterialColourShader);
-	getGenericShader(noTexOneMaterialColourShader);
-	getGenericShader(oneTexTwoMaterialColourShader);
-	getGenericShader(oneTexOneMaterialColourShader);
-	getGenericShader(linePointColorNodeShader);
-
-	/* lines, points, no colour node, get colour from material */
-	getGenericShader(linePointNoColorNodeShader);
-
-	/* multi texture shader */
-	getGenericShader(multiTexShader);
-
-	/* fillProperties node shader */
-	getGenericShader(fillPropertiesFullShader);
-#endif //OLDCODE
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 4");
         
