@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.265 2012/07/27 18:21:21 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.266 2012/07/27 18:26:45 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -749,7 +749,7 @@ useBrick = step(position, HatchPct); \
 \
 if (hatched) colour = mix(HatchColour, prevColour, useBrick.x * useBrick.y); \
 else { \
-    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,1.,1); }\
+    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,0.,0); }\
 } \
 return colour; } ";
 
