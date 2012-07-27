@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.116 2012/07/27 15:40:03 crc_canada Exp $
+$Id: Component_Shape.c,v 1.117 2012/07/27 18:21:22 crc_canada Exp $
 
 X3D Shape Component
 
@@ -109,7 +109,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 	
 	/* Render the material node... */
 	RENDER_MATERIAL_SUBNODES(node->material);
-	
+	    
 	if (node->fillProperties) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->fillProperties,tmpN);
 		render_node(tmpN);
@@ -406,9 +406,8 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLint filled;
 	int success;
 
-    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
-	if (me==NULL) return;
-
+    struct matpropstruct *me= getAppearanceProperties();
+    
 	hatchX = 0.80f; hatchY = 0.80f;
 	algor = node->hatchStyle; filled = node->filled; hatched = node->hatched;
 	switch (node->hatchStyle) {
@@ -424,12 +423,12 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 		}
 	}
 
-	GLUNIFORM2F(me->hatchPercent,hatchX, hatchY);
-	GLUNIFORM1I(me->filledBool,filled);
-	GLUNIFORM1I(me->hatchedBool,hatched);
-	GLUNIFORM1I(me->algorithm,algor);
-	GLUNIFORM4F(me->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
-
+    me->filledBool = filled;
+    me->hatchedBool = hatched;
+    me->hatchPercent[0] = hatchX;
+    me->hatchPercent[1] = hatchY;
+    me->algorithm = algor;
+    me->hatchColour[0]=node->hatchColor.c[0]; me->hatchColour[1]=node->hatchColor.c[1]; me->hatchColour[2] = node->hatchColor.c[2];
 }
 
 
@@ -529,6 +528,7 @@ void child_Shape (struct X3D_Shape *node) {
 		}
 
         /* enable the shader for this shape */
+        //ConsoleMessage("turning shader on");
         enableGlobalShader (getMyShader(node->_shaderTableEntry));
 
 		#ifdef SHAPEOCCLUSION
@@ -545,6 +545,7 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* any shader turned on? if so, turn it off */
+    //ConsoleMessage("turning shader off");
 	TURN_GLOBAL_SHADER_OFF;
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;

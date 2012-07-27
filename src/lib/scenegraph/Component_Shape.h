@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.15 2012/07/26 19:37:58 crc_canada Exp $
+$Id: Component_Shape.h,v 1.16 2012/07/27 18:21:22 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -72,7 +72,15 @@ struct matpropstruct {
 	float	transparency;
 	GLfloat	emissionColour[3];
 	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */
-	int 	cullFace;		/* is this single-sided or two-sided? */
+    int 	cullFace;       /* is this single-sided or two-sided? */
+    
+    /* for FillProperties, and LineProperties, line type (NOT pointsize) */
+    int algorithm;
+    bool hatchedBool;
+    bool filledBool;
+    GLfloat hatchPercent[2];
+    GLfloat hatchColour[3];
+    
 };
 
 struct matpropstruct* getAppearanceProperties();

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.54 2012/07/26 19:37:58 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.55 2012/07/27 18:21:22 crc_canada Exp $
 
 Screen snapshot.
 
@@ -44,8 +44,8 @@ typedef enum vertexShaderResources {
     vertexBackMaterialDeclare,
     vertFrontColourDeclare,
     vertexTexCoordInputDeclare,
-    
     vertexTexCoordOutputDeclare,
+    vertexHatchPositionDeclare,
     
     vertexPhongOutput,
     
@@ -53,11 +53,12 @@ typedef enum vertexShaderResources {
     
 	vertexMainStart,
     
-	vertexPosition,
+	vertexPositionCalculation,
     vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,
     vertexPhongCalculation,
-	vertexSimpleColour,
+	vertexSimpleColourCalculation,
+    vertexHatchPositionCalculation,
     
 	vertexMainEnd,
 	vertexEndMarker
@@ -68,6 +69,7 @@ typedef enum fragmenShaderResources {
     
     fragmentMultiTexDefines,
     fragmentLightDefines,
+    fragmentFillPropDefines,
     
     fragmentNormalColorDefs,
     
@@ -78,9 +80,11 @@ typedef enum fragmenShaderResources {
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
     fragmentPhongNormPosDeclare,
+    fragmentHatchPositionDeclare,
     
     fragmentADSLLightModel,
     fragmentMultiTexModel,
+    fragmentFillPropModel,
     
 	fragmentMainStart,
     
@@ -88,6 +92,7 @@ typedef enum fragmenShaderResources {
     fragmentOneColourAssign,
     fragmentADSLAssign,
     fragmentTextureAssign,
+    fragmentFillPropAssign,
     
 	fragmentMainEnd,
 	fragmentEndMarker

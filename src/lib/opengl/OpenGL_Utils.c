@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.264 2012/07/27 15:40:03 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.265 2012/07/27 18:21:21 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -408,16 +408,18 @@ static const GLchar *vertBackMatDec = "\
 
 /* VERTEX outputs */
 
-static const GLchar *vertPhongOutput = " \
+static const GLchar *varyingNormPos = " \
     varying vec3 Norm; \
     varying vec4 Pos; \n";
 
-static const GLchar *vertTexCoordOutput = "\
+static const GLchar *varyingTexCoord = "\
     varying vec2 v_texC;\n";
 
-static const GLchar *vertFrontColDef = "\
+static const GLchar *varyingFrontColour = "\
     varying vec4    v_front_colour; \n";
 
+static const GLchar *varyingHatchPosition = "\
+    varying vec2 hatchPosition; \n";
 
 /* VERTEX Calculations */
 
@@ -427,20 +429,22 @@ static const GLchar *vertEnd = "}";
 
 static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
 
-
 static const GLchar *vertPhongCalc = "\
 Norm = normalize(fw_NormalMatrix * fw_Normal);\n \
 Pos = fw_ModelViewMatrix * fw_Vertex;\n ";
 
-
-
-
-
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
-
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
 static const GLchar *vertSingTexCalc = "v_texC = vec2(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).st;\n";
+
+static const GLchar *vertHatchPosCalc = "hatchPosition = fw_Vertex.xy;\n";
+
+static const GLchar *fillPropDefines = "\
+const vec2 HatchSize = vec2(0.15, 0.15); \n\
+uniform vec4 HatchColour; \n\
+uniform bool hatched; uniform bool filled;\n\
+uniform vec2 HatchPct; uniform int algorithm; ";
 
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {    \
@@ -461,10 +465,6 @@ uniform vec4 lightDiffuse[8];    \
 uniform vec4 lightPosition[8];    \
 uniform vec4 lightSpotDir[8]; \
 uniform vec4 lightSpecular[8]; \n";
-
-
-static const GLchar *fragPhongPNDec = "varying vec3 Norm;  \
-varying vec4 Pos; ";
 
 
 static const GLchar *ADSLLightModel = "\
@@ -644,8 +644,6 @@ static const GLchar *fragPrecision = "precision lowp float;\n ";
 
 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
 static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
-static const GLchar *fragFrontColDec = "varying vec4 v_front_colour;\n";
-static const GLchar *fragTexCoordDec = "varying vec2 v_texC; \n";
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 
 static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
@@ -711,6 +709,52 @@ uniform int fw_Texture_mode7; \
 \
 uniform int textureCount;\n";
 
+static const GLchar *fragFillPropFunc = "\
+vec4 fillPropCalc(in vec4 prevColour, vec2 MCposition, int algorithm) {\
+vec4 colour; \
+vec2 position, useBrick; \
+\
+position = MCposition / HatchSize; \
+\
+if (algorithm == 0) {/* bricking  */ \
+    if (fract(position.y * 0.5) > 0.5) \
+        position.x += 0.5; \
+        }\
+\
+/* algorithm 1, 2 = no futzing required here  */ \
+if (algorithm == 3) {/* positive diagonals */ \
+    vec2 curpos = position; \
+    position.x -= curpos.y; \
+} \
+\
+if (algorithm == 4) {/* negative diagonals */ \
+    vec2 curpos = position; \
+    position.x += curpos.y; \
+} \
+\
+if (algorithm == 6) {/* diagonal crosshatch */ \
+    vec2 curpos = position; \
+    if (fract(position.y) > 0.5)  { \
+        if (fract(position.x) < 0.5) position.x += curpos.y; \
+        else position.x -= curpos.y; \
+    } else { \
+        if (fract(position.x) > 0.5) position.x += curpos.y; \
+        else position.x -= curpos.y; \
+    } \
+} \
+\
+position = fract(position); \
+\
+useBrick = step(position, HatchPct); \
+\
+if (hatched) colour = mix(HatchColour, prevColour, useBrick.x * useBrick.y); \
+else { \
+    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,1.,1); }\
+} \
+return colour; } ";
+
+static const GLchar *fragFillPropCalc = "\
+finalFrag= fillPropCalc(finalFrag, hatchPosition, algorithm);\n";
 
 static const GLchar *fragMulTexFunc ="\
 vec4 finalColCalc(in vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \
@@ -810,7 +854,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* Cross shader Vertex bits */
     vertexSource[vertexPositionDeclare] = vertPosDec;    
     vertexSource[vertexMainStart] = vertMainStart;
-    vertexSource[vertexPosition] = vertPos;
+    vertexSource[vertexPositionCalculation] = vertPos;
     vertexSource[vertexMainEnd] = vertEnd;
     
     /* Cross shader Fragment bits */
@@ -827,9 +871,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
     if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
-        vertexSource[vertFrontColourDeclare] = vertFrontColDef;
-        vertexSource[vertexSimpleColour] = vertSimColUse;
-        fragmentSource[fragmentSimpleColourDeclare] = fragFrontColDec;
+        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+        vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
+        fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
     }
     
@@ -849,7 +893,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 #endif
         DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)) {
 
-        vertexSource[vertexPhongOutput] = vertPhongOutput;
+        vertexSource[vertexPhongOutput] = varyingNormPos;
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexPhongCalculation] = vertPhongCalc;
             
@@ -859,7 +903,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
-        fragmentSource[fragmentPhongNormPosDeclare] = fragPhongPNDec;
+        fragmentSource[fragmentPhongNormPosDeclare] = varyingNormPos;
         fragmentSource[fragmentADSLLightModel] = ADSLLightModel;
         fragmentSource[fragmentADSLAssign] = fragADSLAss;
     }
@@ -872,10 +916,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexNormalDeclare] = vertNormDec;
             vertexSource[vertexLightDefines] = lightDefines;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-            vertexSource[vertFrontColourDeclare] = vertFrontColDef;
+            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexLightingEquation] = vertLightingEquation;
             vertexSource[vertexOneMaterialCalculation] = vertFrontMatCalc;
-            fragmentSource[fragmentOneColourDeclare] = fragFrontColDec;
+            fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentOneColourAssign] = fragFrontColAss;
         }
     
@@ -884,10 +928,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
             vertexSource[vertexLightDefines] = lightDefines;
-            vertexSource[vertFrontColourDeclare] = vertFrontColDef;
+            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
             vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
-            fragmentSource[fragmentSimpleColourDeclare] = fragFrontColDec;
+            fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
         }
 
@@ -895,10 +939,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                 COLOR_MATERIAL_SHADER */
         /*
         if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR) {
-            vertexSource[vertFrontColourDeclare] = vertFrontColDef;
+            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
-            vertexSource[vertexSimpleColour] = vertSimColUse;
-            fragmentSource[fragmentSimpleColourDeclare] = fragFrontColDec;
+            vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
+            fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
         }
          */
@@ -907,11 +951,11 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
             DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
             vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
-            vertexSource[vertexTexCoordOutputDeclare] = vertTexCoordOutput;
+            vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
             vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
             vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
             
-            fragmentSource[fragmentTexCoordDeclare] = fragTexCoordDec;
+          fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;
             
@@ -928,18 +972,27 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexLightingEquation] = vertLightingEquation;
 
             fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
-
             fragmentSource[fragmentMultiTexDeclare] = fragMulTexDef;
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
             fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
 
 
+
             
         }
         
-    if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("still want FILL_PROPERTIES_SHADER");
-    
+        if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
+            /* just add on top of the other shaders the fill properties "stuff" */
+
+            vertexSource[vertexHatchPositionDeclare] = varyingHatchPosition;
+            vertexSource[vertexHatchPositionCalculation] = vertHatchPosCalc;
+            
+            fragmentSource[fragmentFillPropDefines] = fillPropDefines;
+            fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
+            fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
+            fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
+        }    
 
     vertexShaderResources_t x1;
 	fragmentShaderResources_t x2; 
@@ -3367,12 +3420,23 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
     
 }
+#define SEND_VEC2(myMat,myVal) \
+if (me->myMat != -1) { GLUNIFORM2FV(me->myMat,1,myVal);}
+        
+#define SEND_VEC3(myMat,myVal) \
+if (me->myMat != -1) { GLUNIFORM3FV(me->myMat,1,myVal);}
+        
 
 #define SEND_VEC4(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
         
 #define SEND_FLOAT(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
+        
+#define SEND_INT(myMat,myVal) \
+if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
+        
+
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
     struct matpropstruct *myap = getAppearanceProperties();
@@ -3417,6 +3481,24 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
 
 	if (me->lightState != -1) sendLightInfo(me);
+    
+    /* FillProperties, LineProperty lineType */
+
+    //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
+    SEND_INT(filledBool,myap->filledBool);
+    SEND_INT(hatchedBool,myap->hatchedBool);
+    SEND_INT(algorithm,myap->algorithm);
+    SEND_VEC3(hatchColour,myap->hatchColour);
+    SEND_VEC2(hatchPercent,myap->hatchPercent);
+    
+#ifdef wrwerwet
+	GLUNIFORM2F(me->hatchPercent,hatchX, hatchY);
+	GLUNIFORM1I(me->filledBool,filled);
+	GLUNIFORM1I(me->hatchedBool,hatched);
+	GLUNIFORM1I(me->algorithm,algor);
+	GLUNIFORM4F(me->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
+#endif
+
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
