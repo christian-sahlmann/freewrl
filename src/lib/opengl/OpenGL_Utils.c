@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.266 2012/07/27 18:26:45 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.267 2012/07/28 13:52:21 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -993,17 +993,17 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
+		if(1){
+			vertexShaderResources_t x1;
+			fragmentShaderResources_t x2; 
 
-    vertexShaderResources_t x1;
-	fragmentShaderResources_t x2; 
-
-    ConsoleMessage ("Vertex source:");
-    for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
-		ConsoleMessage(vertexSource[x1]); 
-    ConsoleMessage("Fragment Source:");
-	for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
-		ConsoleMessage(fragmentSource[x2]); 
-
+			ConsoleMessage ("Vertex source:");
+			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
+				ConsoleMessage(vertexSource[x1]); 
+			ConsoleMessage("Fragment Source:");
+			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
+				ConsoleMessage(fragmentSource[x2]); 
+		}
 	return TRUE;
 }
 
