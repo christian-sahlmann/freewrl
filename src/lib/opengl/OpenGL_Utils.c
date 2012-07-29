@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.267 2012/07/28 13:52:21 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.268 2012/07/29 16:18:16 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -328,20 +328,9 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 /****************************************************************************************/
 
+/* find a shader that matches the capabilities requested. If no match, recreate it */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     int i;
-    
-	//ConsoleMessage ("getMyShader, capabilites %x",rq_cap);
-    /*
-     struct shaderTableEntry {
-     unsigned int capabilities;
-     GLuint myProg;
-     bool compiledOk;
-     s_shader_capabilities_t *myCapabilities;
-     
-     };
-*/
-    //struct Vector *myShaderTable = gglobal()->display.shaderTable;
 
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
     struct Vector *myShaderTable = p->myShaderTable;
@@ -1546,16 +1535,11 @@ bool fwl_initialize_GL()
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
-	
-	
-	{
-		float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
-		FW_GL_LINEWIDTH(gl_linewidth);
+	float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
+	FW_GL_LINEWIDTH(gl_linewidth);
         #ifndef GL_ES_VERSION_2_0
 		FW_GL_POINTSIZE(gl_linewidth);
         #endif
-	}
-	
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
     
@@ -1608,9 +1592,6 @@ bool fwl_initialize_GL()
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
 	#endif
 
-	{
-	//extern GLuint defaultBlankTexture;
-
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
         FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
         FW_GL_BINDTEXTURE (GL_TEXTURE_2D, tg->Textures.defaultBlankTexture);
@@ -1620,6 +1601,20 @@ bool fwl_initialize_GL()
         
         PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start d");
         
+	/* remove entries in the shader table, if they exist. Android, on "bring to front" will
+	   call this routine, and shaders will be re-created as they are needed to display geometry.
+	*/
+	
+	if (p->myShaderTable != NULL) {
+		int i;
+
+		for (i=0; i<vectorSize(p->myShaderTable); i++) {
+        		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+			FREE_IF_NZ(me);
+        	}
+		deleteVector (struct shaderTableEntry *,p->myShaderTable);
+		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
+
 	}
 
 	return TRUE;
@@ -2101,10 +2096,14 @@ void fwl_Android_reloadAssets(void) {
 	struct X3D_Node *node;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	//ConsoleMessage("fwl_Android_reloadAssets called");
+	ConsoleMessage("fwl_Android_reloadAssets called");
 
-	//ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
+	ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
 	fwl_initialize_GL();
+
+	ConsoleMessage("fwl_Android_reloadAssets - reload the current active shaders");
+
+
 
         LOCK_MEMORYTABLE
 	for (tc = 0; tc< p->nextEntry; tc++) {

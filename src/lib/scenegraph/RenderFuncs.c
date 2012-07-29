@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.128 2012/07/25 18:45:27 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.129 2012/07/29 16:18:16 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -339,7 +339,6 @@ void enableGlobalShader(s_shader_capabilities_t *myShader) {
     //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
     if (myShader == NULL) {
         TURN_GLOBAL_SHADER_OFF; 
-        getAppearanceProperties()->currentShaderProperties = NULL;
         return;
     };
     
