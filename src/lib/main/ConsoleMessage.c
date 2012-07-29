@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.32 2012/07/17 22:29:35 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.33 2012/07/29 15:47:37 crc_canada Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -92,7 +92,8 @@ typedef struct pConsoleMessage{
 
 
 }* ppConsoleMessage;
-void *ConsoleMessage_constructor(){
+
+static void *ConsoleMessage_constructor(){
 	void *v = malloc(sizeof(struct pConsoleMessage));
 	memset(v,0,sizeof(struct pConsoleMessage));
 	return v;
@@ -139,12 +140,6 @@ void hudSetConsoleMessage(char *buffer);
 
 
 /* runtime replace DEF_AQUA , TARGET_AQUA , HAVE_MOTIF , TARGET_MOTIF , MC_MSC_HAVE_VER); */
-//int setDefAqua = 0;
-//int setTargetAqua = 0;
-//int setHaveMotif = 0;
-//int setTargetMotif = 0;
-//int setHaveMscVer = 0;
-//int setTargetAndroid = 0;
 void fwl_ConsoleSetup(int DefAqua , int TargetAqua , int HaveMotif , int TargetMotif , int HaveMscVer , int TargetAndroid) {
 
 	ttglobal tg = gglobal();
@@ -428,7 +423,6 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 static void android_save_log(char *thislog) {
 	ttglobal tg = gglobal();
 	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
-	int cur;
 	int i;
 
 	// sanity check the string, otherwise dalvik can croak if invalid chars
@@ -436,12 +430,14 @@ static void android_save_log(char *thislog) {
 		thislog[i] = thislog[i]&0x7f;
 	}
 
+	/* go to next slot, wrap around*/
 	p->androidFreeSlot++;
-	if (p->androidFreeSlot>MAX_ANDROID_CONSOLE_MESSAGE_SLOTS) p->androidFreeSlot=0; 
-	cur=p->androidFreeSlot;
+	if (p->androidFreeSlot>=MAX_ANDROID_CONSOLE_MESSAGE_SLOTS) p->androidFreeSlot=0; 
 
-	if (p->androidMessageSlot[cur] != NULL) free (p->androidMessageSlot[cur]);
-	p->androidMessageSlot[cur] = thislog;
+	/* free our copy of this string if required; then set the pointer for this slot
+	   to our free slot */
+	if (p->androidMessageSlot[p->androidFreeSlot] != NULL) free (p->androidMessageSlot[p->androidFreeSlot]);
+	p->androidMessageSlot[p->androidFreeSlot] = thislog;
 
 	// indicate we have messages
 	p->androidHaveUnreadMessages++;
@@ -497,8 +493,6 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	// save log file for FreeWRL on-screen log printer
 	if (tg) {
 		android_save_log(cp);
-	} else {
-		free(cp);
 	}
 
 
