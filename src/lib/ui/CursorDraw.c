@@ -270,7 +270,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 		FW_GL_TRANSLATE_F((float)fxy.x,(float)fxy.y,0.0f);
 	}
 	enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
-	shader = getAppearanceProperties()->currentShader;
+	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 	//FW_GL_ENABLE(GL_TEXTURE_2D);
 	glActiveTexture ( GL_TEXTURE0 );
 	glBindTexture ( GL_TEXTURE_2D, p->textureID );
