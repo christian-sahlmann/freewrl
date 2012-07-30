@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.268 2012/07/29 16:18:16 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.269 2012/07/30 19:27:34 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -344,9 +344,68 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
         }
     }
         
-    ConsoleMessage ("getMyShader, not found, have to create");
-    new = MALLOC(struct shaderTableEntry *,
-                                              sizeof (struct shaderTableEntry));
+    //ConsoleMessage ("getMyShader, not found, have to create");
+
+    #ifdef GL_ES_VERSION_2_0
+    GLboolean b;
+    static bool haveDoneThis = false;
+
+    glGetBooleanv(GL_SHADER_COMPILER,&b);
+    if (!haveDoneThis) {
+        haveDoneThis = true;
+        if (!b) {
+	    ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
+	    return;
+        }
+    }
+    #endif //GL_ES_VERSION_2_0
+
+
+#ifdef VERBOSE
+#ifdef GL_ES_VERSION_2_0
+	{ /* debugging */
+	GLint range[2]; GLint precision;
+	GLboolean b;
+
+	glGetBooleanv(GL_SHADER_COMPILER,&b);
+	if (b) ConsoleMessage("have shader compiler"); else ConsoleMessage("NO SHADER COMPILER");
+
+
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+
+
+
+	}
+#endif // #ifdef GL_ES_VERSION_2_0
+#endif //VERBOSE
+
+    new = MALLOC(struct shaderTableEntry *, sizeof (struct shaderTableEntry));
         
     new ->whichOne = rq_cap;
     new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
@@ -474,55 +533,53 @@ bool backFacing = (dot(norm,viewv) < 0.0); \
 \
 /* back Facing materials - flip the normal */ \
 if (backFacing) { \
-norm = -norm; \
-emissive = fw_BackMaterial.emission;    \
-myAlph = fw_BackMaterial.diffuse.a; \
+	norm = -norm; \
+	emissive = fw_BackMaterial.emission;    \
+	myAlph = fw_BackMaterial.diffuse.a; \
 } else { \
-emissive = fw_FrontMaterial.emission;   \
-myAlph = fw_FrontMaterial.diffuse.a; \
+	emissive = fw_FrontMaterial.emission;   \
+	myAlph = fw_FrontMaterial.diffuse.a; \
 } \
-/*myAlph = fw_FrontMaterial.diffuse.a; */ \
-\
 \
 /* apply the lights to this material */ \
 for (i=0; i<8; i++) { \
-if (lightState[i] == 1) { \
-vec4 myLightDiffuse = lightDiffuse[i]; \
-vec4 myLightAmbient = lightAmbient[i]; \
-vec4 myLightSpecular = lightSpecular[i]; \
-vec4 myLightPosition = lightPosition[i]; \
-/* normal, light, view, and light reflection vectors */ \
-vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-vec3 refl = reflect (-lightv, norm); \
-\
-if (backFacing) { \
-/* diffuse light computation */ \
-diffuse += max (0.0, dot(lightv, norm))*fw_BackMaterial.diffuse*myLightDiffuse; \
-\
-/* ambient light computation */ \
-ambient += fw_BackMaterial.ambient*myLightAmbient; \
-\
-/* Specular light computation */ \
-if (dot(lightv, viewv) > 0.0) { \
-specular += pow(max(0.0, dot(viewv, refl)), \
-fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
-} \
-} else { \
-\
-/* diffuse light computation */ \
-diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse;\
-\
-\
-/* ambient light computation */ \
-ambient += fw_FrontMaterial.ambient*myLightAmbient; \
-\
-/* Specular light computation */ \
-if (dot(lightv, viewv) > 0.0) { \
-specular += pow(max(0.0, dot(viewv, refl)), \
-fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
-} \
-} \
-} \
+	if (lightState[i] == 1) { \
+		vec4 myLightDiffuse = lightDiffuse[i]; \
+		vec4 myLightAmbient = lightAmbient[i]; \
+		vec4 myLightSpecular = lightSpecular[i]; \
+		vec4 myLightPosition = lightPosition[i]; \
+		/* normal, light, view, and light reflection vectors */ \
+		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+		vec3 refl = reflect (-lightv, norm); \
+		\
+		if (backFacing) { \
+			/* diffuse light computation */ \
+			diffuse += max (0.0, dot(lightv, norm))*fw_BackMaterial.diffuse*myLightDiffuse; \
+			\
+			/* ambient light computation */ \
+			ambient += fw_BackMaterial.ambient*myLightAmbient; \
+			\
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+				fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
+			} \
+		} else { \
+			\
+			/* diffuse light computation */ \
+			diffuse += max (0.0, dot(lightv, norm))*fw_FrontMaterial.diffuse*myLightDiffuse; \
+			\
+			\
+			/* ambient light computation */ \
+			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+			\
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+			} \
+		} \
+	} \
 } \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
 } ";
@@ -625,7 +682,8 @@ v_front_colour = do_lighting(); \
 
 /* FRAGMENT bits */
 #ifdef GL_ES_VERSION_2_0
-static const GLchar *fragPrecision = "precision lowp float;\n ";
+static const GLchar *fragLowPrecision = "precision lowp float;\n ";
+static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
 #endif
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
@@ -826,6 +884,63 @@ if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Textur
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
 
+	/* GL_ES - do we have medium precision, or just low precision?? */
+	#ifdef GL_ES_VERSION_2_0
+	bool haveMediumPrecision = false;
+        GLint range[2]; GLint precision;
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+	if (precision!=0) {
+		haveMediumPrecision=true;
+	} else {
+		haveMediumPrecision=false;
+		glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+		if (precision == 0) {
+			ConsoleMessage("have no precision info for shader maker - unknown results");
+		} else {
+			ConsoleMessage("low precision shaders only available - view may not work so well");
+		}
+	}
+		
+	#ifdef VERBOSE
+        { /* debugging */
+        GLboolean b;
+
+        glGetBooleanv(GL_SHADER_COMPILER,&b);
+        if (b) ConsoleMessage("have shader compiler"); else ConsoleMessage("NO SHADER COMPILER");
+
+
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_FLOAT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_INT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_INT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_INT, range, &precision);
+        ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_FLOAT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_INT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_INT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
+        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+        }
+	#endif //VERBOSE
+	#endif // GL_ES_VERSION_2_0
+
+    #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
     if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
     if DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
@@ -835,6 +950,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
     if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
     if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
+    #endif //VERBOSE
     
 	/* initialize */
     
@@ -848,12 +964,15 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
     /* Cross shader Fragment bits */
     #ifdef GL_ES_VERSION_2_0
-	fragmentSource[fragmentPrecisionDeclare] = fragPrecision;
+	if (haveMediumPrecision) 
+		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
+	else
+		fragmentSource[fragmentPrecisionDeclare] = fragLowPrecision;
     #endif
     fragmentSource[fragmentMainStart] = fragMainStart;
     fragmentSource[fragmentMainEnd] = fragEnd;
     
-    ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
+    //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
     
     
     /* specific strings for specific shader capabilities */
@@ -982,7 +1101,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
-		if(1){
+
+	#ifdef VERBOSE
+	/* print out the vertex source here */
+		{
 			vertexShaderResources_t x1;
 			fragmentShaderResources_t x2; 
 
@@ -993,6 +1115,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
 				ConsoleMessage(fragmentSource[x2]); 
 		}
+	#endif //VERBOSE
+
 	return TRUE;
 }
 
@@ -1012,7 +1136,8 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
    	vertexShaderResources_t x1;
 	fragmentShaderResources_t x2; 
     
-    ConsoleMessage ("makeAndCompileShader called");
+        //ConsoleMessage ("makeAndCompileShader called");
+
 #ifdef VERBOSE
 	printCompilingShader(me);
 #endif //VERBOSE
@@ -1035,17 +1160,9 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne)) {
 		return;
 	}
-/*
-    for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
-		ConsoleMessage("VertexSource: %s",vertexSource[x1]); 
-	for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
-		ConsoleMessage("FragmentSource: %s",fragmentSource[x2]); 
-*/
-    
-    
     
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
-	SHADER_SOURCE(myVertexShader, vertexEndMarker, (const GLchar **) vertexSource, NULL);
+	SHADER_SOURCE(myVertexShader, vertexEndMarker, ((const GLchar **)vertexSource), NULL);
 	COMPILE_SHADER(myVertexShader);
 	GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success);
 	if (!success) {
@@ -3450,7 +3567,7 @@ void sendMaterialsToShader(s_shader_capabilities_t *me) {
     
 	/* go through all of the Uniforms for this shader */
     
-    /*ConsoleMessage ("sending in front diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
+    /* ConsoleMessage ("sending in front diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
                     fw_FrontMaterial.diffuse[0],fw_FrontMaterial.diffuse[1],fw_FrontMaterial.diffuse[2],fw_FrontMaterial.diffuse[3],
                     fw_FrontMaterial.ambient[0],fw_FrontMaterial.ambient[1],fw_FrontMaterial.ambient[2],fw_FrontMaterial.ambient[3],
                     fw_FrontMaterial.specular[0],fw_FrontMaterial.specular[1],fw_FrontMaterial.specular[2],fw_FrontMaterial.specular[3],
@@ -3463,7 +3580,8 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
                 fw_BackMaterial.specular[0],fw_BackMaterial.specular[1],fw_BackMaterial.specular[2],fw_BackMaterial.specular[3],
                 fw_BackMaterial.emission[0],fw_BackMaterial.emission[1],fw_BackMaterial.emission[2],fw_BackMaterial.emission[3],
                 fw_BackMaterial.shininess);
-      */
+*/
+      
     
 
 /* eventually do this with code blocks in glsl */
