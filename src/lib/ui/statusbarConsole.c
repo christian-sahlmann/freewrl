@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarConsole.c,v 1.9 2012/05/31 18:44:44 crc_canada Exp $
+  $Id: statusbarConsole.c,v 1.10 2012/07/31 20:04:51 crc_canada Exp $
 
 */
 
@@ -609,7 +609,7 @@ void drawStatusBar()
 	// you must call drawStatusBar() from render() just before swapbuffers 
 	FW_GL_DEPTHMASK(FALSE);
 	FW_GL_DISABLE(GL_DEPTH_TEST);
-	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
+	//OLDCODEFW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	FW_GL_WINDOWPOS2I(5,0); 
 	if(sb_hasString)

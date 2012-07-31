@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.117 2012/07/27 18:21:22 crc_canada Exp $
+$Id: Component_Shape.c,v 1.118 2012/07/31 20:04:51 crc_canada Exp $
 
 X3D Shape Component
 
@@ -441,9 +441,10 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 
 		if (node->linewidthScaleFactor > 1.0) {
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
-            #ifndef GL_ES_VERSION_2_0
+            //#ifndef GL_ES_VERSION_2_0
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
-            #endif
+			FW_GL_POINTSIZE(20);
+            //#endif
 		}
 
 
@@ -530,6 +531,10 @@ void child_Shape (struct X3D_Shape *node) {
         /* enable the shader for this shape */
         //ConsoleMessage("turning shader on");
         enableGlobalShader (getMyShader(node->_shaderTableEntry));
+/* XXXX */
+FW_GL_POINTSIZE(20);
+
+
 
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
@@ -564,9 +569,10 @@ void child_Shape (struct X3D_Shape *node) {
 	{
 		float gl_linewidth = tg->Mainloop.gl_linewidth;
 		FW_GL_LINEWIDTH(gl_linewidth);
-        #ifndef GL_ES_VERSION_2_0
+        //#ifndef GL_ES_VERSION_2_0
+			FW_GL_POINTSIZE(20);
 		FW_GL_POINTSIZE(gl_linewidth);
-        #endif
+        //#endif
 	}
     
 	/* did the lack of an Appearance or Material node turn lighting off? */
@@ -595,9 +601,9 @@ void compile_Shape (struct X3D_Shape *node) {
         
         /* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
            if it is zero, we either have an appearance node, or we have no-material. */
-        ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
+        //ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
         if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
-            ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
+            //ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
             
             /* which one first? */
             if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
@@ -614,7 +620,7 @@ void compile_Shape (struct X3D_Shape *node) {
 	if (node->_shaderTableEntry == NOTHING) 
         node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
-    printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
+    //printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
     
 	MARK_NODE_COMPILED
 }

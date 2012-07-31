@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.270 2012/07/31 15:19:39 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.271 2012/07/31 20:04:51 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -1374,9 +1374,10 @@ cx*cx+cy*cy+cz*cz,node->range*node->range,cx,cy,cz); */
 	}
 }
 
+#ifdef DEBUGGING_CODE
 /* draw a simple bounding box around an object */
 void drawBBOX(struct X3D_Node *node) {
-#ifndef GL_ES_VERSION_2_0
+
 /* debugging */	FW_GL_COLOR3F((float)1.0,(float)0.6,(float)0.6);
 /* debugging */
 /* debugging */	/* left group */
@@ -1441,9 +1442,9 @@ void drawBBOX(struct X3D_Node *node) {
 /* debugging */	glVertex3d(node->EXTENT_MIN_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glVertex3d(node->EXTENT_MAX_X, node->EXTENT_MAX_Y, node->EXTENT_MAX_Z);
 /* debugging */	glEnd();
-#endif
 
 }
+#endif //DEBUGGING_CODE
 
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EnvironSensor.c,v 1.21 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_EnvironSensor.c,v 1.22 2012/07/31 20:04:51 crc_canada Exp $
 
 X3D Environmental Sensors Component
 
@@ -119,6 +119,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 }
 
 static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
+#ifdef HAVE_TO_REIMPLEMENT
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
 	float x = ((node->size).c[0])/2;
@@ -172,7 +173,8 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	FW_GL_DEPTHMASK(FALSE);
 	/* note the ALPHA of zero - totally transparent */
-	FW_GL_COLOR4F(0.0f, 1.0f, 0.0f, 0.0f);
+    
+	//OLDCODE FW_GL_COLOR4F(0.0f, 1.0f, 0.0f, 0.0f);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -181,6 +183,7 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, 36);
 	FW_GL_DEPTHMASK(TRUE);
+#endif// HAVE_TO_REIMPLEMENT
 }
 
 

@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.155 2012/07/31 15:19:39 crc_canada Exp $
+  $Id: display.h,v 1.156 2012/07/31 20:04:51 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -850,7 +850,6 @@ void resetGeometry();
 	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
-	#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
 
 
 /* color functions subject to draw-gray anaglyph >>  */
@@ -867,6 +866,7 @@ int usingAnaglyph2(void);
 #ifdef OLDCODE
 OLDCODE	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
 OLDCODE
+OLDCODE#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
 OLDCODE	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc,__FILE__,__LINE__);
 OLDCODE	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
 OLDCODE	#define FW_GL_COLOR3D(aaa, bbb, ccc) fwglColor3d(aaa, bbb, ccc)

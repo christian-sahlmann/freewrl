@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.55 2012/07/27 18:21:22 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.56 2012/07/31 20:04:51 crc_canada Exp $
 
 Screen snapshot.
 
@@ -122,7 +122,9 @@ BackEndClearBuffer(int);
 void
 BackEndLightsOff(void);
 
+#ifdef DEBUGGING_CODE
 void drawBBOX(struct X3D_Node *node);
+#endif //DEBUGGING_CODE
 
 
 void fw_glMatrixMode(GLint mode);

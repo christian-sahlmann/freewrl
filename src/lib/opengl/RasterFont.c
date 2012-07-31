@@ -1,5 +1,5 @@
 /*
-  $Id: RasterFont.c,v 1.22 2012/03/05 19:56:03 dug9 Exp $
+  $Id: RasterFont.c,v 1.23 2012/07/31 20:04:51 crc_canada Exp $
 
 */
 
@@ -136,7 +136,10 @@ void rf_printf(int x, int y, const char *format, ...)
 
     FW_GL_RASTERPOS2I(x, y);
 
+#ifdef HAVE_TO_REIMPLEMENT
+ //JAS - this is one case where the new full-time shaders do not work.
     FW_GL_COLOR4FV(p->xf_colors[p->xf_color]);
+#endif
 
     rf_print(xfont_buffer);
 #endif
