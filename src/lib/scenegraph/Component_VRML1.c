@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_VRML1.c,v 1.34 2012/07/11 19:10:54 crc_canada Exp $
+$Id: Component_VRML1.c,v 1.35 2012/07/31 15:19:39 crc_canada Exp $
 
 X3D VRML1 Component
 
@@ -165,6 +165,7 @@ static struct currentSLDPointer *new_cSLD(void) {
 /* if the user wants to change materials for IndexedLineSets, IndexedFaceSets or PointSets */
 /* this is just like render_VRML1_Material, except that it allows different indexes */
 static void renderSpecificMaterial (int ind) {
+#ifdef HAVE_TO_REIMPLEMENT
 	int i;
 	float dcol[4];
 	float ecol[4];
@@ -224,6 +225,7 @@ static void renderSpecificMaterial (int ind) {
 	
 	if (node->shininess.n>ind)
 	do_shininess(whichFace,node->shininess.p[ind]);
+#endif //HAVE_TO_REIMPLEMENT
 }
 
 /* do transforms, calculate the distance */
@@ -255,6 +257,7 @@ void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 }
 
 void render_VRML1_Material (struct X3D_VRML1_Material *node) {
+#ifdef HAVE_TO_REIMPLEMENT
 	int i;
 	float dcol[4];
 	float ecol[4];
@@ -317,6 +320,7 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	
 	if (node->shininess.n>0)
 	do_shininess(whichFace,node->shininess.p[0]);
+#endif //HAVE_TO_REIMPLEMENT
 }
 
 void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {

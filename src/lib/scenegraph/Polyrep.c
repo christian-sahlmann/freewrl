@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.62 2012/07/18 01:15:17 crc_canada Exp $
+$Id: Polyrep.c,v 1.63 2012/07/31 15:19:39 crc_canada Exp $
 
 ???
 
@@ -821,26 +821,29 @@ void render_polyrep(void *node) {
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
 	
-	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
-
-	/* Do we have any colours? Are textures, if present, not RGB? */
-	if(hasc){
-		if (!pr->isRGBAcolorNode) 
-			if (!APPROX(pr->transparency,getAppearanceProperties()->transparency)) {
-				recalculateColorField(pr);
-			}
-		
-		LIGHTING_ON
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
-	
-		FW_GL_ENABLE(GL_COLOR_MATERIAL);
-		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		FW_GL_COLOR4FV(diffuseColor);
-	
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
-	}
+#ifdef OLDCODE
+OLDCODE handled now in the shader
+OLDCODE 	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
+OLDCODE 
+OLDCODE 	/* Do we have any colours? Are textures, if present, not RGB? */
+OLDCODE 	if(hasc){
+OLDCODE 		if (!pr->isRGBAcolorNode) 
+OLDCODE 			if (!APPROX(pr->transparency,getAppearanceProperties()->transparency)) {
+OLDCODE 				recalculateColorField(pr);
+OLDCODE 			}
+OLDCODE 		
+OLDCODE 		LIGHTING_ON
+OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+OLDCODE 	
+OLDCODE 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
+OLDCODE 		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+OLDCODE 		FW_GL_COLOR4FV(diffuseColor);
+OLDCODE 	
+OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
+OLDCODE 	}
+#endif //OLDCODE
 	
 
 	/*  status bar, text do not have normals*/

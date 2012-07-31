@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geometry2D.c,v 1.39 2012/07/10 18:40:26 crc_canada Exp $
+$Id: Component_Geometry2D.c,v 1.40 2012/07/31 15:19:39 crc_canada Exp $
 
 X3D Geometry2D  Component
 
@@ -113,17 +113,17 @@ void compile_Arc2D (struct X3D_Arc2D *node) {
 }
 
 void render_Arc2D (struct X3D_Arc2D *node) {
-	DEFAULT_COLOUR_POINTER
+	//OLDCODE DEFAULT_COLOUR_POINTER
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
-		GET_COLOUR_POINTER
+		//OLDCODE GET_COLOUR_POINTER
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
-		DO_COLOUR_POINTER
+		//OLDCODE DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -170,17 +170,17 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 
 void render_ArcClose2D (struct X3D_ArcClose2D *node) {
-	DEFAULT_COLOUR_POINTER
+	//OLDCODE DEFAULT_COLOUR_POINTER
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
-		GET_COLOUR_POINTER
+		//OLDCODE GET_COLOUR_POINTER
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
-		DO_COLOUR_POINTER
+		//OLDCODE DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
@@ -211,17 +211,17 @@ void compile_Circle2D (struct X3D_Circle2D *node) {
 }
 
 void render_Circle2D (struct X3D_Circle2D *node) {
-	DEFAULT_COLOUR_POINTER
+	//OLDCODE DEFAULT_COLOUR_POINTER
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
-		GET_COLOUR_POINTER
+		//OLDCODE GET_COLOUR_POINTER
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
-		DO_COLOUR_POINTER
+		//OLDCODE DO_COLOUR_POINTER
 
 		
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
@@ -238,7 +238,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 COMPILE_AND_GET_BOUNDS(Polyline2D,lineSegments)
 
 void render_Polyline2D (struct X3D_Polyline2D *node){
-	DEFAULT_COLOUR_POINTER
+	//OLDCODE DEFAULT_COLOUR_POINTER
 
 	COMPILE_IF_REQUIRED
 	if (node->lineSegments.n>0) {
@@ -246,10 +246,10 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
-		GET_COLOUR_POINTER
+		//OLDCODE GET_COLOUR_POINTER
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
-		DO_COLOUR_POINTER
+		//OLDCODE DO_COLOUR_POINTER
 
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
@@ -264,7 +264,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 COMPILE_AND_GET_BOUNDS(Polypoint2D,point)
 
 void render_Polypoint2D (struct X3D_Polypoint2D *node){
-	DEFAULT_COLOUR_POINTER
+	//OLDCODE DEFAULT_COLOUR_POINTER
 
 	COMPILE_IF_REQUIRED
 	if (node->point.n>0) {
@@ -272,10 +272,10 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
-		GET_COLOUR_POINTER
+		//OLDCODE GET_COLOUR_POINTER
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
-		DO_COLOUR_POINTER
+		//OLDCODE DO_COLOUR_POINTER
 
 
 

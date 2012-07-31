@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.154 2012/07/27 18:21:21 crc_canada Exp $
+  $Id: display.h,v 1.155 2012/07/31 15:19:39 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -141,15 +141,17 @@ GLEWContext * glewGetContext();
 #endif
 
 /* OpenGL ES 2.0 - send unlit colours to selected shader */
-#ifdef GL_ES_VERSION_2_0
-void glColor3d (double r, double g, double b);
-void glColor3dv (double *cols);
-void glColor3fv (float *cols);
-void glColor4fv (float *cols);
-void glColorMaterial (GLenum face, GLenum mode);
-void glMaterialfv (GLenum face, GLenum pname, float *param);
-void glMaterialf (GLenum face, GLenum pname, float param);
-#endif
+#ifdef OLDCODE
+OLDCODE#ifdef GL_ES_VERSION_2_0
+OLDCODEvoid glColor3d (double r, double g, double b);
+OLDCODEvoid glColor3dv (double *cols);
+OLDCODEvoid glColor3fv (float *cols);
+OLDCODEvoid glColor4fv (float *cols);
+OLDCODEvoid glColorMaterial (GLenum face, GLenum mode);
+OLDCODEvoid glMaterialfv (GLenum face, GLenum pname, float *param);
+OLDCODEvoid glMaterialf (GLenum face, GLenum pname, float param);
+OLDCODE#endif
+#endif //OLDCODE
 
 /* face culling */
 #ifdef XXXGL_ES_VERSION_2_0
@@ -398,8 +400,6 @@ typedef struct s_shader_capabilities{
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
-	/* some items have no real colour, like lines and points */
-	GLint myMaterialColour;
 
     GLint TextureUnit[MAX_MULTITEXTURE];
     GLint TextureMode[MAX_MULTITEXTURE];
@@ -857,20 +857,23 @@ void resetGeometry();
 void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);
 void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x);
 void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params);
-void fwglColor3fv(float *rgb);
+void fwglColor3fv(float *rgb,char *wh, int li);
 void fwglColor4f(float r,float g, float b, float a);
 void fwglColor4fv(float *rgba);
 void fwglColor3d(double r, double g, double b);
-void fwglColor3f(float r, float g, float b);
+void fwglColor3f(float r, float g, float b,char *wh, int li);
 int usingAnaglyph2(void);
-	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
 
-	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc);
-	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
-	#define FW_GL_COLOR3D(aaa, bbb, ccc) fwglColor3d(aaa, bbb, ccc)
-	#define FW_GL_COLOR3FV(aaa) fwglColor3fv(aaa);
-	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) fwglColor4f(aaa,bbb,ccc,ddd);
-	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
+#ifdef OLDCODE
+OLDCODE	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
+OLDCODE
+OLDCODE	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc,__FILE__,__LINE__);
+OLDCODE	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
+OLDCODE	#define FW_GL_COLOR3D(aaa, bbb, ccc) fwglColor3d(aaa, bbb, ccc)
+OLDCODE	#define FW_GL_COLOR3FV(aaa) fwglColor3fv(aaa,__FILE__,__LINE__);
+OLDCODE	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) fwglColor4f(aaa,bbb,ccc,ddd);
+OLDCODE	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
+#endif //OLDCODE
 
 	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
 	#define FW_GL_GENLISTS(aaa) glGenLists(aaa)

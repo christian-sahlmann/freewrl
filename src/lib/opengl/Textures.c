@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.128 2012/07/27 15:40:03 crc_canada Exp $
+  $Id: Textures.c,v 1.129 2012/07/31 15:19:39 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -562,7 +562,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			gglobal()->RenderFuncs.textureStackTop = 0;
 			/* render the proper texture */
 			render_node(X3D_NODE(thistex));
-		        FW_GL_COLOR3D(1.0,1.0,1.0);
+		        //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
 
         		textureDraw_start(&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
@@ -627,7 +627,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				gglobal()->RenderFuncs.textureStackTop = 0;
 				/* render the proper texture */
 				render_node((void *)thistex);
-		                FW_GL_COLOR3D(1.0,1.0,1.0);
+		                //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
 
         			textureDraw_start(&mtf);
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
@@ -1390,12 +1390,14 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
-			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
-			   ignored. We do this here, because when we do the Material node, we do not know what the
-			   texture depth is (if there is any texture, even) */
-			if (myTableIndex->hasAlpha) {
-				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
-			}
+#ifdef OLDCODE
+OLDCODE			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
+OLDCODE			   ignored. We do this here, because when we do the Material node, we do not know what the
+OLDCODE			   texture depth is (if there is any texture, even) */
+OLDCODE			if (myTableIndex->hasAlpha) {
+OLDCODE				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
+OLDCODE			}
+#endif //OLDCODE
 	
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			if (myTableIndex->nodeType != NODE_MovieTexture) {

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.16 2012/07/27 18:21:22 crc_canada Exp $
+$Id: Component_Shape.h,v 1.17 2012/07/31 15:19:39 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -87,47 +87,6 @@ struct matpropstruct* getAppearanceProperties();
 
 #define MIN_NODE_TRANSPARENCY 0.0f
 #define MAX_NODE_TRANSPARENCY 0.99f  /* if 1.0, then occlusion culling will cause flashing */
-
-
-
-#define DO_MAT(myNode, diffusec,emissc,shinc,ambc,specc,transc) \
-		\
-	/* set the diffuseColor; we will reset this later if the		\
-	   texture depth is 3 (RGB texture) */		\
-		\
-	for (i=0; i<3;i++){ dcol[i] = myNode->diffusec.c[i]; }		\
-		\
-	/* set the transparency here for the material */		\
-	trans = 1.0f - myNode->transc;		\
-		\
-	if (trans<0.0f) trans = 0.0f;		\
-	if (trans>=0.999999f) trans = 0.9999999f;		\
-	getAppearanceProperties()->transparency = trans;		\
-		\
-	dcol[3] = trans;		\
-	scol[3] = trans;		\
-	ecol[3] = trans;		\
-		\
-	/* the diffuseColor might change, depending on the texture depth - that we do not have yet */		\
-	do_glMaterialfv(whichFace, GL_DIFFUSE, dcol);		\
-		\
-	/* do the ambientIntensity; this will allow lights with ambientIntensity to		\
-	   illuminate it as per the spec. Note that lights have the ambientIntensity		\
-	   set to 0.0 by default; this should make ambientIntensity lighting be zero		\
-	   via OpenGL lighting equations. */		\
-	amb = myNode->ambc;		\
-		\
- 		for(i=0; i<3; i++) { dcol[i] *= amb; } 		\
-	do_glMaterialfv(whichFace, GL_AMBIENT, dcol);		\
-		\
-	for (i=0; i<3;i++){ scol[i] = myNode->specc.c[i]; }		\
-	do_glMaterialfv(whichFace, GL_SPECULAR, scol);		\
-		\
-	for (i=0; i<3;i++){ ecol[i] = myNode->emissc.c[i]; }		\
-	do_glMaterialfv(whichFace, GL_EMISSION, ecol);		\
-		\
-	do_shininess(whichFace,myNode->shinc);
-
 
 #define RENDER_MATERIAL_SUBNODES(which) \
 	{ struct X3D_Node *tmpN;   \

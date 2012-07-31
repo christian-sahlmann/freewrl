@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Rendering.c,v 1.32 2012/07/17 22:29:35 crc_canada Exp $
+$Id: Component_Rendering.c,v 1.33 2012/07/31 15:19:39 crc_canada Exp $
 
 X3D Rendering Component
 
@@ -350,13 +350,18 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 }
 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
-	DEFAULT_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE	DEFAULT_COLOUR_POINTER
+#endif //OLDCODE
+
     ushort **indxStartPtr;
 	ushort *count;
 	int i;
 
-	/* is there an emissiveColor here??? */
-	GET_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE	/* is there an emissiveColor here??? */
+OLDCODE	GET_COLOUR_POINTER
+#endif //OLDCODE
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
@@ -377,8 +382,13 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		if (node->__colours) {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		} else {
-			DO_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE - now with shaders, the line colour will come from the appearance field,
+OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
+OLDCODE even if one does not exist in the VRML/X3D file. 
+OLDCODE 		} else {
+OLDCODE 			DO_COLOUR_POINTER
+#endif //OLDCODE
 		}
 
         indxStartPtr = (ushort **)node->__vertIndx;
@@ -419,9 +429,9 @@ void render_PointSet (struct X3D_PointSet *node) {
 	struct SFColor *colors=0; int ncolors=0;
 	struct X3D_Color *cc;
 
-	/* believe it or not - material emissiveColor can affect us... */
-	DEFAULT_COLOUR_POINTER
-
+#ifdef OLDCODE
+OLDCODE	DEFAULT_COLOUR_POINTER
+#endif //OLDCODE
 
         COMPILE_IF_REQUIRED
 
@@ -429,9 +439,10 @@ void render_PointSet (struct X3D_PointSet *node) {
                 node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
                 X3D_NODE(node));
 
-
-	/* is there an emissiveColor here??? */
-	GET_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE	/* is there an emissiveColor here??? */
+OLDCODE	GET_COLOUR_POINTER
+#endif //OLDCODE
 
 	if (node->coord) {
 		struct Multi_Vec3f *dtmp;
@@ -480,8 +491,13 @@ void render_PointSet (struct X3D_PointSet *node) {
 		} else {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)colors);
 		}
-	} else {
-		DO_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE - now with shaders, the line colour will come from the appearance field,
+OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
+OLDCODE even if one does not exist in the VRML/X3D file. 
+OLDCODE 		} else {
+OLDCODE 			DO_COLOUR_POINTER
+#endif //OLDCODE
 	}
 
 
@@ -499,16 +515,21 @@ void render_PointSet (struct X3D_PointSet *node) {
 }
 
 void render_LineSet (struct X3D_LineSet *node) {
-	/* believe it or not - material emissiveColor can affect us... */
-	DEFAULT_COLOUR_POINTER
+
+#ifdef OLDCODE
+OLDCODE	DEFAULT_COLOUR_POINTER
+#endif //OLDCODE
+
 	struct X3D_Color *cc;
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
 	struct Multi_Vec3f* points;
 
-	/* is there an emissiveColor here??? */
-	GET_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE	/* is there an emissiveColor here??? */
+OLDCODE	GET_COLOUR_POINTER
+#endif //OLDCODE
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
@@ -533,8 +554,13 @@ void render_LineSet (struct X3D_LineSet *node) {
 			} else {
 				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)cc->color.p);
 			}
-		} else {
-			DO_COLOUR_POINTER
+#ifdef OLDCODE
+OLDCODE - now with shaders, the line colour will come from the appearance field,
+OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
+OLDCODE even if one does not exist in the VRML/X3D file. 
+OLDCODE 		} else {
+OLDCODE 			DO_COLOUR_POINTER
+#endif //OLDCODE
 		}
 		points = getCoordinate(node->coord, "LineSet");
 

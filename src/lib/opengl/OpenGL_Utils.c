@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.269 2012/07/30 19:27:34 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.270 2012/07/31 15:19:39 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -951,7 +951,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
     if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
     #endif //VERBOSE
-    
+ 
 	/* initialize */
     
     /* Generic things first */
@@ -1136,7 +1136,9 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
    	vertexShaderResources_t x1;
 	fragmentShaderResources_t x2; 
     
-        //ConsoleMessage ("makeAndCompileShader called");
+#ifdef VERBOSE
+        ConsoleMessage ("makeAndCompileShader called");
+#endif //VERBOSE
 
 #ifdef VERBOSE
 	printCompilingShader(me);
@@ -1155,7 +1157,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
     
 	/* assume the worst... */
 	(*myShader).compiledOK = FALSE;
-    
+
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne)) {
 		return;
@@ -1172,7 +1174,6 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
 		ATTACH_SHADER(myProg, myVertexShader);
 	}
     
-    
 	/* get Fragment shader */
 	myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);
 	SHADER_SOURCE(myFragmentShader, fragmentEndMarker, (const GLchar **) fragmentSource, NULL);
@@ -1184,16 +1185,11 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
 		ATTACH_SHADER(myProg, myFragmentShader);
 	}
     
-    
 	LINK_SHADER(myProg);
 	glGetProgramiv(myProg,GL_LINK_STATUS, &success); 
 	(*myShader).compiledOK = (success == GL_TRUE);
     
 	getShaderCommonInterfaces(myShader);
-
-    
-    //getShaderCommonInterfaces(me->myCapabilities);
-
 }
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
@@ -1251,8 +1247,6 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackShininess = GET_UNIFORM(myProg,"fw_BackMaterial.shininess");
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
-
-	me->myMaterialColour = GET_UNIFORM(myProg,"fw_genericMaterialColour");
 
         me->lightState = GET_UNIFORM(myProg,"lightState");
         me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
@@ -1704,10 +1698,6 @@ bool fwl_initialize_GL()
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c");
     
-
-	#ifndef GL_ES_VERSION_2_0
-	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
-	#endif
 
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
         FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
@@ -2213,14 +2203,12 @@ void fwl_Android_reloadAssets(void) {
 	struct X3D_Node *node;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-	ConsoleMessage("fwl_Android_reloadAssets called");
+	//ConsoleMessage("fwl_Android_reloadAssets called");
 
-	ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
+	//ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
 	fwl_initialize_GL();
 
-	ConsoleMessage("fwl_Android_reloadAssets - reload the current active shaders");
-
-
+	//ConsoleMessage("fwl_Android_reloadAssets - reload the current active shaders");
 
         LOCK_MEMORYTABLE
 	for (tc = 0; tc< p->nextEntry; tc++) {
