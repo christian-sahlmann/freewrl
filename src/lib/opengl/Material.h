@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Material.h,v 1.9 2012/07/31 15:19:39 crc_canada Exp $
+$Id: Material.h,v 1.10 2012/07/31 21:18:29 crc_canada Exp $
 
 Global includes.
 
@@ -31,25 +31,6 @@ Global includes.
 #define __FREEWRL_MATERIAL_H__
 
 
-#ifdef OLDCODE
-OLDCODE#define DEFAULT_COLOUR_POINTER  \
-OLDCODE        GLfloat defColor[] = {1.0f, 1.0f, 1.0f};\
-OLDCODE        GLfloat *thisColor;
-OLDCODE
-OLDCODE#define GET_COLOUR_POINTER \
-OLDCODE		/* is there an emissiveColor here??? */ \
-OLDCODE		if (gglobal()->RenderFuncs.lightingOn) { \
-OLDCODE			thisColor = getAppearanceProperties()->emissionColour; \
-OLDCODE		} else { \
-OLDCODE			thisColor = defColor; \
-OLDCODE		}
-OLDCODE
-OLDCODE#define DO_COLOUR_POINTER                FW_GL_COLOR3FV (thisColor);
-#endif //OLDCODE
-
-
-//OLDCODE void do_shininess (GLenum face, float shininess);
-//OLDCODE void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
 int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 int verify_scale(GLfloat *params);

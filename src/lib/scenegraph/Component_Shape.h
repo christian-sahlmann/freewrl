@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.h,v 1.17 2012/07/31 15:19:39 crc_canada Exp $
+$Id: Component_Shape.h,v 1.18 2012/07/31 21:18:29 crc_canada Exp $
 
 Proximity sensor macro.
 
@@ -80,6 +80,9 @@ struct matpropstruct {
     bool filledBool;
     GLfloat hatchPercent[2];
     GLfloat hatchColour[3];
+
+	// points now specified in shader, not via an opengl call 
+	GLfloat pointSize;
     
 };
 

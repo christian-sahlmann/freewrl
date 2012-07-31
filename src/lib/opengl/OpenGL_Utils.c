@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.271 2012/07/31 20:04:51 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.272 2012/07/31 21:18:29 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -879,8 +879,13 @@ if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Textur
 */ \n";
 
 
-
-
+#ifdef GL_ES_VERSION_2_0
+const static GLchar *GLES2_pointSizeDeclare="uniform float pointSize;\n";
+const static GLchar *GLES2_pointSizeAss="gl_PointSize = pointSize; \n";
+#else
+const static GLchar *GLES2_pointSizeDeclare=""; /* do old way of point sizing */
+const static GLchar *GLES2_pointSizeAss=""; /* do old way of point sizing */
+#endif GL_ES_VERSION_2_0
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
 
@@ -981,12 +986,16 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
         vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
+	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
         fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
     }
     
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
         fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
+	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
 
     }
     
@@ -1038,6 +1047,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexLightDefines] = lightDefines;
             vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
             vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
             fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
@@ -1050,6 +1061,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
             vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
+	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
             fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
         }
@@ -1287,6 +1300,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
     
     
 	/* for FillProperties */
+	me->pointSize = GET_UNIFORM(myProg, "pointSize");
 	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
 	me->hatchPercent = GET_UNIFORM(myProg,"HatchPct");
 	me->filledBool = GET_UNIFORM(myProg,"filled");
@@ -3590,21 +3604,14 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
     
     /* FillProperties, LineProperty lineType */
 
+	SEND_FLOAT(pointSize,myap->pointSize);
+
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);
     SEND_INT(algorithm,myap->algorithm);
     SEND_VEC3(hatchColour,myap->hatchColour);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
-    
-#ifdef wrwerwet
-	GLUNIFORM2F(me->hatchPercent,hatchX, hatchY);
-	GLUNIFORM1I(me->filledBool,filled);
-	GLUNIFORM1I(me->hatchedBool,hatched);
-	GLUNIFORM1I(me->algorithm,algor);
-	GLUNIFORM4F(me->hatchColour,node->hatchColor.c[0], node->hatchColor.c[1], node->hatchColor.c[2],1.0f);
-#endif
-
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],

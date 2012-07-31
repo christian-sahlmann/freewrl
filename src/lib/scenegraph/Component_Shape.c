@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.118 2012/07/31 20:04:51 crc_canada Exp $
+$Id: Component_Shape.c,v 1.119 2012/07/31 21:18:29 crc_canada Exp $
 
 X3D Shape Component
 
@@ -58,12 +58,6 @@ typedef struct pComponent_Shape{
 	/* for doing shader material properties */
 	struct X3D_TwoSidedMaterial *material_twoSided;
 	struct X3D_Material *material_oneSided;
-	GLint norm;
-	GLint vert;
-	GLint modView;
-	GLint projMat;
-	GLint normMat;
-
 }* ppComponent_Shape;
 void *Component_Shape_constructor(){
 	void *v = malloc(sizeof(struct pComponent_Shape));
@@ -76,11 +70,6 @@ void Component_Shape_init(struct tComponent_Shape *t){
 	t->prv = Component_Shape_constructor();
 	{
 		ppComponent_Shape p = (ppComponent_Shape)t->prv;
-		p->norm = -1;
-		p->vert = -1;
-		p->modView = -1;
-		p->projMat = -1;
-		p->normMat = -1;
 	}
 }
 
@@ -435,16 +424,18 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 void render_LineProperties (struct X3D_LineProperties *node) {
 	GLint	factor;
 	GLushort pat;
+	struct matpropstruct *me= getAppearanceProperties();
 
 	if (node->applied) {
 		//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 		if (node->linewidthScaleFactor > 1.0) {
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
-            //#ifndef GL_ES_VERSION_2_0
+			#ifdef GL_ES_VERSION_2_0
+			me->pointSize = node->linewidthScaleFactor;
+			#else
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
-			FW_GL_POINTSIZE(20);
-            //#endif
+			#endif
 		}
 
 
@@ -531,9 +522,6 @@ void child_Shape (struct X3D_Shape *node) {
         /* enable the shader for this shape */
         //ConsoleMessage("turning shader on");
         enableGlobalShader (getMyShader(node->_shaderTableEntry));
-/* XXXX */
-FW_GL_POINTSIZE(20);
-
 
 
 		#ifdef SHAPEOCCLUSION
@@ -569,10 +557,11 @@ FW_GL_POINTSIZE(20);
 	{
 		float gl_linewidth = tg->Mainloop.gl_linewidth;
 		FW_GL_LINEWIDTH(gl_linewidth);
-        //#ifndef GL_ES_VERSION_2_0
-			FW_GL_POINTSIZE(20);
+		#ifdef GL_ES_VERSION_2_0
+		p->appearanceProperties.pointSize = gl_linewidth;
+		#else
 		FW_GL_POINTSIZE(gl_linewidth);
-        //#endif
+		#endif
 	}
     
 	/* did the lack of an Appearance or Material node turn lighting off? */
