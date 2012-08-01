@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.273 2012/08/01 13:33:54 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.274 2012/08/01 15:00:24 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -72,10 +72,6 @@
 
 
 
-#define DO_TEXTURE_TRANSFORMS_ALL_THE_TIME
-
-
-
 #define USE_JS_EXPERIMENTAL_CODE 0
 void kill_rendering(void);
 
@@ -115,7 +111,7 @@ struct shaderTableEntry {
 
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
-static void makeAndCompileShader(struct shaderTableEntry *);
+static void makeAndCompileShader(struct shaderTableEntry *,bool);
 
 ///* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 //int displayDepth = 24;
@@ -160,8 +156,10 @@ typedef struct pOpenGL_Utils{
 	GLEWContext glewC;
 #endif
     
-    struct Vector *myShaderTable;
+    struct Vector *myShaderTable; /* list of all active shaders requested by input */
 
+    
+    bool usePhongShaders; /* phong shaders == better rendering, but slower */
 }* ppOpenGL_Utils;
 
 
@@ -212,6 +210,10 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // create room for some shaders. The order in this table is
         // the order in which they are first referenced.
         p->myShaderTable = newVector(struct shaderTableEntry *, 8);
+        
+        // usePhongShaders set to false for now. Can be changed
+        // during runtime, then re-build shaders.
+        p->usePhongShaders = true;
 	}
 }
 #ifdef GLEW_MX
@@ -411,7 +413,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
 
     //ConsoleMessage ("going to compile new shader for %x",rq_cap);
-    makeAndCompileShader(new);
+    makeAndCompileShader(new,p->usePhongShaders);
         
     vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
     
@@ -423,7 +425,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
-#define PHONG_SHADING_ALWAYS
+#undef PHONG_SHADING_ALWAYS
 
 
 /* VERTEX inputs */
@@ -879,32 +881,41 @@ if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Textur
 */ \n";
 
 
+
 #ifdef GL_ES_VERSION_2_0
 const static GLchar *GLES2_pointSizeDeclare="uniform float pointSize;\n";
 const static GLchar *GLES2_pointSizeAss="gl_PointSize = pointSize; \n";
 #else
 const static GLchar *GLES2_pointSizeDeclare=""; /* do old way of point sizing */
 const static GLchar *GLES2_pointSizeAss=""; /* do old way of point sizing */
-#endif GL_ES_VERSION_2_0
+#endif //GL_ES_VERSION_2_0
 
-static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
+static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
+    bool doThis;
+    
+    
 	/* GL_ES - do we have medium precision, or just low precision?? */
+    /* Phong shading needs mediump */
 	#ifdef GL_ES_VERSION_2_0
 	bool haveMediumPrecision = false;
         GLint range[2]; GLint precision;
-	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-	if (precision!=0) {
-		haveMediumPrecision=true;
-	} else {
-		haveMediumPrecision=false;
-		glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-		if (precision == 0) {
-			ConsoleMessage("have no precision info for shader maker - unknown results");
-		} else {
-			ConsoleMessage("low precision shaders only available - view may not work so well");
-		}
-	}
+    if (usePhongShading) {
+        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+        if (precision!=0) {
+            haveMediumPrecision=true;
+        } else {
+            haveMediumPrecision=false;
+            glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+            if (precision == 0) {
+                ConsoleMessage("have no precision info for shader maker - unknown results");
+            } else {
+                ConsoleMessage("low precision shaders only available - view may not work so well");
+            }
+        }
+    } else {
+        haveMediumPrecision = false; /* gouraud shading does not require mediump */
+    }
 		
 	#ifdef VERBOSE
         { /* debugging */
@@ -1003,44 +1014,44 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* One or TWO material no texture shaders - one material, choose between 
      Phong shading (slower) or Gouraud shading (faster). */
     
-#if defined(PHONG_SHADING_ALWAYS)  
-    if (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ||
-#else
-        if (
-#endif
-        DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)) {
+    if (usePhongShading) {
+        doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
+            (DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
+    } else {
+        doThis = DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER);
+    }
 
+    if (doThis) {
         vertexSource[vertexPhongOutput] = varyingNormPos;
         vertexSource[vertexNormalDeclare] = vertNormDec;
         vertexSource[vertexPhongCalculation] = vertPhongCalc;
-            
+        
         fragmentSource[fragmentLightDefines] = lightDefines;
         //fragmentSource[fragmentNormalColorDefs] = fragNormalColorDefs;
-          
-            
+        
+        
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
         fragmentSource[fragmentPhongNormPosDeclare] = varyingNormPos;
         fragmentSource[fragmentADSLLightModel] = ADSLLightModel;
         fragmentSource[fragmentADSLAssign] = fragADSLAss;
+
     }
         
-#if !defined(PHONG_SHADING_ALWAYS)
-        /* GOURAUD shading - TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
+
+        /* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
          that often, so just use the PHONG shader. */
         
-        if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) {
-            vertexSource[vertexNormalDeclare] = vertNormDec;
-            vertexSource[vertexLightDefines] = lightDefines;
-            vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-            vertexSource[vertexLightingEquation] = vertLightingEquation;
-            vertexSource[vertexOneMaterialCalculation] = vertFrontMatCalc;
-            fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
-            fragmentSource[fragmentOneColourAssign] = fragFrontColAss;
-        }
-    
-#endif //want PHONG_SHADING_ALWAYS
+    if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
+        vertexSource[vertexNormalDeclare] = vertNormDec;
+        vertexSource[vertexLightDefines] = lightDefines;
+        vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+        vertexSource[vertexLightingEquation] = vertLightingEquation;
+        vertexSource[vertexOneMaterialCalculation] = vertFrontMatCalc;
+        fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
+        fragmentSource[fragmentOneColourAssign] = fragFrontColAss;    
+    }
     
 
         if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
@@ -1054,20 +1065,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
         }
 
-            /* LINE_POINTS_COLOR - everything we need is already provided by 
-                COLOR_MATERIAL_SHADER */
-        /*
-        if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR) {
-            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-            vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
-            vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
-	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
-            fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
-            fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
-        }
-         */
-        
+
         /* texturing - MULTI_TEX builds on ONE_TEX */
         if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
             DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
@@ -1120,13 +1118,17 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		{
 			vertexShaderResources_t x1;
 			fragmentShaderResources_t x2; 
+            int i;
 
 			ConsoleMessage ("Vertex source:");
 			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
 				ConsoleMessage(vertexSource[x1]); 
 			ConsoleMessage("Fragment Source:");
-			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
-				ConsoleMessage(fragmentSource[x2]); 
+            i=0;
+			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) {
+				ConsoleMessage("%d",i++);
+                ConsoleMessage(fragmentSource[x2]); 
+            }
 		}
 	#endif //VERBOSE
 
@@ -1135,8 +1137,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
 
-
-static void makeAndCompileShader(struct shaderTableEntry *me) {
+static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
    
     GLint success;
 	GLuint myVertexShader = 0;
@@ -1172,7 +1173,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me) {
 	(*myShader).compiledOK = FALSE;
 
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
-	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne)) {
+	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
 		return;
 	}
     

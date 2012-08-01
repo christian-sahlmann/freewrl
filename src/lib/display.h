@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.157 2012/07/31 21:18:29 crc_canada Exp $
+  $Id: display.h,v 1.158 2012/08/01 15:00:24 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -443,7 +443,6 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	// OLDCODE s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 // JAS extern s_renderer_capabilities_t rdr_caps;
