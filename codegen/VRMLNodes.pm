@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.63 2012/07/10 18:40:26 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.64 2012/08/01 15:32:43 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -2258,7 +2258,7 @@ package VRML::NodeType;
 
 	IntegerTrigger => 
 	new VRML::NodeType("IntegerTrigger", {
-			set_triggerTime => [SFTime,undef ,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			set_boolean =>[SFBool,undef,inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			integerKey => [SFInt32, 0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			triggerValue => [SFInt32, 0, outputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],

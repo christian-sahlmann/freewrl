@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_EventUtils.c,v 1.10 2011/06/02 19:50:43 dug9 Exp $
+$Id: Component_EventUtils.c,v 1.11 2012/08/01 15:32:43 crc_canada Exp $
 
 X3D Event Utilities Component
 
@@ -201,8 +201,16 @@ void do_IntegerTrigger (void *node){
 	if (!node) return;
 
 	px = (struct X3D_IntegerTrigger *) node;
-	px->triggerValue = px->integerKey;
-	MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
+
+	if (px->set_boolean == TRUE) {
+		px->triggerValue = px->integerKey;
+		MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
+        } else {
+		// do nothing
+        }
+
+
+
 }
 
 /******************************************************************************/
