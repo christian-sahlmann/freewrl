@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.64 2012/08/01 13:33:54 dug9 Exp $
+$Id: Polyrep.c,v 1.65 2012/08/01 20:08:57 crc_canada Exp $
 
 ???
 
@@ -785,7 +785,10 @@ void render_polyrep(void *node) {
 	struct X3D_Virt *virt;
 	struct X3D_Node *renderedNodePtr;
 	struct X3D_PolyRep *pr;
-	int hasc;
+#ifdef OLDCODE
+OLDCODE	int hasc;
+#endif //OLDCODE
+
 	ttglobal tg = gglobal();
 
 	renderedNodePtr = X3D_NODE(node);
@@ -801,6 +804,9 @@ void render_polyrep(void *node) {
 		/* no triangles */
 		return;
 	}
+
+	// do we have VBOs here? were they removed??
+	if ((pr->VBO_buffers[VERTEX_VBO]) == 0) return;
 
 	if (!pr->streamed) {
 		printf ("render_polyrep, not streamed, returning\n");
@@ -820,8 +826,8 @@ void render_polyrep(void *node) {
 
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
-	hasc = 0;
 #ifdef OLDCODE
+OLDCODE	hasc = 0;
 OLDCODE handled now in the shader
 OLDCODE 	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
 OLDCODE 
@@ -853,12 +859,14 @@ OLDCODE 	}
             	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
-	/* colours? */
-	if (hasc) {
-		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
-		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
-	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+#ifdef OLDCODE
+OLDCODE	/* colours? */
+OLDCODE	if (hasc) {
+OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
+OLDCODE		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
+OLDCODE	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+#endif //OLDCODE
         
 	/*  textures?*/
 	if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
@@ -883,11 +891,12 @@ OLDCODE 	}
 	/*  put things back to the way they were;*/
 	if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
-	if (hasc) {
-		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_DISABLE(GL_COLOR_MATERIAL);
-
-	}
+#ifdef OLDCODE
+OLDCODE	if (hasc) {
+OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+OLDCODE		FW_GL_DISABLE(GL_COLOR_MATERIAL);
+OLDCODE	}
+#endif //OLDCODE
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 
@@ -1131,6 +1140,17 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 			/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
 
 	}
+
+	polyrep = (struct X3D_PolyRep *)node->_intern;
+
+	/* Android, for instance, needs the VBO_buffers re-created. Check to see if this is the case here */
+	if (polyrep->VBO_buffers[VERTEX_VBO] == 0) {
+		//ConsoleMessage ("re-creating VERTEX VBOs");
+		glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
+		glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
+	} 
+
+
 	polyrep = (struct X3D_PolyRep *)node->_intern;
 	/* if multithreading, tell the rendering loop that we are regenning this one */
 	/* if singlethreading, this'll be set to TRUE before it is tested	     */
