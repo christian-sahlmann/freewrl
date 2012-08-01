@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.63 2012/07/31 15:19:39 crc_canada Exp $
+$Id: Polyrep.c,v 1.64 2012/08/01 13:33:54 dug9 Exp $
 
 ???
 
@@ -820,7 +820,7 @@ void render_polyrep(void *node) {
 
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
-	
+	hasc = 0;
 #ifdef OLDCODE
 OLDCODE handled now in the shader
 OLDCODE 	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
