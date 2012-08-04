@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: X3DParser.c,v 1.101 2012/06/26 20:43:37 crc_canada Exp $
+$Id: X3DParser.c,v 1.102 2012/08/04 21:44:31 dug9 Exp $
 
 ???
 
@@ -899,6 +899,10 @@ void linkNodeIn(char *where, int lineno) {
 						FIELDNAMES_children, &coffset, &ctype, &ctmp);
 					/* printf ("changed it to ctype %d\n",ctype); */
 				}
+			}else if(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-2]->_nodeType == NODE_Script) {
+				/* Script SFNode fields are set up with Group nodes as containers - so allow a default container to be group's children */
+					findFieldInOFFSETS(NODE_Group, 
+						FIELDNAMES_children, &coffset, &ctype, &ctmp);
 			}
 		}
 	}
@@ -1844,10 +1848,10 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 			#ifdef X3DPARSERVERBOSE
 			printf ("linkNodeIn, got parsing script, have to link node into script body\n");
         	printf ("linking in %s to %s, field %s (%d)\n",
-                	stringNodeType(parentStack[parentIndex]->_nodeType),
-                	stringNodeType(parentStack[parentIndex-1]->_nodeType),
-                	stringFieldType(parentStack[parentIndex]->_defaultContainer),
-                	parentStack[parentIndex]->_defaultContainer);
+                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType),
+                	stringNodeType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex-1]->_nodeType),
+                	stringFieldType(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer),
+                	tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_defaultContainer);
 		printf ("but skipping this\n");
 			#endif
 
