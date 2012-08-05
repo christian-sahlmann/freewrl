@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.158 2012/08/01 15:00:24 crc_canada Exp $
+  $Id: display.h,v 1.159 2012/08/05 20:52:25 dug9 Exp $
 
   FreeWRL support library.
 
@@ -787,7 +787,6 @@ void resetGeometry();
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
-	/* color buffer subject to draw-gray anaglyph before call */
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
 	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
@@ -852,29 +851,6 @@ void resetGeometry();
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
 	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 
-
-/* color functions subject to draw-gray anaglyph >>  */
-void fwAnaglyphRemapf(float *r2, float *g2, float* b2, float r, float g, float b);
-void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x);
-void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params);
-void fwglColor3fv(float *rgb,char *wh, int li);
-void fwglColor4f(float r,float g, float b, float a);
-void fwglColor4fv(float *rgba);
-void fwglColor3d(double r, double g, double b);
-void fwglColor3f(float r, float g, float b,char *wh, int li);
-int usingAnaglyph2(void);
-
-#ifdef OLDCODE
-OLDCODE	#define FW_GL_MATERIALFV(aaa, bbb, ccc) fwglMaterialfv(aaa, bbb, ccc)
-OLDCODE
-OLDCODE#define FW_GL_COLOR_MATERIAL(aaa, bbb) glColorMaterial(aaa, bbb)
-OLDCODE	#define FW_GL_COLOR3F(aaa,bbb,ccc) fwglColor3f(aaa,bbb,ccc,__FILE__,__LINE__);
-OLDCODE	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
-OLDCODE	#define FW_GL_COLOR3D(aaa, bbb, ccc) fwglColor3d(aaa, bbb, ccc)
-OLDCODE	#define FW_GL_COLOR3FV(aaa) fwglColor3fv(aaa,__FILE__,__LINE__);
-OLDCODE	#define FW_GL_COLOR4F(aaa,bbb,ccc,ddd) fwglColor4f(aaa,bbb,ccc,ddd);
-OLDCODE	#define FW_GL_COLOR4FV(aaa) fwglColor4fv(aaa);
-#endif //OLDCODE
 
 	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
 	#define FW_GL_GENLISTS(aaa) glGenLists(aaa)

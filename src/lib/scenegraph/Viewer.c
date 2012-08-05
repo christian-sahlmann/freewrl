@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.91 2012/07/21 12:50:58 dug9 Exp $
+$Id: Viewer.c,v 1.92 2012/08/05 20:52:25 dug9 Exp $
 
 CProto ???
 
@@ -49,7 +49,6 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 		/* must call this before getting values from command line in options.c */
 	Viewer->shutterGlasses = 0;
 	Viewer->anaglyph = 0;
-	Viewer->anaglyphMethod = 2; /* 1= use shaders 2= draw gray .It's hardwired here, no way to set from command line or HUD*/
 	Viewer->sidebyside = 0;
 	Viewer->isStereo = 0;
 		Viewer->eyedist = 0.065;
@@ -61,7 +60,6 @@ static void init_stereodefaults(X3D_Viewer *Viewer)
 		Viewer->screendist = 0.375; //was .8 
 		Viewer->stereoParameter = 0.01; //was .4 or toe-in. Toe-in can force your eyes wall-eyed esp. in side-by-side, so set near zero.
 		Viewer->dominantEye = 1; /*0=Left 1=Right used for picking*/
-		Viewer->haveAnaglyphShader = 0; /* call after gl initialized initAnaglyphShaders(); */
 		Viewer->iprog[0] = 0; /* left red */
 		Viewer->iprog[1] = 1; /* right green */
 		Viewer->haveQuadbuffer = 0;
@@ -1719,126 +1717,6 @@ xy2qua(Quaternion *ret, const double x, const double y)
 
 
 
-int initAnaglyphShaders()
-{
-	//p.642 red book
-	GLint compiled, linked;
-	GLuint shader, program;
-	int retval,i;
-
-	//one shader and program for each of Red, Green, Blue, Amber(Red+Green), Cyan(Green+Blue). Magenta(Red+Blue).
-	const GLchar* shaderSrc_R[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(gray, 0.0,0.0, gl_Color.a);"
-		"}"
-	};
-	const GLchar* shaderSrc_G[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(0.0,gray,0.0, gl_Color.a);"
-		"}"
-	};
-	const GLchar* shaderSrc_B[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(0.0,0.0,gray, gl_Color.a);"
-		"}"
-	};
-	const GLchar* shaderSrc_A[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(gray,gray,0.0, gl_Color.a);"
-		"}"
-	};
-	const GLchar* shaderSrc_C[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(0.0,gray,gray, gl_Color.a);"
-		"}"
-	};
-	const GLchar* shaderSrc_M[] = {
-		"void main()"
-		"{"
-		"     float gray = dot(gl_Color.rgb, vec3(0.299, 0.587, 0.114));"
-		"     gl_FragColor = vec4(gray,0.0,gray, gl_Color.a);"
-		"}"
-	};
-
-	const GLchar **src[6];
-	ppViewer p;
-	ttglobal tg = gglobal();
-	if(!tg->display.rdr_caps.have_GL_VERSION_2_0) return 0;
-	p =(ppViewer)tg->Viewer.prv;
-	src[0] = shaderSrc_R;
-	src[1] = shaderSrc_G;
-	src[2] = shaderSrc_B;
-	src[3] = shaderSrc_A;
-	src[4] = shaderSrc_C;
-	src[5] = shaderSrc_M;
-	retval = 1;
-	for(i=0;i<6;i++)
-	{
-		shader = CREATE_SHADER(GL_FRAGMENT_SHADER);
-		SHADER_SOURCE(shader,1,src[i],NULL);
-		COMPILE_SHADER(shader);
-		GET_SHADER_INFO(shader,GL_COMPILE_STATUS,&compiled);
-		if(!compiled){
-			GLint length;
-			GLchar* log;
-			GET_SHADER_INFO(shader,GL_INFO_LOG_LENGTH,&length);
-			log = (GLchar*)malloc(length);
-			glGetShaderInfoLog(shader,length,&length,log);
-			fprintf(stderr,"compile log - '%s\n",log);
-			retval = 0;
-			break;
-		}
-		program = CREATE_PROGRAM;
-		ATTACH_SHADER(program,shader);
-		LINK_SHADER(program);
-
-		glGetProgramiv(program,GL_LINK_STATUS,&linked);
-
-		if(linked){
-			p->Viewer.shaders[i] = shader;
-			p->Viewer.programs[i] = program;
-			retval = retval && 1;
-		}else{
-			GLint length;
-			GLchar* log;
-			glGetProgramiv(program,GL_INFO_LOG_LENGTH,&length);
-			log = (GLchar*)malloc(length);
-			glGetProgramInfoLog(program,length,&length,log);
-			fprintf(stderr,"link log = '%s'\n",log);
-			retval = 0;
-			break;
-		}
-	}
-	return retval;
-}
-
-
-
-
-void deleteAnaglyphShaders()
-{
-	int i;
-	ppViewer p;
-	ttglobal tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
-
-	if(!tg->display.rdr_caps.have_GL_VERSION_2_0) return;
-	for(i=0;i<6;i++)
-	{
-		DELETE_SHADER(p->Viewer.shaders[i]);
-		DELETE_PROGRAM(p->Viewer.programs[i]);
-	}
-}
 //static GLboolean acMask[2][3]; //anaglyphChannelMask
 void setmask(GLboolean *mask,int r, int g, int b)
 {
@@ -1849,18 +1727,10 @@ void setmask(GLboolean *mask,int r, int g, int b)
 void Viewer_anaglyph_setSide(int iside)
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	if( p->Viewer.anaglyphMethod == 2 )
-	{
-		/* draw in gray */
-		/* and use channel masks */
-		GLboolean t = 1;
-		glColorMask(p->acMask[iside][0],p->acMask[iside][1],p->acMask[iside][2],t);
-	}
-	else if(p->Viewer.anaglyphMethod == 1)
-	{
-		/* use shaders. textures (images) don't render */
-		USE_SHADER(p->Viewer.programs[p->Viewer.iprog[iside]]);
-	}
+	/* draw in gray */
+	/* and use channel masks */
+	GLboolean t = 1;
+	glColorMask(p->acMask[iside][0],p->acMask[iside][1],p->acMask[iside][2],t);
 }
 void Viewer_anaglyph_clearSides()
 {
@@ -1929,14 +1799,8 @@ void fwl_set_AnaglyphParameter(const char *optArg) {
 	p->Viewer.anaglyph = 1; /*0=none 1=active */
 	p->Viewer.shutterGlasses = 0;
 	p->Viewer.sidebyside = 0;
-	//Viewer.haveAnaglyphShader = 1; do not set until openGL initialized
 	p->Viewer.isStereo = 1;
 	setStereoBufferStyle(1);
-}
-int usingAnaglyph2()
-{
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	return (p->Viewer.anaglyph && (p->Viewer.anaglyphMethod == 2)) ? 2 : 0;
 }
 /* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
@@ -1973,26 +1837,16 @@ void fwl_init_SideBySide()
 	p->Viewer.screendist = min(p->Viewer.screendist,.375);
 	p->Viewer.stereoParameter = min(p->Viewer.stereoParameter,.01);
 }
+void clear_shader_table();
 void setAnaglyph()
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	/* called from post_gl_init and hud/options (option.c calls fwl_set_AnaglyphParameter above) */
-	if(p->Viewer.anaglyphMethod == 1)
-	{
-		if(p->Viewer.haveAnaglyphShader)
-		{
-			p->Viewer.anaglyph = 1; 
-			p->Viewer.isStereo = 1;
-			setStereoBufferStyle(1);
-		}
-	}
-	else if(p->Viewer.anaglyphMethod == 2)
-	{
-			p->Viewer.anaglyph = 1; 
-			p->Viewer.isStereo = 1;
-			setStereoBufferStyle(1);
-	}
+	p->Viewer.anaglyph = 1; 
+	p->Viewer.isStereo = 1;
+	clear_shader_table();
+	setStereoBufferStyle(1);
 }
 void setMono()
 {
@@ -2001,8 +1855,11 @@ void setMono()
 	p = (ppViewer)tg->Viewer.prv;
 
 	p->Viewer.isStereo = 0;
-	if(usingAnaglyph2())
+	if(p->Viewer.anaglyph)
+	{
 		glColorMask(1,1,1,1);
+		clear_shader_table();
+	}
 	p->Viewer.anaglyph = 0;
 	p->Viewer.sidebyside = 0;
 	p->Viewer.shutterGlasses = 0;
@@ -2079,11 +1936,6 @@ void viewer_postGLinit_init(void)
 	FW_GL_GETBOOLEANV(GL_STEREO,&quadbuffer);
 #endif
 	p->Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
-#ifdef GLES2
-	p->Viewer.haveAnaglyphShader = 0;
-#else
-	p->Viewer.haveAnaglyphShader = initAnaglyphShaders();
-#endif
 	updateEyehalf();
 
 	type = 0;
@@ -2091,14 +1943,6 @@ void viewer_postGLinit_init(void)
 	if( p->Viewer.sidebyside ) type = 2;
 	if( p->Viewer.anaglyph ==1 ) type = 3;
 
-	if(p->Viewer.anaglyph ==1) 
-	{
-		if(p->Viewer.anaglyphMethod == 1)
-			if( !p->Viewer.haveAnaglyphShader ) 
-			{
-				ConsoleMessage("anaglyph shaders did not initialize - do you have opengl 2.0+ drivers?\n");
-			}
-	}
 	if(p->Viewer.shutterGlasses)
 	{
 		// does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and

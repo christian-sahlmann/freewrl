@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.276 2012/08/05 17:02:30 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.277 2012/08/05 20:52:25 dug9 Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -690,6 +690,8 @@ static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
     the gl_FragColor, because we might have textures, fill properties, etc*/
 
 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
+static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n \
+gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
 static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 
@@ -984,7 +986,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragLowPrecision;
     #endif
     fragmentSource[fragmentMainStart] = fragMainStart;
-    fragmentSource[fragmentMainEnd] = fragEnd;
+	if(Viewer()->anaglyph)
+		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
+	else
+		fragmentSource[fragmentMainEnd] = fragEnd;
     
     //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
     
@@ -1612,7 +1617,28 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
+void clear_shader_table()
+{
+	/* clearing the shader table forces the shaders to be re-lego-assembled and compiled
+		- useful for switching anaglyph on/off (a different fragEnd pixel shader is used)
+		- used in fwl_initialize_GL()
+	*/
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
+	if (p->myShaderTable != NULL) {
+		int i;
+
+		for (i=0; i<vectorSize(p->myShaderTable); i++) {
+        		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+			FREE_IF_NZ(me);
+        	}
+		deleteVector (struct shaderTableEntry *,p->myShaderTable);
+		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
+
+	}
+}
 /**
  *   fwl_initializa_GL: initialize GLEW (->rdr caps) and OpenGL initial state
  */
@@ -1726,7 +1752,8 @@ bool fwl_initialize_GL()
 	/* remove entries in the shader table, if they exist. Android, on "bring to front" will
 	   call this routine, and shaders will be re-created as they are needed to display geometry.
 	*/
-	
+	clear_shader_table();
+	/* moved to clear_shader_table() for anaglyph toggling, dug9 Aug 5, 2012
 	if (p->myShaderTable != NULL) {
 		int i;
 
@@ -1738,7 +1765,7 @@ bool fwl_initialize_GL()
 		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
 
 	}
-
+	*/
 	return TRUE;
 }
 

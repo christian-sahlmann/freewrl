@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.119 2012/07/31 21:18:29 crc_canada Exp $
+$Id: Component_Shape.c,v 1.120 2012/08/05 20:52:25 dug9 Exp $
 
 X3D Shape Component
 
@@ -233,7 +233,6 @@ void compile_Material (struct X3D_Material *node) {
         }
 #undef MAX_SHIN
 #undef MIN_SHIN
-
 
 	MARK_NODE_COMPILED
 }
@@ -503,18 +502,17 @@ void child_Shape (struct X3D_Shape *node) {
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 		RENDER_MATERIAL_SUBNODES(node->appearance);
-
 		if (p->material_oneSided != NULL) {
 			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
 			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,&(p->material_oneSided->_verifiedColor.p[0]), 3*sizeof(float));
+			memcpy(p->appearanceProperties.emissionColour,p->material_oneSided->_verifiedColor.p, 3*sizeof(float));
 
 		} else if (p->material_twoSided != NULL) {
 			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
 			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
 			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,&(p->material_twoSided->_verifiedFrontColor.p[0]), 3*sizeof(float));
+			memcpy(p->appearanceProperties.emissionColour,p->material_twoSided->_verifiedFrontColor.p, 3*sizeof(float));
 		} else {
 			/* no materials selected.... */
 		}
@@ -650,7 +648,6 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 		if (node->backSpecularColor.c[i] > 1.0) node->backSpecularColor.c[i]=1.0f;
 	}
 
-
 	/* first, put in the transparency */
 	trans = 1.0 - node->transparency;
         node->_verifiedFrontColor.p[3] = trans;
@@ -716,7 +713,6 @@ void compile_TwoSidedMaterial (struct X3D_TwoSidedMaterial *node) {
 		/* just copy the front materials to the back */
 		memcpy(node->_verifiedBackColor.p, node->_verifiedFrontColor.p, sizeof (float) * 17);
 	}
-
 
 
 	MARK_NODE_COMPILED

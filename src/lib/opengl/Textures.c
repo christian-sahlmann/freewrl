@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.129 2012/07/31 15:19:39 crc_canada Exp $
+  $Id: Textures.c,v 1.130 2012/08/05 20:52:25 dug9 Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1174,29 +1174,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			if (mytexdata == NULL) {
 				printf ("mytexdata is null, texture failed, put something here\n");
 			}
-			if(usingAnaglyph2())  
-			{
-				fwAnaglyphremapRgbav(mytexdata,me->y,me->x);
-				//int i,j;
-				///* convert to grayscale Q. is there a way to use a shader program to do this faster?
-				//   Q. if all -win32,osx,linux- marked/flagged images when they are originally grayscale, could we use the 
-				//   flag here to skip the conversion to gray?
-				//*/
-				//for(j=0;j<me->y;j++)
-				//{	
-				//	for(i=0;i<me->x;i++)
-				//	{
-				//		float gray;
-				//		int igray;
-				//		unsigned char *rgb = &mytexdata[(j*me->x + i)*4]; /* assume RGBA */
-				//		fwAnaglyphRemapc(&rgb[0],&rgb[1],&rgb[2],rgb[0],rgb[1],rgb[2]);
-				//		//igray = rgb[0]*76 + rgb[1]*150 + rgb[2]*29; //255 = 76 + 150 + 29
-				//		//igray = igray >> 8; 
-				//		//rgb[0] = rgb[1] = rgb[2] = (unsigned char) igray;
-				//	}
-				//}
-			}
-
 
 			FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
 			
