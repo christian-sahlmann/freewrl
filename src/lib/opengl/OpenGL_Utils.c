@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.275 2012/08/01 20:08:57 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.276 2012/08/05 17:02:30 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -213,7 +213,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
-        p->usePhongShaders = true;
+        p->usePhongShaders = false;
 	}
 }
 #ifdef GLEW_MX
@@ -425,8 +425,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
-#undef PHONG_SHADING_ALWAYS
-
 
 /* VERTEX inputs */
 
