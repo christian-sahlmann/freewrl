@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.277 2012/08/05 20:52:25 dug9 Exp $
+  $Id: OpenGL_Utils.c,v 1.278 2012/08/07 16:01:34 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -456,6 +456,10 @@ static const GLchar *vertBackMatDec = "\
 
 /* VERTEX outputs */
 
+static const GLchar *vecNormPos = " \
+    vec3 Norm; \
+    vec4 Pos; \n";
+
 static const GLchar *varyingNormPos = " \
     varying vec3 Norm; \
     varying vec4 Pos; \n";
@@ -477,9 +481,9 @@ static const GLchar *vertEnd = "}";
 
 static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
 
-static const GLchar *vertPhongCalc = "\
-Norm = normalize(fw_NormalMatrix * fw_Normal);\n \
-Pos = fw_ModelViewMatrix * fw_Vertex;\n ";
+static const GLchar *vertNormPosCalc = "\
+	Norm = normalize(fw_NormalMatrix * fw_Normal);\n \
+	Pos = fw_ModelViewMatrix * fw_Vertex;\n ";
 
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
@@ -584,6 +588,7 @@ for (i=0; i<8; i++) { \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
 } ";
 
+#ifdef OLDCODE
 const GLchar *vertLightingEquation = "\
 vec4 p_eye;   \
 vec3 n;   \
@@ -679,6 +684,8 @@ mat_diffuse_colour = fw_FrontMaterial.diffuse;   \
 \
 v_front_colour = do_lighting(); \
 \n ";
+#endif //OLDCODE
+
 
 /* FRAGMENT bits */
 #ifdef GL_ES_VERSION_2_0
@@ -698,7 +705,9 @@ static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
 static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
 static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
-const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
+const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(fw_Normal,Pos);";
+const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(Norm,Pos);";
+
 const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC);\n";
 
 
@@ -1025,9 +1034,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     }
 
     if (doThis) {
-        vertexSource[vertexPhongOutput] = varyingNormPos;
+        vertexSource[vertexNormPosOutput] = varyingNormPos;
         vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexPhongCalculation] = vertPhongCalc;
+        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
         
         fragmentSource[fragmentLightDefines] = lightDefines;
         //fragmentSource[fragmentNormalColorDefs] = fragNormalColorDefs;
@@ -1035,7 +1044,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
-        fragmentSource[fragmentPhongNormPosDeclare] = varyingNormPos;
+        fragmentSource[fragmentNormPosDeclare] = varyingNormPos;
         fragmentSource[fragmentADSLLightModel] = ADSLLightModel;
         fragmentSource[fragmentADSLAssign] = fragADSLAss;
 
@@ -1050,8 +1059,12 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexLightDefines] = lightDefines;
         vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-        vertexSource[vertexLightingEquation] = vertLightingEquation;
-        vertexSource[vertexOneMaterialCalculation] = vertFrontMatCalc;
+        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+        vertexSource[vertexNormPosOutput] = vecNormPos;
+	vertexSource[vertexLightingEquation] = ADSLLightModel;
+        vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
+	vertexSource[vertexADSLCalculation] = vertADSLCalc;
+
         fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentOneColourAssign] = fragFrontColAss;    
     }
@@ -1091,7 +1104,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
             vertexSource[vertexLightDefines] = lightDefines;
-            vertexSource[vertexLightingEquation] = vertLightingEquation;
+        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+        vertexSource[vertexNormPosOutput] = vecNormPos;
+	vertexSource[vertexLightingEquation] = ADSLLightModel;
+        vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 
             fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
             fragmentSource[fragmentMultiTexDeclare] = fragMulTexDef;
@@ -1116,6 +1132,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
 
+#define VERBOSE
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -1134,6 +1151,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
+#undef VERBOSE
 
 	return TRUE;
 }

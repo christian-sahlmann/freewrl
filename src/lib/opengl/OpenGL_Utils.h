@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: OpenGL_Utils.h,v 1.57 2012/07/31 21:18:29 crc_canada Exp $
+$Id: OpenGL_Utils.h,v 1.58 2012/08/07 16:01:34 crc_canada Exp $
 
 Screen snapshot.
 
@@ -48,7 +48,7 @@ typedef enum vertexShaderResources {
     vertexHatchPositionDeclare,
     vertexPointSizeDeclare,
     
-    vertexPhongOutput,
+    vertexNormPosOutput,
     
     vertexLightingEquation,
     
@@ -58,7 +58,8 @@ typedef enum vertexShaderResources {
 	vertexPositionCalculation,
     vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,
-    vertexPhongCalculation,
+    vertexNormPosCalculation,
+    vertexADSLCalculation,
 	vertexSimpleColourCalculation,
     vertexHatchPositionCalculation,
     
@@ -81,7 +82,7 @@ typedef enum fragmenShaderResources {
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
-    fragmentPhongNormPosDeclare,
+    fragmentNormPosDeclare,
     fragmentHatchPositionDeclare,
     
     fragmentADSLLightModel,
