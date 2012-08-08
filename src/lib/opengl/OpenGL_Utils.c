@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.278 2012/08/07 16:01:34 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.279 2012/08/08 17:07:15 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -705,7 +705,7 @@ static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
 static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
 static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
-const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(fw_Normal,Pos);";
+const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
 const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(Norm,Pos);";
 
 const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC);\n";
@@ -1039,9 +1039,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
         
         fragmentSource[fragmentLightDefines] = lightDefines;
-        //fragmentSource[fragmentNormalColorDefs] = fragNormalColorDefs;
-        
-        
         fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
         fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
         fragmentSource[fragmentNormPosDeclare] = varyingNormPos;
@@ -1132,7 +1129,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
 
-#define VERBOSE
+
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -1151,7 +1148,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
-#undef VERBOSE
 
 	return TRUE;
 }
