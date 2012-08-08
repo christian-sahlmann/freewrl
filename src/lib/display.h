@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.159 2012/08/05 20:52:25 dug9 Exp $
+  $Id: display.h,v 1.160 2012/08/08 15:06:28 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -51,7 +51,11 @@ Functions:
 /* for generic GLES2 ie from desktop simulator */
 #ifdef GLES2
 	#include <GLES2/gl2.h>
+
+	#if !defined(_ANDROID)
 	#include <EGL/egl.h>
+	#endif //NOT Android
+
 	#ifndef GLchar
 		#define GLchar GLbyte
 	#endif
