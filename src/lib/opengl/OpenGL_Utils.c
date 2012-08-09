@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.279 2012/08/08 17:07:15 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.280 2012/08/09 15:07:02 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -964,6 +964,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         }
 	#endif //VERBOSE
 	#endif // GL_ES_VERSION_2_0
+
 
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");

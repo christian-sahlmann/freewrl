@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Shape.c,v 1.120 2012/08/05 20:52:25 dug9 Exp $
+$Id: Component_Shape.c,v 1.121 2012/08/09 15:07:03 crc_canada Exp $
 
 X3D Shape Component
 
@@ -597,7 +597,10 @@ void compile_Shape (struct X3D_Shape *node) {
             else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
         }
     } else {
-    	whichAppearanceShader = getAppearanceShader(tmpN);
+        /* if we have a Colour field, put this first */
+        if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+            	whichAppearanceShader = getAppearanceShader(tmpN);
+        }
     }
     
     /* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */

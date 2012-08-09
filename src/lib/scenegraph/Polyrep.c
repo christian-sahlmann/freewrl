@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Polyrep.c,v 1.65 2012/08/01 20:08:57 crc_canada Exp $
+$Id: Polyrep.c,v 1.66 2012/08/09 15:07:03 crc_canada Exp $
 
 ???
 
@@ -785,9 +785,8 @@ void render_polyrep(void *node) {
 	struct X3D_Virt *virt;
 	struct X3D_Node *renderedNodePtr;
 	struct X3D_PolyRep *pr;
-#ifdef OLDCODE
-OLDCODE	int hasc;
-#endif //OLDCODE
+	int hasc;
+
 
 	ttglobal tg = gglobal();
 
@@ -826,31 +825,27 @@ OLDCODE	int hasc;
 
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
-#ifdef OLDCODE
-OLDCODE	hasc = 0;
-OLDCODE handled now in the shader
-OLDCODE 	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
-OLDCODE 
-OLDCODE 	/* Do we have any colours? Are textures, if present, not RGB? */
-OLDCODE 	if(hasc){
-OLDCODE 		if (!pr->isRGBAcolorNode) 
-OLDCODE 			if (!APPROX(pr->transparency,getAppearanceProperties()->transparency)) {
-OLDCODE 				recalculateColorField(pr);
-OLDCODE 			}
-OLDCODE 		
-OLDCODE 		LIGHTING_ON
-OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
-OLDCODE 	
-OLDCODE 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
-OLDCODE 		FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
-OLDCODE 		FW_GL_COLOR4FV(diffuseColor);
-OLDCODE 	
-OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
-OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
-OLDCODE 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
-OLDCODE 	}
-#endif //OLDCODE
-	
+
+ 	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
+
+ 	/* Do we have any colours? Are textures, if present, not RGB? */
+ 	if(hasc){
+ 		if (!pr->isRGBAcolorNode) 
+ 			if (!APPROX(pr->transparency,getAppearanceProperties()->transparency)) {
+ 				recalculateColorField(pr);
+ 			}
+ 		
+ 		LIGHTING_ON
+ 		//do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+ 	
+ 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
+ 		//FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+ 		//FW_GL_COLOR4FV(diffuseColor);
+ 	
+ 		//do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+ 		//do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+ 		//do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
+ 	}
 
 	/*  status bar, text do not have normals*/
 	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
@@ -859,14 +854,14 @@ OLDCODE 	}
             	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	} else FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY); 
 
-#ifdef OLDCODE
-OLDCODE	/* colours? */
-OLDCODE	if (hasc) {
-OLDCODE		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-OLDCODE		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
-OLDCODE		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
-OLDCODE	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-#endif //OLDCODE
+
+	/* colours? */
+	if (hasc) {
+		FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[COLOR_VBO]);
+		FW_GL_COLOR_POINTER(4,GL_FLOAT,0,0);
+	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+
         
 	/*  textures?*/
 	if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
@@ -891,12 +886,11 @@ OLDCODE	} else FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	/*  put things back to the way they were;*/
 	if (pr->VBO_buffers[NORMAL_VBO] == 0) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
-#ifdef OLDCODE
-OLDCODE	if (hasc) {
-OLDCODE		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-OLDCODE		FW_GL_DISABLE(GL_COLOR_MATERIAL);
-OLDCODE	}
-#endif //OLDCODE
+
+    if (hasc) {
+		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_DISABLE(GL_COLOR_MATERIAL);
+	}
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;
 
