@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Viewer.c,v 1.92 2012/08/05 20:52:25 dug9 Exp $
+$Id: Viewer.c,v 1.93 2012/08/09 17:14:30 crc_canada Exp $
 
 CProto ???
 
@@ -1926,16 +1926,16 @@ void updateEyehalf()
 
 void viewer_postGLinit_init(void)
 {
-	GLboolean quadbuffer;
 	int type;
 
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
-	quadbuffer = GL_FALSE;
-#ifndef GLES2
-	FW_GL_GETBOOLEANV(GL_STEREO,&quadbuffer);
-#endif
-	p->Viewer.haveQuadbuffer = (quadbuffer == GL_TRUE);
+    
+    // see if we can use quad buffer here or not.
+    p->Viewer.haveQuadbuffer = (gglobal()->display.rdr_caps.quadBuffer== GL_TRUE);
+    
+    //if (p->Viewer.haveQuadbuffer) ConsoleMessage ("viewer_postGLinit_init, HAVE quad buffer"); else ConsoleMessage ("viewer_postGLinit, no quad buffer");
+    
 	updateEyehalf();
 
 	type = 0;

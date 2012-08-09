@@ -1,5 +1,5 @@
 /*
-  $Id: display.h,v 1.160 2012/08/08 15:06:28 crc_canada Exp $
+  $Id: display.h,v 1.161 2012/08/09 17:14:30 crc_canada Exp $
 
   FreeWRL support library.
 
@@ -446,6 +446,8 @@ typedef struct {
 	int texture_units;
 	int max_texture_size;
 	float anisotropicDegree;
+    
+    GLboolean quadBuffer;        /* does platform support quadbuffer? */
 
 } s_renderer_capabilities_t;
 

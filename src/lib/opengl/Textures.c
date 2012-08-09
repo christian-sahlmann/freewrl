@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.130 2012/08/05 20:52:25 dug9 Exp $
+  $Id: Textures.c,v 1.131 2012/08/09 17:14:30 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -1366,15 +1366,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			else tg->RenderFuncs.last_texture_type = TEXTURE_NO_ALPHA;
 
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
-	
-#ifdef OLDCODE
-OLDCODE			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
-OLDCODE			   ignored. We do this here, because when we do the Material node, we do not know what the
-OLDCODE			   texture depth is (if there is any texture, even) */
-OLDCODE			if (myTableIndex->hasAlpha) {
-OLDCODE				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
-OLDCODE			}
-#endif //OLDCODE
 	
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			if (myTableIndex->nodeType != NODE_MovieTexture) {

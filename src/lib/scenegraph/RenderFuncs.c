@@ -1,5 +1,5 @@
 /*
-  $Id: RenderFuncs.c,v 1.129 2012/07/29 16:18:16 crc_canada Exp $
+  $Id: RenderFuncs.c,v 1.130 2012/08/09 17:14:30 crc_canada Exp $
 
   FreeWRL support library.
   Scenegraph rendering.
@@ -490,6 +490,7 @@ static bool setupShader() {
     
 	if (mysp != NULL) {
         
+
 		/* if we had a shader compile problem, do not draw */
 		if (!(mysp->compiledOK)) {
 #ifdef RENDERVERBOSE
@@ -538,6 +539,7 @@ static bool setupShader() {
     return true;
     
 }
+
 
 void sendArraysToGPU (int mode, int first, int count) {
 #ifdef RENDERVERBOSE
