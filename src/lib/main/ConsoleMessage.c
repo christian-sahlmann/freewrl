@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.33 2012/07/29 15:47:37 crc_canada Exp $
+$Id: ConsoleMessage.c,v 1.34 2012/08/12 15:21:58 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -77,7 +77,7 @@ typedef struct pConsoleMessage{
 	int setHaveMscVer;// = 0;
 	int setTargetAndroid;// = 0;
 
-#if defined (_ANDROID)
+#if defined (_ANDROID) || defined(STATUSBAR_HUD)
 #define MAX_ANDROID_CONSOLE_MESSAGE_SLOTS 20
 	int androidFreeSlot;
 	char * androidMessageSlot[MAX_ANDROID_CONSOLE_MESSAGE_SLOTS];
@@ -419,7 +419,7 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 //FILE* consolefile;
 
 
-#if defined (_ANDROID)
+#if defined (_ANDROID) || defined (STATUSBAR_HUD)
 static void android_save_log(char *thislog) {
 	ttglobal tg = gglobal();
 	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
@@ -445,20 +445,22 @@ static void android_save_log(char *thislog) {
 
 // tell the UI how many unread console messages we have.
 int android_get_unread_message_count() {
+	ppConsoleMessage p;
 	ttglobal tg = gglobal();
 	if (!tg) return 0;
-	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	return p->androidHaveUnreadMessages;
 
 
 }
 
 char *android_get_last_message(int whichOne) {
+	ppConsoleMessage p;
 	ttglobal tg = gglobal();
 	int whm;
 
 	if (!tg) return "NO GGLOBAL - NO MESSAGES";
-	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
+	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	
 	// reset the "number of messages" counter.
 	p->androidHaveUnreadMessages = 0;
@@ -572,8 +574,10 @@ int ConsoleMessage0(const char *fmt, va_list args)
 #endif
 		if(p->Console_writeToLog)
 			writeToLogFile(buffer);
-		if(tg->ConsoleMessage.Console_writeToHud)
-			hudSetConsoleMessage(buffer);
+		if(tg->ConsoleMessage.Console_writeToHud){
+			android_save_log(STRDUP(buffer));
+			//hudSetConsoleMessage(buffer);
+		}
 #ifdef _MSC_VER
 		if(Console_writePrimitive)
 			writeToWin32Console(buffer);

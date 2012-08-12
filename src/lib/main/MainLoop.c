@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.264 2012/08/05 20:52:25 dug9 Exp $
+  $Id: MainLoop.c,v 1.265 2012/08/12 15:21:58 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2028,14 +2028,32 @@ void updateButtonStatus()
 	// For FRONTEND_HANDLES_DISPLAY_THREAD configurations, the frontend should do 
 	// the equivalent of the following once per frame (poll state and set UI)
 	int headlight, collision, navmode;
-	//poll state:
+	//poll model state:
 	headlight = fwl_get_headlight();
 	collision = fwl_getCollision();
 	navmode = fwl_getNavMode();
-	//set UI:
+	//update UI(view):
 	setMenuButton_navModes(navmode);
 	setMenuButton_headlight(headlight);
 	setMenuButton_collision(collision);
+}
+int android_get_unread_message_count();
+char *android_get_last_message(int whichOne); 
+void hudSetConsoleMessage(char *buffer);
+void updateConsoleStatus()
+{
+	//polls ConsoleMessage.c for accumulated messages and updates statusbarHud.c via hudSetConsoleMessage
+	int nlines,i;
+	char *buffer;
+	nlines = android_get_unread_message_count(); //poll model
+	for(i=0;i<nlines;i++)
+	{
+		buffer = android_get_last_message(nlines-i-1); //poll model
+#ifdef STATUSBAR_HUD
+		hudSetConsoleMessage(buffer); //update UI(view)
+#endif
+		free(buffer);
+	}
 }
 void checkFileLoadRequest()
 {
@@ -2098,7 +2116,13 @@ void _displayThread()
 	while (!((ppMainloop)(gglobal()->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");
 		fwl_RenderSceneUpdateScene();
-		updateButtonStatus();
+		//Controller code
+		//-MVC - Model-View-Controller design pattern: do the Controller poll-model-and-update-UI here
+		//-reason for MVC: put controller in UI(view) technology so no callbacks are needed from Model to UI(View)
+		//-here everything is in C so we don't need MVC style, but we are preparing MVC in C
+		// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
+		updateButtonStatus(); //poll Model & update UI(View)
+		updateConsoleStatus(); //poll Model & update UI(View)
 		checkFileLoadRequest();
 	} 
 	/* when finished: */
