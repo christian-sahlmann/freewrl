@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Text.c,v 1.55 2012/07/20 15:10:32 crc_canada Exp $
+$Id: Component_Text.c,v 1.56 2012/08/15 13:31:45 crc_canada Exp $
 
 X3D Text Component
 
@@ -53,19 +53,13 @@ X3D Text Component
 
 
 #ifdef _ANDROID
-
-// Android UI sends in file descriptors and open file for fonts.
-// files are in the assets folder; we assume that the fd is open and fseek'd properly.
-
-FILE *androidFontFile = NULL;
-int fileLen= -1;
-
-void fwg_AndroidFontFile(FILE *myFile,int len) {
-	androidFontFile = myFile;
-	fileLen = len;
-}
-
+#ifdef ANDROID_DEBUG
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif //ANDROID_DEBUG
 #endif //ANDROID
+
 
 #define XRES 96
 #define YRES 96
@@ -85,61 +79,15 @@ include FT_FREETYPE_H
 include FT_GLYPH_H */
 
 
-///* initialize the library with this variable */
-//static FT_Library library; /* handle to library */
-//
-//#define num_fonts 32
-//static FT_Face font_face[num_fonts];           /* handle to face object */
-//static int     font_opened[num_fonts];         /* is this font opened   */
-//
-//
-///* we load so many gliphs into an array for processing */
-//#define         MAX_GLYPHS      2048
-//static FT_Glyph        glyphs[MAX_GLYPHS];
-//static int             cur_glyph;
-//static int             TextVerbose = FALSE;
-//
-//
-///* decompose interface func pointer */
-//static FT_Outline_Funcs FW_outline_interface;
-//
-//
-///* lets store the font paths here */
-//#define fp_name_len 256
-//static char *font_directory = NULL;
-//static char thisfontname[fp_name_len];
-//
-///* where are we? */
-//static double pen_x, pen_y;
-//
-///* if this is a status bar, put depth different than 0.0 */
-//static float TextZdist;
-//
-//static double x_size;          /* size of chars from file */
-//static double y_size;          /* size of chars from file */
-//static int   myff;             /* which index into font_face are we using  */
-//
-//
-///* for keeping track of tesselated points */
-//static int FW_RIA[500];        /* pointer to which point is returned by tesselator  */
-//static int FW_RIA_indx;                        /* index into FW_RIA                         */
-//static struct X3D_PolyRep *FW_rep_;    /* this is the internal rep of the polyrep           */
-//static int FW_pointctr;                /* how many points used so far? maps into rep-_coord */
-//static int indx_count;                 /* maps intp FW_rep_->cindex                         */
-//static int coordmaxsize;               /* maximum coords before needing to REALLOC          */
-//static int cindexmaxsize;              /* maximum cindexes before needing to REALLOC        */
-//
-//
-///* Outline callbacks and global vars */
-//static int contour_started;
-//static FT_Vector last_point;
-//static int FW_Vertex;
-//
-///* flag to determine if we need to call the open_font call */
-//static int started = FALSE;
-//
-
 typedef struct pComponent_Text{
+
+#ifdef _ANDROID
+	// Android UI sends in file descriptors and open file for fonts.
+	// files are in the assets folder; we assume that the fd is open and fseek'd properly.
+
+	FILE *androidFontFile;
+	int fileLen;
+#endif //ANDROID
 
 	/* initialize the library with this variable */
 	FT_Library library; /* handle to library */
@@ -230,6 +178,18 @@ static FT_Error FW_Load_Char(unsigned int idx);
 static void FW_draw_outline(FT_OutlineGlyph oglyph);
 static void FW_draw_character(FT_Glyph glyph);
 static int open_font(void);
+
+#ifdef _ANDROID
+/* Android UI finds the font file(s) and sends them in here */
+void fwg_AndroidFontFile(FILE *myFile,int len) {
+	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
+	p->androidFontFile = myFile;
+	p->fileLen = len;
+}
+
+#endif //ANDROID
+
+
 
 void render_Text (struct X3D_Text * node)
 {
@@ -553,21 +513,36 @@ int FW_init_face()
 #ifdef _ANDROID
         FT_Open_Args myArgs;
 
-    if ((fileLen < 0) || (androidFontFile ==NULL)) {
+    if ((p->fileLen == 0) || (p->androidFontFile ==NULL)) {
 	ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
 	return FALSE;
 
-    } else {
-	// ConsoleMessage("FT_Open_Face looks ok to go");
-	
-	unsigned char *myFileData = malloc (fileLen+1);
-	size_t frv;
-	frv = fread (myFileData, (size_t)fileLen, (size_t)1, androidFontFile);
-        myArgs.flags  = FT_OPEN_MEMORY;
-        myArgs.memory_base = myFileData;
-        myArgs.memory_size = fileLen;
     }
 
+#ifdef ANDROID_DEBUG
+   {
+	struct stat buf;
+   	int fh,result;
+
+ConsoleMessage ("TEXT INITIALIZATION - checking on the font file before doing anything");
+   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
+      ConsoleMessage("TEXT INITIALIZATION file size is %ld\n", buf.st_size);
+      ConsoleMessage("TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
+   }
+
+    } 
+#endif //ANDROID_DEBUG
+
+
+    // ConsoleMessage("FT_Open_Face looks ok to go");
+	
+    unsigned char *myFileData = malloc (p->fileLen+1);
+    size_t frv;
+    frv = fread (myFileData, (size_t)p->fileLen, (size_t)1, p->androidFontFile);
+    myArgs.flags  = FT_OPEN_MEMORY;
+    myArgs.memory_base = myFileData;
+    myArgs.memory_size = p->fileLen;
+  
     err = FT_Open_Face(p->library, &myArgs, 0, &p->font_face[p->myff]);
         if (err) {
             char line[2000];
@@ -577,6 +552,23 @@ int FW_init_face()
         } else {
             p->font_opened[p->myff] = TRUE;
         }
+
+
+#ifdef ANDROID_DEBUG
+   {
+        struct stat buf;
+        int fh,result;
+
+   if (0 == fstat(fileno(p->androidFontFile), &buf)) {
+      ConsoleMessage("FIN TEXT INITIALIZATION file size is %ld\n", buf.st_size);
+      ConsoleMessage("FIN TEXT INITIALIZATION time modified is %s\n", ctime(&buf.st_atime));
+   }
+}
+#endif //ANDROID_DEBUG
+
+	fclose(p->androidFontFile);
+	p->androidFontFile = NULL;
+
 
 #else //ANDROID
     /* load a font face */
