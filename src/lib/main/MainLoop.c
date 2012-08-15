@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.265 2012/08/12 15:21:58 dug9 Exp $
+  $Id: MainLoop.c,v 1.266 2012/08/15 00:40:38 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -1348,12 +1348,14 @@ static void render()
 			if(p->touchlist[i].isDown > 0)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
+#ifndef STATUSBAR_HUD
 	/* status bar, if we have one */
 	drawStatusBar();
 
 	/* swap the rendering area */
 	FW_GL_SWAPBUFFERS;
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
+#endif
 }
 
 
@@ -2124,6 +2126,12 @@ void _displayThread()
 		updateButtonStatus(); //poll Model & update UI(View)
 		updateConsoleStatus(); //poll Model & update UI(View)
 		checkFileLoadRequest();
+		/* status bar, if we have one */
+		drawStatusBar();  // UI/View 
+
+		/* swap the rendering area */
+		FW_GL_SWAPBUFFERS;
+			PRINT_GL_ERROR_IF_ANY("XEvents::render");
 	} 
 	/* when finished: */
 	finalizeRenderSceneUpdateScene();
