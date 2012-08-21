@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: ConsoleMessage.c,v 1.34 2012/08/12 15:21:58 dug9 Exp $
+$Id: ConsoleMessage.c,v 1.35 2012/08/21 23:02:19 dug9 Exp $
 
 When running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
@@ -575,8 +575,10 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		if(p->Console_writeToLog)
 			writeToLogFile(buffer);
 		if(tg->ConsoleMessage.Console_writeToHud){
+#if defined(STATUSBAR_HUD)
 			android_save_log(STRDUP(buffer));
 			//hudSetConsoleMessage(buffer);
+#endif
 		}
 #ifdef _MSC_VER
 		if(Console_writePrimitive)

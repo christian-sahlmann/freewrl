@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.266 2012/08/15 00:40:38 dug9 Exp $
+  $Id: MainLoop.c,v 1.267 2012/08/21 23:02:19 dug9 Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -2042,6 +2042,7 @@ void updateButtonStatus()
 int android_get_unread_message_count();
 char *android_get_last_message(int whichOne); 
 void hudSetConsoleMessage(char *buffer);
+#if defined(STATUSBAR_HUD)
 void updateConsoleStatus()
 {
 	//polls ConsoleMessage.c for accumulated messages and updates statusbarHud.c via hudSetConsoleMessage
@@ -2051,12 +2052,11 @@ void updateConsoleStatus()
 	for(i=0;i<nlines;i++)
 	{
 		buffer = android_get_last_message(nlines-i-1); //poll model
-#ifdef STATUSBAR_HUD
 		hudSetConsoleMessage(buffer); //update UI(view)
-#endif
 		free(buffer);
 	}
 }
+#endif
 void checkFileLoadRequest()
 {
 	/* Checks flags and pops up a dialog for the user to enter a new 
@@ -2124,7 +2124,9 @@ void _displayThread()
 		//-here everything is in C so we don't need MVC style, but we are preparing MVC in C
 		// to harmonize with Android, IOS etc where the UI(View) and Controller are in Objective-C or Java and Model(state) in C
 		updateButtonStatus(); //poll Model & update UI(View)
+#if defined(STATUSBAR_HUD)
 		updateConsoleStatus(); //poll Model & update UI(View)
+#endif
 		checkFileLoadRequest();
 		/* status bar, if we have one */
 		drawStatusBar();  // UI/View 

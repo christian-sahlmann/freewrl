@@ -1,5 +1,5 @@
 /*
-  $Id: statusbarHud.c,v 1.53 2012/07/10 19:25:12 crc_canada Exp $
+  $Id: statusbarHud.c,v 1.54 2012/08/21 23:02:20 dug9 Exp $
 
 */
 
@@ -25,7 +25,7 @@
 
 #include <config.h>
 #include <system.h>
-#include <display.h>
+//#include <display.h>
 #include <internal.h>
 
 #include <libFreeWRL.h>
