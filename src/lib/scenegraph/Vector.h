@@ -41,16 +41,16 @@ struct Vector
 };
 
 /* Constructor/destructor */
-struct Vector* newVector_(int elSize, int initSize);
+struct Vector* newVector_(int elSize, int initSize,char *,int);
 #define newVector(type, initSize) \
- newVector_((int)sizeof(type), initSize)
+ newVector_((int)sizeof(type), initSize,__FILE__,__LINE__)
 
 #ifdef DEBUG_MALLOC
-	void deleteVector_(char *file, int line, int elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), me)
+	void deleteVector_(char *file, int line, int elSize, struct Vector**);
+	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,(int)sizeof(type), &(me))
 #else
-	void deleteVector_(int elSize, struct Vector*);
-	#define deleteVector(type, me) deleteVector_((int)sizeof(type), me)
+	void deleteVector_(int elSize, struct Vector**);
+	#define deleteVector(type, me) deleteVector_((int)sizeof(type), &(me))
 #endif
 
 /* Ensures there's at least one space free. */

@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Vector.c,v 1.8 2010/12/07 18:27:50 crc_canada Exp $
+$Id: Vector.c,v 1.9 2012/08/25 01:11:51 crc_canada Exp $
 
 ???
 
@@ -47,7 +47,7 @@ $Id: Vector.c,v 1.8 2010/12/07 18:27:50 crc_canada Exp $
 
 /* Constructor/destructor */
 
-struct Vector* newVector_(int elSize, int initSize) {
+struct Vector* newVector_(int elSize, int initSize,char *fi, int line) {
  	struct Vector* ret=MALLOC(struct Vector *, sizeof(struct Vector));
  	ASSERT(ret);
  	ret->n=0;
@@ -55,23 +55,32 @@ struct Vector* newVector_(int elSize, int initSize) {
  	ret->data=MALLOC(void *, elSize*ret->allocn);
  	ASSERT(ret->data);
 	#ifdef DEBUG_MALLOC
-		printf ("vector, new  %x, data %x, size %d\n",ret, ret->data, initSize);
+		ConsoleMessage ("vector, new  %x, data %x, size %d at %s:%d",ret, ret->data, initSize,fi,line);
 	#endif
 	
 	return ret;
 }
 
 #ifdef DEBUG_MALLOC
-void deleteVector_(char *file, int line, int elSize, struct Vector* me) {
+void deleteVector_(char *file, int line, int elSize, struct Vector** myp) {
 #else
-void deleteVector_(int elSize, struct Vector* me) {
+void deleteVector_(int elSize, struct Vector** myp) {
 #endif
+
+	struct Vector *me = *myp;
+
+	if (!me) {
+		ConsoleMessage ("Vector - already empty");
+		return;
+	}
+
 	ASSERT(me);
 	#ifdef DEBUG_MALLOC
-		printf ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
+		ConsoleMessage ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
 	#endif
 	if(me->data) {FREE_IF_NZ(me->data);}
 	FREE_IF_NZ(me);
+	*myp = NULL;
 }
 
 /* Ensures there's at least one space free. */
