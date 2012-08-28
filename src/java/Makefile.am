@@ -9,7 +9,7 @@ CLASSPATH_ENV = CLASSPATH=$(JAVAROOT):$(top_srcdir)/src/java:$$CLASSPATH
 jarfile = vrml.jar
 jardir = $(JAVA_DIR)
 
-$(jarfile): $(dist_noinst_JAVA) classdist_noinst.stamp
+$(jarfile): $(dist_noinst_JAVA)
 	$(JAR) cmf $(JAVAROOT)/manifest.extras $@ -C $(JAVAROOT) $$(echo $(dist_noinst_JAVA:.java=.class))
 
 jar_DATA = $(jarfile)	
