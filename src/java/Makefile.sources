@@ -1,4 +1,4 @@
-dist_noinst_JAVA = \
+noinst_JAVA = \
 	org/web3d/x3d/sai/Browser.java \
 	org/web3d/x3d/sai/BrowserEvent.java \
 	org/web3d/x3d/sai/BrowserFactoryImpl.java \
