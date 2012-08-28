@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Networking.c,v 1.45 2012/05/17 02:38:56 crc_canada Exp $
+$Id: Component_Networking.c,v 1.46 2012/08/28 15:33:52 crc_canada Exp $
 
 X3D Networking Component
 
@@ -547,7 +547,7 @@ static void loadInline(struct X3D_Inline *me)
 				res->media_type = resm_unknown;
 				res->where = X3D_NODE(me);
 				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
-				send_resource_to_parser_async(res);
+				send_resource_to_parser_async(res,__FILE__,__LINE__);
 				me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {
 				if ((res->status == ress_failed) || (res->status == ress_invalid)) {
@@ -649,7 +649,7 @@ void load_Inline (struct X3D_Inline *node) {
 				res->media_type = resm_unknown;
 				res->where = X3D_NODE(node);
 				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
-				send_resource_to_parser(res);
+				send_resource_to_parser(res,__FILE__,__LINE__);
 				node->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
 			} else {
 				if ((res->status == ress_failed) || (res->status == ress_invalid)) {

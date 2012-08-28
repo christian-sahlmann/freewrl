@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CParseLexer.c,v 1.48 2012/07/19 20:09:43 crc_canada Exp $
+$Id: CParseLexer.c,v 1.49 2012/08/28 15:33:52 crc_canada Exp $
 
 ???
 
@@ -202,21 +202,32 @@ void lexer_destroyIdStack(Stack* s)
  deleteStack(struct Vector*, s);
  s = NULL; /* JAS */
 }
+
+
+#ifdef OLDCODE
 void lexer_destroyIdVector(struct Vector* v)
-{
- int i;
- ASSERT(v);
- for(i=0; i!=vectorSize(v); ++i)
-  FREE_IF_NZ (vector_get(char*, v, i));
- deleteVector(char*, v);
-}
+OLDCODE{
+OLDCODE int i;
+OLDCODE if (v==NULL) {
+OLDCODE	ConsoleMessage("lexer_destroyIdVector - vector already NULL");
+OLDCODE	return;
+OLDCODE }
+OLDCODE
+OLDCODE ASSERT(v);
+OLDCODE for(i=0; i!=vectorSize(v); ++i) {
+OLDCODE  FREE_IF_NZ (vector_get(char*, v, i));
+OLDCODE }
+OLDCODE
+OLDCODE deleteVector(char*, v);
+OLDCODE}
+#endif //OLDCODE
 
 void lexer_destroyData(struct VRMLLexer* me)
 {
  #define DESTROY_IDVEC(v) \
-  if(v) \
-   lexer_destroyIdVector(v); \
-  v=NULL;
+  if(v) { int i; for(i=0; i<vectorSize(v); i++) {FREE_IF_NZ (vector_get(char*, v, i));} deleteVector(char*,v);} \
+   /* lexer_destroyIdVector(v); */ \
+  v=NULL /* might be redundant */ ;
   
  /* User node names */
  if(me->userNodeNames)

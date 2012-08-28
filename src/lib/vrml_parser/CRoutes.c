@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.85 2012/06/30 22:09:45 davejoubert Exp $
+$Id: CRoutes.c,v 1.86 2012/08/28 15:33:52 crc_canada Exp $
 
 ???
 
@@ -670,7 +670,6 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 /*								*/
 /****************************************************************/
 
-
 void AddRemoveChildren (
 		struct X3D_Node *parent,
 		struct Multi_Node *tn,
@@ -700,6 +699,10 @@ void AddRemoveChildren (
 		printf ("Freewrl: AddRemoveChildren, parent and/or field NULL\n");
 		return;
 	}
+
+	/* mark the parent changed, eg, rootNode() will not be sorted if this is not marked */
+	parent->_change ++;
+
 
 	oldlen = tn->n;
 	#ifdef CRVERBOSE
@@ -762,6 +765,11 @@ void AddRemoveChildren (
 				printf ("AddRemoveChildren, Add, but new node is null; ignoring...\n");
 			}
 		}
+		/*
+		for (counter = 0; counter < tn->n; counter++) {
+			printf ("AddRemoveChildren, checking, we have index %d node %p\n",counter,tn->p[counter]);
+		}
+		*/
 	} else {
 		int finalLength;
 		int num_removed;
@@ -853,7 +861,6 @@ void AddRemoveChildren (
 
 	update_node(parent);
 }
-
 
 
 /* These events must be run first during the event loop, as they start an event cascade.

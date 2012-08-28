@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Geospatial.c,v 1.62 2011/07/15 18:56:20 dug9 Exp $
+$Id: Component_Geospatial.c,v 1.63 2012/08/28 15:33:52 crc_canada Exp $
 
 X3D Geospatial Component
 
@@ -1689,7 +1689,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	/* how about the children field ?? */
 	MARK_MFNODE_INOUT_EVENT(node->children, node->__oldChildren, offsetof (struct X3D_GeoLocation, children))
 
-
+	REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
 	
@@ -2902,6 +2902,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 			node->__localOrient.c[3]);
 	#endif
 
+	REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
 	

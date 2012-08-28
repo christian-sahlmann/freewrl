@@ -1,5 +1,5 @@
 /*
-  $Id: pluginUtils.c,v 1.58 2012/06/18 17:41:43 crc_canada Exp $
+  $Id: pluginUtils.c,v 1.59 2012/08/28 15:33:52 crc_canada Exp $
 
   FreeWRL support library.
   Plugin interaction.
@@ -298,7 +298,7 @@ int doBrowserAction()
 					resToLoad = resource_create_single(p->plugin_res->actual_file);
 
 					/* in with the new... */
-					send_resource_to_parser(resToLoad);
+					send_resource_to_parser(resToLoad,__FILE__,__LINE__);
 					p->waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
@@ -313,7 +313,7 @@ int doBrowserAction()
 						/* we want to clean out the old world AND load a new one in */
 						p->plugin_res = resource_create_single (p->plugin_res->parsed_request);
 
-						send_resource_to_parser(p->plugin_res);
+						send_resource_to_parser(p->plugin_res,__FILE__,__LINE__);
 
 						p->waitingForURLtoLoad = TRUE;
 						return TRUE; /* keep the browser ticking along here */
@@ -358,7 +358,7 @@ OLDCODE
 OLDCODE			/* we want to clean out the old world AND load a new one in */
 OLDCODE			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
 OLDCODE
-OLDCODE			send_resource_to_parser_async(p->plugin_res);
+OLDCODE			send_resource_to_parser_async(p->plugin_res,__FILE__,__LINE__);
 OLDCODE
 OLDCODE			p->waitingForURLtoLoad = TRUE;
 OLDCODE			return TRUE; /* keep the browser ticking along here */
@@ -400,9 +400,11 @@ bool Anchor_ReplaceWorld(const char *name)
 {
 	resource_item_t *AR_res;
 
+ConsoleMessage ("Anchor_ReplaceWorld called\n");
+
 	AR_res = resource_create_single(name);
 	AR_res->new_root = TRUE;
-	send_resource_to_parser(AR_res);
+	send_resource_to_parser(AR_res,__FILE__,__LINE__);
 	resource_wait(AR_res);
 
 	if (AR_res->status != ress_loaded) {

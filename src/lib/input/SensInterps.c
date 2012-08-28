@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: SensInterps.c,v 1.40 2012/06/18 17:41:43 crc_canada Exp $
+$Id: SensInterps.c,v 1.41 2012/08/28 15:33:52 crc_canada Exp $
 
 Do Sensors and Interpolators in C, not in perl.
 
@@ -1777,7 +1777,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 
 	resource_get_valid_url_from_multi(parentPath, res);
 
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 	resource_wait(res);
 	
 	if (res->status == ress_loaded) {

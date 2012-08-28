@@ -1,5 +1,5 @@
 /*
-  $Id: main.c,v 1.80 2012/07/18 21:14:50 crc_canada Exp $
+  $Id: main.c,v 1.81 2012/08/28 15:33:52 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -74,33 +74,39 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
  * Explicit initialization
  */
  
-#if defined (_ANDROID)
 
-// Android library initialization - similar to iPhone but we will poke files in later
-
-int fwl_ANDROID_initialize(void)
-{
-
-	/* Initialize console (log, error, ...) */
-	setbuf(stdout,0);
-	setbuf(stderr,0);
-	
-	fwl_initParams(NULL);
-	fwl_setp_width(480);
-	fwl_setp_height(320);
-	fwl_setp_eai(FALSE);
-	fwl_setp_fullscreen(FALSE);
-	//fwl_setp_collision(1);
-		
-	if (!fwl_initFreeWRL(NULL)) {
-		ERROR_MSG("main: aborting during initialization.\n");
-		exit(1);
-	}
-	
-
-	return TRUE;
-}
-#endif // _ANDROID
+#ifdef OLDCODE
+OLDCODE #if defined (_ANDROID)
+OLDCODE 
+OLDCODE // Android library initialization - similar to iPhone but we will poke files in later
+OLDCODE 
+OLDCODE int fwl_ANDROID_initialize(void)
+OLDCODE {
+OLDCODE 
+OLDCODE ConsoleMessage ("fwl_ANDROID_initialize - calling fwl_OSX_initializeParameters");
+OLDCODE 
+OLDCODE 
+OLDCODE 	/* Initialize console (log, error, ...) */
+OLDCODE 	setbuf(stdout,0);
+OLDCODE 	setbuf(stderr,0);
+OLDCODE 	
+OLDCODE 	fwl_initParams(NULL);
+OLDCODE 	fwl_setp_width(480);
+OLDCODE 	fwl_setp_height(320);
+OLDCODE 	fwl_setp_eai(FALSE);
+OLDCODE 	fwl_setp_fullscreen(FALSE);
+OLDCODE 	//fwl_setp_collision(1);
+OLDCODE 		
+OLDCODE 	if (!fwl_initFreeWRL(NULL)) {
+OLDCODE 		ERROR_MSG("main: aborting during initialization.\n");
+OLDCODE 		exit(1);
+OLDCODE 	}
+OLDCODE 	
+OLDCODE 
+OLDCODE 	return TRUE;
+OLDCODE }
+OLDCODE #endif // _ANDROID
+#endif //OLDCODE
 
 
 #if defined (TARGET_AQUA) || defined(_ANDROID)
@@ -116,6 +122,8 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     /* have we been through once already (eg, plugin loading new file)? */
     if (!qParamsInit) {
+	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
+
 	fwl_initParams(NULL);
 
     	/* Default values */
@@ -124,18 +132,23 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     	fwl_setp_eai(FALSE);
     	fwl_setp_fullscreen(FALSE);
     	/* removed by doug fwl_setp_collision(1); */
-    } 
+
+	qParamsInit = TRUE;
 
     /* start threads, parse initial scene, etc */
 
-   if (!fwl_initFreeWRL(NULL)) {
-	ERROR_MSG("main: aborting during initialization.\n");
-	exit(1);
-   }
+	//ConsoleMessage ("calling fwl_initFreeWRL from within fwl_OSX_initializeParameters");
+
+	   if (!fwl_initFreeWRL(NULL)) {
+		ERROR_MSG("main: aborting during initialization.\n");
+		exit(1);
+	   }
+    } 
 
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
-    send_resource_to_parser(res);
+    res->new_root = TRUE;
+    send_resource_to_parser(res,__FILE__,__LINE__);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
             usleep(500);
@@ -229,19 +242,26 @@ bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
 bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
 //int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 
-ttglobal fwl;
+static ttglobal fwl_instance_parameters = NULL;
+
+
 void* fwl_init_instance()
 {
-	fwl = iglobal_constructor();
-	return (void *)fwl;
+	ConsoleMessage ("called fwl_init_instance");
+	fwl_instance_parameters = iglobal_constructor();
+	return (void *)fwl_instance_parameters;
 }
 bool fwl_initFreeWRL(freewrl_params_t *params)
-//bool fwl_initFreeWRL(freewrl_params_t *params)
 {
-	ttglobal tg = (ttglobal)fwl;
+	ttglobal tg = (ttglobal)fwl_instance_parameters;
+
+	//ConsoleMessage ("fwl_initFreeWRL, tg %p",tg);
+
 	if(tg == NULL) tg = fwl_init_instance();
-	fwl = NULL;
+
 	TRACE_MSG("FreeWRL: initializing...\n");
+
+	//ConsoleMessage ("fwl_initFreeWRL, mainThread %p",tg->threads.mainThread);
 
 	tg->threads.mainThread = pthread_self();
 
@@ -319,7 +339,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 void fwl_startFreeWRL(const char *url)
 {
 
-	//printf ("fwl_startFreeWRL called\n");
+printf ("yes, really, FWL_STARTFREEWRL called is called\n");
+
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
 

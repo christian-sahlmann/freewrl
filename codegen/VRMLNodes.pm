@@ -1,5 +1,5 @@
 #
-# $Id: VRMLNodes.pm,v 1.64 2012/08/01 15:32:43 crc_canada Exp $
+# $Id: VRMLNodes.pm,v 1.65 2012/08/28 15:33:52 crc_canada Exp $
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -159,7 +159,6 @@ package VRML::NodeType;
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 
 
@@ -173,7 +172,6 @@ package VRML::NodeType;
                 __children => [MFNode, [], inputOutput, 0],
 		__loadstatus =>[SFInt32,0,initializeOnly, 0],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
 		 __loadResource => [FreeWRLPTR, 0, initializeOnly, 0],
 	},"X3DNetworkSensorNode"),
 
@@ -1308,7 +1306,7 @@ package VRML::NodeType;
 			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			_rotationAngle =>[SFDouble, 0, initializeOnly, 0],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
+			#JAS _sortedChildren => [MFNode, [], inputOutput, 0],
 					   },"X3DGroupingNode"),
 
 	Collision => new VRML::NodeType("Collision", {
@@ -1322,7 +1320,7 @@ package VRML::NodeType;
 			proxy => [SFNode, NULL, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			collideTime => [SFTime, -1, outputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
+			#JAS _sortedChildren => [MFNode, [], inputOutput, 0],
 			# return info for collisions
 			# bit 0 : collision or not
 			# bit 1: changed from previous of not
@@ -3011,7 +3009,6 @@ package VRML::NodeType;
 
 		FreeWRL__protoDef => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
 		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
 	},"X3DGroupingNode"),
 
 	# The PointPickSensor node tests one or more points in space as lying inside the provided target geometry.

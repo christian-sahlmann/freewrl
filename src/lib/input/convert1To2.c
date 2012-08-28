@@ -153,7 +153,8 @@ void tokenizeVRML1_(char *pb) {
 
 	/* make up deconstructedProtoBody here */
  	p->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
-	ASSERT(gglobal()->convert1To2.deconstructedProtoBody);
+	ASSERT(p->deconstructedProtoBody);
+
 
 
 	while (lex->isEof == FALSE) 

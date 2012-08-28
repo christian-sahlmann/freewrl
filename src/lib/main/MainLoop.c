@@ -1,5 +1,5 @@
 /*
-  $Id: MainLoop.c,v 1.267 2012/08/21 23:02:19 dug9 Exp $
+  $Id: MainLoop.c,v 1.268 2012/08/28 15:33:52 crc_canada Exp $
 
   FreeWRL support library.
   Main loop : handle events, ...
@@ -314,7 +314,7 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
 
 /* we bind bindable nodes on parse in this thread */
 #define SEND_BIND_IF_REQUIRED(node) \
-                if (node != NULL) { send_bind_to(X3D_NODE(node),1); node = NULL; }
+                if (node != NULL) { /* ConsoleMessage ("sendBind in render"); */ send_bind_to(X3D_NODE(node),1); node = NULL; }
 
 
 
@@ -664,8 +664,9 @@ void fwl_RenderSceneUpdateScene() {
 
     PRINT_GL_ERROR_IF_ANY("after depth")
         /* actual rendering */
-        if (p->onScreen)
-			render();
+        if (p->onScreen) {
+		render();
+	}
 
         /* handle_mouse events if clicked on a sensitive node */
 	 //printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);  
@@ -1983,7 +1984,14 @@ void fwl_initializeRenderSceneUpdateScene() {
 	ttglobal tg = gglobal();
 #endif
     
-	/* printf ("fwl_initializeRenderSceneUpdateScene start\n"); */
+	/*
+	ConsoleMessage("fwl_initializeRenderSceneUpdateScene start\n"); 
+	if (rootNode()==NULL) {
+		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode NULL\n"); 
+	} else {
+		ConsoleMessage("fwl_initializeRenderSceneUpdateScene rootNode %d children \n",rootNode()->children.n); 
+	}
+	*/
 
 #if KEEP_X11_INLIB
 	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling fwl_initializeRenderSceneUpdateScene */
@@ -2014,6 +2022,8 @@ void fwl_initializeRenderSceneUpdateScene() {
 }
 
 void finalizeRenderSceneUpdateScene() {
+printf ("finalizeRenderSceneUpdateScene\n");
+
     	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 }
 
@@ -2193,30 +2203,32 @@ void outOfMemory(const char *msg) {
         exit(EXIT_FAILURE);
 }
 
-#if defined (_ANDROID)
-
-// we are loading a new file, or just not visible anymore
-void fwl_Android_doQuitInstance()
-{
-
-    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
-	stopLoadThread();
-	stopPCThread();
-
-    /* set geometry to normal size from fullscreen */
-    if (newResetGeometry != NULL) newResetGeometry();
-
-    /* kill any remaining children */
-    killErrantChildren();
-    
-#ifdef DEBUG_MALLOC
-    void scanMallocTableOnQuit(void);
-    scanMallocTableOnQuit();
-#endif
-	/* tested on win32 console program July9,2011 seems OK */
-	iglobal_destructor(gglobal());
-}
-#else
+#ifdef OLDCODE
+OLDCODE#if defined (_ANDROID)
+OLDCODE
+OLDCODE// we are loading a new file, or just not visible anymore
+OLDCODEvoid fwl_Android_doQuitInstance()
+OLDCODE{
+OLDCODE
+OLDCODE    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
+OLDCODE	stopLoadThread();
+OLDCODE	stopPCThread();
+OLDCODE
+OLDCODE    /* set geometry to normal size from fullscreen */
+OLDCODE    if (newResetGeometry != NULL) newResetGeometry();
+OLDCODE
+OLDCODE    /* kill any remaining children */
+OLDCODE    killErrantChildren();
+OLDCODE    
+OLDCODE#ifdef DEBUG_MALLOC
+OLDCODE    void scanMallocTableOnQuit(void);
+OLDCODE    scanMallocTableOnQuit();
+OLDCODE#endif
+OLDCODE	/* tested on win32 console program July9,2011 seems OK */
+OLDCODE	iglobal_destructor(gglobal());
+OLDCODE}
+OLDCODE#else
+#endif //OLDCODE
 void fwl_doQuitInstance()
 {
 
@@ -2244,17 +2256,18 @@ void fwl_doQuitInstance()
 	iglobal_destructor(gglobal());
 
 }
-#endif //ANDROID
+
+//OLDCODE #endif //ANDROID
 
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void fwl_doQuit()
 {
-#if defined(_ANDROID)
-	fwl_Android_doQuitInstance();
-#else //ANDROID
+//OLDCODE #if defined(_ANDROID)
+//OLDCODE 	fwl_Android_doQuitInstance();
+//OLDCODE #else //ANDROID
 	fwl_doQuitInstance();
-#endif //ANDROID
+//OLDCODE #endif //ANDROID
     exit(EXIT_SUCCESS);
 }
 
@@ -2571,11 +2584,6 @@ void fwl_init_EaiVerbose() {
 #if defined (_ANDROID)
 
 void fwl_Android_replaceWorldNeeded() {
-	// ConsoleMessage ("remove old world, but leave threads intact");
-	rootNode()->children.n = 0;
-
-
-
 	int i;
 	#ifndef AQUA
         char mystring[20];
@@ -2597,14 +2605,16 @@ void fwl_Android_replaceWorldNeeded() {
 		send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
 	}
 
-
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode()->children.n; i++) {
 		markForDispose(rootNode()->children.p[i], TRUE);
 	}
 
-	/* stop rendering */
-	rootNode()->children.n = 0;
+
+	/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
+	but lets do it here just to make sure */
+	rootNode()->children.n = 0; // no children, but _sortedChildren not made; 
+	rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();

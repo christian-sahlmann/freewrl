@@ -1,5 +1,5 @@
 /*
-  $Id: jsVRML_SFClasses.c,v 1.48 2012/04/21 21:21:40 dug9 Exp $
+  $Id: jsVRML_SFClasses.c,v 1.49 2012/08/28 15:33:53 crc_canada Exp $
 
   A substantial amount of code has been adapted from js/src/js.c,
   which is the sample application included with the javascript engine.
@@ -1301,7 +1301,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, sending resource to parser\n");
 				#endif
-				send_resource_to_parser(res);
+				send_resource_to_parser(res,__FILE__,__LINE__);
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, waiting on resource\n");
 				#endif

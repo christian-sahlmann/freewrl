@@ -1,5 +1,5 @@
 /*
-  $Id: ProdCon.c,v 1.107 2012/07/20 14:56:09 crc_canada Exp $
+  $Id: ProdCon.c,v 1.108 2012/08/28 15:33:52 crc_canada Exp $
 
   Main functions II (how to define the purpose of this file?).
 */
@@ -118,13 +118,13 @@ uintptr_t _fw_instance = 0;
 	if (p->_P_LOCK_VAR==0) { \
 		p->_P_LOCK_VAR=1; \
 	} \
-	else printf ("SEND_TO_PARSER = flag wrong!\n");
+	else ConsoleMessage ("SEND_TO_PARSER = flag wrong!\n");
 
 #define PARSER_FINISHING \
 	if (p->_P_LOCK_VAR==1) { \
 		p->_P_LOCK_VAR=0; \
 	} \
-	else printf ("PARSER_FINISHING - flag wrong!\n");
+	else ConsoleMessage ("PARSER_FINISHING - flag wrong!\n");
 
 #define UNLOCK \
 	pthread_cond_signal(&gglobal()->threads.resource_list_condition); pthread_mutex_unlock(&gglobal()->threads.mutex_resource_list); 
@@ -400,14 +400,34 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
 	}
 
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 	resource_wait(res);
 	FREE_IF_NZ(newString);
 	return (res->status == ress_parsed);
 }
 
-void send_resource_to_parser(resource_item_t *res)
+void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 {
+
+	// ConsoleMessage ("send_resource_to_parser from %s:%d",fi,li);
+
+	if (res->new_root) {
+		//ConsoleMessage("send_resource_to_parser, new_root\n");
+        	/* mark all rootNode children for Dispose */
+		int i;
+        	for (i=0; i<rootNode()->children.n; i++) {
+                	markForDispose(rootNode()->children.p[i], TRUE);
+        	}
+
+		// force rootNode to have 0 children, compile_Group will make
+		// the _sortedChildren field mimic the children field.
+		rootNode()->children.n = 0; rootNode()->_change ++;
+
+		//printf ("send_resource_to_parser, rootnode children count set to 0\n");
+
+	}
+
+
 	/* We are not in parser thread, most likely
 	   in main or display thread, and we successfully
 	   parsed a resource request.
@@ -442,7 +462,10 @@ void send_resource_to_parser(resource_item_t *res)
 	/* grab any data we want */
 	UNLOCK;
 }
-void send_resource_to_parser_async(resource_item_t *res)
+
+
+
+void send_resource_to_parser_async(resource_item_t *res,char *fi, int li)
 {
 	/* We are not in parser thread, most likely
 	   in main or display thread, and we successfully
@@ -568,12 +591,14 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 		/* 
 		printf ("res %p root_res %p\n",res,gglobal()->resources.root_res); 
+		ConsoleMessage ("pc - res %p root_res %p\n",res,gglobal()->resources.root_res); 
 		*/
 
 		/* bind ONLY in main - do not bind for Inlines, etc */
 		if (res == gglobal()->resources.root_res) {
 			kill_bindables();
 			shouldBind = TRUE;
+			//ConsoleMessage ("pc - shouldBind");
 		} else {
 			if (!tg->resources.root_res->complete) {
 				/* Push the parser state : re-entrance here */
@@ -715,7 +740,7 @@ static bool parser_process_res(s_list_t *item)
 
 	res = ml_elem(item);
 
-	// printf("\nprocessing resource: type %s, status %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status)); 
+	//printf("\nprocessing resource: type %s, status %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status)); 
 	switch (res->status) {
 
 	case ress_invalid:
@@ -874,6 +899,7 @@ void _inputParseThread(void)
 
 			/* Unlock the resource list */
 			PARSER_FINISHING;
+
 			UNLOCK;
 		}
 	}

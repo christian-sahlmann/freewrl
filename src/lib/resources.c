@@ -1,5 +1,5 @@
 /*
-  $Id: resources.c,v 1.58 2012/07/20 14:56:09 crc_canada Exp $
+  $Id: resources.c,v 1.59 2012/08/28 15:33:52 crc_canada Exp $
 
   FreeWRL support library.
   Resources handling: URL, files, ...
@@ -54,6 +54,21 @@
 
 static void possiblyUnzip (openned_file_t *of);
 
+/* move Michel Briand's initialization code to one place to ensure consistency
+   when fields are added/removed */
+
+static resource_item_t *newResourceItem() {
+	resource_item_t *item = XALLOC(resource_item_t);
+	
+	/* item is NULL for every byte; some of the enums might not work out to 0 */
+	item->media_type = resm_unknown;
+	item->type = rest_invalid;
+	item->status = ress_invalid;
+
+	return item;
+}
+
+
 /**
  *   When main world/file is initialized, setup this
  *   structure. It stores essential information to make
@@ -63,22 +78,16 @@ static void possiblyUnzip (openned_file_t *of);
  *   Main path/url will fill the  'base' field = base path
  *   or base url of the world.
  */
-//resource_item_t *root_res = NULL;
 
 /**
  *   resource_create_single: create the resource object and add it to the root list.
  */
 resource_item_t* resource_create_single(const char *request)
 {
-	resource_item_t *item;
-
 	DEBUG_RES("creating resource: SINGLE: %s\n", request);
 
-	item = XALLOC(resource_item_t);
+	resource_item_t *item = newResourceItem();
 	item->request = STRDUP(request);
-	item->type = rest_invalid;
-	item->status = ress_invalid;
-	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
@@ -106,17 +115,12 @@ resource_item_t* resource_create_single(const char *request)
  */
 resource_item_t* resource_create_multi(s_Multi_String_t *request)
 {
-	resource_item_t *item;
+	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
+	resource_item_t *item = newResourceItem();
 	int i;
 
-	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
 
-	item = XALLOC(resource_item_t);
-	item->request = NULL;
-	item->m_request = NULL;
 	item->type = rest_multi;
-	item->status = ress_invalid;
-	item->afterPoundCharacters = NULL;
 
 
 	/* Convert Mutli_String to a list string */
@@ -152,15 +156,13 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
  */
 resource_item_t* resource_create_from_string(const char *string)
 {
-	resource_item_t *item;
-
 	DEBUG_RES("creating resource: STRING: %s\n", string);
+	resource_item_t *item = newResourceItem();
 
-	item = XALLOC(resource_item_t);
+
 	item->request = STRDUP(string);
 	item->type = rest_string;
 	item->status = ress_loaded;
-	item->afterPoundCharacters = NULL;
 
 	/* Lock access to the resource tree */
 	pthread_mutex_lock( &gglobal()->threads.mutex_resource_tree );
@@ -846,7 +848,7 @@ void fwl_resource_push_single_request(const char *request)
 		return;
 
 	res = resource_create_single(request);
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 }
 
 /**
@@ -860,7 +862,7 @@ void resource_push_multi_request(struct Multi_String *request)
 		return;
 
 	res = resource_create_multi(request);
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 }
 
 /**

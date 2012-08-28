@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Grouping.c,v 1.46 2011/07/15 18:56:21 dug9 Exp $
+$Id: Component_Grouping.c,v 1.47 2012/08/28 15:33:52 crc_canada Exp $
 
 X3D Grouping Component
 
@@ -63,11 +63,22 @@ void compile_Transform (struct X3D_Transform *node) {
 			node->__do_rotation ||
 			node->__do_scaleO);
 
+	REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
 }
 
+
 /* we compile the Group so that children are not continuously sorted */
 void compile_Group(struct X3D_Group *node) {
+	REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+	/*
+	{
+		int i;
+		ConsoleMessage ("compile_Group, rootNode is %p",rootNode());
+		for (i=0; i<node->children.n; i++) ConsoleMessage ("compile_Group %p, c %d is %p",node,i,node->children.p[i]);
+		for (i=0; i<node->_sortedChildren.n; i++) ConsoleMessage ("compile_Group %p, sc %d is %p",node,i,node->_sortedChildren.p[i]);
+	}
+	*/
 	MARK_NODE_COMPILED
 }
 
@@ -252,7 +263,8 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 	/* did this change? */
 	if NODE_NEEDS_COMPILING {
-		ConsoleMessage ("StaticGroup changed");
+		REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+		//ConsoleMessage ("StaticGroup changed");
 		MARK_NODE_COMPILED;
 	}
 
@@ -288,20 +300,33 @@ printf ("\n");
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-/*
+
+
+#ifdef VERBOSE
 	 {
 		int x;
 		struct X3D_Node *xx;
 
-		printf ("child_Group, this %u rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
-        printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, node->_sortedChildren.n);
+
+		printf ("child_Group, this %p rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
+//        printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+//         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->_sortedChildren.p[x]);
-			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			if (xx)
+			printf ("	%d: ch %p type %s dist %f\n",x, node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			else printf ("     chiuld %d null\n",x);
+		}
+		for (x=0; x<nc; x++) {
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			if (xx)
+			printf ("	%d: sch %p type %s dist %f\n",x, node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			else printf ("     chiuld %d null\n",x);
 		}
 	}
-*/
+#endif //VERBOSE
+
 
 
 

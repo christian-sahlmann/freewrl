@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.280 2012/08/09 15:07:02 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.281 2012/08/28 15:33:52 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -72,24 +72,15 @@
 
 
 
-#define USE_JS_EXPERIMENTAL_CODE 0
 void kill_rendering(void);
 
 /* Node Tracking */
-#if USE_JS_EXPERIMENTAL_CODE
 static void kill_X3DNodes(void);
-#endif
 
 static void createdMemoryTable();
 static void increaseMemoryTable();
-//static struct X3D_Node ** memoryTable = NULL;
-//static int tableIndexSize = INT_ID_UNDEFINED;
-//static int nextEntry = 0;
-//static struct X3D_Node *forgottenNode;
 
-#if USE_JS_EXPERIMENTAL_CODE
 static void killNode (int index);
-#endif
 
 static void mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 
@@ -139,7 +130,6 @@ typedef struct pOpenGL_Utils{
 	struct X3D_Node ** memoryTable;// = NULL;
 	int tableIndexSize;// = INT_ID_UNDEFINED;
 	int nextEntry;// = 0;
-	struct X3D_Node *forgottenNode;
 	float cc_red, cc_green, cc_blue, cc_alpha;
 	pthread_mutex_t  memtablelock;// = PTHREAD_MUTEX_INITIALIZER;
 	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
@@ -186,7 +176,6 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->memoryTable = NULL;
 		p->tableIndexSize = INT_ID_UNDEFINED;
 		p->nextEntry = 0;
-		//p->forgottenNode;
 		p->cc_red = 0.0f;
 		p->cc_green = 0.0f;
 		p->cc_blue = 0.0f;
@@ -2057,6 +2046,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
+ConsoleMessage ("kill_oldWorld called");
+
+
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), gglobal()->threads.DispThrd);
 #ifdef _MSC_VER
@@ -2336,9 +2328,6 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 		return FALSE;
 	}
 
-	if (node == p->forgottenNode) return TRUE;
-
-
 	LOCK_MEMORYTABLE
 	for (tc = 0; tc< p->nextEntry; tc++)
 		if (p->memoryTable[tc] == node) {
@@ -2380,13 +2369,19 @@ void registerX3DNode(struct X3D_Node * tmp){
 
 /*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
+	int i;
+
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	LOCK_MEMORYTABLE
-	if(nodePtr==(p->memoryTable[p->nextEntry-1])){
-		p->nextEntry-=1;
-		p->forgottenNode = nodePtr;
-	}	
+	/* find this node, and if found, just delete it from the memory table */
+	for (i=0; i<p->nextEntry; i++) {
+		if (p->memoryTable[i] == nodePtr) {
+			//ConsoleMessage("doNotRegisterThisNodeForSestroy, found %x at %d, rn %x",nodePtr,i,rootNode());
+			p->memoryTable[i] = NULL;
+
+		}
+	}
 	UNLOCK_MEMORYTABLE
 }
 
@@ -2433,7 +2428,7 @@ void increaseMemoryTable(){
 	3) the first pass shows that nodes are out of order 
 */
 
-static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *sortedCh, int needsCompiling, int sortForDistance) {
+static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *sortedCh, int sortForDistance) {
 	int i,j;
 	int nc;
 	int noswitch;
@@ -2447,25 +2442,17 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 
 	nc = ch->n;
 
-	/* printf ("sortChildren line %d nc %d ",line,nc);
+	#ifdef VERBOSE
+	printf ("sortChildren line %d nc %d ",line,nc);
 		if (sortForDistance) printf ("sortForDistance ");
-		if (needsCompiling) printf ("needsCompiling ");
 		printf ("\n");
-	*/
+	#endif //VERBOSE
+
 
 	/* has this changed size? */
 	if (ch->n != sortedCh->n) {
 		FREE_IF_NZ(sortedCh->p);
-		sortedCh->p = MALLOC (void *, sizeof (void *) * ch->n);
-		needsCompiling = TRUE; /* force this change; should be
-			set anyway */
-	}
-
-	/* copy the nodes over; we will sort the sorted list */
-
-	if (needsCompiling) {
-		memcpy (sortedCh->p,ch->p,sizeof (void *) * nc);
-		sortedCh->n = nc;
+		sortedCh->p = MALLOC (void *, sizeof (struct X3DNode *) * ch->n);
 	}
 
 	#ifdef VERBOSE
@@ -2723,9 +2710,9 @@ void startOfLoopNodeUpdates(void) {
 	for (i=0; i<p->nextEntry; i++){		
 		node = p->memoryTable[i];	
 		if (node != NULL) {
-			/* printf ("%d ref %d\n",i,node->referenceCount); */
-			if (node->referenceCount == 0) {
-				/* killNode(i); */
+			if (node->referenceCount <= 0) {
+				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
+				killNode(i);
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -2745,9 +2732,12 @@ void startOfLoopNodeUpdates(void) {
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_globalLight);
 		rn->_renderFlags = rn->_renderFlags & (0xFFFF^VF_Blend);
 	}
+
 	/* sort the rootNode, if it is Not NULL */
+	/* remember, the rootNode is not in the memoryTable, so we have to do this outside
+	   of that loop */
 	if (rootNode() != NULL) {
-		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,ROOTNODE_NEEDS_COMPILING,rootNode()->_renderFlags & VF_shouldSortChildren);
+		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
 		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
 	}
 
@@ -2853,8 +2843,6 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-					sortChildren (__LINE__,&X3D_ANCHOR(node)->children,&X3D_ANCHOR(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					ANCHOR_SENSITIVE(Anchor)
 					CHILDREN_NODE(Anchor)
@@ -2871,7 +2859,7 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
-					sortChildren (__LINE__,&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 				END_NODE
@@ -2886,7 +2874,7 @@ X3D_GROUP(node)->children.n,
 X3D_GROUP(node)->addChildren.n,
 X3D_GROUP(node)->removeChildren.n);
 */
-					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
 					propagateExtent(X3D_NODE(node));
@@ -2896,10 +2884,10 @@ X3D_GROUP(node)->removeChildren.n);
 #ifdef DJTRACK_PICKSENSORS
 				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup) 
-					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
-					propagateExtent(X3D_NODE(node));
+E_JS_EXPERIMENTAL_CODE
 					CHILDREN_NODE(PickableGroup) 
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
@@ -2917,13 +2905,12 @@ X3D_GROUP(node)->removeChildren.n);
 						}
 						vector_pushBack(struct X3D_Inline *, loadInlines, X3D_INLINE(node));
 					}
-					sortChildren (__LINE__,&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
+					
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
@@ -2950,16 +2937,12 @@ X3D_GROUP(node)->removeChildren.n);
 				END_NODE
 
 				BEGIN_NODE(Billboard) 
-					sortChildren (__LINE__,&X3D_BILLBOARD(node)->children,&X3D_BILLBOARD(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
-					sortChildren (__LINE__,&X3D_COLLISION(node)->children,&X3D_COLLISION(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Collision) 
 				END_NODE
@@ -3033,14 +3016,14 @@ X3D_GROUP(node)->removeChildren.n);
 				END_NODE
 
 				BEGIN_NODE (GeoTransform)
-					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoTransform) 
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
-					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
@@ -3091,7 +3074,7 @@ X3D_GROUP(node)->removeChildren.n);
 				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
 					lights, geometry, and viewpoints here. */
 				BEGIN_NODE(VRML1_Separator) 
-					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,NODE_NEEDS_COMPILING,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
@@ -3204,6 +3187,10 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	char * fieldPtr;
 
 	if (node==NULL) return;
+	if (node==rootNode()) {
+		ConsoleMessage ("not disposing rootNode");
+		return;
+	}
 
 	 
 /*
@@ -3292,7 +3279,6 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 }
 
 
-#if USE_JS_EXPERIMENTAL_CODE
 /*delete node created*/
 static void killNode (int index) {
 	int j=0;
@@ -3313,16 +3299,35 @@ static void killNode (int index) {
 	uintptr_t * VPtr;
 	struct Uni_String *MyS;
 
-	structptr = memoryTable[index];		
+ 	int i;
+
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+
+	structptr = p->memoryTable[index];		
+
+	/* give this time for things to "settle" in terms of rendering, etc */
+	structptr->referenceCount --;
+	if (structptr->referenceCount > -10) {
+		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
+		return;
+	}
+
+	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
 
 	#ifdef VERBOSE
-	printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
-	printf (" number of parents %d ", vectorSize(structptr->_parentVector);
-	printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
+	printf("Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
+	if (structptr) {
+	if (structptr->_parentVector)
+	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
+	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));  
+	} printf ("\n");
 	#endif
 
-	/* kill any parents that may exist. */
-	FREE_IF_NZ (structptr->_parents);
+	/* delete parent vector. */
+ 	deleteVector(char*, structptr->_parentVector);
+
 
 	fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
 	/*go thru all field*/				
@@ -3342,9 +3347,6 @@ static void killNode (int index) {
 
 		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
 			break; /* can be a duplicate SFNode pointer */
-	
-		if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
-			break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
 	
 		if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 			break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
@@ -3487,11 +3489,9 @@ static void killNode (int index) {
 		}
 		fieldOffsetsPtr+=5;	
 	}
-	FREE_IF_NZ(memoryTable[index]);
-	memoryTable[index]=NULL;
+	FREE_IF_NZ(p->memoryTable[index]);
+	p->memoryTable[index]=NULL;
 }
-#endif
-
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {
