@@ -1,6 +1,6 @@
 
 /*
-  $Id: OpenGL_Utils.c,v 1.281 2012/08/28 15:33:52 crc_canada Exp $
+  $Id: OpenGL_Utils.c,v 1.282 2012/08/29 19:56:17 crc_canada Exp $
 
   FreeWRL support library.
   OpenGL initialization and functions. Rendering functions.
@@ -2328,19 +2328,24 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 		return FALSE;
 	}
 
-	LOCK_MEMORYTABLE
+	if (node == X3D_NODE(rootNode())) return FALSE;
+
+	LOCK_MEMORYTABLE;
+
 	for (tc = 0; tc< p->nextEntry; tc++)
 		if (p->memoryTable[tc] == node) {
 			if (node->referenceCount > 0) {
-			UNLOCK_MEMORYTABLE
+			UNLOCK_MEMORYTABLE;
 			return TRUE;
+			}
 		}
-	}
+	
 
 
-	printf ("checkNode: did not find %p in memory table at i%s %d\n",node,fn,line);
+	//printf ("checkNode: did not find %p in memory table at i%s %d\n",node,fn,line);
 
-	UNLOCK_MEMORYTABLE
+	UNLOCK_MEMORYTABLE;
+
 	return FALSE;
 }
 
@@ -3165,6 +3170,10 @@ E_JS_EXPERIMENTAL_CODE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
+		ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n",
+vectorSize(tg->Bindable.viewpoint_stack));
+
+
 		update_renderFlag(vector_back(struct X3D_Node*, 
 			tg->Bindable.viewpoint_stack), VF_Viewpoint);
 		calculateNearFarplanes(vector_back(struct X3D_Node*, tg->Bindable.viewpoint_stack));
@@ -3279,6 +3288,53 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 }
 
 
+#define DELETE_IF_IN_PRODCON(aaa) \
+	if (tg->ProdCon.aaa) { \
+		bool foundIt = FALSE; \
+		ConsoleMessage ("ProdCon stack is %d in size\n",vectorSize(tg->ProdCon.aaa)); \
+		for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
+			if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) == structptr) { \
+				foundIt = TRUE; \
+				ConsoleMessage ("found it in the stack!\n"); \
+			} \
+		} \
+		if (foundIt) { \
+			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
+			for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
+				if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) != structptr) { \
+					vector_pushBack(struct X3D_Node*, newStack,  \
+						vector_get(struct X3D_Node*,tg->ProdCon.aaa,i)); \
+				} \
+			} \
+			deleteVector(struct X3D_Node*, tg->ProdCon.aaa); \
+			tg->ProdCon.aaa = newStack; \
+		} \
+	}
+
+#define DELETE_IF_IN_STACK(aaa) \
+	if (tg->Bindable.aaa) { \
+		bool foundIt = FALSE; \
+		ConsoleMessage ("Bindable stack is %d in size\n",vectorSize(tg->Bindable.aaa)); \
+		for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
+			if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) == structptr) { \
+				foundIt = TRUE; \
+				ConsoleMessage ("found it in the stack!\n"); \
+			} \
+		} \
+		if (foundIt) { \
+			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
+			for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
+				if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) != structptr) { \
+					vector_pushBack(struct X3D_Node*, newStack,  \
+						vector_get(struct X3D_Node*,tg->Bindable.aaa,i)); \
+				} \
+			} \
+			deleteVector(struct X3D_Node*, tg->Bindable.aaa); \
+			tg->Bindable.aaa = newStack; \
+		} \
+	}
+
+
 /*delete node created*/
 static void killNode (int index) {
 	int j=0;
@@ -3307,6 +3363,17 @@ static void killNode (int index) {
 
 	structptr = p->memoryTable[index];		
 
+	ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n",
+structptr,stringNodeType(structptr->_nodeType));
+
+
+	DELETE_IF_IN_STACK(viewpoint_stack);
+	DELETE_IF_IN_STACK(background_stack);
+	DELETE_IF_IN_STACK(fog_stack);
+	DELETE_IF_IN_STACK(navigation_stack);
+	DELETE_IF_IN_PRODCON(viewpointNodes);
+	delete_first(structptr);
+	
 	/* give this time for things to "settle" in terms of rendering, etc */
 	structptr->referenceCount --;
 	if (structptr->referenceCount > -10) {
@@ -3315,9 +3382,10 @@ static void killNode (int index) {
 	}
 
 	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
+#define VERBOSE
 
 	#ifdef VERBOSE
-	printf("Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
+	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
 	if (structptr) {
 	if (structptr->_parentVector)
 	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
@@ -3342,6 +3410,9 @@ static void killNode (int index) {
 			break; /* can be a duplicate SF/MFNode pointer */
 	
 		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
+			break; /* can be a duplicate SF/MFNode pointer */
+	
+		if (*fieldOffsetsPtr == FIELDNAMES__parentResource) 
 			break; /* can be a duplicate SF/MFNode pointer */
 	
 
@@ -3492,6 +3563,7 @@ static void killNode (int index) {
 	FREE_IF_NZ(p->memoryTable[index]);
 	p->memoryTable[index]=NULL;
 }
+#undef VERBOSE
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {

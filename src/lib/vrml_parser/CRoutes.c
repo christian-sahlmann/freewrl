@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: CRoutes.c,v 1.86 2012/08/28 15:33:52 crc_canada Exp $
+$Id: CRoutes.c,v 1.87 2012/08/29 19:56:17 crc_canada Exp $
 
 ???
 
@@ -320,9 +320,6 @@ struct FirstStruct {
 	void (*interpptr)(void *);
 };
 
-///* ClockTick structure and counter */
-//struct FirstStruct *ClockEvents = NULL;
-//int num_ClockEvents = 0;
 
 
 /* We buffer route registrations, JUST in case a registration comes from executing a route; eg,
@@ -915,12 +912,37 @@ void add_first(struct X3D_Node * node) {
 		}	
 	}
 
+	/* is there a free slot to slide this into? see delete_first */
+	for (count=0; count < p->num_ClockEvents; count ++) {
+		if (p->ClockEvents[count].tonode == NULL) {
+			/* printf ("add_first, already have %d\n",node); */
+			p->ClockEvents[count].interpptr = myp;
+			p->ClockEvents[count].tonode = node;
+			return;
+		}	
+	}
+
 
 	/* now, put the function pointer and data pointer into the structure entry */
 	p->ClockEvents[p->num_ClockEvents].interpptr = myp;
 	p->ClockEvents[p->num_ClockEvents].tonode = node;
 
 	p->num_ClockEvents++;
+}
+
+/* go through, and delete this entry from the do_first list, if it exists */
+void delete_first(struct X3D_Node *node) {
+	int count;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	if (p->ClockEvents) {
+		for (count=0; count < p->num_ClockEvents; count ++) {
+			if (p->ClockEvents[count].tonode == node) {
+				p->ClockEvents[count].tonode = NULL;
+				return;
+			}	
+		}
+	}
 }
 
 
@@ -1900,7 +1922,8 @@ void do_first() {
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
 	for (counter =0; counter < p->num_ClockEvents; counter ++) {
-		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
+		if (p->ClockEvents[counter].tonode)
+			p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);
 	}
 
 	/* now, propagate these events */
