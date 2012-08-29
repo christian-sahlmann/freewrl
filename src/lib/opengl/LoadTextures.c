@@ -1,5 +1,5 @@
 /*
-  $Id: LoadTextures.c,v 1.89 2012/07/18 21:23:21 dug9 Exp $
+  $Id: LoadTextures.c,v 1.90 2012/08/29 20:26:09 crc_canada Exp $
 
   FreeWRL support library.
   New implementation of texture loading.
@@ -699,6 +699,13 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	url = NULL;
 	res = NULL;
 
+    /* did this node just disappear? */
+    if (!checkNode(entry->scenegraphNode,__FILE__,__LINE__)) {
+        ConsoleMessage ("node for texture just deleted...\n");
+        return FALSE;
+    }
+    
+    
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:

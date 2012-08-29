@@ -1,7 +1,7 @@
 /*
 =INSERT_TEMPLATE_HERE=
 
-$Id: Component_Picking.c,v 1.6 2011/06/07 21:44:18 dug9 Exp $
+$Id: Component_Picking.c,v 1.7 2012/08/29 20:26:09 crc_canada Exp $
 
 X3D Picking Component
 
@@ -409,16 +409,21 @@ void deactivate_picksensors() {
 	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 
 	p->active_PickSensors = FALSE ; }
+
 int enabled_picksensors() 
 {
   int i;
   int someEnabled = FALSE;
   ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 
-  for(i=0;i<p->num_PickSensors;i++)
-	  someEnabled = someEnabled || ((struct X3D_PointPickSensor *)(p->PickSensors[i].tonode))->enabled;
+    for(i=0;i<p->num_PickSensors;i++) {
+        if (checkNode(p->PickSensors[i].tonode,__FILE__,__LINE__)) {
+        someEnabled = someEnabled || ((struct X3D_PointPickSensor *)(p->PickSensors[i].tonode))->enabled;
+        }
+    }
   return someEnabled;
  }
+
 int  active_picksensors() { 
 	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 	return (p->active_PickSensors && (p->num_PickSensors > 0)) ; }
@@ -457,30 +462,36 @@ void pick_Sphere (struct X3D_Sphere *node) {
 	for(i=0;i<p->num_PickSensors;i++)
 	{
 		struct X3D_Node *picksensor = p->PickSensors[i].tonode;
-		picksensor2world = p->PickSensors[i].picksensor2world;
-		matmultiply(shape2picksensor,picksensor2world,world2shape);
-		switch (picksensor->_nodeType) {
-			case NODE_PointPickSensor:  
-			{
-				struct X3D_PointPickSensor *pps = (struct X3D_PointPickSensor*)picksensor;
-				struct X3D_PointSet *points = (struct X3D_PointSet *)pps->pickingGeometry;
-				for(j=0;j<points->attrib.n;j++)
-				{
-					struct point_XYZ pickpoint;
-					transform(&pickpoint,(struct point_XYZ *)&points->attrib.p[j],picksensor2shape);
-					radiusSquared = vecdot(&pickpoint,&pickpoint);
-					if( radiusSquared < node->radius )
-					{
-						printf("bingo - we have a hit ");
-						/* according to specs, if we should report the intersection point then transform it into picksensor space */
-						transform(&pickpoint,&pickpoint,shape2picksensor);
-						printf(" at %lf %lf %lf in picksensor space\n",pickpoint.x,pickpoint.y,pickpoint.z);
-					}
 
-				}
-				break;
-			}
-		}
+        if (checkNode(picksensor,__FILE__,__LINE__)) {
+
+            picksensor2world = p->PickSensors[i].picksensor2world;
+		
+            matmultiply(shape2picksensor,picksensor2world,world2shape);
+            switch (picksensor->_nodeType) {
+                case NODE_PointPickSensor:  
+                {
+                    struct X3D_PointPickSensor *pps = (struct X3D_PointPickSensor*  )picksensor;
+				
+                    struct X3D_PointSet *points = (struct X3D_PointSet *)pps->pickingGeometry;
+                    for(j=0;j<points->attrib.n;j++)
+                    {
+                        struct point_XYZ pickpoint;
+                        transform(&pickpoint,(struct point_XYZ *)&points->attrib.p[j],picksensor2shape);
+                        radiusSquared = vecdot(&pickpoint,&pickpoint);
+                        if( radiusSquared < node->radius )
+                        {
+                            printf("bingo - we have a hit ");
+                            /* according to specs, if we should report the intersection point then transform it into picksensor space */
+                            transform(&pickpoint,&pickpoint,shape2picksensor);
+                            printf(" at %lf %lf %lf in picksensor space\n",pickpoint.x,pickpoint.y,pickpoint.z);
+                        }
+
+                    }
+                    break;
+                }
+            }
+        }
 	}
 }
 

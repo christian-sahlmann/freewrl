@@ -1,5 +1,5 @@
 /*
-  $Id: Textures.c,v 1.131 2012/08/09 17:14:30 crc_canada Exp $
+  $Id: Textures.c,v 1.132 2012/08/29 20:26:09 crc_canada Exp $
 
   FreeWRL support library.
   Texture handling code.
@@ -912,6 +912,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	nurls=1;
 	mytexdata = NULL;
 
+    /* did this node get killed on the way here? */
+    if (!checkNode(me->scenegraphNode, __FILE__,__LINE__)) {
+        ConsoleMessage ("main node disappeared, ignoring texture\n");
+        me->status = TEXTURE_INVALID;
+        return;
+    }
 	/* printf ("move_texture_to_opengl, node of type %s\n",stringNodeType(me->scenegraphNode->_nodeType));  */
 
 	/* is this texture invalid and NOT caught before here? */
@@ -1326,7 +1332,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 */
 
 	textureTableIndexStruct_s *myTableIndex;
-	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
+	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
@@ -1381,6 +1387,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			} else {
 				boundTextureStack[textureStackTop] = 
 					((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
+                note that scenegraphNode might be killed; should checkNode for it.
+                    
+                    
 			}
 #endif
 	
